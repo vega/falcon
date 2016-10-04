@@ -11,3 +11,15 @@ http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-T
 ```
 csvsql data/354826721_T_ONTIME.csv --db postgresql:///postgres --table flights --insert
 ```
+
+## Running
+
+* Watch the client side files
+```
+$ npm run watch
+```
+
+* Run the server and watch for changes
+```
+$ npm run server
+```

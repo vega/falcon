@@ -1,0 +1,30 @@
+{
+  "name": "big-crossfilter",
+  "version": "1.0.0",
+  "description": "Crossfiltering with a server",
+  "main": "index.js",
+  "scripts": {
+    "server": "nodemon server.js",
+    "watch": "watchify client.js -o public/bundle.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uwdata/big-crossfilter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/uwdata/big-crossfilter/issues"
+  },
+  "homepage": "https://github.com/uwdata/big-crossfilter#readme",
+  "dependencies": {
+    "d3": "^4.2.6",
+    "express": "^4.14.0",
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.10.2",
+    "watchify": "^3.7.0"
+  }
+}
