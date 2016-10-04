@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "server": "nodemon server.js",
-    "watch": "watchify client.js -o public/bundle.js",
+    "watch": "watchify client.js -o public/bundle.js -t babelify",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
+    "babel-preset-es2015": "^6.16.0",
+    "babelify": "^7.3.0",
     "d3": "^4.2.6",
     "express": "^4.14.0",
     "ws": "^1.1.1"
