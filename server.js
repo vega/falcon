@@ -6,6 +6,10 @@ const express = require('express');
 const app = express();
 const port = 4080;
 
+const SQL_QUERY = 'select min(timestamp) as time, min("air_temp") as temperature_min, max("air_temp") as temperature_max, avg("air_temp") as temperature_avg '+
+  'from weather_seattle where timestamp > $1 and timestamp < $2 '+
+  'group by width_bucket(timestamp, $1, $2, $3) order by time;';
+
 app.use(express.static(__dirname + '/public'));
 
 app.use((req, res) => {
