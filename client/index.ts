@@ -7,6 +7,4 @@ ws.onmessage = function (event) {
 
 ws.onopen = () => {
   ws.send('message');
-});
-
-console.log(ws);
+};

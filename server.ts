@@ -1,18 +1,16 @@
-const server = require('http').createServer();
-const url = require('url');
-const WebSocketServer = require('ws').Server;
+import {createServer} from 'http';
+import {Server as WebSocketServer} from 'ws';
+import * as url from 'url';
+import * as express from 'express';
+
+const server = createServer();
 const wss = new WebSocketServer({ server: server });
-const express = require('express');
 const app = express();
 const port = 4080;
 
 const SQL_QUERY = 'select width_bucket($1, $2, $3, $4) as bucket, count(*) from flights group by bucket order by bucket asc;';
 
 app.use(express.static(__dirname + '/public'));
-
-app.use((req, res) => {
-  res.send({ msg: "hello" });
-});
 
 wss.on('connection', (ws) => {
   var location = url.parse(ws.upgradeReq.url, true);
@@ -23,7 +21,7 @@ wss.on('connection', (ws) => {
     console.log('received: %s', message);
   });
 
-  ws.send('something');
+  ws.send('hello from the server');
 });
 
 server.on('request', app);
