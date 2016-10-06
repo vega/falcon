@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "server": "nodemon server.js",
-    "watch": "watchify client.js -o public/bundle.js -t babelify",
+    "watch": "watchify client.ts -p [ tsify ] -o public/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,10 +23,12 @@
     "babelify": "^7.3.0",
     "d3": "^4.2.6",
     "express": "^4.14.0",
+    "typescript": "^2.0.3",
     "ws": "^1.1.1"
   },
   "devDependencies": {
     "nodemon": "^1.10.2",
+    "tsify": "^1.0.8",
     "watchify": "^3.7.0"
   }
 }
