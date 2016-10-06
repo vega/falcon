@@ -6,7 +6,9 @@
     "outDir": "build",
     "typeRoots": [
       "../node_modules/@types"
-    ]
+    ],
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules",

@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec 'ts-node' server.ts",
-    "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js",
-    "build": "browserify client/index.ts -p [ tsify ] -o public/bundle.js",
+    "watch": "watchify client.ts -p [ tsify ] -o public/bundle.js",
+    "build": "browserify client.ts -p [ tsify ] -o public/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

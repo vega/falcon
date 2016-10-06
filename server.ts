@@ -1,3 +1,5 @@
+/// <reference path="interfaces.d.ts" />
+
 import {createServer} from 'http';
 import {Server as WebSocketServer} from 'ws';
 import * as url from 'url';
@@ -13,16 +15,23 @@ const SQL_QUERY = 'select width_bucket($1, $2, $3, $4) as bucket, count(*) from 
 app.use(express.static(__dirname + '/public'));
 
 wss.on('connection', (ws) => {
-  var location = url.parse(ws.upgradeReq.url, true);
+  // const location = url.parse(ws.upgradeReq.url, true);
   // you might use location.query.access_token to authenticate or share sessions
   // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
 
-  ws.on('message', (message) => {
+  ws.on('message', (message: string) => {
     console.log('received: %s', message);
   });
 
-  ws.send('hello from the server');
+  const result: Result = {
+    type: 'range',
+    ranges: {
+      arrDealy: [-20, 100]
+    },
+  };
+
+  ws.send(JSON.stringify(result));
 });
 
 server.on('request', app);
-server.listen(port, () => { console.log('Listening on ' + server.address().port) });
+server.listen(port, () => { console.log('Listening on ' + server.address().port); });

@@ -1,6 +1,6 @@
 type Rng = [number, number];
 
-export type Request = {
+declare type Request = {
     type: 'query',
     dims: {[domain: string] : {
         range: Rng,
@@ -11,7 +11,7 @@ export type Request = {
     dims: string[]
 };
 
-export type Result = {
+declare type Result = {
     type: 'query',
     data: {[dim: string]: number[]}
 } | {
