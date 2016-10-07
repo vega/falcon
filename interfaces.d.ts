@@ -1,24 +1,24 @@
 type Rng = [number, number];
 
 declare type Request = {
-    id: number,
+    id: string,
     type: 'query',
     dims: {[domain: string]: {
         range: Rng,
         numBins: number
     }}
 } | {
-    id: number,
+    id: string,
     type: 'range',
     dims: string[]
 };
 
 declare type Result = {
-    id: number,
+    id: string,
     type: 'query',
     data: {[dim: string]: number[]}
 } | {
     type: 'range',
-    id: number,
+    id: string,
     ranges: {[dim: string]: Rng}
 }
