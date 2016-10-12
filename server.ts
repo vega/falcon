@@ -10,7 +10,7 @@ const wss = new WebSocketServer({ server: server });
 const app = express();
 const port = 4080;
 
-const SQL_QUERY = 'select width_bucket($1, $2, $3, $4) as bucket, count(*) from flights group by bucket order by bucket asc;';
+const SQL_QUERY = 'select width_bucket($1, $2, $3, $4) as bucket, count(*) from flights where $5 group by bucket order by bucket asc;';
 
 app.use(express.static(__dirname + '/public'));
 
