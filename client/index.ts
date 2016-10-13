@@ -1,4 +1,8 @@
-/// <reference path="interfaces.d.ts" />
+/// <reference path="../interfaces.d.ts" />
+
+import * as uuid from 'node-uuid';
+import * as d3 from 'd3';
+import BrushableBar from './viz/brushable-bar';
 
 const host = window.document.location.host.replace(/:.*/, '');
 const ws = new WebSocket('ws://' + host + ':4080');
@@ -19,3 +23,7 @@ ws.onmessage = (event) => {
 ws.onopen = () => {
   ws.send('message');
 };
+
+
+
+// TODO - send the initial query to get ranges

@@ -4,8 +4,8 @@
   "description": "Crossfiltering with a server",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec 'ts-node' server.ts",
-    "watch": "watchify client.ts -p [ tsify ] -o public/bundle.js",
+    "start": "nodemon --ignore client --exec 'ts-node' server.ts",
+    "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js",
     "build": "browserify client.ts -p [ tsify ] -o public/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,8 +20,11 @@
   },
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
-    "d3": "^4.2.6",
+    "@types/d3": "^3.5.36",
+    "@types/node-uuid": "0.0.28",
+    "d3": "^3.5.17",
     "express": "^4.14.0",
+    "node-uuid": "^1.4.7",
     "typescript": "^2.0.3",
     "ws": "^1.1.1"
   },

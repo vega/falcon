@@ -15,8 +15,7 @@
     "public"
   ],
   "files": [
-    "node_modules/@types/node/index.d.ts",
-    "client.ts",
-    "server.ts"
+    "node_modules/@types/**/*.d.ts",
+    "client/**/*.ts"
   ]
 }

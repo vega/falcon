@@ -22,3 +22,9 @@ declare type Result = {
     id: string,
     ranges: {[dim: string]: Rng}
 }
+
+
+declare type Point = {
+  x: number,
+  y: number
+};
