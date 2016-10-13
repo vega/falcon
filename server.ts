@@ -25,8 +25,9 @@ wss.on('connection', (ws) => {
 
   const result: Result = {
     type: 'range',
+    id: "1234",
     ranges: {
-      arrDealy: [-20, 100]
+      arrDelay: [-20, 100]
     },
   };
 
