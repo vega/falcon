@@ -21,7 +21,13 @@ ws.onmessage = (event) => {
 };
 
 ws.onopen = () => {
-  ws.send('message');
+  const q: Request = {
+    id: uuid.v4(),
+    type: 'range',
+    dims: ['ARR_DELAY', 'DISTANCE'],
+  };
+
+  ws.send(JSON.stringify(q));
 };
 
 
