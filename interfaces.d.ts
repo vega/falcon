@@ -1,4 +1,4 @@
-type Rng = [number, number];
+declare type Rng = [number, number];
 
 declare type Request = {
     id: string,

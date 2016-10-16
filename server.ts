@@ -21,7 +21,6 @@ const config = {
 
 const db = pgp({})(config);
 
-
 app.use(express.static(__dirname + '/public'));
 
 wss.on('connection', (ws) => {
@@ -36,10 +35,23 @@ wss.on('connection', (ws) => {
 
     switch (request.type) {
       case 'range':
-        const query ='select ' + request.dims.map((d, i) => 'min("$' + (i+1) + ':raw"), max("$' + (i+1) + ':raw")').join(', ') + ' from flights;';
+        const query ='select ' + request.dims.map((d, i) => 'min("' + d + '"), max("' + d + '")').join(', ') + ' from flights;';
 
-        db.one(query, request.dims).then((data: any) => {
+        db.one({text: query, rowMode: 'array'}).then((data: any) => {
           console.log(data);
+
+          let ranges: {[dim: string]: Rng} = {};
+          for (let i=0; i<request.dims.length; i++) {
+            ranges[request.dims[i]] = [data[2*i], data[2*i+1]];
+          }
+
+          const result: Result = {
+            type: 'range',
+            id: request.id,
+            ranges: ranges,
+          };
+
+          ws.send(JSON.stringify(result));
         }).catch((error: Error) => {
           console.error(error);
         });
@@ -49,17 +61,6 @@ wss.on('connection', (ws) => {
         // TODO
         break;
     }
-
-    const result: Result = {
-      type: 'range',
-      id: '1234',
-      ranges: {
-        arrDelay: [-20, 100]
-      },
-    };
-
-    ws.send(JSON.stringify(result));
-
   });
 });
 
