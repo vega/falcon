@@ -4,8 +4,12 @@ declare type Request = {
     id: string,
     type: 'query',
     dims: {[domain: string]: {
-        range: Rng,
+        // the domain (smallest and largest value) of the dimension
+        domain: Rng,
+        // the number of bins for this domain
         numBins: number
+        // optional predicate, will not be applied to this domain but all others
+        range?: Rng
     }}
 } | {
     id: string,
@@ -14,9 +18,11 @@ declare type Request = {
 };
 
 declare type Result = {
+    // multiple results for the same query
     id: string,
     type: 'query',
-    data: {[dim: string]: number[]}
+    dim: string,
+    data: number[]
 } | {
     type: 'range',
     id: string,

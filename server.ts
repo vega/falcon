@@ -11,8 +11,6 @@ const wss = new WebSocketServer({ server: server });
 const app = express();
 const port = 4080;
 
-const GB_SQL_QUERY = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights where $5:raw group by bucket order by bucket asc;';
-
 const config = {
   database: 'postgres',
   host: 'localhost', // Server hosting the postgres database
@@ -35,20 +33,18 @@ wss.on('connection', (ws) => {
 
     switch (request.type) {
       case 'range':
-        const query ='select ' + request.dims.map((d, i) => 'min("' + d + '"), max("' + d + '")').join(', ') + ' from flights;';
+        const query = 'select ' + request.dims.map((d, i) => 'min("' + d + '"), max("' + d + '")').join(', ') + ' from flights;';
 
-        db.one({text: query, rowMode: 'array'}).then((data: any) => {
-          console.log(data);
-
-          let ranges: {[dim: string]: Rng} = {};
-          for (let i=0; i<request.dims.length; i++) {
-            ranges[request.dims[i]] = [data[2*i], data[2*i+1]];
+        db.one({ text: query, rowMode: 'array' }).then((data: any) => {
+          let ranges: { [dim: string]: Rng } = {};
+          for (let i = 0; i < request.dims.length; i++) {
+            ranges[request.dims[i]] = [data[2 * i], data[2 * i + 1]];
           }
 
           const result: Result = {
             type: 'range',
             id: request.id,
-            ranges: ranges,
+            ranges,
           };
 
           ws.send(JSON.stringify(result));
@@ -58,7 +54,39 @@ wss.on('connection', (ws) => {
 
         break;
       case 'query':
-        // TODO
+        const GB_SQL_QUERY = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights where $5:raw group by bucket order by bucket asc;';
+
+        Object.keys(request.dims).forEach(dim => {
+          const props = request.dims[dim];
+
+          const predicate = Object.keys(request.dims).filter(d => d !== dim && request.dims[d].range !== undefined).map(d => {
+            const p = request.dims[d];
+            if (p.range !== undefined) {
+              return p.range[0] + '<"' + d + '" and "' + d + '"<' + p.range[1];
+            }
+          }).join(' and ');
+
+          const start = props.domain[0];
+          const end = props.domain[1];
+
+          db.many(GB_SQL_QUERY, [dim, start, end, props.numBins, predicate])
+            .then((data: any) => {
+              const result: Result = {
+                type: 'query',
+                id: request.id,
+                dim,
+                data: data.map((d: {bucket: number, count: string}) => {
+                  return +d.count;
+                }),
+              };
+
+              ws.send(JSON.stringify(result));
+            })
+            .catch((error: Error) => {
+              console.error(error);
+            });
+        });
+
         break;
     }
   });

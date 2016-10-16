@@ -21,13 +21,32 @@ ws.onmessage = (event) => {
 };
 
 ws.onopen = () => {
-  const q: Request = {
+  const q1: Request = {
     id: uuid.v4(),
     type: 'range',
     dims: ['ARR_DELAY', 'DISTANCE'],
   };
 
-  ws.send(JSON.stringify(q));
+  ws.send(JSON.stringify(q1));
+
+  const q2: Request = {
+    id: uuid.v4(),
+    type: 'query',
+    dims: {
+      ARR_DELAY: {
+        domain: [-79, 1659],
+        numBins: 10,
+        range: [0, 200]
+      },
+      DISTANCE: {
+        domain: [31, 4983],
+        numBins: 15,
+        range: [10, 1500]
+      }
+    }
+  };
+
+  ws.send(JSON.stringify(q2));
 };
 
 
