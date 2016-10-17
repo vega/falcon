@@ -54,6 +54,8 @@ wss.on('connection', (ws) => {
 
         break;
       case 'query':
+
+        const GB_SQL_QUERY_NO_PREDICATE = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights group by bucket order by bucket asc;';
         const GB_SQL_QUERY = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights where $5:raw group by bucket order by bucket asc;';
 
         Object.keys(request.dims).forEach(dim => {
@@ -64,12 +66,15 @@ wss.on('connection', (ws) => {
             if (p.range !== undefined) {
               return p.range[0] + '<"' + d + '" and "' + d + '"<' + p.range[1];
             }
-          }).join(' and ');
+          }).join(' and ').trim();
 
           const start = props.domain[0];
           const end = props.domain[1];
 
-          db.many(GB_SQL_QUERY, [dim, start, end, props.numBins, predicate])
+          const query = predicate ? GB_SQL_QUERY : GB_SQL_QUERY_NO_PREDICATE;
+          const vars = [dim, start, end, props.numBins];
+          predicate ? vars.push(predicate) : null;
+          db.many(query, vars)
             .then((data: any) => {
               const result: Result = {
                 type: 'query',

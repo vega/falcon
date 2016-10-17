@@ -7,7 +7,7 @@
     "typeRoots": [
       "../node_modules/@types"
     ],
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "strictNullChecks": true
   },
   "exclude": [
