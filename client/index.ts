@@ -22,6 +22,9 @@ const dimensions = {
   },
   DISTANCE: {
     selector: '#distance'
+  },
+  DEP_DELAY: {
+    selector: '#dep-delay'
   }
 };
 
