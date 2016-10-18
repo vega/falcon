@@ -44,8 +44,12 @@ connection.onOpen(() => {
 
     const handleUpdate = (dimension, domain) => {
       console.log('user brushed ' + dimension + ' to ' + domain);
-      connection.send(formatQuery({ /* TODO - fill me in */}), (reult: any) => {
+      connection.send(formatQuery({ /* TODO - fill me in */}), (result: any) => {
         console.log(dimension + ': ' + result);
+        // Update the chart
+        vizs[result.dim].update({
+          y: result.data
+        });
       });
     };
 
