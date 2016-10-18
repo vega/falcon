@@ -66,8 +66,6 @@ class BrushableBar {
       .attr('height', 0);
 
     $bars
-      //.transition()
-      //.duration(250)
       .attr('x', (d: number, i: number) => {
         return this.x(this.bins[i]) + binPadding;
       })
