@@ -54,11 +54,9 @@ wss.on('connection', (ws) => {
 
         break;
       case 'query':
-
-        const GB_SQL_QUERY_NO_PREDICATE = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights group by bucket order by bucket asc;';
         const GB_SQL_QUERY = 'select width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) from flights where $5:raw group by bucket order by bucket asc;';
 
-        Object.keys(request.dims).forEach(dim => {
+        Object.keys(request.dims).filter(d => request.brushing === undefined ? true : d !== request.brushing).forEach(dim => {
           const props = request.dims[dim];
 
           const predicate = Object.keys(request.dims).filter(d => d !== dim && request.dims[d].range !== undefined).map(d => {
@@ -71,17 +69,18 @@ wss.on('connection', (ws) => {
           const start = props.domain[0];
           const end = props.domain[1];
 
-          const query = predicate ? GB_SQL_QUERY : GB_SQL_QUERY_NO_PREDICATE;
-          const vars = [dim, start, end, props.numBins];
-          predicate ? vars.push(predicate) : null;
-          db.many(query, vars)
+          const vars = [dim, start, end, props.numBins, predicate || 'true'];
+          db.many(GB_SQL_QUERY, vars)
             .then((data: any) => {
               const result: Result = {
                 type: 'query',
                 id: request.id,
                 dim,
                 data: data.map((d: {bucket: number, count: string}) => {
-                  return +d.count;
+                  return {
+                    bucket: start + d.bucket * (end-start)/props.numBins,
+                    count: +d.count
+                  };
                 }),
               };
 

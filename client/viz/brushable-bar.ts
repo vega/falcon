@@ -89,7 +89,9 @@ class BrushableBar {
 
   private brushed() {
     const extent = this.brush.extent();
-    this.callbacks.brushed ? this.callbacks.brushed(extent) : null;
+    if (this.callbacks.brushed) {
+      this.callbacks.brushed(extent);
+    }
   }
 }
 

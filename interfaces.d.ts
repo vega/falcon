@@ -10,7 +10,9 @@ declare type Request = {
         numBins: number
         // optional predicate, will not be applied to this domain but all others
         range?: Rng
-    }}
+    }},
+    // which domain are we changing right now
+    brushing?: string
 } | {
     id: string,
     type: 'range',
