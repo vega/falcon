@@ -17,11 +17,20 @@ const formatQuery = (dims) => {
   return q;
 };
 
+const dimensions = {
+  ARR_DELAY: {
+    selector: '#arr-delay'
+  },
+  DISTANCE: {
+    selector: '#distance'
+  }
+};
+
 connection.onOpen(() => {
   const q1: Request = {
     id: uuid.v4(),
     type: 'range',
-    dims: ['ARR_DELAY', 'DISTANCE'],
+    dims: Object.keys(dimensions),
   };
 
   connection.send(q1, (result: any) => {
@@ -42,16 +51,7 @@ connection.onOpen(() => {
 
     // We've retrieved the ranges, now get the initial data...
     connection.send(formatQuery(dims), (result: any) => {
-      let selector;
-      switch(result.dim) {
-        case 'ARR_DELAY':
-          selector = '#arr-delay';
-          break;
-        case 'DISTANCE':
-          selector = '#distance';
-          break;
-      }
-
+      const selector = dimensions[result.dim].selector;
       vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
         y: result.data
       })).on('brushed', (domain) => {
