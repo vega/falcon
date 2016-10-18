@@ -10,7 +10,7 @@ const padding = {
   right: 0
 };
 
-const binPadding = 2.5;
+const binPadding = 1;
 
 class BrushableBar {
 
@@ -55,7 +55,7 @@ class BrushableBar {
     return this;
   }
 
-  update(data: any) {
+  public update(data: any) {
     const $bars = this.$content.selectAll('.bar').data(data.y);
     $bars
       .enter()
@@ -66,8 +66,8 @@ class BrushableBar {
       .attr('height', 0);
 
     $bars
-      .transition()
-      .duration(250)
+      //.transition()
+      //.duration(250)
       .attr('x', (d: number, i: number) => {
         return this.x(this.bins[i]) + binPadding;
       })
@@ -79,17 +79,17 @@ class BrushableBar {
       })
       .attr('height', (d: number) => {
         return this.y(0) - this.y(d);
-      })
+      });
 
     return this;
   }
 
-  on(eventName: string, callback: any) {
+  public on(eventName: string, callback: any) {
     this.callbacks[eventName] = _.throttle(callback, 250);
     return this;
   }
 
-  brushed() {
+  private brushed() {
     const extent = this.brush.extent();
     this.callbacks.brushed ? this.callbacks.brushed(extent) : null;
   }

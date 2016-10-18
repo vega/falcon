@@ -1,7 +1,6 @@
 /// <reference path="../interfaces.d.ts" />
 
 import * as uuid from 'node-uuid';
-import * as d3 from 'd3';
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
 
@@ -39,7 +38,7 @@ connection.onOpen(() => {
       dims[dim] = {
         domain: result.ranges[dim],
         range: result.ranges[dim],
-        numBins: 10
+        numBins: 25
       }
     });
 
