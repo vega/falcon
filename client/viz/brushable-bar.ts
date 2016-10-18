@@ -57,9 +57,17 @@ class BrushableBar {
 
   update(data: any) {
     const $bars = this.$content.selectAll('.bar').data(data.y);
-    $bars.enter().append('rect').attr('class', 'bar');
+    $bars
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('fill', 'steelblue')
+      .attr('y', this.y(0))
+      .attr('height', 0);
 
     $bars
+      .transition()
+      .duration(250)
       .attr('x', (d: number, i: number) => {
         return this.x(this.bins[i]) + binPadding;
       })
@@ -72,7 +80,6 @@ class BrushableBar {
       .attr('height', (d: number) => {
         return this.y(0) - this.y(d);
       })
-      .attr('fill', 'steelblue');
 
     return this;
   }
