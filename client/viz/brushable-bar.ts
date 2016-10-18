@@ -1,4 +1,4 @@
-/// <reference path="../../interfaces.d.ts" />
+/// <reference path='../../interfaces.d.ts' />
 
 import * as d3 from 'd3';
 
@@ -17,6 +17,7 @@ class BrushableBar {
   $svg: any;
   $content: any;
   $bars: any;
+  callbacks: any;
 
   formatData(data: any) {
     const formattedData: Point[] = [];
@@ -32,8 +33,13 @@ class BrushableBar {
       height
     } = options;
 
-    this.x = d3.scale.linear().domain(d3.extent(data.x)).range([padding.left, options.width - padding.right]);
-    this.y = d3.scale.linear().domain([0, d3.max(data.y)]).range([options.height - padding.bottom, padding.top]);
+    const contentHeight = options.height - padding.bottom - padding.top;
+    const contentWidth = options.width - padding.left - padding.right;
+
+    this.x = d3.scale.linear().domain(d3.extent(data.x)).range([0, contentWidth]);
+    this.y = d3.scale.linear().domain([0, d3.max(data.y)]).range([contentHeight, 0]);
+
+    const brush = d3.svg.brush().x(this.x).on('brush', brushed);
 
     this.$container = d3.select(selector);
     this.$svg = this.$container.append('svg').attr('width', width).attr('height', height);
@@ -52,7 +58,23 @@ class BrushableBar {
         return this.y(0) - this.y(d.y);
       })
       .attr('fill', 'steelblue');
+
+
+    function brushed() {
+      console.log('brushed');
+    }
+    this.$content.append('g')
+        .attr('class', 'x brush')
+        .call(brush)
+      .selectAll('rect')
+        .attr('y', -6)
+        .attr('height', height + 7);
   }
+
+  on(eventName: string, callback: any) {
+    this.callbacks[eventName] = callback;
+  }
+
 }
 
 

@@ -30,18 +30,19 @@ connection.onOpen(() => {
     };
 
     connection.send(q2, (result: any) => {
-      console.log(result);
       switch(result.dim) {
         case 'ARR_DELAY':
           vizs.ARR_DELAY = new BrushableBar('#arr-delay', {
             x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             y: result.data
-          })
+          });
+          break;
         case 'DISTANCE':
           vizs.DISTANCE = new BrushableBar('#distance', {
             x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             y: result.data
-          })
+          });
+          break;
       }
     });
   });
