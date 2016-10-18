@@ -38,6 +38,10 @@
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
 
+"@types/underscore@^1.7.33":
+  version "1.7.33"
+  resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.7.33.tgz#e63184aedd4a857d501898732bd9bed513a73f3f"
+
 "@types/ws@0.0.34":
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-0.0.34.tgz#72b4157c41fa5696eacd3f726d84d33808d7d3e5"
@@ -2430,6 +2434,10 @@ underscore.string@^3.3.4:
   dependencies:
     sprintf-js "^1.0.3"
     util-deprecate "^1.0.2"
+
+underscore@^1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
 
 unpipe@~1.0.0:
   version "1.0.0"
