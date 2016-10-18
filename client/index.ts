@@ -7,6 +7,16 @@ import connection from './ws';
 
 const vizs: any = {};
 
+const formatQuery = (dims) => {
+  const q: Request = {
+    id: uuid.v4(),
+    type: 'query',
+    dims: dims
+  };
+
+  return q;
+};
+
 connection.onOpen(() => {
   const q1: Request = {
     id: uuid.v4(),
@@ -15,35 +25,38 @@ connection.onOpen(() => {
   };
 
   connection.send(q1, (result: any) => {
-    const dims = {};
+    const dims: any = {};
     Object.keys(result.ranges).forEach((dim) => {
       dims[dim] = {
         domain: result.ranges[dim],
         numBins: 10
       }
     });
-    // We've retrieved the ranges, now get the initial data...
-    const q2: Request = {
-      id: uuid.v4(),
-      type: 'query',
-      dims: dims
+
+    const handleUpdate = (dimension, domain) => {
+      console.log('user brushed ' + dimension + ' to ' + domain);
+      connection.send(formatQuery({ /* TODO - fill me in */}), (reult: any) => {
+        console.log(dimension + ': ' + result);
+      });
     };
 
-    connection.send(q2, (result: any) => {
+    // We've retrieved the ranges, now get the initial data...
+    connection.send(formatQuery(dims), (result: any) => {
+      let selector;
       switch(result.dim) {
         case 'ARR_DELAY':
-          vizs.ARR_DELAY = new BrushableBar('#arr-delay', {
-            x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            y: result.data
-          });
+          selector = '#arr-delay';
           break;
         case 'DISTANCE':
-          vizs.DISTANCE = new BrushableBar('#distance', {
-            x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            y: result.data
-          });
+          selector = '#distance';
           break;
       }
+
+      vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
+        y: result.data
+      })).on('brushed', (domain) => {
+        handleUpdate(result.dim, domain);
+      });
     });
   });
 
