@@ -1,6 +1,7 @@
 /// <reference path='../../interfaces.d.ts' />
 
 import * as d3 from 'd3';
+import * as _ from 'underscore';
 
 const padding = {
   top: 0,
@@ -55,7 +56,8 @@ class BrushableBar {
   }
 
   update(data: any) {
-    const $bars = this.$content.selectAll('.bar').data(data.y).enter().append('rect').attr('class', 'bar');
+    const $bars = this.$content.selectAll('.bar').data(data.y);
+    $bars.enter().append('rect').attr('class', 'bar');
 
     $bars
       .attr('x', (d: number, i: number) => {
@@ -71,17 +73,19 @@ class BrushableBar {
         return this.y(0) - this.y(d);
       })
       .attr('fill', 'steelblue');
+
+    return this;
   }
 
   on(eventName: string, callback: any) {
-    this.callbacks[eventName] = callback;
+    this.callbacks[eventName] = _.throttle(callback, 250);
+    return this;
   }
 
   brushed() {
     const extent = this.brush.extent();
     this.callbacks.brushed ? this.callbacks.brushed(extent) : null;
   }
-
 }
 
 

@@ -38,14 +38,16 @@ connection.onOpen(() => {
     Object.keys(result.ranges).forEach((dim) => {
       dims[dim] = {
         domain: result.ranges[dim],
+        range: result.ranges[dim],
         numBins: 10
       }
     });
 
     const handleUpdate = (dimension, domain) => {
       console.log('user brushed ' + dimension + ' to ' + domain);
-      connection.send(formatQuery({ /* TODO - fill me in */}), (result: any) => {
-        console.log(dimension + ': ' + result);
+      dims[dimension].range = domain;
+
+      connection.send(formatQuery(dims), (result: any) => {
         // Update the chart
         vizs[result.dim].update({
           y: result.data
