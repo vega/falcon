@@ -55,7 +55,6 @@ class BrushableBar {
   }
 
   public update(data: any) {
-    console.log(data);
     const $bars = this.$content.selectAll('.bar').data(data.values);
     $bars
       .enter()

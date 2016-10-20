@@ -46,7 +46,6 @@ connection.onOpen(() => {
     });
 
     const handleUpdate = (dimension, domain) => {
-      console.log('user brushed ' + dimension + ' to ' + domain);
       dims[dimension].range = domain;
 
       connection.send(formatQuery(dims), (result: any) => {
@@ -60,8 +59,6 @@ connection.onOpen(() => {
     // We've retrieved the ranges, now get the initial data...
     connection.send(formatQuery(dims), (result: any) => {
       const selector = dimensions[result.dim].selector;
-      console.log('data');
-      console.log(result.data);
       vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
         values: result.data
       })).on('brushed', (domain) => {
