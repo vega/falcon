@@ -34,7 +34,7 @@ class BrushableBar {
     this.domain = data.domain;
 
     this.x = d3.scale.linear().domain(data.domain).range([0, contentWidth]);
-    this.brush = d3.svg.brush().x(this.x).on('brush', this.brushed.bind(this));
+    this.brush = d3.svg.brush().x(this.x).on('brushend', this.brushed.bind(this));
 
     const $container = d3.select(selector);
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
