@@ -25,6 +25,7 @@
     "@types/node-uuid": "0.0.28",
     "@types/underscore": "^1.7.33",
     "@types/ws": "0.0.34",
+    "bufferutil": "^1.2.1",
     "d3": "^3.5.17",
     "express": "^4.14.0",
     "node-uuid": "^1.4.7",
