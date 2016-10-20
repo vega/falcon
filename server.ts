@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
 import * as express from 'express';
 import * as pgp from 'pg-promise';
+import * as pako from 'pako';
 
 const server = createServer();
 const wss = new WebSocketServer({ server: server });
@@ -25,6 +26,10 @@ wss.on('connection', (ws) => {
   // const location = url.parse(ws.upgradeReq.url, true);
   // you might use location.query.access_token to authenticate or share sessions
   // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
+
+  const send = (obj) => {
+    ws.send(pako.deflate(JSON.stringify(obj), { to: 'string'}));
+  }
 
   ws.on('message', (message: string) => {
     console.log('received: %s', message);
@@ -47,7 +52,7 @@ wss.on('connection', (ws) => {
             ranges,
           };
 
-          ws.send(JSON.stringify(result));
+          send(result);
         }).catch((error: Error) => {
           console.error(error);
         });
@@ -84,7 +89,7 @@ wss.on('connection', (ws) => {
                 }),
               };
 
-              ws.send(JSON.stringify(result));
+              send(result);
             })
             .catch((error: Error) => {
               console.error(error);
