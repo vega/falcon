@@ -52,7 +52,7 @@ connection.onOpen(() => {
       connection.send(formatQuery(dims), (result: any) => {
         // Update the chart
         vizs[result.dim].update({
-          y: result.data
+          values: result.data
         });
       });
     };
@@ -60,8 +60,10 @@ connection.onOpen(() => {
     // We've retrieved the ranges, now get the initial data...
     connection.send(formatQuery(dims), (result: any) => {
       const selector = dimensions[result.dim].selector;
+      console.log('data');
+      console.log(result.data);
       vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
-        y: result.data
+        values: result.data
       })).on('brushed', (domain) => {
         handleUpdate(result.dim, domain);
       });
