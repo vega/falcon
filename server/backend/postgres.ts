@@ -13,17 +13,11 @@ const SQL_QUERY = `
   GROUP BY bucket order by bucket asc;
 `;
 
-const c = {
-  database: 'postgres',
-  host: 'localhost', // Server hosting the postgres database
-  port: 5432  // env var: PGPORT
-};
-
 class Postgres implements Backend {
-  db: any;
+  private db: any;
   
   constructor(connection) {
-    this.db = pgp({})(c);
+    this.db = pgp({})(connection);
   }
 
   private formatPredicate(predicate: Dimension) {
@@ -31,7 +25,7 @@ class Postgres implements Backend {
     return `${range[0]} < "${name}" and "${name}" < ${range[1]}`; 
   }
 
-  query(dimension: string, predicates: Dimension[]) {
+  public query(dimension: string, predicates: Dimension[]) {
 
     const dim = config.dimensions.find(d => d.name === dimension);
     const range = dim.range;

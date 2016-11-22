@@ -4,6 +4,7 @@
     "client": "postgres",
     "table": "flights",
     "connection": {
+      "database": "postgres",
       "host": "localhost",
       "port": 5432 
     }

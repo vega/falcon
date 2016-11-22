@@ -10,7 +10,6 @@ const callbacks = {};
 ws.onmessage = (event) => {
   const inflated: any = pako.inflate(event.data, { to: 'string' });
   const result: Result = JSON.parse(inflated);
-  console.log(result);
 }
 
 const connection = {

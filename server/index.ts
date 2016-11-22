@@ -11,7 +11,6 @@ const config = require('../config.json');
 
 const backend = initBackend(config.database);
 
-console.log('hellow')
 const server = createServer();
 const wss = new WebSocketServer({ server: server });
 const app = express();
