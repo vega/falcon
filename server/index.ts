@@ -11,18 +11,27 @@ const config = require('../config.json');
 
 const backend = initBackend(config.database);
 
+console.log('hellow')
 const server = createServer();
 const wss = new WebSocketServer({ server: server });
 const app = express();
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/../public'));
 
 wss.on('connection', (ws) => {
   const send = (obj) => {
     ws.send(pako.deflate(JSON.stringify(obj), { to: 'string'}));
   }
 
-  const session = new Session(backend);
+  const session = new Session(backend, config.dimensions);
+
+  session.onQuery((dimension, results) => {
+    console.log('dimension: ' + dimension);
+    send({
+      dimension: dimension,
+      data: results
+    });
+  });
 
   ws.on('message', (message: string) => {
     console.log('received: %s', message);

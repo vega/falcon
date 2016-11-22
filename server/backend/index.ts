@@ -1,7 +1,7 @@
 import Postgres from './postgres';
 
 interface Backend {
-  query(dimension: string, predicates: [{dimension: string, range: Range}]);
+  query(dimension: string, predicates: Dimension[]);
 };
 
 const initBackend = (config) => {

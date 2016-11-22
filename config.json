@@ -8,21 +8,20 @@
       "port": 5432 
     }
   },
-  "dimensions": {
-    "ARR_DELAY": {
-      "title": "Arrival Delay",
-      "range": [0, 100],
-      "bins": 25
-    },
-    "DISTANCE": {
-      "title": "Distance",
-      "range": [0, 100],
-      "bins": 25
-    },
-    "DEP_DELAY": {
-      "title": "Departure Delay",
-      "range": [0, 100],
-      "bins": 25
-    }
-  }
+  "dimensions": [{
+    "name": "ARR_DELAY",
+    "title": "Arrival Delay",
+    "range": [0, 100],
+    "bins": 25
+  }, {
+    "name": "DISTANCE",
+    "title": "Distance",
+    "range": [0, 100],
+    "bins": 25
+  }, {
+    "name": "DEP_DELAY",
+    "title": "Departure Delay",
+    "range": [0, 100],
+    "bins": 25
+  }]
 }

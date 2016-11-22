@@ -22,7 +22,7 @@ class BrushableBar {
   bins: any;
   domain: any;
 
-  constructor(dimension: any, data, options = { width: 600, height: 400 }) {
+  constructor(dimension: Dimension, options: { width: number, height: number }) {
     const {
       width,
       height
@@ -31,19 +31,19 @@ class BrushableBar {
     const contentHeight = options.height - padding.bottom - padding.top;
     const contentWidth = options.width - padding.left - padding.right;
 
-    this.domain = data.domain;
+    // this.domain = data.domain;
 
-    this.x = d3.scale.linear().domain(data.domain).range([0, contentWidth]);
+    this.x = d3.scale.linear().range([0, contentWidth]); // .domain(data.domain);
     this.brush = d3.svg.brush().x(this.x).on('brushend', this.brushed.bind(this));
 
-    d3.select('body').append('div').text(dimension.title);
+    d3.select('body').append('div').text(dimension.title || '');
     const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    this.y = d3.scale.linear().domain([0, d3.max(data.values, (d: any) => { return d.count; })]).range([contentHeight, 0]);
+    // this.y = d3.scale.linear().domain([0, d3.max(data.values, (d: any) => { return d.count; })]).range([contentHeight, 0]);
 
-    this.update(data);
+    // this.update(data);
 
     this.$content.append('g')
         .attr('class', 'x brush')
