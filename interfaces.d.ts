@@ -20,7 +20,8 @@ declare type Request = {
 declare type Dimension = {
   name: string,
   range: Interval,
-  title?: string
+  title?: string,
+  bins?: number
 };
 
 declare type Result = {

@@ -29,6 +29,7 @@ class Postgres implements Backend {
 
     const dim = config.dimensions.find(d => d.name === dimension);
     const range = dim.range;
+    predicates.push(dim);
 
     const variables = [
       dimension, 
@@ -38,9 +39,7 @@ class Postgres implements Backend {
       predicates.map(this.formatPredicate).join(' and ').trim() || true
     ];
 
-    console.log(variables);
-
-    return this.db.many(SQL_QUERY, variables).catch(console.log);
+    return this.db.many(SQL_QUERY, variables);
   }
 }
 
