@@ -1,0 +1,28 @@
+
+{
+  "database": {
+    "client": "postgres",
+    "table": "flights",
+    "connection": {
+      "host": "localhost",
+      "port": 5432 
+    }
+  },
+  "dimensions": {
+    "ARR_DELAY": {
+      "title": "Arrival Delay",
+      "range": [0, 100],
+      "bins": 25
+    },
+    "DISTANCE": {
+      "title": "Distance",
+      "range": [0, 100],
+      "bins": 25
+    },
+    "DEP_DELAY": {
+      "title": "Departure Delay",
+      "range": [0, 100],
+      "bins": 25
+    }
+  }
+}

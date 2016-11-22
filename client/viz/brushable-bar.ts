@@ -22,7 +22,7 @@ class BrushableBar {
   bins: any;
   domain: any;
 
-  constructor(selector: string, data, options = { width: 600, height: 400 }) {
+  constructor(dimension: any, data, options = { width: 600, height: 400 }) {
     const {
       width,
       height
@@ -36,7 +36,8 @@ class BrushableBar {
     this.x = d3.scale.linear().domain(data.domain).range([0, contentWidth]);
     this.brush = d3.svg.brush().x(this.x).on('brushend', this.brushed.bind(this));
 
-    const $container = d3.select(selector);
+    d3.select('body').append('div').text(dimension.title);
+    const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);

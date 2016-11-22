@@ -4,6 +4,8 @@ import * as uuid from 'node-uuid';
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
 
+const config = require('../config.json');
+
 const vizs: any = {};
 
 const formatQuery = (dims) => {
@@ -16,17 +18,7 @@ const formatQuery = (dims) => {
   return q;
 };
 
-const dimensions = {
-  ARR_DELAY: {
-    selector: '#arr-delay'
-  },
-  DISTANCE: {
-    selector: '#distance'
-  },
-  DEP_DELAY: {
-    selector: '#dep-delay'
-  }
-};
+const dimensions = config.dimensions;
 
 connection.onOpen(() => {
   const q1: Request = {
@@ -58,8 +50,7 @@ connection.onOpen(() => {
 
     // We've retrieved the ranges, now get the initial data...
     connection.send(formatQuery(dims), (result: any) => {
-      const selector = dimensions[result.dim].selector;
-      vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
+      vizs[result.dim] = new BrushableBar(dimensions[result.dim], Object.assign({}, dims[result.dim], {
         values: result.data
       })).on('brushed', (domain) => {
         handleUpdate(result.dim, domain);

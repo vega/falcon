@@ -4,7 +4,7 @@
   "description": "Crossfiltering with a server",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --ignore client --exec 'ts-node' server.ts",
+    "start": "nodemon --ignore client --exec 'ts-node' ./server/index.ts",
     "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js",
     "build": "browserify client/index.ts -p [ tsify ] -o public/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -38,6 +38,7 @@
     "ws": "^1.1.1"
   },
   "devDependencies": {
+    "@types/node": "^6.0.49",
     "browserify": "^13.1.0",
     "nodemon": "^1.10.2",
     "ts-node": "^1.3.0",
