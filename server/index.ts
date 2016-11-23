@@ -24,11 +24,13 @@ wss.on('connection', (ws) => {
 
   const session = new Session(backend, config.dimensions);
 
-  session.onQuery((dimension, results) => {
+  session.onQuery((activeDimension, dimension, results) => {
     console.log('dimension: ' + dimension);
     send({
+      activeDimension: activeDimension.name,
       dimension: dimension,
-      data: results
+      data: results,
+      range: activeDimension.range
     });
   });
 
