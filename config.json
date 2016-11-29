@@ -3,6 +3,7 @@
   "database": {
     "client": "postgres",
     "table": "flights",
+    "max_connections": 8,
     "connection": {
       "database": "postgres",
       "host": "localhost",

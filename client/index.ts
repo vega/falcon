@@ -12,14 +12,25 @@ const vizs: any = {};
 const dimensions = config.dimensions;
 let activeDimension = dimensions[0];
 
-const api = new API(dimensions, connection, vizs);
+const api = new API(dimensions, connection);
 
 connection.onOpen(() => {
 
   // TODO: break this down into brush start, end, etc.
-  const handleBrush = (dim: Dimension) => {
+  const handleBrushStart = (dim: Dimension) => {
     return (domain: Interval) => {
-      api.setState(dim, domain);
+      // api.setState(dim, domain);
+    };
+  };
+
+  const handleBrushEnd = (dim: Dimension) => {
+    return (domain: Interval) => {
+      const viz = vizs[dim.name];
+      let extent = viz.brush.extent();
+      if (extent[1] === extent[0]) {
+        extent = dim.range;
+      }
+      api.setState(dim, extent);
     };
   };
 
@@ -31,7 +42,9 @@ connection.onOpen(() => {
       vizs[results.dimension].update(results.data);
     } else {
       const dim = config.dimensions.find(d => d.name === results.dimension);
-      vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 300}).on('brushed', handleBrush(dim));
+      vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 300})
+        .on('brushstart', handleBrushStart(dim))
+        .on('brushend', handleBrushEnd(dim));
     }
   }));
 

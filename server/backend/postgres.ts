@@ -22,7 +22,7 @@ class Postgres implements Backend {
 
   private formatPredicate(predicate: Dimension) {
     const { range, name } = predicate;
-    return `${range[0]} < "${name}" and "${name}" < ${range[1]}`; 
+    return `${range[0]} < "${name}" and "${name}" < ${range[1]}`;
   }
 
   public query(dimension: string, predicates: Dimension[]) {

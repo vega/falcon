@@ -13,7 +13,7 @@ class Session {
   }
   
   private getPredicates() {
-    return this.getStaticDimensions(); 
+    return this.dimensions; 
   }
 
   private getActiveDimension() {

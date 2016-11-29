@@ -12,6 +12,10 @@ declare type Request = {
   dimension: string,
   value: number 
 } | {
+  type: 'loadInterval',
+  dimenstion: string,
+  range: Interval
+} | {
   type: 'setRange',
   dimension: string,
   range: Interval

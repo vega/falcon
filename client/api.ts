@@ -9,7 +9,7 @@ class API {
   private ranges: any = {};
   private _onResults: any;
 
-  constructor(public dimensions: Dimension[], public connection: any, public visualizations: any) {
+  constructor(public dimensions: Dimension[], public connection: any) {
     this.activeDimension = dimensions[0].name;
     dimensions.forEach(dimension => {
       this.ranges[dimension.name] = dimension.range;
@@ -19,10 +19,12 @@ class API {
   setState(dimension: Dimension, range: Interval) {
 
     if (this.activeDimension !== dimension.name) {
+      // Only cache 1 dimension at a time.
       this.cache = {};
     }
 
     if (this.cache[range.toString()]) {
+      // Cache hit
       Object.keys(this.cache[range.toString()]).forEach((dim) => {
         const data = this.cache[range.toString()][dim];
         this._onResults && this._onResults({
@@ -31,6 +33,7 @@ class API {
         });
       })
     } else {
+      // Request result from server
       this.connection.send({
         type: 'setRange',
         dimension: dimension.name,
