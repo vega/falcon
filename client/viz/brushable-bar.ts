@@ -14,12 +14,12 @@ const binPadding = 1;
 
 class BrushableBar {
 
-  callbacks: any = {};
-  x: any;
-  y: any;
-  brush: any;
-  $content: any;
-  dimension: Dimension;
+  private callbacks: any = {};
+  private x: any;
+  private y: any;
+  private brush: any;
+  private $content: any;
+  private dimension: Dimension;
 
   constructor(dimension: Dimension, data: any, options: { width: number, height: number }) {
     const {
@@ -40,7 +40,7 @@ class BrushableBar {
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    this.y = d3.scale.linear().domain([0, d3.max(data, (d: any) => { return +d.count })]).range([contentHeight, 0]);
+    this.y = d3.scale.linear().domain([0, d3.max(data, (d: any) => { return +d.count; })]).range([contentHeight, 0]);
 
     this.update(data);
 
@@ -56,7 +56,7 @@ class BrushableBar {
 
   public update(data: any) {
     const $bars = this.$content.selectAll('.bar').data(data, d => d.bucket);
-    
+
     $bars
       .enter()
       .append('rect')

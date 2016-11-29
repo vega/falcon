@@ -16,7 +16,7 @@ class API {
     });
   }
 
-  setState(dimension: Dimension, range: Interval) {
+  public setState(dimension: Dimension, range: Interval) {
 
     if (this.activeDimension !== dimension.name) {
       // Only cache 1 dimension at a time.
@@ -31,7 +31,7 @@ class API {
           dimension: dim,
           data: data
         });
-      })
+      });
     } else {
       // Request result from server
       this.connection.send({
@@ -45,7 +45,7 @@ class API {
     this.ranges[dimension.name] = range;
   }
 
-  onResults(callback: (results) => any) {
+  public onResults(callback: (results) => any) {
     this.onResults = callback;
     return (results) => {
       console.log(results);
@@ -61,9 +61,9 @@ class API {
           callback(results);
         }
       }
-    }
+    };
   }
-  
+
 
 }
 

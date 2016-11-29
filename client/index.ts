@@ -42,15 +42,15 @@ connection.onOpen(() => {
       vizs[results.dimension].update(results.data);
     } else {
       const dim = config.dimensions.find(d => d.name === results.dimension);
-      vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 300})
+      vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 250})
         .on('brushstart', handleBrushStart(dim))
         .on('brushend', handleBrushEnd(dim));
     }
   }));
 
   connection.send({
-    type: 'init' 
+    type: 'init'
   });
 
-  
+
 });
