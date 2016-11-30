@@ -189,7 +189,7 @@ class Session {
 
       this.queryCount--;
       if (this.queryCount < config.database.max_connections) {
-        // this.nextQuery();
+        this.nextQuery();
       }
 
       this.cache[index][staticDimension.name] = results;
