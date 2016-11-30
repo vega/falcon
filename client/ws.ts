@@ -10,7 +10,7 @@ const callbacks: any = {};
 ws.onmessage = (event) => {
   const inflated: any = pako.inflate(event.data, { to: 'string' });
   const result: Result = JSON.parse(inflated);
-  callbacks.results && callbacks.results(result);
+  callbacks.result && callbacks.result(result);
 }
 
 const connection = {
@@ -22,8 +22,8 @@ const connection = {
     ws.send(JSON.stringify(message));
   },
 
-  onResults: (callback) => {
-    callbacks['results'] = callback;
+  onResult: (callback) => {
+    callbacks['result'] = callback;
   }
 }
 

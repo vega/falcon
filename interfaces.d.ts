@@ -1,7 +1,8 @@
 declare type Interval = [number, number];
 
 declare type Request = {
-  type: 'init'
+  type: 'init',
+  resolutions: { dimension: string, value: number }[]
 } | {
   type: 'preload',
   dimension: string,
@@ -10,7 +11,7 @@ declare type Request = {
 } | {
   type: 'load',
   dimension: string,
-  value: number 
+  value: number
 } | {
   type: 'loadInterval',
   dimenstion: string,
@@ -25,10 +26,13 @@ declare type Dimension = {
   name: string,
   range: Interval,
   title?: string,
-  bins?: number
+  bins?: number,
+  currentRange?: Interval
 };
 
 declare type Result = {
+  activeDimension: string,
   dimension: string,
-  data: { bucket: number, value: number }[]
+  data: { bucket: number, value: number }[],
+  index: number
 };

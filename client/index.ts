@@ -13,6 +13,8 @@ let activeDimension = dimensions[0];
 
 const api = new API(dimensions, connection);
 
+const CHART_WIDTH = 300;
+
 connection.onOpen(() => {
 
   // TODO: break this down into brush start, end, etc.
@@ -22,7 +24,7 @@ connection.onOpen(() => {
     };
   };
 
-  const handleBrushEnd = (dim: Dimension) => {
+  const handleBrushEnd = (dim: Dimension) => {    
     return (domain: Interval) => {
       const viz = vizs[dim.name];
       let extent = viz.brush.extent();
@@ -33,21 +35,27 @@ connection.onOpen(() => {
     };
   };
 
-  connection.onResults(api.onResults((results) => {
+  connection.onResult(api.onResult((dimension, data) => {
     // API filters the results so at this point
     // we only see results we want to draw to the 
     // screen immediately. 
-    if (vizs[results.dimension]) {
-      vizs[results.dimension].update(results.data);
+    if (vizs[dimension]) {
+      vizs[dimension].update(data);
     } else {
-      const dim = config.dimensions.find(d => d.name === results.dimension);
-      vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 250})
+
+      const dim = config.dimensions.find(d => d.name === dimension);
+      vizs[dimension] = new BrushableBar(dim, data, {width: CHART_WIDTH, height: 250})
         .on('brushstart', handleBrushStart(dim))
         .on('brushend', handleBrushEnd(dim));
     }
   }));
 
-  connection.send({
-    type: 'init'
-  });
+  // Initialize with resolutions
+  api.init(dimensions.map((d) => {
+    return {
+      dimension: d.name,
+      value: CHART_WIDTH
+    };
+  }));
+
 });

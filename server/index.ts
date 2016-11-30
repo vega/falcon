@@ -19,27 +19,33 @@ app.use(express.static(__dirname + '/../public'));
 
 wss.on('connection', (ws) => {
   const send = (obj) => {
-    ws.send(pako.deflate(JSON.stringify(obj), { to: 'string'}));
+    ws.send(pako.deflate(JSON.stringify(obj), { to: 'string'}), (err) => {
+      if (err) {
+        console.warn(err);
+      }
+    });
   }
 
   const session = new Session(backend, config.dimensions);
 
-  session.onQuery((activeDimension, dimension, results) => {
-    console.log('dimension: ' + dimension);
+  session.onQuery((activeDimension, dimension, results, index) => {
     send({
-      activeDimension: activeDimension.name,
+      activeDimension: activeDimension,
       dimension: dimension,
       data: results,
-      range: activeDimension.range
+      index: index
     });
   });
+
+
+  ws.on('close', () => session.close());
 
   ws.on('message', (message: string) => {
     console.log('received: %s', message);
     const request: Request = JSON.parse(message);
     switch (request.type) {
       case 'init':
-        session.init();
+        session.init(request.resolutions);
         break;
       case 'load':
         session.load(request.dimension, request.value);
