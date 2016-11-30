@@ -3,20 +3,21 @@
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
 import API from './api';
+import * as d3 from 'd3';
 
-const config = require('../config.json');
+const config: {dimensions: Dimension[]} = require('../config.json');
 
-const vizs: any = {};
+const vizs: {[dimension: string]: BrushableBar} = {};
 
 const dimensions = config.dimensions;
 let activeDimension = dimensions[0];
 
 const api = new API(dimensions, connection);
 
-const CHART_WIDTH = 300;
+const CHART_WIDTH = 500;
+const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
-  // TODO: break this down into brush start, end, etc.
   const handleBrushStart = (dim: Dimension) => {
     return (domain: Interval) => {
       // api.setState(dim, domain);
@@ -24,13 +25,11 @@ connection.onOpen(() => {
   };
 
   const handleBrushEnd = (dim: Dimension) => {
-    console.log('brushend')
     return (domain: Interval) => {
       const viz = vizs[dim.name];
-      let extent = viz.brush.extent();
-      if (extent[1] === extent[0]) {
-        extent = dim.range;
-      }
+      const s = d3.event.selection || viz.x.range();
+      const extent = (s.map(viz.x.invert, viz.x));
+
       api.setState(dim, extent);
     };
   };
@@ -39,16 +38,15 @@ connection.onOpen(() => {
     // API filters the results so at this point
     // we only see results we want to draw to the 
     // screen immediately. 
-    if (vizs[dimension]) {
-      vizs[dimension].update(data);
-    } else {
-      const dim = config.dimensions.find(d => d.name === dimension);
-    
-      vizs[dimension] = new BrushableBar(dim, data, {width: CHART_WIDTH, height: 250})
-        //.on('brush start', handleBrushStart(dim))
-        //.on('brush end', handleBrushEnd(dim));
-    }
+    vizs[dimension].update(data);
   }));
+
+  // Initialize empty charts
+  dimensions.forEach(dim => {
+    vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      .on('start', handleBrushStart(dim))
+      .on('end', handleBrushEnd(dim));
+  });
 
   // Initialize with resolutions
   api.init(dimensions.map((d) => {
@@ -57,5 +55,4 @@ connection.onOpen(() => {
       value: CHART_WIDTH
     };
   }));
-
 });

@@ -53,10 +53,7 @@ class API {
         }
         const data = this.combineRanges(this.cache[scaledRange[0]][dim], this.cache[scaledRange[1]][dim]);
         if (this._onResult) {
-          this._onResult({
-            dimension: dim,
-            data: data
-          });
+          this._onResult(dim, data);
         }
       })
     } else {
@@ -92,7 +89,7 @@ class API {
         const scaledRange = range.map(d => Math.round(scale(d)));
 
         const c0 = this.cache[scaledRange[0]];
-        const c1 =  this.cache[scaledRange[1]];
+        const c1 = this.cache[scaledRange[1]];
 
         if (c0 && c0[result.dimension] && c1 && c1[result.dimension]) {
           const combined = this.combineRanges(c0[result.dimension], c1[result.dimension]);
