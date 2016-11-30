@@ -47,7 +47,7 @@ class Postgres implements Backend {
     return this.db
       .many(SQL_QUERY, variables)
       .then((results) => {
-        const r = d3.range(dim.bins).map(() => 0);
+        const r = d3.range(dim.bins + 1).map(() => 0);
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
         });
@@ -55,7 +55,7 @@ class Postgres implements Backend {
       })
       .catch(() => {
         console.log('Caught error. Returning empty result set.');
-        return d3.range(dim.bins).map(() => 0);
+        return d3.range(dim.bins + 1).map(() => 0);
       });
   }
 }
