@@ -18,7 +18,7 @@
   }, {
     "name": "DISTANCE",
     "title": "Distance",
-    "range": [0, 100],
+    "range": [50, 2000],
     "bins": 25
   }, {
     "name": "DEP_DELAY",
