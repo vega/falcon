@@ -33,6 +33,6 @@ declare type Dimension = {
 declare type Result = {
   activeDimension: string,
   dimension: string,
-  data: { bucket: number, value: number }[],
+  data: number[],
   index: number
 };
