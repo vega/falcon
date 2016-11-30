@@ -1,7 +1,6 @@
 /// <reference path='../../interfaces.d.ts' />
 
 import * as d3 from 'd3';
-import * as _ from 'underscore';
 
 const padding = {
   top: 0,
@@ -13,8 +12,6 @@ const padding = {
 const binPadding = 1;
 
 class BrushableBar {
-
-  private callbacks: any = {};
   private x: any;
   private y: any;
   private brush: any;
@@ -90,21 +87,6 @@ class BrushableBar {
     this.brush.on(eventName, callback);
     // this.callbacks[eventName] = _.throttle(callback, 250);
     return this;
-  }
-
-  // private _handleEvent(eventName: string) {
-  //   return this.callbacks[eventName];
-  //   return this.brush.on(eventName)
-  // }
-
-  private brushed() {
-    let extent = this.brush.extent();
-    if (extent[1] === extent[0]) {
-      extent = this.dimension.range;
-    }
-    if (this.callbacks.brushed) {
-      this.callbacks.brushed(extent);
-    }
   }
 }
 

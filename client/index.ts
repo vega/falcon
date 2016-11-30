@@ -1,6 +1,5 @@
 /// <reference path="../interfaces.d.ts" />
 
-import * as uuid from 'node-uuid';
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
 import API from './api';
@@ -51,6 +50,4 @@ connection.onOpen(() => {
   connection.send({
     type: 'init'
   });
-
-
 });

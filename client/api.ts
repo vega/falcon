@@ -27,10 +27,12 @@ class API {
       // Cache hit
       Object.keys(this.cache[range.toString()]).forEach((dim) => {
         const data = this.cache[range.toString()][dim];
-        this._onResults && this._onResults({
-          dimension: dim,
-          data: data
-        });
+        if (this._onResults) {
+          this._onResults({
+            dimension: dim,
+            data: data
+          });
+        }
       });
     } else {
       // Request result from server
