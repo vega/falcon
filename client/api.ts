@@ -49,23 +49,10 @@ class API {
     if (this.cache[scaledRange[0]] && this.cache[scaledRange[1]]) {
       // cache hit
       Object.keys(this.cache[scaledRange[1]]).forEach((dim) => {
-        if (!this.cache[scale[0]][dim]) {
+        if (!this.cache[scaledRange[0]][dim]) {
           return;
         }
-
-        // TODO - refactor this so the logic isn't repeated in 2 places.
-        const higher = d3.nest().key((d: any) => d.bucket).map(this.cache[scaledRange[1]][dim]);
-        const lower = d3.nest().key((d: any) => d.bucket).map(this.cache[scaledRange[0]][dim]);
-
-        const data = Object.keys(higher).map((bucket) => {
-          const hCount = +higher[bucket][0].count;
-          const lCount = lower[bucket] ? +lower[bucket][0].count : 0;
-          return {
-            bucket: +bucket,
-            count: hCount - lCount
-          };
-        });
-
+        const data = this.combineRanges(this.cache[scaledRange[0]][dim], this.cache[scaledRange[1]][dim]);
         if (this._onResult) {
           this._onResult({
             dimension: dim,
@@ -107,24 +94,26 @@ class API {
         const c0 = this.cache[scaledRange[0]];
         const c1 =  this.cache[scaledRange[1]];
         if (c0 && c0[result.dimension] && c1 && c1[result.dimension]) {
-
-          // TODO - refactor this so the logic isn't repeated in 2 places.
-          const higher = d3.nest().key((d: any) => d.bucket).map(c1[result.dimension]);
-          const lower = d3.nest().key((d: any) => d.bucket).map(c0[result.dimension]);
-
-          const data = Object.keys(higher).map((bucket) => {
-            const hCount = +higher[bucket][0].count;
-            const lCount = lower[bucket] ? +lower[bucket][0].count : 0;
-            return {
-              bucket: +bucket,
-              count: hCount - lCount
-            };
-          });
-          
-          callback(result.dimension, data);
+          callback(result.dimension, this.combineRanges(c0[result.dimension], c1[result.dimension]));
         }
       }
     };
+  }
+
+  private combineRanges(low: { bucket: number, count: number }[], high: { bucket: number, count: number }[]) {
+      const higher = d3.nest().key((d: any) => d.bucket).map(high);
+      const lower = d3.nest().key((d: any) => d.bucket).map(low);
+
+      const data = Object.keys(higher).map((bucket) => {
+        const hCount = +higher[bucket][0].count;
+        const lCount = lower[bucket] ? +lower[bucket][0].count : 0;
+        return {
+          bucket: +bucket,
+          count: hCount - lCount
+        };
+      });
+
+      return data;
   }
 
 

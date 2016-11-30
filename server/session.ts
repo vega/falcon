@@ -188,7 +188,7 @@ class Session {
       }
 
       this.queryCount--;
-      if (this.queryCount < config.database.max_connections) {
+      if (this.queryCount < config.database.max_connections - 2 * this.dimensions.length) {
         this.nextQuery();
       }
 

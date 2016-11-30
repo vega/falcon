@@ -43,7 +43,10 @@ class Postgres implements Backend {
       predicates.map(this.formatPredicate).join(' and ').trim() || true
     ];
 
-    return this.db.many(SQL_QUERY, variables).catch(console.log);
+    return this.db.many(SQL_QUERY, variables).catch(() => {
+      console.log('Caught error. Returning empty result set.');
+      return [];
+    });
   }
 }
 
