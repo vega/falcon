@@ -2,7 +2,7 @@
 /// <reference path='../../node_modules/pg-promise/typescript/pg-promise.d.ts' />
 
 import * as pgp from 'pg-promise';
-import { Backend } from '.';
+import { Backend, Predicate } from '.';
 
 const config = require('../../config.json');
 
@@ -20,16 +20,20 @@ class Postgres implements Backend {
     this.db = pgp({})(connection);
   }
 
-  private formatPredicate(predicate: Dimension) {
-    const { range, name } = predicate;
-    return `${range[0]} < "${name}" and "${name}" < ${range[1]}`;
+  private formatPredicate(predicate: Predicate) {
+    const { lower, upper, name } = predicate;
+    if (lower !== undefined && upper !== undefined) {
+      return `${lower} < "${name}" and "${name}" < ${upper}`;
+    } else if (lower !== undefined) {
+      return `${lower} < "${name}"`;
+    } else if (upper !== undefined) {
+      return `"${name}" < ${upper}`;
+    }
   }
 
-  public query(dimension: string, predicates: Dimension[]) {
-
+  public query(dimension: string, predicates: Predicate[]) {
     const dim = config.dimensions.find(d => d.name === dimension);
     const range = dim.range;
-    predicates.push(dim);
 
     const variables = [
       dimension, 
@@ -39,7 +43,7 @@ class Postgres implements Backend {
       predicates.map(this.formatPredicate).join(' and ').trim() || true
     ];
 
-    return this.db.many(SQL_QUERY, variables);
+    return this.db.many(SQL_QUERY, variables).catch(console.log);
   }
 }
 

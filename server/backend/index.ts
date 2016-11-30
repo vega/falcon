@@ -1,7 +1,13 @@
 import Postgres from './postgres';
 
 interface Backend {
-  query(dimension: string, predicates: Dimension[]);
+  query(dimension: string, predicates: Predicate[])
+};
+
+interface Predicate {
+  name: string,
+  lower?: number,
+  upper?: number
 };
 
 const initBackend = (config) => {
@@ -14,5 +20,6 @@ const initBackend = (config) => {
 
 export {
   Backend,
+  Predicate,
   initBackend
 };
