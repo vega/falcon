@@ -2,6 +2,7 @@
 /// <reference path='../../node_modules/pg-promise/typescript/pg-promise.d.ts' />
 
 import * as pgp from 'pg-promise';
+import * as d3 from 'd3';
 import { Backend, Predicate } from '.';
 
 const config = require('../../config.json');
@@ -43,10 +44,19 @@ class Postgres implements Backend {
       predicates.map(this.formatPredicate).join(' and ').trim() || true
     ];
 
-    return this.db.many(SQL_QUERY, variables).catch(() => {
-      console.log('Caught error. Returning empty result set.');
-      return [];
-    });
+    return this.db
+      .many(SQL_QUERY, variables)
+      .then((results) => {
+        const r = d3.range(dim.bins).map(() => 0);
+        results.forEach((d) => {
+          r[+d.bucket] = +d.count;
+        });
+        return r;
+      })
+      .catch(() => {
+        console.log('Caught error. Returning empty result set.');
+        return d3.range(dim.bins).map(() => 0);
+      });
   }
 }
 
