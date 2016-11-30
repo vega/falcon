@@ -6,13 +6,6 @@ import { Backend, Predicate } from '.';
 
 const config = require('../../config.json');
 
-const SQL_QUERY = `
-  SELECT width_bucket("$1:raw", $2, $3, $4) as bucket, count(*) 
-  FROM ${config.database.table} 
-  WHERE $5:raw
-  GROUP BY bucket order by bucket asc;
-`;
-
 class Postgres implements Backend {
   private db: any;
   
@@ -22,7 +15,7 @@ class Postgres implements Backend {
 
   private reducePredicates(accumulator: {currentPredicate: string, varCount: number}, predicate: Predicate, index: number) {
     let { currentPredicate, varCount } = accumulator;
-    if (currentPredicate !== 0) {
+    if (index !== 0) {
       currentPredicate += ' and ';
     }
 
@@ -42,7 +35,7 @@ class Postgres implements Backend {
   }
 
   private getPredicateVars(predicates) {
-    const vars = [];
+    const vars: any = [];
     predicates.forEach((predicate) => {
       const { lower, upper, name } = predicate;
       if (lower !== undefined && upper !== undefined) {
