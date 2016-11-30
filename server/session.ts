@@ -1,6 +1,7 @@
 import { Backend, Predicate } from './backend';
 import * as PriorityQueue from 'js-priority-queue';
-import * as d3 from 'd3';
+import {scaleLinear} from 'd3-scale';
+import {range} from 'd3-array';
 
 interface QueueElement {
   index: number;
@@ -70,7 +71,7 @@ class Session {
     resolutions.forEach((resolution) => {
       const dimension = this.dimensions.find(d => d.name === resolution.dimension);
       if (dimension) {
-        this.scales[resolution.dimension] = d3.scale.linear().domain([0, resolution.value]).range(dimension.range);
+        this.scales[resolution.dimension] = scaleLinear().domain([0, resolution.value]).range(dimension.range);
       } 
     })
 
@@ -91,7 +92,7 @@ class Session {
 
     this.queue = new PriorityQueue<QueueElement>({
        // Random sampling at the beginning
-      initialValues: d3.range(this.scales[ad.name].domain()[1]).map((i) => {
+      initialValues: range(this.scales[ad.name].domain()[1]).map((i) => {
         return {
           index: i,
           value: Math.random()

@@ -11,7 +11,7 @@
       "node"
     ],
     "noImplicitAny": false,
-    "strictNullChecks": true
+    "strictNullChecks": false
   },
   "exclude": [
     "node_modules",

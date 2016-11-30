@@ -31,8 +31,12 @@ declare type Dimension = {
 };
 
 declare type Result = {
+  // the active dimension at the time of sending this
   activeDimension: string,
+  // the dimension for which we send the data
   dimension: string,
+  // the values for the dimension
   data: number[],
+  // the end value for the range in the active dimension
   index: number
 };
