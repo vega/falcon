@@ -37,5 +37,6 @@ declare type Result = {
   dimension: string,
   // the values for the dimension
   data: number[],
+  // the end value for the range in the active dimension
   index: number
 };

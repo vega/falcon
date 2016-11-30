@@ -18,7 +18,7 @@ class BrushableBar {
   private $content: any;
   private dimension: Dimension;
 
-  constructor(dimension: Dimension, data: any, options: { width: number, height: number }) {
+  constructor(dimension: Dimension, data: number[], options: { width: number, height: number }) {
     const {
       width,
       height
@@ -40,7 +40,7 @@ class BrushableBar {
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    const maxValue: number = d3.max(data, (d: any) => +d.count) || 0;
+    const maxValue: number = d3.max(data) || 0;
     this.y = d3.scaleLinear()
       .domain([0, maxValue])
       .range([contentHeight, 0]);
@@ -57,8 +57,8 @@ class BrushableBar {
     return this;
   }
 
-  public update(data: any) {
-    const $bars = this.$content.selectAll('.bar').data(data, d => d.bucket);
+  public update(data: number[]) {
+    const $bars = this.$content.selectAll('.bar').data(data, d => d);
 
     $bars
       .enter()
@@ -70,17 +70,17 @@ class BrushableBar {
     .merge($bars)
       .attr('x', (d, i: number) => {
         const { range, bins } = this.dimension;
-        return this.x(range[0] + (d.bucket - 1) * (range[1] - range[0]) / bins);
+        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
       })
       .attr('y', (d, i: number) => {
-        return this.y(+d.count);
+        return this.y(d);
       })
       .attr('width', (d, i: number) => {
         const { range, bins } = this.dimension;
         return this.x(range[0] + (range[1] - range[0]) / bins) - 2 * binPadding;
       })
       .attr('height', (d) => {
-        return this.y(0) - this.y(+d.count);
+        return this.y(0) - this.y(d);
       });
 
     $bars.exit().remove();

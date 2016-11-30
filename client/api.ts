@@ -4,7 +4,7 @@ import {nest} from 'd3-collection';
 
 class API {
 
-  private cache: number[][] = [];
+  private cache: {[value: number]: number[]} = {};
   private activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
@@ -35,8 +35,8 @@ class API {
   public setState(dimension: Dimension, range: Interval) {
 
     if (this.activeDimension !== dimension.name) {
-      // Only cache 1 dimension at a time.
-      this.cache = [];
+      // Clear cache because we only cache 1 dimension at a time.
+      this.cache = {};
     }
 
     this.activeDimension = dimension.name;
@@ -81,6 +81,7 @@ class API {
     return (result: Result) => {
       // Ignore results from stale queries (wrong dimension)
       if (result.activeDimension === this.activeDimension) {
+
         if (!this.cache[result.index]) {
           this.cache[result.index] = [];
         }
@@ -92,6 +93,7 @@ class API {
 
         const c0 = this.cache[scaledRange[0]];
         const c1 =  this.cache[scaledRange[1]];
+
         if (c0 && c0[result.dimension] && c1 && c1[result.dimension]) {
           const combined = this.combineRanges(c0[result.dimension], c1[result.dimension]);
           callback(result.dimension, combined);

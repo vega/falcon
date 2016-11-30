@@ -44,7 +44,7 @@ connection.onOpen(() => {
     } else {
       const dim = config.dimensions.find(d => d.name === dimension);
     
-      //vizs[dimension] = new BrushableBar(dim, data, {width: CHART_WIDTH, height: 250})
+      vizs[dimension] = new BrushableBar(dim, data, {width: CHART_WIDTH, height: 250})
         //.on('brush start', handleBrushStart(dim))
         //.on('brush end', handleBrushEnd(dim));
     }
