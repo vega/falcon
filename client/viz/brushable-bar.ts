@@ -3,10 +3,10 @@
 import * as d3 from 'd3';
 
 const padding = {
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0
+  top: 10,
+  bottom: 30,
+  left: 40,
+  right: 20
 };
 
 const binPadding = 1;
@@ -16,7 +16,10 @@ class BrushableBar {
   private  y: d3.ScaleLinear<number, number>;
   private brush: d3.BrushBehavior<any>;
   private $content: any;
+  private $group: d3.Selection<any, any, any, any>;
   private dimension: Dimension;
+  private xAxis: d3.Axis<number | { valueOf(): number}>;
+  private yAxis: d3.Axis<number | { valueOf(): number}>;
 
   constructor(dimension: Dimension, options: { width: number, height: number }) {
     const {
@@ -33,22 +36,35 @@ class BrushableBar {
       .range([0, contentWidth])
       .domain(dimension.range);
 
-    this.brush = d3.brushX();
+    this.y = d3.scaleLinear()  
+      .range([contentHeight, 0]);
+
+    this.xAxis = d3.axisBottom(this.x);
+    this.yAxis = d3.axisLeft(this.y);
+
+    this.brush = d3.brushX().extent([[0, 0], [width, contentHeight]]);
 
     d3.select('body').append('div').text(dimension.title || '');
     const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
-    const group = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    this.y = d3.scaleLinear()  
-      .range([contentHeight, 0]);
+    this.$group = $svg.append('g').attr('transform', `translate(${padding.left}, ${padding.top})`);
 
-    this.$content = group.append('g');
+    this.$content = this.$group.append('g');
 
-    group.append('g')
+    this.$group.append('g')
         .attr('class', 'x brush')
         .call(this.brush)
-        .call(this.brush.move, this.x.range());
+        // .call(this.brush.move, this.x.range());
+
+    this.$group.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + contentHeight + ")")
+      .call(this.xAxis)
+
+    this.$group.append("g")
+      .attr("class", "axis axis--y")
+      .call(this.yAxis);
 
     return this;
   }
@@ -58,6 +74,7 @@ class BrushableBar {
 
     const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
     this.y.domain([0, maxValue])
+    this.$group.select(".axis--y").call(this.yAxis);
 
     $bars
       .enter()
