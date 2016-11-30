@@ -32,6 +32,7 @@ class BrushableBar {
     this.x = d3.scaleLinear()
       .range([0, contentWidth])
       .domain(dimension.range);
+
     this.brush = d3.brushX();
 
     d3.select('body').append('div').text(dimension.title || '');

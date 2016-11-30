@@ -31,8 +31,11 @@ declare type Dimension = {
 };
 
 declare type Result = {
+  // the active dimension at the time of sending this
   activeDimension: string,
+  // the dimension for which we send the data
   dimension: string,
-  data: { bucket: number, value: number }[],
+  // the values for the dimension
+  data: number[],
   index: number
 };

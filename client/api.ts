@@ -1,20 +1,20 @@
-
 import BrushableBar from './viz/brushable-bar';
-import * as d3 from 'd3';
+import {scaleLinear, ScaleLinear} from 'd3-scale';
+import {nest} from 'd3-collection';
 
 class API {
 
-  private cache: any = [];
+  private cache: number[][] = [];
   private activeDimension: string;
-  private ranges: any = {};
+  private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
-  private scales: any = {};
+  private scales: {[dimension: string]: ScaleLinear<number, number>} = {};
 
   constructor(public dimensions: Dimension[], public connection: any) {
     this.activeDimension = dimensions[0].name;
     dimensions.forEach(dimension => {
       this.ranges[dimension.name] = dimension.range;
-      this.scales[dimension.name] = d3.scale.linear().domain(dimension.range).range([0, 100]);
+      this.scales[dimension.name] = scaleLinear().domain(dimension.range).range([0, 100]);
     });
   }
 
@@ -22,7 +22,7 @@ class API {
     resolutions.forEach((resolution) => {
       const dimension = this.dimensions.find(d => d.name === resolution.dimension);
       if (dimension) {
-        this.scales[dimension.name] = d3.scale.linear().domain(dimension.range).range([0, resolution.value]);
+        this.scales[dimension.name] = scaleLinear().domain(dimension.range).range([0, resolution.value]);
       } 
     });
 
@@ -30,7 +30,6 @@ class API {
       type: 'init',
       resolutions: resolutions
     });
-
   }
 
   public setState(dimension: Dimension, range: Interval) {
@@ -77,13 +76,13 @@ class API {
     this.ranges[dimension.name] = range;
   }
 
-  public onResult(callback: (dimension: string, data: { bucket: number, count: number }[]) => any) {
+  public onResult(callback: (dimension: string, data: number[]) => any) {
     this._onResult = callback;
-    return (result) => {
+    return (result: Result) => {
       // Ignore results from stale queries (wrong dimension)
       if (result.activeDimension === this.activeDimension) {
         if (!this.cache[result.index]) {
-          this.cache[result.index] = {};
+          this.cache[result.index] = [];
         }
         this.cache[result.index][result.dimension] = result.data;
         
@@ -94,29 +93,26 @@ class API {
         const c0 = this.cache[scaledRange[0]];
         const c1 =  this.cache[scaledRange[1]];
         if (c0 && c0[result.dimension] && c1 && c1[result.dimension]) {
-          callback(result.dimension, this.combineRanges(c0[result.dimension], c1[result.dimension]));
+          const combined = this.combineRanges(c0[result.dimension], c1[result.dimension]);
+          callback(result.dimension, combined);
         }
       }
     };
   }
 
-  private combineRanges(low: { bucket: number, count: number }[], high: { bucket: number, count: number }[]) {
-      const higher = d3.nest().key((d: any) => d.bucket).map(high);
-      const lower = d3.nest().key((d: any) => d.bucket).map(low);
+  private combineRanges(low: number[], high: number[]) {
+    if (low.length !== high.length) {
+      throw Error('low and high have to have the same length');
+    }
 
-      const data = Object.keys(higher).map((bucket) => {
-        const hCount = +higher[bucket][0].count;
-        const lCount = lower[bucket] ? +lower[bucket][0].count : 0;
-        return {
-          bucket: +bucket,
-          count: hCount - lCount
-        };
-      });
+    const data: number[] = [];
 
-      return data;
+    for (let bucket = 0; bucket < low.length; bucket++) {
+      data[bucket] = +high[bucket] - low[bucket];
+    }
+
+    return data;
   }
-
-
 }
 
 export default API;
