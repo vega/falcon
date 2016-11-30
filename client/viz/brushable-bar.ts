@@ -12,9 +12,9 @@ const padding = {
 const binPadding = 1;
 
 class BrushableBar {
-  private x: any;
-  private y: any;
-  private brush: any;
+  private x: d3.ScaleLinear<number, number>;
+  private y: d3.ScaleLinear<number, number>;
+  private brush: d3.BrushBehavior<any>;
   private $content: any;
   private dimension: Dimension;
 
@@ -29,15 +29,20 @@ class BrushableBar {
 
     this.dimension = dimension;
 
-    this.x = d3.scale.linear().range([0, contentWidth]).domain(dimension.range);
-    this.brush = d3.svg.brush().x(this.x);
+    this.x = d3.scaleLinear()
+      .range([0, contentWidth])
+      .domain(dimension.range);
+    this.brush = d3.brushX();
 
     d3.select('body').append('div').text(dimension.title || '');
     const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    this.y = d3.scale.linear().domain([0, d3.max(data, (d: any) => { return +d.count; })]).range([contentHeight, 0]);
+    const maxValue: number = d3.max(data, (d: any) => +d.count) || 0;
+    this.y = d3.scaleLinear()
+      .domain([0, maxValue])
+      .range([contentHeight, 0]);
 
     this.update(data);
 
@@ -60,9 +65,8 @@ class BrushableBar {
       .attr('class', 'bar')
       .attr('fill', 'steelblue')
       .attr('y', this.y(0))
-      .attr('height', 0);
-
-    $bars
+      .attr('height', 0)
+    .merge($bars)
       .attr('x', (d, i: number) => {
         const { range, bins } = this.dimension;
         return this.x(range[0] + (d.bucket - 1) * (range[1] - range[0]) / bins);

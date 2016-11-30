@@ -14,7 +14,6 @@ let activeDimension = dimensions[0];
 const api = new API(dimensions, connection);
 
 connection.onOpen(() => {
-
   // TODO: break this down into brush start, end, etc.
   const handleBrushStart = (dim: Dimension) => {
     return (domain: Interval) => {
@@ -23,6 +22,7 @@ connection.onOpen(() => {
   };
 
   const handleBrushEnd = (dim: Dimension) => {
+    console.log('brushend')
     return (domain: Interval) => {
       const viz = vizs[dim.name];
       let extent = viz.brush.extent();
@@ -42,8 +42,8 @@ connection.onOpen(() => {
     } else {
       const dim = config.dimensions.find(d => d.name === results.dimension);
       vizs[results.dimension] = new BrushableBar(dim, results.data, {width: 500, height: 250})
-        .on('brushstart', handleBrushStart(dim))
-        .on('brushend', handleBrushEnd(dim));
+        .on('brush start', handleBrushStart(dim))
+        .on('brush end', handleBrushEnd(dim));
     }
   }));
 
