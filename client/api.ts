@@ -34,12 +34,16 @@ class API {
 
   public setState(dimension: Dimension, range: Interval) {
 
-    if (this.activeDimension !== dimension.name) {
-      // Clear cache because we only cache 1 dimension at a time.
-      this.cache = {};
-    }
+    this.setActiveDimension(dimension);
+    this.ranges[dimension.name] = range;
 
-    this.activeDimension = dimension.name;
+    // TODO: This needs to be updated
+    //       so that it selects the best approximation
+    //       if the exact one isn't available in the cache.
+    //
+    //       We should also update the onResult handler
+    //       so that it sees if incoming results are better
+    //       approximations than the current.
 
     // Convert the range to cache index:
     const scale = this.scales[this.activeDimension];
@@ -56,21 +60,52 @@ class API {
           this._onResult(dim, data);
         }
       })
-    } else {
-      this.connection.send({
-        type: 'load',
-        dimension: dimension.name,
-        value: scaledRange[0]
-      });
-      this.connection.send({
-        type: 'load',
-        dimension: dimension.name,
-        value: scaledRange[1]
-      });
     }
 
-    this.activeDimension = dimension.name;
-    this.ranges[dimension.name] = range;
+  }
+
+  public setRange(dimension: Dimension, range: Interval) {
+    this.setState(dimension, range);
+    this.connection.send({
+      type: 'setRange',
+      dimension: this.activeDimension,
+      range: range
+    });
+  }
+
+
+  // Call this when you want to request a value
+  // to be computed immediately.
+  public load(dimension: Dimension, value: number) {
+    this.setActiveDimension(dimension);
+
+    const scale = this.scales[this.activeDimension];
+    const index = Math.round(scale(value));
+
+    if (this.cache[index]) {
+      return;
+    }
+
+    this.connection.send({
+      type: 'load',
+      dimension: this.activeDimension,
+      value: index
+    });
+  }
+
+  // Call this when you want to suggest how the
+  // server should prioritize background queries.
+  public preload(dimension: Dimension, value: number) {
+    this.setActiveDimension(dimension);
+
+    const scale = this.scales[this.activeDimension];
+    const index = Math.round(scale(value));
+
+    this.connection.send({
+      type: 'preload',
+      dimension: this.activeDimension,
+      value: index
+    });
   }
 
   public onResult(callback: (dimension: string, data: number[]) => any) {
@@ -78,12 +113,13 @@ class API {
     return (result: Result) => {
       // Ignore results from stale queries (wrong dimension)
       if (result.activeDimension === this.activeDimension) {
-
         if (!this.cache[result.index]) {
           this.cache[result.index] = [];
         }
         this.cache[result.index][result.dimension] = result.data;
 
+        // This attempts to see if the new result is exactly what
+        // the brush is set to now, and if so, updates it.
         const range = this.ranges[this.activeDimension];
         const scale = this.scales[this.activeDimension];
         const scaledRange = range.map(d => Math.round(scale(d)));
@@ -111,6 +147,15 @@ class API {
     }
 
     return data;
+  }
+
+  private setActiveDimension(dimension: Dimension) {
+    if (this.activeDimension !== dimension.name) {
+      // Clear cache because we only cache 1 dimension at a time.
+      this.cache = {};
+    }
+
+    this.activeDimension = dimension.name;
   }
 }
 

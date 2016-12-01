@@ -106,9 +106,13 @@ class BrushableBar {
     return this;
   }
 
-  public on(eventName: string, callback: any) {
+  public onBrush(eventName: string, callback: any) {
     this.brush.on(eventName, callback);
-    // this.callbacks[eventName] = _.throttle(callback, 250);
+    return this;
+  }
+
+  public on(eventName: string, callback: any) {
+    this.$content.on(eventName, callback);
     return this;
   }
 }

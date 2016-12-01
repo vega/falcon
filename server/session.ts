@@ -94,9 +94,11 @@ class Session {
     const staticDimensions = this.getStaticDimensions();
     this.queue = new PriorityQueue<QueueElement>({
        // Random sampling at the beginning
+       // TODO: update this to favor evenly distributed values.
       initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
+        const index = Math.floor(i / staticDimensions.length);
         return {
-          index: i,
+          index: index,
           value: Math.random(),
           dimension: staticDimensions[i % staticDimensions.length]
         };
@@ -112,14 +114,27 @@ class Session {
   }
 
   public preload(dimension: string, value: number, velocity: number) {
-    // TODO:
-    // This should only update the priority queue.
-    // It should assign a new score to every possible input value.
+    this.setActiveDimension(dimension);
+    const staticDimensions = this.getStaticDimensions();
+    const ad = this.getActiveDimension();
+    this.queue = new PriorityQueue<QueueElement>({
+      initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
+        const index = Math.floor(i / staticDimensions.length);
+        return {
+          index: index,
+          value: Math.abs(index - value),
+          dimension: staticDimensions[i % staticDimensions.length]
+        };
+      }),
+      comparator: (a: QueueElement, b: QueueElement) => {
+        return a.value - b.value;
+      }
+    });
   }
 
   public setRange(dimension: string, range: Interval) {
     // Set the current range, (this shouldn't fire a query)
-    this.activeDimension = dimension;
+    this.setActiveDimension(dimension);
     const ad = this.getActiveDimension();
     ad.currentRange = range;
   }
@@ -163,17 +178,15 @@ class Session {
     // procede with the query and dequeue. If not dequeue and repeat.
     let cacheMiss = false;
     do {
-      let next = this.queue.peek();
+      let next = this.queue.dequeue();
       if (this.cache[next.index] && this.cache[next.index][next.dimension.name]) {
-        return;
+        continue;
       }
       cacheMiss = true;
       this.queryCount++;
       this.backend
         .query(next.dimension.name, this.getPredicates(next.index, next.dimension))
         .then(this.handleQuery(activeDimension, next.dimension, next.index));
-
-      this.queue.dequeue();
     } while (!cacheMiss);
   }
 
