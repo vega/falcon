@@ -93,8 +93,8 @@ class API {
     });
   }
 
-  // Call this when you want to request a value
-  // to be computed immediately.
+  // Call this when you want to suggest how the
+  // server should prioritize background queries.
   public preload(dimension: Dimension, value: number) {
     this.checkActiveDimension(dimension);
 
