@@ -18,19 +18,63 @@ const CHART_WIDTH = 500;
 const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
-  const handleBrushStart = (dim: Dimension) => {
+
+  let staticHandle = null;
+  const handleHover = (dimension: Dimension) => {
     return (domain: Interval) => {
-      // api.setState(dim, domain);
+      // Start preloading values from this dimension.
+      const viz = vizs[dimension.name];
+      const s = viz.x.range();
+      const extent = (s.map(viz.x.invert, viz.x));
+      api.preload(dimension, extent[0] + (extent[1] - extent[0]) / 2);
     };
   };
 
-  const handleBrushEnd = (dim: Dimension) => {
+  const handleBrushStart = (dimension: Dimension) => {
     return (domain: Interval) => {
-      const viz = vizs[dim.name];
+      const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
 
-      api.setState(dim, extent);
+      // Extent [0] === [1] in this case so it doesn't matter
+      // which we use. We need to hang on to this value tho
+      // so that we can load the proper one on brush end.
+      staticHandle = extent[0];
+      api.load(dimension, extent[0]);
+    };
+  };
+
+  const handleBrushMove = (dimension: Dimension) => {
+    return (domain: Interval) => {
+      console.log('brush move ' + dimension.name);
+      const viz = vizs[dimension.name];
+      const s = d3.event.selection || viz.x.range();
+      const extent = (s.map(viz.x.invert, viz.x));
+      api.setState(dimension, extent);
+      if (extent[0] === staticHandle) {
+        api.preload(dimension, extent[1]);
+      } else if (extent[1] === staticHandle) {
+        api.preload(dimension, extent[0]);
+      } else {
+        api.preload(dimension, extent[1]);
+      }
+    };
+  };
+
+  const handleBrushEnd = (dimension: Dimension) => {
+    return (domain: Interval) => {
+      const viz = vizs[dimension.name];
+      const s = d3.event.selection || viz.x.range();
+      const extent = (s.map(viz.x.invert, viz.x));
+      api.setRange(dimension, extent);
+      if (extent[0] === staticHandle) {
+        api.load(dimension, extent[1]);
+      } else if (extent[1] === staticHandle) {
+        api.load(dimension, extent[0]);
+      } else {
+        api.load(dimension, extent[0]);
+        api.load(dimension, extent[1]);
+      }
     };
   };
 
@@ -44,8 +88,10 @@ connection.onOpen(() => {
   // Initialize empty charts
   dimensions.forEach(dim => {
     vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
-      .on('start', handleBrushStart(dim))
-      .on('end', handleBrushEnd(dim));
+      .on('hover', handleHover(dim))
+      .onBrush('start', handleBrushStart(dim))
+      .onBrush('brush', handleBrushMove(dim))
+      .onBrush('end', handleBrushEnd(dim));
   });
 
   // Initialize with resolutions
