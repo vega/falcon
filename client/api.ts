@@ -34,7 +34,7 @@ class API {
 
   public setState(dimension: Dimension, range: Interval) {
 
-    this.checkActiveDimension(dimension);
+    this.setActiveDimension(dimension);
     this.ranges[dimension.name] = range;
 
     // TODO: This needs to be updated
@@ -77,7 +77,7 @@ class API {
   // Call this when you want to request a value
   // to be computed immediately.
   public load(dimension: Dimension, value: number) {
-    this.checkActiveDimension(dimension);
+    this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
@@ -96,7 +96,7 @@ class API {
   // Call this when you want to suggest how the
   // server should prioritize background queries.
   public preload(dimension: Dimension, value: number) {
-    this.checkActiveDimension(dimension);
+    this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
@@ -149,7 +149,7 @@ class API {
     return data;
   }
 
-  private checkActiveDimension(dimension: Dimension) {
+  private setActiveDimension(dimension: Dimension) {
     if (this.activeDimension !== dimension.name) {
       // Clear cache because we only cache 1 dimension at a time.
       this.cache = {};
