@@ -1,99 +1,115 @@
 /// <reference path='../../interfaces.d.ts' />
 
 import * as d3 from 'd3';
-import * as _ from 'underscore';
 
 const padding = {
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0
+  top: 10,
+  bottom: 30,
+  left: 40,
+  right: 20
 };
 
 const binPadding = 1;
 
 class BrushableBar {
+  public x: d3.ScaleLinear<number, number>;
+  private y: d3.ScaleLinear<number, number>;
+  private brush: d3.BrushBehavior<any>;
+  private $content: any;
+  private $group: d3.Selection<any, any, any, any>;
+  private xAxis: d3.Axis<number | { valueOf(): number}>;
+  private yAxis: d3.Axis<number | { valueOf(): number}>;
+  public contentWidth: number;
+  public contentHeight: number;
 
-  callbacks: any = {};
-  x: any;
-  y: any;
-  brush: any;
-  $content: any;
-  bins: any;
-  domain: any;
-
-  constructor(selector: string, data, options = { width: 600, height: 400 }) {
+  constructor(private dimension: Dimension, options: { width: number, height: number }) {
     const {
       width,
       height
     } = options;
 
-    const contentHeight = options.height - padding.bottom - padding.top;
-    const contentWidth = options.width - padding.left - padding.right;
+    const contentHeight = height - padding.bottom - padding.top;
+    const contentWidth = width - padding.left - padding.right;
 
-    this.domain = data.domain;
+    this.x = d3.scaleLinear()
+      .range([0, contentWidth])
+      .domain(dimension.range);
 
-    this.x = d3.scale.linear().domain(data.domain).range([0, contentWidth]);
-    this.brush = d3.svg.brush().x(this.x).on('brushend', this.brushed.bind(this));
+    this.y = d3.scaleLinear()
+      .domain([0, 100])
+      .range([contentHeight, 0]);
 
-    const $container = d3.select(selector);
+    this.xAxis = d3.axisBottom(this.x);
+    this.yAxis = d3.axisLeft(this.y);
+
+    this.brush = d3.brushX().extent([[0, 0], [width, contentHeight]]);
+
+    d3.select('body').append('div').text(dimension.title || '');
+    const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
-    this.$content = $svg.append('g').attr('transform', `translate(${padding.top}, ${padding.left})`);
-    this.y = d3.scale.linear().domain([0, d3.max(data.values, (d: any) => { return d.count; })]).range([contentHeight, 0]);
+    this.$group = $svg.append('g').attr('transform', `translate(${padding.left}, ${padding.top})`);
 
-    this.update(data);
+    this.$content = this.$group.append('g');
 
-    this.$content.append('g')
+    this.$group.append('g')
         .attr('class', 'x brush')
         .call(this.brush)
-      .selectAll('rect')
-        .attr('y', -6)
-        .attr('height', contentHeight + 7);
+        // .call(this.brush.move, this.x.range());
 
+    this.$group.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + contentHeight + ")")
+      .call(this.xAxis)
+
+    this.$group.append("g")
+      .attr("class", "axis axis--y")
+      .call(this.yAxis);
+
+    this.contentWidth = contentWidth;
+    this.contentHeight = contentHeight;
     return this;
   }
 
-  public update(data: any) {
-    const $bars = this.$content.selectAll('.bar').data(data.values);
+  public update(data: number[]) {
+    const $bars = this.$content.selectAll('.bar').data(data, d => d);
+
+    const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
+    this.y.domain([0, maxValue])
+    this.$group.select(".axis--y").call(this.yAxis);
+
     $bars
       .enter()
       .append('rect')
       .attr('class', 'bar')
       .attr('fill', 'steelblue')
       .attr('y', this.y(0))
-      .attr('height', 0);
-
-    $bars
+      .attr('height', 0)
+    .merge($bars)
       .attr('x', (d, i: number) => {
-        return this.x(d.bucket);
+        const { range, bins } = this.dimension;
+        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
       })
       .attr('y', (d, i: number) => {
-        return this.y(d.count);
+        return this.y(d);
       })
       .attr('width', (d, i: number) => {
-        return this.x(data.values[1].bucket) - this.x(data.values[0].bucket) - 2 * binPadding;
+        const { range, bins } = this.dimension;
+        return this.x(range[0] + (range[1] - range[0]) / bins) - 2 * binPadding;
       })
       .attr('height', (d) => {
-        return this.y(0) - this.y(d.count);
+        return this.y(0) - this.y(d);
       });
+
+    $bars.exit().remove();
 
     return this;
   }
 
   public on(eventName: string, callback: any) {
-    this.callbacks[eventName] = _.throttle(callback, 250);
+    this.brush.on(eventName, callback);
+    // this.callbacks[eventName] = _.throttle(callback, 250);
     return this;
-  }
-
-  private brushed() {
-    let extent = this.brush.extent();
-    if (extent[1] === extent[0]) {
-      extent = this.domain;
-    }
-    if (this.callbacks.brushed) {
-      this.callbacks.brushed(extent);
-    }
   }
 }
 

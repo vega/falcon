@@ -1,14 +1,16 @@
+/// <reference path="../interfaces.d.ts" />
+
 import * as pako from 'pako';
 
 const host = window.document.location.host.replace(/:.*/, '');
 const ws = new WebSocket('ws://' + host + ':4080');
 
-const callbacks = {};
+const callbacks: any = {};
 
 ws.onmessage = (event) => {
-  const inflated: string = pako.inflate(event.data, { to: 'string' });
+  const inflated: any = pako.inflate(event.data, { to: 'string' });
   const result: Result = JSON.parse(inflated);
-  callbacks[result.id] ? callbacks[result.id](result) : null;
+  callbacks.result && callbacks.result(result);
 }
 
 const connection = {
@@ -16,9 +18,12 @@ const connection = {
     ws.onopen = callback;
   },
 
-  send: (message: Request, callback: Function) => {
-    callbacks[message.id] = callback;
+  send: (message: Request) => {
     ws.send(JSON.stringify(message));
+  },
+
+  onResult: (callback) => {
+    callbacks['result'] = callback;
   }
 }
 

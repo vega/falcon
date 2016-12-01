@@ -7,8 +7,11 @@
     "typeRoots": [
       "../node_modules/@types"
     ],
+    "types": [
+      "node"
+    ],
     "noImplicitAny": false,
-    "strictNullChecks": true
+    "strictNullChecks": false
   },
   "exclude": [
     "node_modules",

@@ -1,38 +1,42 @@
-declare type Rng = [number, number];
+declare type Interval = [number, number];
 
 declare type Request = {
-    id: string,
-    type: 'query',
-    dims: {[domain: string]: {
-        // the domain (smallest and largest value) of the dimension
-        domain: Rng,
-        // the number of bins for this domain
-        numBins: number
-        // optional predicate, will not be applied to this domain but all others
-        range?: Rng
-    }},
-    // which domain are we changing right now
-    brushing?: string
+  type: 'init',
+  resolutions: { dimension: string, value: number }[]
 } | {
-    id: string,
-    type: 'range',
-    dims: string[]
+  type: 'preload',
+  dimension: string,
+  value: number,  
+  velocity: number
+} | {
+  type: 'load',
+  dimension: string,
+  value: number
+} | {
+  type: 'loadInterval',
+  dimenstion: string,
+  range: Interval
+} | {
+  type: 'setRange',
+  dimension: string,
+  range: Interval
+};
+
+declare type Dimension = {
+  name: string,
+  range: Interval,
+  title?: string,
+  bins?: number,
+  currentRange?: Interval
 };
 
 declare type Result = {
-    // multiple results for the same query
-    id: string,
-    type: 'query',
-    dim: string,
-    data: number[]
-} | {
-    type: 'range',
-    id: string,
-    ranges: {[dim: string]: Rng}
-}
-
-
-declare type Point = {
-  x: number,
-  y: number
+  // the active dimension at the time of sending this
+  activeDimension: string,
+  // the dimension for which we send the data
+  dimension: string,
+  // the values for the dimension
+  data: number[],
+  // the end value for the range in the active dimension
+  index: number
 };

@@ -1,70 +1,58 @@
 /// <reference path="../interfaces.d.ts" />
 
-import * as uuid from 'node-uuid';
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
+import API from './api';
+import * as d3 from 'd3';
 
-const vizs: any = {};
+const config: {dimensions: Dimension[]} = require('../config.json');
 
-const formatQuery = (dims) => {
-  const q: Request = {
-    id: uuid.v4(),
-    type: 'query',
-    dims: dims
-  };
+const vizs: {[dimension: string]: BrushableBar} = {};
 
-  return q;
-};
+const dimensions = config.dimensions;
+let activeDimension = dimensions[0];
 
-const dimensions = {
-  ARR_DELAY: {
-    selector: '#arr-delay'
-  },
-  DISTANCE: {
-    selector: '#distance'
-  },
-  DEP_DELAY: {
-    selector: '#dep-delay'
-  }
-};
+const api = new API(dimensions, connection);
+
+const CHART_WIDTH = 500;
+const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
-  const q1: Request = {
-    id: uuid.v4(),
-    type: 'range',
-    dims: Object.keys(dimensions),
+  const handleBrushStart = (dim: Dimension) => {
+    return (domain: Interval) => {
+      // api.setState(dim, domain);
+    };
   };
 
-  connection.send(q1, (result: any) => {
-    const dims: any = {};
-    Object.keys(result.ranges).forEach((dim) => {
-      dims[dim] = {
-        domain: result.ranges[dim],
-        range: result.ranges[dim],
-        numBins: 25
-      }
-    });
+  const handleBrushEnd = (dim: Dimension) => {
+    return (domain: Interval) => {
+      const viz = vizs[dim.name];
+      const s = d3.event.selection || viz.x.range();
+      const extent = (s.map(viz.x.invert, viz.x));
 
-    const handleUpdate = (dimension, domain) => {
-      dims[dimension].range = domain;
-
-      connection.send(formatQuery(dims), (result: any) => {
-        // Update the chart
-        vizs[result.dim].update({
-          values: result.data
-        });
-      });
+      api.setState(dim, extent);
     };
+  };
 
-    // We've retrieved the ranges, now get the initial data...
-    connection.send(formatQuery(dims), (result: any) => {
-      const selector = dimensions[result.dim].selector;
-      vizs[result.dim] = new BrushableBar(selector, Object.assign({}, dims[result.dim], {
-        values: result.data
-      })).on('brushed', (domain) => {
-        handleUpdate(result.dim, domain);
-      });
-    });
+  connection.onResult(api.onResult((dimension, data) => {
+    // API filters the results so at this point
+    // we only see results we want to draw to the
+    // screen immediately.
+    vizs[dimension].update(data);
+  }));
+
+  // Initialize empty charts
+  dimensions.forEach(dim => {
+    vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      .on('start', handleBrushStart(dim))
+      .on('end', handleBrushEnd(dim));
   });
 
+  // Initialize with resolutions
+  api.init(dimensions.map((d) => {
+    return {
+      dimension: d.name,
+      value: vizs[d.name].contentWidth
+    };
+  }));
 });
