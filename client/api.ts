@@ -23,7 +23,7 @@ class API {
       const dimension = this.dimensions.find(d => d.name === resolution.dimension);
       if (dimension) {
         this.scales[dimension.name] = scaleLinear().domain(dimension.range).range([0, resolution.value]);
-      } 
+      }
     });
 
     this.connection.send({
@@ -83,7 +83,7 @@ class API {
           this.cache[result.index] = [];
         }
         this.cache[result.index][result.dimension] = result.data;
-        
+
         const range = this.ranges[this.activeDimension];
         const scale = this.scales[this.activeDimension];
         const scaledRange = range.map(d => Math.round(scale(d)));

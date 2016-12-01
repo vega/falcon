@@ -36,8 +36,8 @@ connection.onOpen(() => {
 
   connection.onResult(api.onResult((dimension, data) => {
     // API filters the results so at this point
-    // we only see results we want to draw to the 
-    // screen immediately. 
+    // we only see results we want to draw to the
+    // screen immediately.
     vizs[dimension].update(data);
   }));
 
@@ -52,7 +52,7 @@ connection.onOpen(() => {
   api.init(dimensions.map((d) => {
     return {
       dimension: d.name,
-      value: CHART_WIDTH
+      value: vizs[d.name].contentWidth
     };
   }));
 });

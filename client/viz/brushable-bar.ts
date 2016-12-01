@@ -13,15 +13,16 @@ const binPadding = 1;
 
 class BrushableBar {
   public x: d3.ScaleLinear<number, number>;
-  private  y: d3.ScaleLinear<number, number>;
+  private y: d3.ScaleLinear<number, number>;
   private brush: d3.BrushBehavior<any>;
   private $content: any;
   private $group: d3.Selection<any, any, any, any>;
-  private dimension: Dimension;
   private xAxis: d3.Axis<number | { valueOf(): number}>;
   private yAxis: d3.Axis<number | { valueOf(): number}>;
+  public contentWidth: number;
+  public contentHeight: number;
 
-  constructor(dimension: Dimension, options: { width: number, height: number }) {
+  constructor(private dimension: Dimension, options: { width: number, height: number }) {
     const {
       width,
       height
@@ -30,13 +31,12 @@ class BrushableBar {
     const contentHeight = height - padding.bottom - padding.top;
     const contentWidth = width - padding.left - padding.right;
 
-    this.dimension = dimension;
-
     this.x = d3.scaleLinear()
       .range([0, contentWidth])
       .domain(dimension.range);
 
-    this.y = d3.scaleLinear()  
+    this.y = d3.scaleLinear()
+      .domain([0, 100])
       .range([contentHeight, 0]);
 
     this.xAxis = d3.axisBottom(this.x);
@@ -66,6 +66,8 @@ class BrushableBar {
       .attr("class", "axis axis--y")
       .call(this.yAxis);
 
+    this.contentWidth = contentWidth;
+    this.contentHeight = contentHeight;
     return this;
   }
 

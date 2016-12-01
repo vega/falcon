@@ -9,7 +9,7 @@ const config = require('../../config.json');
 
 class Postgres implements Backend {
   private db: any;
-  
+
   constructor(connection) {
     this.db = pgp({})(connection);
   }
@@ -59,15 +59,15 @@ class Postgres implements Backend {
     const wherePredicate = predicates.reduce(this.reducePredicates, {currentPredicate: '', varCount: 4});
 
     const SQL_QUERY = `
-      SELECT width_bucket("${dim.name}", $1, $2, $3) as bucket, count(*) 
-      FROM ${config.database.table} 
+      SELECT width_bucket("${dim.name}", $1, $2, $3) as bucket, count(*)
+      FROM ${config.database.table}
       WHERE ${wherePredicate.currentPredicate}
       GROUP BY bucket order by bucket asc;
     `;
 
     let variables = [
-      range[0], 
-      range[1], 
+      range[0],
+      range[1],
       dim.bins
     ];
 

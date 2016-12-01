@@ -6,6 +6,7 @@ import {range} from 'd3-array';
 interface QueueElement {
   index: number;
   value: number;
+  dimension: Dimension;
 };
 
 const config = require('../config.json');
@@ -25,7 +26,7 @@ class Session {
   constructor(public backend: Backend, public dimensions: Dimension[]) {
     this.activeDimension = dimensions[0].name;
   }
-  
+
   private getPredicates(index: number, dimension: Dimension) {
     const predicates: Predicate[] = [];
     const activeDimension = this.getActiveDimension();
@@ -52,7 +53,7 @@ class Session {
       }
     })
 
-    return predicates; 
+    return predicates;
   }
 
   private getActiveDimension() {
@@ -64,7 +65,7 @@ class Session {
   }
 
   // Return the initial queries back to the client
-  // This should take in Dimension resolution as well. 
+  // This should take in Dimension resolution as well.
   public init(resolutions: { dimension: string, value: number }[]) {
     const ad = this.getActiveDimension();
 
@@ -72,7 +73,7 @@ class Session {
       const dimension = this.dimensions.find(d => d.name === resolution.dimension);
       if (dimension) {
         this.scales[resolution.dimension] = scaleLinear().domain([0, resolution.value]).range(dimension.range);
-      } 
+      }
     })
 
     this.dimensions.forEach((dimension) => {
@@ -90,14 +91,16 @@ class Session {
         .then(this.handleQuery(ad, dimension, index1));
     });
 
+    const staticDimensions = this.getStaticDimensions();
     this.queue = new PriorityQueue<QueueElement>({
        // Random sampling at the beginning
-      initialValues: range(this.scales[ad.name].domain()[1]).map((i) => {
+      initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
         return {
           index: i,
-          value: Math.random()
+          value: Math.random(),
+          dimension: staticDimensions[i % staticDimensions.length]
         };
-      }), 
+      }),
       comparator: (a: QueueElement, b: QueueElement) => {
         return a.value - b.value;
       }
@@ -117,12 +120,12 @@ class Session {
   public setRange(dimension: string, range: Interval) {
     // Set the current range, (this shouldn't fire a query)
     this.activeDimension = dimension;
-    const ad = this.getActiveDimension(); 
+    const ad = this.getActiveDimension();
     ad.currentRange = range;
   }
 
   // Load a particular value immediately.
-  // Should this just immediately place the item at 
+  // Should this just immediately place the item at
   // the front of the queue?
   public load(dimension: string, value: number) {
     this.setActiveDimension(dimension);
@@ -161,18 +164,14 @@ class Session {
     let cacheMiss = false;
     do {
       let next = this.queue.peek();
-      this.getStaticDimensions().forEach((staticDimension) => {
-        // Check if it is already loaded
-        if (this.cache[next.index] && this.cache[next.index][staticDimension.name]) {
-          return;
-        }
-
-        cacheMiss = true;
-        this.queryCount++;
-        this.backend
-          .query(staticDimension.name, this.getPredicates(next.index, staticDimension))
-          .then(this.handleQuery(activeDimension, staticDimension, next.index));
-      });
+      if (this.cache[next.index] && this.cache[next.index][next.dimension.name]) {
+        return;
+      }
+      cacheMiss = true;
+      this.queryCount++;
+      this.backend
+        .query(next.dimension.name, this.getPredicates(next.index, next.dimension))
+        .then(this.handleQuery(activeDimension, next.dimension, next.index));
 
       this.queue.dequeue();
     } while (!cacheMiss);
@@ -189,7 +188,7 @@ class Session {
       }
 
       this.queryCount--;
-      if (this.queryCount < config.database.max_connections - 2 * this.dimensions.length) {
+      if (this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
         this.nextQuery();
       }
 
