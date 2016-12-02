@@ -21,6 +21,7 @@ class Session {
   private queryCount: number = 0;
   private scales: any = {};
   private closed: boolean = false;
+  private hasUserInteracted: boolean = false;
   private _onQuery: (activeDimension: string, dimension: string, results: any, value: number) => any;
 
   constructor(public backend: Backend, public dimensions: Dimension[]) {
@@ -39,7 +40,6 @@ class Session {
     }
     predicates.push({
       name: activeDimension.name,
-      // lower: activeDimension.range[0],
       upper: this.scales[activeDimension.name](index)
     });
 
@@ -114,6 +114,7 @@ class Session {
   }
 
   public preload(dimension: string, value: number, velocity: number) {
+    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
@@ -133,7 +134,7 @@ class Session {
   }
 
   public setRange(dimension: string, range: Interval) {
-    // Set the current range, (this shouldn't fire a query)
+    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const ad = this.getActiveDimension();
     ad.currentRange = range;
@@ -143,6 +144,7 @@ class Session {
   // Should this just immediately place the item at
   // the front of the queue?
   public load(dimension: string, value: number) {
+    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
 
     const activeDimension = this.getActiveDimension();
@@ -201,7 +203,7 @@ class Session {
       }
 
       this.queryCount--;
-      if (this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
+      if ((config.startOnPageload || this.hasUserInteracted) && config.optimizations.preload && this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
         this.nextQuery();
       }
 

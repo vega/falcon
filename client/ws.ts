@@ -2,13 +2,15 @@
 
 import * as pako from 'pako';
 
+const config = require('../config.json');
+
 const host = window.document.location.host.replace(/:.*/, '');
 const ws = new WebSocket('ws://' + host + ':4080');
 
 const callbacks: any = {};
 
 ws.onmessage = (event) => {
-  const inflated: any = pako.inflate(event.data, { to: 'string' });
+  const inflated = config.optimizations.compression ? pako.inflate(event.data, { to: 'string' }) : event.data;
   const result: Result = JSON.parse(inflated);
   callbacks.result && callbacks.result(result);
 }

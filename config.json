@@ -25,5 +25,11 @@
     "title": "Departure Delay",
     "range": [0, 100],
     "bins": 25
-  }]
+  }],
+  "optimizations": {
+    "startOnPageload": true,
+    "preload": true,
+    "compression": true,
+    "snapping": true
+  }
 }
