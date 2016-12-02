@@ -39,10 +39,6 @@ connection.onOpen(() => {
       // Extent [0] === [1] in this case so it doesn't matter
       // which we use. We need to hang on to this value tho
       // so that we can load the proper one on brush end.
-      //
-      // TODO: I think the logic for deciding if the
-      //       left or right side of the brush was moved
-      //       is currently broken.
       lastExtent = extent;
       api.load(dimension, extent[0]);
     };

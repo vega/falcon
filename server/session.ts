@@ -189,7 +189,7 @@ class Session {
       this.backend
         .query(next.dimension.name, this.getPredicates(next.index, next.dimension))
         .then(this.handleQuery(activeDimension, next.dimension, next.index));
-    } while (!cacheMiss);
+    } while (!cacheMiss && this.queue.length);
   }
 
   private handleQuery(activeDimension: Dimension, staticDimension: Dimension, index: number) {
