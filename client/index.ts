@@ -19,7 +19,7 @@ const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
 
-  let staticHandle = null;
+  let lastExtent = null;
   const handleHover = (dimension: Dimension) => {
     return (domain: Interval) => {
       // Start preloading values from this dimension.
@@ -43,7 +43,7 @@ connection.onOpen(() => {
       // TODO: I think the logic for deciding if the
       //       left or right side of the brush was moved
       //       is currently broken.
-      staticHandle = extent[0];
+      lastExtent = extent;
       api.load(dimension, extent[0]);
     };
   };
@@ -55,13 +55,15 @@ connection.onOpen(() => {
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       api.setState(dimension, extent);
-      if (extent[0] === staticHandle) {
+      if (extent[0] === lastExtent[0]) {
         api.preload(dimension, extent[1]);
-      } else if (extent[1] === staticHandle) {
+      } else if (extent[1] === lastExtent[1]) {
         api.preload(dimension, extent[0]);
       } else {
+        // How should we handle a brush that is moving on both sides??
         api.preload(dimension, extent[1]);
       }
+      lastExtent = extent;
     };
   };
 
@@ -71,14 +73,15 @@ connection.onOpen(() => {
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       api.setRange(dimension, extent);
-      if (extent[0] === staticHandle) {
+      if (extent[0] === lastExtent[0]) {
         api.load(dimension, extent[1]);
-      } else if (extent[1] === staticHandle) {
+      } else if (extent[1] === lastExtent[1]) {
         api.load(dimension, extent[0]);
       } else {
         api.load(dimension, extent[0]);
         api.load(dimension, extent[1]);
       }
+      lastExtent = extent;
     };
   };
 
