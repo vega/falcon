@@ -208,7 +208,9 @@ class Session {
       }
 
       this.cache[index][staticDimension.name] = results;
-      this._onQuery && this._onQuery(activeDimension.name, staticDimension.name, results, index);
+      if (this._onQuery) {
+        this._onQuery(activeDimension.name, staticDimension.name, results, index);
+      }
     };
   }
 

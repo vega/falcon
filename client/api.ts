@@ -159,6 +159,10 @@ class API {
 
     for (let bucket = 0; bucket < low.length; bucket++) {
       data[bucket] = +high[bucket] - low[bucket];
+
+      if (data[bucket] < 0) {
+        console.error('Invalid data.');
+      }
     }
 
     return data;

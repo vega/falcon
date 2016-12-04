@@ -32,10 +32,10 @@ class Postgres implements Backend {
     };
   }
 
-  private getPredicateVars(predicates) {
-    const vars: any = [];
+  private getPredicateVars(predicates: Predicate[]) {
+    const vars: number[] = [];
     predicates.forEach((predicate) => {
-      const { lower, upper, name } = predicate;
+      const { lower, upper } = predicate;
       if (lower !== undefined && upper !== undefined) {
         vars.push(lower);
         vars.push(upper);
