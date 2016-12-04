@@ -16,7 +16,9 @@ const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
 
-  let lastExtent = null;
+  let lastExtent: Range = null;
+  let loadedStartValue: number = null;
+
   const handleHover = (dimension: Dimension) => {
     return (domain: Interval) => {
       // Start preloading values from this dimension.
@@ -37,24 +39,29 @@ connection.onOpen(() => {
       // which we use. We need to hang on to this value tho
       // so that we can load the proper one on brush end.
       lastExtent = extent;
+
+      loadedStartValue = extent[0];
+
       api.load(dimension, extent[0]);
     };
   };
 
   const handleBrushMove = (dimension: Dimension) => {
     return (domain: Interval) => {
-      console.log('brush move ' + dimension.name);
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       api.setState(dimension, extent);
       if (extent[0] === lastExtent[0]) {
+        // move left side of brush
         api.preload(dimension, extent[1]);
       } else if (extent[1] === lastExtent[1]) {
+        // move right side of brush
         api.preload(dimension, extent[0]);
       } else {
-        // How should we handle a brush that is moving on both sides??
-        api.preload(dimension, extent[1]);
+        // move the whole brush
+        // TODO: #14
+        console.warn('Not supported yet. #14');
       }
       lastExtent = extent;
     };
@@ -66,9 +73,9 @@ connection.onOpen(() => {
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       api.setRange(dimension, extent);
-      if (extent[0] === lastExtent[0]) {
+      if (extent[0] === loadedStartValue) {
         api.load(dimension, extent[1]);
-      } else if (extent[1] === lastExtent[1]) {
+      } else if (extent[1] === loadedStartValue) {
         api.load(dimension, extent[0]);
       } else {
         api.load(dimension, extent[0]);
