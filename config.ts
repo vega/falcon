@@ -29,7 +29,13 @@ export const dimensions: Dimension[] = [{
 }];
 
 export const optimizations = {
+  /**
+   * Start preloading when the page is first loaded.
+   */
   startOnPageload: false,
+  /**
+   * Preload on hover.
+   */
   preload: false,
   /**
    * Enable compression for the websocket connection.
@@ -39,4 +45,11 @@ export const optimizations = {
    * Snap to the closest cache.
    */
   snapping: true
+};
+
+export const debugging = {
+  /**
+   * Log api calls in the client.
+   */
+  logApi: true,
 };

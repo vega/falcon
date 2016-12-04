@@ -1,4 +1,5 @@
 import {scaleLinear, ScaleLinear} from 'd3-scale';
+import {debugging} from '../config';
 
 class API {
 
@@ -17,6 +18,10 @@ class API {
   }
 
   public init(resolutions: { dimension: string, value: number }[]) {
+    if (debugging.logApi) {
+      console.log(`API: init ${resolutions.map(r => `${r.dimension}:${r.value}`).join(', ')}`);
+    }
+
     resolutions.forEach((resolution) => {
       const dimension = this.dimensions.find(d => d.name === resolution.dimension);
       if (dimension) {
@@ -57,12 +62,16 @@ class API {
         if (this._onResult) {
           this._onResult(dim, data);
         }
-      })
+      });
     }
 
   }
 
   public setRange(dimension: Dimension, range: Interval) {
+    if (debugging.logApi) {
+      console.log(`API: setRange ${dimension.name} ${range}`);
+    }
+
     this.setState(dimension, range);
     this.connection.send({
       type: 'setRange',
@@ -75,6 +84,10 @@ class API {
   // Call this when you want to request a value
   // to be computed immediately.
   public load(dimension: Dimension, value: number) {
+    if (debugging.logApi) {
+      console.log(`API: load ${dimension.name} ${value}`);
+    }
+
     this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
@@ -94,6 +107,10 @@ class API {
   // Call this when you want to suggest how the
   // server should prioritize background queries.
   public preload(dimension: Dimension, value: number) {
+    if (debugging.logApi) {
+      console.log(`API: preload ${dimension.name} ${value}`);
+    }
+
     this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
