@@ -1,9 +1,10 @@
 import {scaleLinear, ScaleLinear} from 'd3-scale';
 import {debugging} from '../config';
+import Cache from './cache';
 
 class API {
 
-  private cache: {[value: number]: number[]} = {};
+  private cache: Cache;
   private activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
@@ -15,6 +16,8 @@ class API {
       this.ranges[dimension.name] = dimension.range;
       this.scales[dimension.name] = scaleLinear().domain(dimension.range).range([0, 100]);
     });
+
+    this.cache = new Cache(dimensions.map(d => d.name));
   }
 
   public init(resolutions: { dimension: string, value: number }[]) {
@@ -52,13 +55,17 @@ class API {
     const scale = this.scales[this.activeDimension];
 
     const scaledRange = range.map((d) => Math.round(scale(d)));
-    if (this.cache[scaledRange[0]] && this.cache[scaledRange[1]]) {
-      // cache hit
-      Object.keys(this.cache[scaledRange[1]]).forEach((dim) => {
-        if (!this.cache[scaledRange[0]][dim]) {
+
+    const c0 = this.cache.getAll(scaledRange[0]);
+    const c1 = this.cache.getAll(scaledRange[1]);
+
+    if (c0.hit && c1.hit) {
+      Object.keys(c0.data).forEach(dim => {
+        if (!c1.data[dim]) {
           return;
         }
-        const data = this.combineRanges(this.cache[scaledRange[0]][dim], this.cache[scaledRange[1]][dim]);
+
+        const data = this.combineRanges(c0.data[dim], c1.data[dim]);
         if (this._onResult) {
           this._onResult(dim, data);
         }
@@ -93,7 +100,7 @@ class API {
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
 
-    if (this.cache[index]) {
+    if (this.cache.hasFullData(index)) {
       return;
     }
 
@@ -126,12 +133,11 @@ class API {
   public onResult(callback: (dimension: string, data: number[]) => any) {
     this._onResult = callback;
     return (result: Result) => {
+      console.log(result);
+
       // Ignore results from stale queries (wrong dimension)
       if (result.activeDimension === this.activeDimension) {
-        if (!this.cache[result.index]) {
-          this.cache[result.index] = [];
-        }
-        this.cache[result.index][result.dimension] = result.data;
+        this.cache.set(result.index, result.dimension, result.data);
 
         // This attempts to see if the new result is exactly what
         // the brush is set to now, and if so, updates it.
@@ -139,11 +145,11 @@ class API {
         const scale = this.scales[this.activeDimension];
         const scaledRange = range.map(d => Math.round(scale(d)));
 
-        const c0 = this.cache[scaledRange[0]];
-        const c1 = this.cache[scaledRange[1]];
+        const c0 = this.cache.get(scaledRange[0], result.dimension);
+        const c1 = this.cache.get(scaledRange[1], result.dimension);
 
-        if (c0 && c0[result.dimension] && c1 && c1[result.dimension]) {
-          const combined = this.combineRanges(c0[result.dimension], c1[result.dimension]);
+        if (c0.hit && c1.hit) {
+          const combined = this.combineRanges(c0.data, c1.data);
           callback(result.dimension, combined);
         }
       }
@@ -171,7 +177,7 @@ class API {
   private setActiveDimension(dimension: Dimension) {
     if (this.activeDimension !== dimension.name) {
       // Clear cache because we only cache 1 dimension at a time.
-      this.cache = {};
+      this.cache.invalidate();
     }
 
     this.activeDimension = dimension.name;
