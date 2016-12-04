@@ -4,21 +4,19 @@
     "module": "commonjs",
     "target": "es6",
     "outDir": "build",
-    "typeRoots": [
-      "../node_modules/@types"
-    ],
     "types": [
       "node"
     ],
     "noImplicitAny": false,
     "strictNullChecks": false
   },
+  "include": [
+    "server/**/*.ts",
+    "client/**/*.ts",
+    "interfaces.d.ts"
+  ],
   "exclude": [
     "node_modules",
     "public"
-  ],
-  "files": [
-    "node_modules/@types/**/*.d.ts",
-    "client/**/*.ts"
   ]
 }
