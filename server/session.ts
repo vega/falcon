@@ -3,13 +3,13 @@ import * as PriorityQueue from 'js-priority-queue';
 import {scaleLinear} from 'd3-scale';
 import {range} from 'd3-array';
 
+import * as config from '../config';
+
 interface QueueElement {
   index: number;
   value: number;
   dimension: Dimension;
 };
-
-const config = require('../config.json');
 
 // This is responsible for keeping the priority queue,
 // rate limiting requests, and watching the cache.
@@ -51,7 +51,7 @@ class Session {
           upper: (dim.currentRange || dim.range)[1]
         });
       }
-    })
+    });
 
     return predicates;
   }
@@ -74,7 +74,7 @@ class Session {
       if (dimension) {
         this.scales[resolution.dimension] = scaleLinear().domain([0, resolution.value]).range(dimension.range);
       }
-    })
+    });
 
     this.dimensions.forEach((dimension) => {
       dimension.currentRange = dimension.range;
@@ -203,7 +203,7 @@ class Session {
       }
 
       this.queryCount--;
-      if ((config.startOnPageload || this.hasUserInteracted) && config.optimizations.preload && this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
+      if ((config.optimizations.startOnPageload || this.hasUserInteracted) && config.optimizations.preload && this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
         this.nextQuery();
       }
 

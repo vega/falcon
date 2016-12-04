@@ -1,13 +1,10 @@
-/// <reference path="../interfaces.d.ts" />
-
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
 import Session from './session';
 import { initBackend } from './backend';
 import * as express from 'express';
 import * as pako from 'pako';
-
-const config = require('../config.json');
+import * as config from '../config';
 
 const backend = initBackend(config.database);
 
@@ -25,7 +22,7 @@ wss.on('connection', (ws) => {
         console.warn(err);
       }
     });
-  }
+  };
 
   const session = new Session(backend, config.dimensions);
 
@@ -62,4 +59,4 @@ wss.on('connection', (ws) => {
 });
 
 server.on('request', app);
-server.listen(config.port || 4080, () => { console.log('Go to http://localhost:' + server.address().port); });
+server.listen(config.port, () => { console.log('Go to http://localhost:' + server.address().port); });

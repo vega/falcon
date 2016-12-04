@@ -1,11 +1,8 @@
-/// <reference path="../../interfaces.d.ts" />
-/// <reference path='../../node_modules/pg-promise/typescript/pg-promise.d.ts' />
-
 import * as pgp from 'pg-promise';
 import * as d3 from 'd3';
 import { Backend, Predicate } from '.';
 
-const config = require('../../config.json');
+import * as config from '../../config';
 
 class Postgres implements Backend {
   private db: any;

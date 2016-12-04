@@ -1,8 +1,7 @@
 /// <reference path="../interfaces.d.ts" />
 
 import * as pako from 'pako';
-
-const config = require('../config.json');
+import * as config from '../config';
 
 const host = window.document.location.host.replace(/:.*/, '');
 const ws = new WebSocket('ws://' + host + ':4080');
@@ -12,8 +11,10 @@ const callbacks: any = {};
 ws.onmessage = (event) => {
   const inflated = config.optimizations.compression ? pako.inflate(event.data, { to: 'string' }) : event.data;
   const result: Result = JSON.parse(inflated);
-  callbacks.result && callbacks.result(result);
-}
+  if(callbacks.result) {
+    callbacks.result(result);
+  }
+};
 
 const connection = {
   onOpen: (callback) => {
@@ -27,7 +28,6 @@ const connection = {
   onResult: (callback) => {
     callbacks['result'] = callback;
   }
-}
-
+};
 
 export default connection;

@@ -1,6 +1,4 @@
-import BrushableBar from './viz/brushable-bar';
 import {scaleLinear, ScaleLinear} from 'd3-scale';
-import {nest} from 'd3-collection';
 
 class API {
 

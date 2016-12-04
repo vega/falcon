@@ -1,16 +1,13 @@
-/// <reference path="../interfaces.d.ts" />
-
 import BrushableBar from './viz/brushable-bar';
 import connection from './ws';
 import API from './api';
 import * as d3 from 'd3';
 
-const config: {dimensions: Dimension[]} = require('../config.json');
+import * as config from '../config';
 
 const vizs: {[dimension: string]: BrushableBar} = {};
 
 const dimensions = config.dimensions;
-let activeDimension = dimensions[0];
 
 const api = new API(dimensions, connection);
 
