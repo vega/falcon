@@ -32,11 +32,11 @@ export const optimizations = {
   /**
    * Start preloading when the page is first loaded.
    */
-  startOnPageload: false,
+  startOnPageload: true,
   /**
    * Preload on hover.
    */
-  preload: false,
+  preload: true,
   /**
    * Enable compression for the websocket connection.
    */
