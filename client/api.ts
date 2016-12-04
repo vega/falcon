@@ -43,6 +43,10 @@ class API {
     this.setActiveDimension(dimension);
     this.ranges[dimension.name] = range;
 
+    if (!this._onResult) {
+      return;
+    }
+
     // TODO: This needs to be updated
     //       so that it selects the best approximation
     //       if the exact one isn't available in the cache.
@@ -56,22 +60,9 @@ class API {
 
     const scaledRange = range.map((d) => Math.round(scale(d)));
 
-    const c0 = this.cache.getAll(scaledRange[0]);
-    const c1 = this.cache.getAll(scaledRange[1]);
-
-    if (c0.hit && c1.hit) {
-      Object.keys(c0.data).forEach(dim => {
-        if (!c1.data[dim]) {
-          return;
-        }
-
-        const data = this.combineRanges(c0.data[dim], c1.data[dim]);
-        if (this._onResult) {
-          this._onResult(dim, data);
-        }
-      });
-    }
-
+    this.cache.getAllCombined(scaledRange[0], scaledRange[1]).forEach(r => {
+      this._onResult(r.dimension, r.data);
+    });
   }
 
   public setRange(dimension: Dimension, range: Interval) {
@@ -145,33 +136,12 @@ class API {
         const scale = this.scales[this.activeDimension];
         const scaledRange = range.map(d => Math.round(scale(d)));
 
-        const c0 = this.cache.get(scaledRange[0], result.dimension);
-        const c1 = this.cache.get(scaledRange[1], result.dimension);
-
-        if (c0.hit && c1.hit) {
-          const combined = this.combineRanges(c0.data, c1.data);
-          callback(result.dimension, combined);
+        const {hit, data} = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
+        if (hit) {
+          return callback(result.dimension, data);
         }
       }
     };
-  }
-
-  private combineRanges(low: number[], high: number[]) {
-    if (low.length !== high.length) {
-      throw Error('low and high have to have the same length');
-    }
-
-    const data: number[] = [];
-
-    for (let bucket = 0; bucket < low.length; bucket++) {
-      data[bucket] = +high[bucket] - low[bucket];
-
-      if (data[bucket] < 0) {
-        console.error('Invalid data.');
-      }
-    }
-
-    return data;
   }
 
   private setActiveDimension(dimension: Dimension) {

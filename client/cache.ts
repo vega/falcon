@@ -23,7 +23,7 @@ class Cache {
     /**
      * Retrieve value from the cache. Returns whether there was a hit and if there was also the data.
      */
-    public get(index: number, dimension: string): {hit: boolean, data?:number[]} {
+    public get(index: number, dimension: string): {hit: boolean, data?: number[]} {
         const entry = this.cache[index];
         if (!entry) {
             return {hit: false};
@@ -31,12 +31,52 @@ class Cache {
         return {hit: true, data: entry[dimension]};
     }
 
-    public getAll(index: number): {hit: boolean, data?: {[dimension: string]: number[]}} {
-        const entry = this.cache[index];
-        if (!entry) {
-            return {hit: false};
+    /**
+     * Get the combined data from start to end.
+     */
+    public getCombined(start: number, end: number, dimension: string): {hit: boolean, data?: number[]} {
+        const {hit: startHit, data: startData} = this.get(start, dimension);
+        if (startHit) {
+          const {hit: endHit, data: endData} = this.get(end, dimension);
+          if (endHit) {
+            const combined = combineRanges(startData, endData);
+            return {
+                hit: true,
+                data: combined
+            };
+          }
         }
-        return {hit: true, data: entry};
+
+        return {
+            hit: false
+        };
+    }
+
+    /**
+     * Get all the combined values for all dimensions.
+     */
+    public getAllCombined(start: number, end: number): {dimension: string, data: number[]}[] {
+        const c0 = this.cache[start];
+        if (!c0) {
+            return [];
+        }
+
+        const c1 = this.cache[end];
+        if (!c1) {
+            return [];
+        }
+
+        const results = [];
+        Object.keys(c0).forEach(dimension => {
+            if (dimension in c1) {
+                results.push({
+                    dimension,
+                    data: combineRanges(c0[dimension], c1[dimension])
+                });
+            }
+        });
+
+        return results;
     }
 
     /**
@@ -64,5 +104,23 @@ class Cache {
         return true;
     }
 };
+
+function combineRanges(low: number[], high: number[]) {
+    if (low.length !== high.length) {
+        throw Error('low and high have to have the same length');
+    }
+
+    const data: number[] = [];
+
+    for (let bucket = 0; bucket < low.length; bucket++) {
+        data[bucket] = +high[bucket] - low[bucket];
+
+        if (data[bucket] < 0) {
+            console.error('Invalid data.');
+        }
+    }
+
+    return data;
+}
 
 export default Cache;
