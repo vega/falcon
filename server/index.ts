@@ -62,4 +62,4 @@ wss.on('connection', (ws) => {
 });
 
 server.on('request', app);
-server.listen(config.port || 4080, () => { console.log('Listening on ' + server.address().port); });
+server.listen(config.port || 4080, () => { console.log('Go to http://localhost:' + server.address().port); });
