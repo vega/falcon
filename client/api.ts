@@ -1,10 +1,12 @@
 import {scaleLinear, ScaleLinear} from 'd3-scale';
 import {debugging} from '../config';
 import Cache from './cache';
+import SnappingCache from './snappingCache';
+import {optimizations} from '../config';
 
 class API {
 
-  private cache: Cache;
+  private cache: Cache | SnappingCache;
   private activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
@@ -17,7 +19,11 @@ class API {
       this.scales[dimension.name] = scaleLinear().domain(dimension.range).range([0, 100]);
     });
 
-    this.cache = new Cache(dimensions.map(d => d.name));
+    if (optimizations.snapping) {
+      this.cache = new SnappingCache(dimensions.map(d => d.name));
+    } else {
+      this.cache = new Cache(dimensions.map(d => d.name));
+    }
   }
 
   public init(resolutions: { dimension: string, value: number }[]) {
@@ -136,8 +142,8 @@ class API {
         const scale = this.scales[this.activeDimension];
         const scaledRange = range.map(d => Math.round(scale(d)));
 
-        const {hit, data} = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
-        if (hit) {
+        const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
+        if (data) {
           return callback(result.dimension, data);
         }
       }

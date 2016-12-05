@@ -1,3 +1,5 @@
+import {combineRanges} from './index';
+
 /**
  * Cache from index (the pixel location) to an object with data for all non-active dimensions.
  */
@@ -13,7 +15,7 @@ class Cache {
      * Set an entry in the cache.
      */
     public set(index: number, dimension: string, data: number[]) {
-        if (!this.cache[index]) {
+        if (!(index in this.cache)) {
             this.cache[index] = {};
         }
 
@@ -21,35 +23,29 @@ class Cache {
     }
 
     /**
-     * Retrieve value from the cache. Returns whether there was a hit and if there was also the data.
+     * Retrieve value from the cache. Returns null if there was no hit.
      */
-    public get(index: number, dimension: string): {hit: boolean, data?: number[]} {
+    private get(index: number, dimension: string): number[] {
         const entry = this.cache[index];
         if (!entry) {
-            return {hit: false};
+            return null;
         }
-        return {hit: true, data: entry[dimension]};
+        return entry[dimension] || null;
     }
 
     /**
      * Get the combined data from start to end.
      */
-    public getCombined(start: number, end: number, dimension: string): {hit: boolean, data?: number[]} {
-        const {hit: startHit, data: startData} = this.get(start, dimension);
-        if (startHit) {
-          const {hit: endHit, data: endData} = this.get(end, dimension);
-          if (endHit) {
-            const combined = combineRanges(startData, endData);
-            return {
-                hit: true,
-                data: combined
-            };
+    public getCombined(start: number, end: number, dimension: string): number[] {
+        const low = this.get(start, dimension);
+        if (low) {
+          const high = this.get(end, dimension);
+          if (high) {
+            return combineRanges(low, high);
           }
         }
 
-        return {
-            hit: false
-        };
+        return null;
     }
 
     /**
@@ -95,7 +91,7 @@ class Cache {
             return false;
         }
 
-        this.dimensions.forEach(d=> {
+        this.dimensions.forEach(d => {
             if(!entry[d]) {
                 return false;
             }
@@ -104,23 +100,5 @@ class Cache {
         return true;
     }
 };
-
-function combineRanges(low: number[], high: number[]) {
-    if (low.length !== high.length) {
-        throw Error('low and high have to have the same length');
-    }
-
-    const data: number[] = [];
-
-    for (let bucket = 0; bucket < low.length; bucket++) {
-        data[bucket] = +high[bucket] - low[bucket];
-
-        if (data[bucket] < 0) {
-            console.error('Invalid data.');
-        }
-    }
-
-    return data;
-}
 
 export default Cache;
