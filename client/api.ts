@@ -19,9 +19,9 @@ class API {
     });
 
     if (optimizations.snapping) {
-      this.cache = new SnappingCache(dimensions.map(d => d.name));
+      this.cache = new SnappingCache();
     } else {
-      this.cache = new SimpleCache(dimensions.map(d => d.name));
+      this.cache = new SimpleCache();
     }
   }
 
@@ -85,10 +85,6 @@ class API {
 
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
-
-    if (this.cache.hasFullData(index)) {
-      return;
-    }
 
     this.connection.send({
       type: 'load',

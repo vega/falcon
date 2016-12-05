@@ -1,13 +1,7 @@
 import { ascending } from 'd3-array';
 
 export abstract class Cache {
-  protected dimensions: string[] = [];
-
   protected abstract cache: { [dimension: string]: any } = {};
-
-  constructor(dimensions: string[]) {
-    this.dimensions = dimensions;
-  }
 
   /**
    * Get all the combined values for all dimensions.
@@ -36,11 +30,6 @@ export abstract class Cache {
    * Get the combined data from start to end. Also returns the range that we actually get (if snapped).
    */
   public abstract getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval}
-
-  /**
-   * Returns true if we have data cached for all dimensions at precisely this index.
-   */
-  public abstract hasFullData(index: number): boolean
 
   public abstract getDebugData(): {dimension: string, caches: number[]}[]
 
@@ -94,17 +83,6 @@ export class SimpleCache extends Cache {
     }
 
     return null;
-  }
-
-  public hasFullData(index: number) {
-    for (let i = 0; i < this.dimensions.length; i++) {
-      const dimension = this.dimensions[i];
-      if (!this.get(index, dimension)) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   public getDebugData() {
@@ -186,18 +164,6 @@ export class SnappingCache extends Cache {
     }
 
     return null;
-  }
-
-  public hasFullData(index: number) {
-    for (let i = 0; i < this.dimensions.length; i++) {
-      // check whether the closest point is exactly the index
-      const item = this.get(index, this.dimensions[i]);
-      if (!item || item.index !== index) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   public getDebugData() {
