@@ -1,12 +1,11 @@
 import {scaleLinear, ScaleLinear} from 'd3-scale';
 import {debugging} from '../config';
-import Cache from './cache';
-import SnappingCache from './snappingCache';
+import {Cache, SnappingCache, SimpleCache} from './cache';
 import {optimizations} from '../config';
 
 class API {
 
-  private cache: Cache | SnappingCache;
+  private cache: Cache;
   private activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
@@ -22,7 +21,7 @@ class API {
     if (optimizations.snapping) {
       this.cache = new SnappingCache(dimensions.map(d => d.name));
     } else {
-      this.cache = new Cache(dimensions.map(d => d.name));
+      this.cache = new SimpleCache(dimensions.map(d => d.name));
     }
   }
 

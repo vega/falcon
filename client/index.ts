@@ -109,21 +109,3 @@ connection.onOpen(() => {
     };
   }));
 });
-
-export function combineRanges(low: number[], high: number[]) {
-  if (low.length !== high.length) {
-    throw Error('low and high have to have the same length');
-  }
-
-  const data: number[] = [];
-
-  for (let bucket = 0; bucket < low.length; bucket++) {
-    data[bucket] = +high[bucket] - low[bucket];
-
-    if (data[bucket] < 0) {
-      console.error('Invalid data.');
-    }
-  }
-
-  return data;
-}
