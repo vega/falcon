@@ -155,6 +155,9 @@ export class SnappingCache extends Cache {
   }
 
   public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
+    // Note: We should use the closest value that is not the other side of the brush.
+    // However, in this code we only find the closest point and do not igore the other
+    // side of the brush. It should be okay in most cses, though. 
     const low = this.get(start, dimension);
     if (low) {
       const high = this.get(end, dimension);
