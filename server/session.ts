@@ -113,7 +113,7 @@ class Session {
     this._onQuery = cb;
   }
 
-  public preload(dimension: string, value: number, velocity: number) {
+  public preload(dimension: string, value: number | number[], velocity: number) {
     this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const staticDimensions = this.getStaticDimensions();
@@ -121,6 +121,14 @@ class Session {
     this.queue = new PriorityQueue<QueueElement>({
       initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
         const index = Math.floor(i / staticDimensions.length);
+        if (Array.isArray(value)) {
+          const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
+          return {
+            index: index,
+            value: v,
+            dimension: staticDimensions[i % staticDimensions.length]
+          };
+        }
         return {
           index: index,
           value: Math.abs(index - value),

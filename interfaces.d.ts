@@ -6,7 +6,7 @@ declare type Request = {
 } | {
   type: 'preload',
   dimension: string,
-  value: number,
+  value: number | number[],
   velocity: number
 } | {
   type: 'load',

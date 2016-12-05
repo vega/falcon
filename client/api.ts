@@ -99,7 +99,7 @@ class API {
 
   // Call this when you want to suggest how the
   // server should prioritize background queries.
-  public preload(dimension: Dimension, value: number) {
+  public preload(dimension: Dimension, value: number | number[]) {
     if (debugging.logApi) {
       console.log(`API: preload ${dimension.name} ${value}`);
     }
@@ -107,7 +107,12 @@ class API {
     this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
-    const index = Math.round(scale(value));
+    let index;
+    if (Array.isArray(value)) {
+      index = value.map((v) => Math.round(scale(v)));
+    } else {
+      index = Math.round(scale(value));
+    }
 
     this.connection.send({
       type: 'preload',

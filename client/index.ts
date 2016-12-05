@@ -62,8 +62,7 @@ connection.onOpen(() => {
         api.preload(dimension, extent[0]);
       } else {
         // move the whole brush
-        // TODO: #14
-        console.warn('Not supported yet. #14');
+        api.preload(dimension, extent);
       }
       lastExtent = extent;
     };
