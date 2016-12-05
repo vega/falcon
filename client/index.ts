@@ -1,4 +1,5 @@
 import BrushableBar from './viz/brushable-bar';
+import CacheVis from './viz/cache-vis';
 import connection from './ws';
 import API from './api';
 import * as d3 from 'd3';
@@ -6,12 +7,13 @@ import * as d3 from 'd3';
 import * as config from '../config';
 
 const vizs: {[dimension: string]: BrushableBar} = {};
+let cacheVis: CacheVis = null;
 
 const dimensions = config.dimensions;
 
 const api = new API(dimensions, connection);
 
-const CHART_WIDTH = 500;
+const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
@@ -85,12 +87,20 @@ connection.onOpen(() => {
     };
   };
 
-  connection.onResult(api.onResult((dimension, data) => {
+  connection.onResult(api.onResult((dimension, data, range) => {
     // API filters the results so at this point
     // we only see results we want to draw to the
     // screen immediately.
     vizs[dimension].update(data);
+
+    if (cacheVis) {
+      cacheVis.update(api.cache.getDebugData());
+    }
   }));
+
+  if (config.debugging.visualizeCache) {
+    cacheVis = new CacheVis(dimensions, {width: CHART_WIDTH, height: 100});
+  }
 
   // Initialize empty charts
   dimensions.forEach(dim => {

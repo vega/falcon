@@ -1,9 +1,9 @@
 import * as d3 from 'd3';
 
-const padding = {
+export const padding = {
   top: 10,
   bottom: 30,
-  left: 40,
+  left: 80,
   right: 20
 };
 
@@ -40,7 +40,7 @@ class BrushableBar {
     this.xAxis = d3.axisBottom(this.x);
     this.yAxis = d3.axisLeft(this.y);
 
-    this.brush = d3.brushX().extent([[0, 0], [width, contentHeight]]);
+    this.brush = d3.brushX().extent([[0, 0], [contentWidth, contentHeight]]);
 
     d3.select('body').append('div').text(dimension.title || '');
     const $container = d3.select('body').append('div');
@@ -55,13 +55,13 @@ class BrushableBar {
         .call(this.brush);
         // .call(this.brush.move, this.x.range());
 
-    this.$group.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + contentHeight + ")")
+    this.$group.append('g')
+      .attr('class', 'axis axis--x')
+      .attr('transform', 'translate(0,' + contentHeight + ')')
       .call(this.xAxis);
 
-    this.$group.append("g")
-      .attr("class", "axis axis--y")
+    this.$group.append('g')
+      .attr('class', 'axis axis--y')
       .call(this.yAxis);
 
     this.contentWidth = contentWidth;
@@ -69,12 +69,15 @@ class BrushableBar {
     return this;
   }
 
+  /**
+   * Update with new data and the range that was used for this data.
+   */
   public update(data: number[]) {
     const $bars = this.$content.selectAll('.bar').data(data, d => d);
 
     const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
     this.y.domain([0, maxValue]);
-    this.$group.select(".axis--y").call(this.yAxis);
+    this.$group.select('.axis--y').call(this.yAxis);
 
     $bars
       .enter()

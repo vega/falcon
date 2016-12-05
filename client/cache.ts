@@ -12,27 +12,37 @@ export abstract class Cache {
   /**
    * Get all the combined values for all dimensions.
    */
-  public getAllCombined(start: number, end: number): { dimension: string, data: number[] }[] {
+  public getAllCombined(start: number, end: number): { dimension: string, data: number[], range: Interval }[] {
     return this.getDimensions().map(dimension => {
-      const data = this.getCombined(start, end, dimension);
-      return {
-        dimension,
-        data
-      };
-    }).filter(d => d.data);
+      const result = this.getCombined(start, end, dimension);
+
+      if (result) {
+        const {data, range} = result;
+        return {
+          dimension,
+          data,
+          range
+        };
+      }
+    }).filter(d => d);
   }
 
-  public abstract set(index: number, dimension: string, data: number[])
+  /**
+   * Add an entry to the cache.
+   */
+  public abstract set(index: number, dimension: string, data: number[]): void
 
   /**
-   * Get the combined data from start to end.
+   * Get the combined data from start to end. Also returns the range that we actually get (if snapped).
    */
-  public abstract getCombined(start: number, end: number, dimension: string): number[]
+  public abstract getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval}
 
   /**
    * Returns true if we have data cached for all dimensions at precisely this index.
    */
   public abstract hasFullData(index: number): boolean
+
+  public abstract getDebugData(): {dimension: string, caches: number[]}[]
 
   protected getDimensions(): string[] {
     return Object.keys(this.cache);
@@ -74,12 +84,12 @@ export class SimpleCache extends Cache {
     return entry[index] || null;
   }
 
-  public getCombined(start: number, end: number, dimension: string): number[] {
+  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
     const low = this.get(start, dimension);
     if (low) {
       const high = this.get(end, dimension);
       if (high) {
-        return combineRanges(low, high);
+        return {data: combineRanges(low, high), range: [start, end]};
       }
     }
 
@@ -95,6 +105,15 @@ export class SimpleCache extends Cache {
     }
 
     return true;
+  }
+
+  public getDebugData() {
+    return this.getDimensions().map(dimension => {
+      return {
+        dimension,
+        caches: Object.keys(this.cache[dimension]).map(d => parseInt(d))
+      };
+    });
   }
 };
 
@@ -157,12 +176,12 @@ export class SnappingCache extends Cache {
 
   }
 
-  public getCombined(start: number, end: number, dimension: string): number[] {
+  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
     const low = this.get(start, dimension);
     if (low) {
       const high = this.get(end, dimension);
       if (high && high.index > low.index) {
-        return combineRanges(low.data, high.data);
+        return {data: combineRanges(low.data, high.data), range: [low.index, high.index]};
       }
     }
 
@@ -171,14 +190,23 @@ export class SnappingCache extends Cache {
 
   public hasFullData(index: number) {
     for (let i = 0; i < this.dimensions.length; i++) {
-      const dimension = this.dimensions[i];
       // check whether the closest point is exactly the index
-      if (this.get(index, dimension).index !== index) {
+      const item = this.get(index, this.dimensions[i]);
+      if (!item || item.index !== index) {
         return false;
       }
     }
 
     return true;
+  }
+
+  public getDebugData() {
+    return this.getDimensions().map(dimension => {
+      return {
+        dimension,
+        caches: this.cache[dimension].map(d => d.index)
+      };
+    });
   }
 };
 

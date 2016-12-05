@@ -5,7 +5,7 @@ import {optimizations} from '../config';
 
 class API {
 
-  private cache: Cache;
+  public cache: Cache;
   private activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
@@ -44,7 +44,6 @@ class API {
   }
 
   public setState(dimension: Dimension, range: Interval) {
-
     this.setActiveDimension(dimension);
     this.ranges[dimension.name] = range;
 
@@ -52,17 +51,8 @@ class API {
       return;
     }
 
-    // TODO: This needs to be updated
-    //       so that it selects the best approximation
-    //       if the exact one isn't available in the cache.
-    //
-    //       We should also update the onResult handler
-    //       so that it sees if incoming results are better
-    //       approximations than the current.
-
     // Convert the range to cache index:
     const scale = this.scales[this.activeDimension];
-
     const scaledRange = range.map((d) => Math.round(scale(d)));
 
     this.cache.getAllCombined(scaledRange[0], scaledRange[1]).forEach(r => {
@@ -126,7 +116,7 @@ class API {
     });
   }
 
-  public onResult(callback: (dimension: string, data: number[]) => any) {
+  public onResult(callback: (dimension: string, data: number[], range: Interval) => any) {
     this._onResult = callback;
     return (result: Result) => {
       console.log(result);
@@ -135,7 +125,7 @@ class API {
       if (result.activeDimension === this.activeDimension) {
         this.cache.set(result.index, result.dimension, result.data);
 
-        // This attempts to see if the new result is exactly what
+        // This attempts to see if the new result is what
         // the brush is set to now, and if so, updates it.
         const range = this.ranges[this.activeDimension];
         const scale = this.scales[this.activeDimension];
@@ -143,7 +133,7 @@ class API {
 
         const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
         if (data) {
-          return callback(result.dimension, data);
+          return callback(result.dimension, data.data, data.range);
         }
       }
     };

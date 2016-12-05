@@ -52,4 +52,9 @@ export const debugging = {
    * Log api calls in the client.
    */
   logApi: true,
+
+  /**
+   * Show visualization of the cache state.
+   */
+  visualizeCache: true
 };
