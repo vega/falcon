@@ -113,7 +113,8 @@ class BrushableBar {
   }
 
   public on(eventName: string, callback: any) {
-    this.$content.on(eventName, callback);
+    // FIXME: does not capture hover
+    this.$group.select('.overlay').on(eventName, callback);
     return this;
   }
 }
