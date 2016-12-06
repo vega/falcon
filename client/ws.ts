@@ -9,11 +9,14 @@ const ws = new WebSocket('ws://' + host + ':4080');
 const callbacks: any = {};
 
 ws.onmessage = (event) => {
-  const inflated = config.optimizations.compression ? pako.inflate(event.data, { to: 'string' }) : event.data;
-  const result: Result = JSON.parse(inflated);
-  if(callbacks.result) {
-    callbacks.result(result);
-  }
+  setTimeout(() => {
+    const inflated = config.optimizations.compression ? pako.inflate(event.data, { to: 'string' }) : event.data;
+    const result: Result = JSON.parse(inflated);
+    if(callbacks.result) {
+      callbacks.result(result);
+    }
+  })
+
 };
 
 const connection = {

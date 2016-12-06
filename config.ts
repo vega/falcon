@@ -14,7 +14,7 @@ export const database = {
 export const dimensions: Dimension[] = [{
   name: 'ARR_DELAY',
   title: 'Arrival Delay',
-  range: [0, 100],
+  range: [-60, 100],
   bins: 25
 }, {
   name: 'DISTANCE',
@@ -24,7 +24,7 @@ export const dimensions: Dimension[] = [{
 }, {
   name: 'DEP_DELAY',
   title: 'Departure Delay',
-  range: [0, 100],
+  range: [-60, 100],
   bins: 25
 }];
 
@@ -44,7 +44,16 @@ export const optimizations = {
   /**
    * Snap to the closest cache.
    */
-  snapping: true
+  snapping: true,
+  /**
+   * Use prepared statements in the database.
+   */
+  preparedStatements: false,
+  /**
+   * Preload resolution - when preloading, how much space
+   * do we want to provide between cachepoints by default?
+   */
+  preloadResolution: resolution => resolution / 200
 };
 
 export const debugging = {

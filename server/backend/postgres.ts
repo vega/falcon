@@ -45,7 +45,7 @@ class Postgres implements Backend {
         vars.push(upper);
       }
     });
-    return vars;
+    return vars.map(d => Math.round(d * 100) / 100);
   }
 
   public query(dimension: string, predicates: Predicate[]) {
@@ -70,23 +70,45 @@ class Postgres implements Backend {
 
     variables = variables.concat(this.getPredicateVars(predicates));
 
+    const queryConfig: {text: string, values: number[], name?: string} = {
+      text: SQL_QUERY,
+      values: variables
+    };
+
+    if (config.optimizations.preparedStatements) {
+      queryConfig.name = `${dimension}-${wherePredicate.varCount}`;
+    }
+
+    // return new Promise((resolve, reject) => {
+    //   let rows = [];
+    //   const query = this.db.query(queryConfig);
+    //   query.on('row', rows.push);
+    //   query.on('end', (results) => {
+    //     resolve(rows);
+    //   });
+    //   query.on('error', reject);
+    // })
+
     return this.db
-      .many({
-        text: SQL_QUERY,
-        name: `${dimension}-${wherePredicate.varCount}`,
-        values: variables
-      })
+      .many(queryConfig)
       .then((results) => {
         const r = d3.range(dim.bins + 1).map(() => 0);
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
+          if (+d.bucket === 0) {
+            // console.log(queryConfig);
+            // console.log(results);
+            r[0] = 0;
+          }
         });
         return r;
       })
       .catch((err) => {
         console.log(err);
+        // console.log(queryConfig.text);
         // console.log('Caught error. Returning empty result set.');
         return d3.range(dim.bins + 1).map(() => 0);
+
       });
 
   }
