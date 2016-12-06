@@ -14,7 +14,7 @@ export const database = {
 export const dimensions: Dimension[] = [{
   name: 'ARR_DELAY',
   title: 'Arrival Delay',
-  range: [-60, 100],
+  range: [0, 100],
   bins: 25
 }, {
   name: 'DISTANCE',
@@ -24,7 +24,7 @@ export const dimensions: Dimension[] = [{
 }, {
   name: 'DEP_DELAY',
   title: 'Departure Delay',
-  range: [-60, 100],
+  range: [0, 100],
   bins: 25
 }];
 
