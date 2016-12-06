@@ -45,7 +45,7 @@ class Postgres implements Backend {
         vars.push(upper);
       }
     });
-    return vars.map(d => Math.round(d * 100) / 100);
+    return vars;
   }
 
   public query(dimension: string, predicates: Predicate[]) {
@@ -79,16 +79,6 @@ class Postgres implements Backend {
       queryConfig.name = `${dimension}-${wherePredicate.varCount}`;
     }
 
-    // return new Promise((resolve, reject) => {
-    //   let rows = [];
-    //   const query = this.db.query(queryConfig);
-    //   query.on('row', rows.push);
-    //   query.on('end', (results) => {
-    //     resolve(rows);
-    //   });
-    //   query.on('error', reject);
-    // })
-
     return this.db
       .many(queryConfig)
       .then((results) => {
@@ -96,8 +86,6 @@ class Postgres implements Backend {
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
           if (+d.bucket === 0) {
-            // console.log(queryConfig);
-            // console.log(results);
             r[0] = 0;
           }
         });
@@ -105,8 +93,6 @@ class Postgres implements Backend {
       })
       .catch((err) => {
         console.log(err);
-        // console.log(queryConfig.text);
-        // console.log('Caught error. Returning empty result set.');
         return d3.range(dim.bins + 1).map(() => 0);
 
       });
