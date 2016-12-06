@@ -25,9 +25,9 @@ connection.onOpen(() => {
     return (domain: Interval) => {
       // Start preloading values from this dimension.
       const viz = vizs[dimension.name];
-      const s = viz.x.range();
-      const extent = (s.map(viz.x.invert, viz.x));
-      api.preload(dimension, extent[0] + (extent[1] - extent[0]) / 2);
+      const xPixels = d3.mouse(viz.$content.node())[0];
+      const x = viz.x.invert(xPixels);
+      api.preload(dimension, x);
     };
   };
 

@@ -13,7 +13,7 @@ class BrushableBar {
   public x: d3.ScaleLinear<number, number>;
   private y: d3.ScaleLinear<number, number>;
   private brush: d3.BrushBehavior<any>;
-  private $content: any;
+  public $content: any;
   private $group: d3.Selection<any, any, any, any>;
   private xAxis: d3.Axis<number | { valueOf(): number}>;
   private yAxis: d3.Axis<number | { valueOf(): number}>;
