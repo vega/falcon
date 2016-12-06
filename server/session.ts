@@ -8,7 +8,6 @@ import * as config from '../config';
 interface QueueElement {
   index: number;
   value: number;
-  dimension: Dimension;
 };
 
 // This is responsible for keeping the priority queue,
@@ -93,14 +92,12 @@ class Session {
 
     const staticDimensions = this.getStaticDimensions();
     this.queue = new PriorityQueue<QueueElement>({
-       // Random sampling at the beginning
-       // TODO: update this to favor evenly distributed values.
       initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
         const index = Math.floor(i / staticDimensions.length);
+
         return {
           index: index,
-          value: Math.random(),
-          dimension: staticDimensions[i % staticDimensions.length]
+          value: index % config.optimizations.preloadResolution(this.scales[ad.name].domain()[1])
         };
       }),
       comparator: (a: QueueElement, b: QueueElement) => {
@@ -125,14 +122,12 @@ class Session {
           const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
           return {
             index: index,
-            value: v,
-            dimension: staticDimensions[i % staticDimensions.length]
+            value: v
           };
         }
         return {
           index: index,
-          value: Math.abs(index - value),
-          dimension: staticDimensions[i % staticDimensions.length]
+          value: Math.abs(index - value)
         };
       }),
       comparator: (a: QueueElement, b: QueueElement) => {
@@ -188,16 +183,22 @@ class Session {
     // procede with the query and dequeue. If not dequeue and repeat.
     let cacheMiss = false;
     do {
-      let next = this.queue.dequeue();
-      if (this.cache[next.index] && this.cache[next.index][next.dimension.name]) {
-        continue;
-      }
-      cacheMiss = true;
-      this.queryCount++;
-      this.backend
-        .query(next.dimension.name, this.getPredicates(next.index, next.dimension))
-        .then(this.handleQuery(activeDimension, next.dimension, next.index));
-    } while (!cacheMiss && this.queue.length);
+      let next = this.queue.peek();
+      this.getStaticDimensions().forEach((staticDimension) => {
+        // Check if it is already loaded
+        if (this.cache[next.index] && this.cache[next.index][staticDimension.name]) {
+          return;
+        }
+
+        cacheMiss = true;
+        this.queryCount++;
+        this.backend
+          .query(staticDimension.name, this.getPredicates(next.index, staticDimension))
+          .then(this.handleQuery(activeDimension, staticDimension, next.index));
+      });
+
+      this.queue.dequeue();
+    } while (!cacheMiss && this.queue.length && !this.closed);
   }
 
   private handleQuery(activeDimension: Dimension, staticDimension: Dimension, index: number) {

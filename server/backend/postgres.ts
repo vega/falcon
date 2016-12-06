@@ -70,23 +70,31 @@ class Postgres implements Backend {
 
     variables = variables.concat(this.getPredicateVars(predicates));
 
+    const queryConfig: {text: string, values: number[], name?: string} = {
+      text: SQL_QUERY,
+      values: variables
+    };
+
+    if (config.optimizations.preparedStatements) {
+      queryConfig.name = `${dimension}-${wherePredicate.varCount}`;
+    }
+
     return this.db
-      .many({
-        text: SQL_QUERY,
-        name: `${dimension}-${wherePredicate.varCount}`,
-        values: variables
-      })
+      .many(queryConfig)
       .then((results) => {
         const r = d3.range(dim.bins + 1).map(() => 0);
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
+          if (+d.bucket === 0) {
+            r[0] = 0;
+          }
         });
         return r;
       })
       .catch((err) => {
         console.log(err);
-        // console.log('Caught error. Returning empty result set.');
         return d3.range(dim.bins + 1).map(() => 0);
+
       });
 
   }

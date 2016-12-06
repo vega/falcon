@@ -44,7 +44,16 @@ export const optimizations = {
   /**
    * Snap to the closest cache.
    */
-  snapping: true
+  snapping: true,
+  /**
+   * Use prepared statements in the database.
+   */
+  preparedStatements: false,
+  /**
+   * Preload resolution - when preloading, how much space
+   * do we want to provide between cachepoints by default?
+   */
+  preloadResolution: resolution => resolution / 200
 };
 
 export const debugging = {
