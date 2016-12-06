@@ -104,7 +104,7 @@ connection.onOpen(() => {
   // Initialize empty charts
   dimensions.forEach(dim => {
     vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
-      .on('hover', handleHover(dim))
+      .on('mousemove', handleHover(dim))
       .onBrush('start', handleBrushStart(dim))
       .onBrush('brush', handleBrushMove(dim))
       .onBrush('end', handleBrushEnd(dim));
