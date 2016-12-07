@@ -56,7 +56,7 @@ class Session {
   }
 
   private getActiveDimension() {
-    return this.dimensions.find(d => d.name === this.activeDimension) || this.dimensions[0];
+    return this.dimensions.find(d => d.name === this.activeDimension);
   }
 
   private getStaticDimensions() {
@@ -92,9 +92,7 @@ class Session {
 
     const staticDimensions = this.getStaticDimensions();
     this.queue = new PriorityQueue<QueueElement>({
-      initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
-        const index = Math.floor(i / staticDimensions.length);
-
+      initialValues: range(this.scales[ad.name].domain()[1]).map((index) => {
         return {
           index: index,
           value: index % config.optimizations.preloadResolution(this.scales[ad.name].domain()[1])
@@ -116,8 +114,7 @@ class Session {
     const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
     this.queue = new PriorityQueue<QueueElement>({
-      initialValues: range(staticDimensions.length * this.scales[ad.name].domain()[1]).map((i) => {
-        const index = Math.floor(i / staticDimensions.length);
+      initialValues: range(this.scales[ad.name].domain()[1]).map((index) => {
         if (Array.isArray(value)) {
           const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
           return {
