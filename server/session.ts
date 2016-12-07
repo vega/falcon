@@ -113,18 +113,19 @@ class Session {
     this.setActiveDimension(dimension);
     const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
+    const indexLength = this.scales[ad.name].domain()[1];
     this.queue = new PriorityQueue<QueueElement>({
-      initialValues: range(this.scales[ad.name].domain()[1]).map((index) => {
+      initialValues: range(indexLength).map((index) => {
         if (Array.isArray(value)) {
           const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
           return {
             index: index,
-            value: v
+            value: v + index % config.optimizations.preloadResolution(indexLength) * indexLength
           };
         }
         return {
           index: index,
-          value: Math.abs(index - value)
+          value: Math.abs(index - value) + index % config.optimizations.preloadResolution(indexLength) * indexLength
         };
       }),
       comparator: (a: QueueElement, b: QueueElement) => {
