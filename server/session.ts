@@ -118,13 +118,12 @@ class Session {
 
 
     // Velocity is measured in pixels per millisecond
-    // so we need to amplify the value a little bit
-    const amplification = 250;
+    // so we need to amplify the value a little bit.
+    const amplification = 300;
     const velocityOffset = velocity * amplification;
     this.queue = new PriorityQueue<QueueElement>({
       initialValues: range(indexLength).map((index) => {
         const offsetIndex = Math.max(0, Math.min(indexLength - 1, index + Math.floor(velocityOffset)));
-
         if (Array.isArray(value)) {
           const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
           return {
@@ -136,7 +135,19 @@ class Session {
           index: offsetIndex,
           value: Math.abs(index - value) + index % config.optimizations.preloadResolution(indexLength) * indexLength / 4
         };
-      }),
+      }).concat(range(Math.abs(velocityOffset)).map((index) => {
+        if (velocityOffset > 0) {
+          return {
+            index: index,
+            value: indexLength * indexLength
+          }
+        } else {
+          return {
+            index: indexLength - index - 1,
+            value: indexLength * indexLength
+          }
+        }
+      })),
       comparator: (a: QueueElement, b: QueueElement) => {
         return a.value - b.value;
       }
