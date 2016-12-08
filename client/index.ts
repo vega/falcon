@@ -31,18 +31,38 @@ connection.onOpen(() => {
       return v;
   }
 
-  const handleHover = (dimension: Dimension) => {
-    return (domain: Interval) => {
+  let brushing = false;
+
+  const handleMousemove = (dimension: Dimension) => {
+    return () => {
+      if (brushing) {
+        return;
+      }
+
       // Start preloading values from this dimension.
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
+
       const x = viz.x.invert(xPixels);
       api.preload(dimension, x, calculateVelocity(xPixels));
     };
   };
 
+  /**
+   * Mouse moves into the brush selection. We preload the start and end of the brush.
+   */
+  const preloadBrushSelection = (dimension: Dimension) => {
+    return () => {
+      const viz = vizs[dimension.name];
+      const s = api.getRange(dimension);
+      const extent = (s.map(viz.x.invert, viz.x));
+      api.preload(dimension, extent);
+    };
+  };
+
   const handleBrushStart = (dimension: Dimension) => {
-    return (domain: Interval) => {
+    return () => {
+      brushing = true;
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
@@ -59,7 +79,7 @@ connection.onOpen(() => {
   };
 
   const handleBrushMove = (dimension: Dimension) => {
-    return (domain: Interval) => {
+    return () => {
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const s = d3.event.selection || viz.x.range();
@@ -80,7 +100,8 @@ connection.onOpen(() => {
   };
 
   const handleBrushEnd = (dimension: Dimension) => {
-    return (domain: Interval) => {
+    return () => {
+      brushing = false;
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
@@ -115,10 +136,12 @@ connection.onOpen(() => {
   // Initialize empty charts
   dimensions.forEach(dim => {
     vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
-      .on('mousemove', handleHover(dim))
       .onBrush('start', handleBrushStart(dim))
       .onBrush('brush', handleBrushMove(dim))
-      .onBrush('end', handleBrushEnd(dim));
+      .onBrush('end', handleBrushEnd(dim))
+      .onOverlay('mousemove', handleMousemove(dim))
+      .onOverlay('mouseout', preloadBrushSelection(dim))
+      .onSelection('mouseover', preloadBrushSelection(dim));
   });
 
   // Initialize with resolutions

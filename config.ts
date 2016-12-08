@@ -34,7 +34,7 @@ export const optimizations = {
    */
   startOnPageload: true,
   /**
-   * Preload on hover.
+   * Preload data.
    */
   preload: true,
   /**

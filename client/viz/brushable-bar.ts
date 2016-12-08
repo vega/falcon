@@ -46,9 +46,11 @@ class BrushableBar {
     const $container = d3.select('body').append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
-    this.$group = $svg.append('g').attr('transform', `translate(${padding.left}, ${padding.top})`);
+    this.$group = $svg.append('g')
+      .attr('transform', `translate(${padding.left}, ${padding.top})`)
+      .classed('group', true);
 
-    this.$content = this.$group.append('g');
+    this.$content = this.$group.append('g').classed('content', true);
 
     this.$group.append('g')
         .attr('class', 'x brush')
@@ -107,13 +109,24 @@ class BrushableBar {
     return this;
   }
 
+  /**
+   * Subscribe to brush event.
+   */
   public onBrush(eventName: string, callback: any) {
     this.brush.on(eventName, callback);
     return this;
   }
 
-  public on(eventName: string, callback: any) {
-    this.$group.on(eventName, callback);
+  /**
+   * Subscribe to events on the brush overlay (not the brush itself).
+   */
+  public onOverlay(eventName: string, callback: any) {
+    this.$group.select('.overlay').on(eventName, callback);
+    return this;
+  }
+
+  public onSelection(eventName: string, callback: any) {
+    this.$group.select('.selection').on(eventName, callback);
     return this;
   }
 }
