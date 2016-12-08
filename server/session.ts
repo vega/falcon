@@ -109,23 +109,32 @@ class Session {
   }
 
   public preload(dimension: string, value: number | number[], velocity: number) {
+
     this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
     const indexLength = this.scales[ad.name].domain()[1];
+
+
+    // Velocity is measured in pixels per millisecond
+    // so we need to amplify the value a little bit
+    const amplification = 250;
+    const velocityOffset = velocity * amplification;
     this.queue = new PriorityQueue<QueueElement>({
       initialValues: range(indexLength).map((index) => {
+        const offsetIndex = Math.max(0, Math.min(indexLength - 1, index + Math.floor(velocityOffset)));
+
         if (Array.isArray(value)) {
           const v = Math.min.apply(null, value.map((d) => Math.abs(index - d)));
           return {
-            index: index,
+            index: offsetIndex,
             value: v + index % config.optimizations.preloadResolution(indexLength) * indexLength
           };
         }
         return {
-          index: index,
-          value: Math.abs(index - value) + index % config.optimizations.preloadResolution(indexLength) * indexLength
+          index: offsetIndex,
+          value: Math.abs(index - value) + index % config.optimizations.preloadResolution(indexLength) * indexLength / 4
         };
       }),
       comparator: (a: QueueElement, b: QueueElement) => {

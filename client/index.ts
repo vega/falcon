@@ -20,6 +20,16 @@ connection.onOpen(() => {
 
   let lastExtent: Range = null;
   let loadedStartValue: number = null;
+  let lastX: number = 0;
+  let lastVelocityTime: number = 0;
+
+  const calculateVelocity = (xPixels) => {
+      const t = Date.now();
+      const v = (xPixels - lastX) / (t - lastVelocityTime);
+      lastVelocityTime = t;
+      lastX = xPixels;
+      return v;
+  }
 
   const handleHover = (dimension: Dimension) => {
     return (domain: Interval) => {
@@ -27,7 +37,7 @@ connection.onOpen(() => {
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const x = viz.x.invert(xPixels);
-      api.preload(dimension, x);
+      api.preload(dimension, x, calculateVelocity(xPixels));
     };
   };
 
@@ -51,18 +61,19 @@ connection.onOpen(() => {
   const handleBrushMove = (dimension: Dimension) => {
     return (domain: Interval) => {
       const viz = vizs[dimension.name];
+      const xPixels = d3.mouse(viz.$content.node())[0];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       api.setState(dimension, extent);
       if (extent[0] === lastExtent[0]) {
         // move left side of brush
-        api.preload(dimension, extent[1]);
+        api.preload(dimension, extent[1], calculateVelocity(xPixels));
       } else if (extent[1] === lastExtent[1]) {
         // move right side of brush
-        api.preload(dimension, extent[0]);
+        api.preload(dimension, extent[0], calculateVelocity(xPixels));
       } else {
         // move the whole brush
-        api.preload(dimension, extent);
+        api.preload(dimension, extent, calculateVelocity(xPixels));
       }
       lastExtent = extent;
     };
