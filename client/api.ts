@@ -61,6 +61,8 @@ class API {
   }
 
   public setRange(dimension: Dimension, range: Interval) {
+    this.setActiveDimension(dimension);
+
     if (debugging.logApi) {
       console.log(`API: setRange ${dimension.name} ${range}`);
     }
@@ -77,14 +79,14 @@ class API {
   // Call this when you want to request a value
   // to be computed immediately.
   public load(dimension: Dimension, value: number) {
-    if (debugging.logApi) {
-      console.log(`API: load ${dimension.name} ${value}`);
-    }
-
     this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
+
+    if (debugging.logApi) {
+      console.log(`API: load ${this.activeDimension} ${index}`);
+    }
 
     this.connection.send({
       type: 'load',
@@ -96,10 +98,6 @@ class API {
   // Call this when you want to suggest how the
   // server should prioritize background queries.
   public preload(dimension: Dimension, value: number | number[], velocity: number) {
-    if (debugging.logApi) {
-      console.log(`API: preload ${dimension.name} ${value}`);
-    }
-
     this.setActiveDimension(dimension);
 
     const scale = this.scales[this.activeDimension];
@@ -108,6 +106,10 @@ class API {
       index = value.map((v) => Math.round(scale(v)));
     } else {
       index = Math.round(scale(value));
+    }
+
+    if (debugging.logApi) {
+      console.log(`API: preload ${this.activeDimension} idx: ${index} v: ${velocity}`);
     }
 
     this.connection.send({
@@ -148,6 +150,10 @@ class API {
     }
 
     this.activeDimension = dimension.name;
+  }
+
+  public getRange(dimension: Dimension) {
+    return this.ranges[dimension.name];
   }
 }
 
