@@ -29,7 +29,7 @@ connection.onOpen(() => {
       lastVelocityTime = t;
       lastX = xPixels;
       return v;
-  }
+  };
 
   let brushing = false;
 
@@ -53,10 +53,8 @@ connection.onOpen(() => {
    */
   const preloadBrushSelection = (dimension: Dimension) => {
     return () => {
-      const viz = vizs[dimension.name];
-      const s = api.getRange(dimension);
-      const extent = (s.map(viz.x.invert, viz.x));
-      api.preload(dimension, extent);
+      const extent = api.getRange(dimension);
+      api.preload(dimension, extent, 0);
     };
   };
 
