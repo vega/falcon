@@ -60,6 +60,9 @@ class Session {
   }
 
   private getStaticDimensions() {
+    if (!this.hasUserInteracted) {
+      return this.dimensions;
+    }
     return this.dimensions.filter(dimension => dimension.name !== this.activeDimension);
   }
 
@@ -91,13 +94,33 @@ class Session {
     });
 
     const staticDimensions = this.getStaticDimensions();
-    this.queue = new PriorityQueue<QueueElement>({
-      initialValues: range(this.scales[ad.name].domain()[1]).map((index) => {
-        return {
+    const indexLength = this.scales[ad.name].domain()[1];
+
+    // Subdivide the range so we get an optimal distribution
+    // of preloaded values
+    const subdivisionLevels = 6;
+    let subdividedValues = [];
+    let subdividedIndices = [];
+    for (var i = 1; i < subdivisionLevels; i++) {
+      for (var j = 1; j < Math.pow(2, i); j++) {
+        const index = Math.round(j * indexLength / Math.pow(2, i));
+        subdividedValues.push({
           index: index,
-          value: index % config.optimizations.preloadResolution(this.scales[ad.name].domain()[1])
-        };
-      }),
+          value: i / 2
+        });
+        subdividedIndices.push(index);
+      }
+    }
+
+    const initialValues = range(indexLength).filter((d) => subdividedIndices.indexOf(d) === -1).map((index) => {
+      return {
+        index: index,
+        value: subdivisionLevels + index % config.optimizations.preloadResolution(indexLength)
+      };
+    }).concat(subdividedValues);
+
+    this.queue = new PriorityQueue<QueueElement>({
+      initialValues: initialValues,
       comparator: (a: QueueElement, b: QueueElement) => {
         return a.value - b.value;
       }
@@ -110,7 +133,6 @@ class Session {
 
   public preload(dimension: string, value: number | number[], velocity: number) {
 
-    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
@@ -152,20 +174,20 @@ class Session {
         return a.value - b.value;
       }
     });
+    this.hasUserInteracted = true;
   }
 
   public setRange(dimension: string, range: Interval) {
-    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
     const ad = this.getActiveDimension();
     ad.currentRange = range;
+    this.hasUserInteracted = true;
   }
 
   // Load a particular value immediately.
   // Should this just immediately place the item at
   // the front of the queue?
   public load(dimension: string, value: number) {
-    this.hasUserInteracted = true;
     this.setActiveDimension(dimension);
 
     const activeDimension = this.getActiveDimension();
@@ -180,6 +202,7 @@ class Session {
         .query(staticDimension.name, this.getPredicates(value, staticDimension))
         .then(this.handleQuery(activeDimension, staticDimension, value));
     });
+    this.hasUserInteracted = true;
   }
 
   private setActiveDimension(dimension: string) {
