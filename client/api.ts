@@ -25,6 +25,7 @@ class API {
     }
   }
 
+
   public init(resolutions: { dimension: string, value: number }[]) {
     if (debugging.logApi) {
       console.log(`API: init ${resolutions.map(r => `${r.dimension}:${r.value}`).join(', ')}`);
@@ -56,7 +57,8 @@ class API {
     const scaledRange = range.map((d) => Math.round(scale(d)));
 
     this.cache.getAllCombined(scaledRange[0], scaledRange[1]).forEach(r => {
-      this._onResult(r.dimension, r.data);
+      const rangeError = this.getRangeError(range, r.range.map(scale.invert) as Interval, scale);
+      this._onResult(r.dimension, r.data, this.activeDimension === r.dimension ? 0 : rangeError);
     });
   }
 
@@ -120,7 +122,7 @@ class API {
     });
   }
 
-  public onResult(callback: (dimension: string, data: number[], range: Interval) => any) {
+  public onResult(callback: (dimension: string, data: number[], rangeError: number) => any) {
     this._onResult = callback;
     return (result: Result) => {
       console.log(result);
@@ -137,7 +139,8 @@ class API {
 
         const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
         if (data) {
-          return callback(result.dimension, data.data, data.range);
+          const rangeError = this.getRangeError(range, data.range.map(scale.invert) as Interval, scale);
+          return callback(result.dimension, data.data, rangeError);
         }
       }
     };
@@ -150,6 +153,11 @@ class API {
     }
 
     this.activeDimension = dimension.name;
+  }
+
+  private getRangeError(expectedRange: Interval, actualRange: Interval, scale: ScaleLinear<number, number>) {
+    const maxError = (scale.domain()[1] - scale.domain()[0]);
+    return (Math.abs(expectedRange[0] - actualRange[0]) + Math.abs(expectedRange[1] - actualRange[1])) / maxError;
   }
 
   public getRange(dimension: Dimension) {

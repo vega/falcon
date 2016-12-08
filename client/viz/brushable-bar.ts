@@ -74,7 +74,7 @@ class BrushableBar {
   /**
    * Update with new data and the range that was used for this data.
    */
-  public update(data: number[]) {
+  public update(data: number[], rangeError: number) {
     const $bars = this.$content.selectAll('.bar').data(data, d => d);
 
     const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
@@ -102,7 +102,8 @@ class BrushableBar {
       })
       .attr('height', (d) => {
         return this.y(0) - this.y(d);
-      });
+      })
+      .attr('opacity',  1 - rangeError);
 
     $bars.exit().remove();
 
