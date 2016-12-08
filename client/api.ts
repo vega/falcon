@@ -56,8 +56,8 @@ class API {
     const scaledRange = range.map((d) => Math.round(scale(d)));
 
     this.cache.getAllCombined(scaledRange[0], scaledRange[1]).forEach(r => {
-      const rangeError = (Math.abs(range[0] - scale.invert(r.range[0])) + Math.abs(range[1] - scale.invert(r.range[1]))) / (2 * (scale.domain()[1] - scale.domain()[0]));
-      this._onResult(r.dimension, r.data, this.activeDimension === r.dimension ? 0 : Math.sqrt(rangeError));
+      const rangeError = (Math.abs(range[0] - scale.invert(r.range[0])) + Math.abs(range[1] - scale.invert(r.range[1]))) / ((scale.domain()[1] - scale.domain()[0]));
+      this._onResult(r.dimension, r.data, this.activeDimension === r.dimension ? 0 : rangeError);
     });
   }
 
@@ -136,8 +136,8 @@ class API {
 
         const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
         if (data) {
-          const rangeError = (Math.abs(range[0] - scale.invert(data.range[0])) + Math.abs(range[1] - scale.invert(data.range[1]))) / (2 * (scale.domain()[1] - scale.domain()[0]));
-          return callback(result.dimension, data.data, Math.sqrt(rangeError));
+          const rangeError = (Math.abs(range[0] - scale.invert(data.range[0])) + Math.abs(range[1] - scale.invert(data.range[1]))) / ((scale.domain()[1] - scale.domain()[0]));
+          return callback(result.dimension, data.data, rangeError);
         }
       }
     };
