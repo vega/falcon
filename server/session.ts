@@ -98,7 +98,7 @@ class Session {
 
     // Subdivide the range so we get an optimal distribution
     // of preloaded values
-    const subdivisionLevels = 6;
+    const subdivisionLevels = 8;
     let subdividedValues = [];
     let subdividedIndices = [];
     for (var i = 1; i < subdivisionLevels; i++) {
@@ -106,7 +106,7 @@ class Session {
         const index = Math.round(j * indexLength / Math.pow(2, i));
         subdividedValues.push({
           index: index,
-          value: i / 2
+          value: i / 2 + Math.random() / 2
         });
         subdividedIndices.push(index);
       }
@@ -115,7 +115,7 @@ class Session {
     const initialValues = range(indexLength).filter((d) => subdividedIndices.indexOf(d) === -1).map((index) => {
       return {
         index: index,
-        value: subdivisionLevels + index % config.optimizations.preloadResolution(indexLength)
+        value: subdivisionLevels + index % config.optimizations.preloadResolution(indexLength) + Math.random() / 2
       };
     }).concat(subdividedValues);
 
@@ -141,7 +141,7 @@ class Session {
 
     // Velocity is measured in pixels per millisecond
     // so we need to amplify the value a little bit.
-    const amplification = 300;
+    const amplification = 200;
     const velocityOffset = velocity * amplification;
     this.queue = new PriorityQueue<QueueElement>({
       initialValues: range(indexLength).map((index) => {

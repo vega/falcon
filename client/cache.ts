@@ -40,8 +40,12 @@ export abstract class Cache {
   /**
    * Clear the cache.
    */
-  public invalidate() {
-    this.cache = {};
+  public invalidate(dimension?: string) {
+    if (dimension) {
+      delete this.cache[dimension];
+    } else {
+      this.cache = {};
+    }
   }
 }
 
@@ -122,7 +126,7 @@ export class SnappingCache extends Cache {
 
   /**
    * Retrieve clostest value from the cache.
-   * 
+   *
    * TODO:
    *  - Use a smarter index, e.g. range tree
    *  - Since many requests are for items that exist in the cache, we should probably add another secondary index for exact lookups.
@@ -157,7 +161,7 @@ export class SnappingCache extends Cache {
   public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
     // Note: We should use the closest value that is not the other side of the brush.
     // However, in this code we only find the closest point and do not igore the other
-    // side of the brush. It should be okay in most cses, though. 
+    // side of the brush. It should be okay in most cses, though.
     const low = this.get(start, dimension);
     if (low) {
       const high = this.get(end, dimension);

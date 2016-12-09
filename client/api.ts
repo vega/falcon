@@ -6,9 +6,10 @@ import {optimizations} from '../config';
 class API {
 
   public cache: Cache;
-  private activeDimension: string;
+  public activeDimension: string;
   private ranges: {[dimension: string]: Interval} = {};
   private _onResult: any;
+  private hasUserBrushed: boolean = false;
   private scales: {[dimension: string]: ScaleLinear<number, number>} = {};
 
   constructor(public dimensions: Dimension[], public connection: any) {
@@ -57,8 +58,11 @@ class API {
     const scaledRange = range.map((d) => Math.round(scale(d)));
 
     this.cache.getAllCombined(scaledRange[0], scaledRange[1]).forEach(r => {
+      if (this.hasUserBrushed && r.dimension === this.activeDimension) {
+        return;
+      }
       const rangeError = this.getRangeError(range, r.range.map(scale.invert) as Interval, scale);
-      this._onResult(r.dimension, r.data, this.activeDimension === r.dimension ? 0 : rangeError);
+      this._onResult(r.dimension, r.data, rangeError);
     });
   }
 
@@ -82,6 +86,7 @@ class API {
   // to be computed immediately.
   public load(dimension: Dimension, value: number) {
     this.setActiveDimension(dimension);
+    this.hasUserBrushed = true;
 
     const scale = this.scales[this.activeDimension];
     const index = Math.round(scale(value));
@@ -138,7 +143,11 @@ class API {
         const scaledRange = range.map(d => Math.round(scale(d)));
 
         const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
+
         if (data) {
+          if (this.hasUserBrushed && result.dimension === this.activeDimension) {
+            return;
+          }
           const rangeError = this.getRangeError(range, data.range.map(scale.invert) as Interval, scale);
           return callback(result.dimension, data.data, rangeError);
         }
@@ -147,9 +156,11 @@ class API {
   }
 
   private setActiveDimension(dimension: Dimension) {
-    if (this.activeDimension !== dimension.name) {
+    if (this.hasUserBrushed && this.activeDimension !== dimension.name) {
       // Clear cache because we only cache 1 dimension at a time.
       this.cache.invalidate();
+    } else if(!this.hasUserBrushed) {
+      this.cache.invalidate(dimension.name);
     }
 
     this.activeDimension = dimension.name;
