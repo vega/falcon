@@ -35,7 +35,7 @@ export const optimizations = {
    * If you turn this on, all the other optimization
    * flags are ignored.
    */
-  naiveBaseline: true,
+  naiveBaseline: false,
   /**
    * Start preloading when the page is first loaded.
    */
