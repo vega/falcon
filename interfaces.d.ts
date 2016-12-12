@@ -15,7 +15,13 @@ declare type Request = {
 } | {
   type: 'loadInterval',
   dimenstion: string,
-  range: Interval
+  // We use two numbers
+  // instead of an interval here
+  // to make it easier for HTTP 
+  // requests. This is only used
+  // for testing the baseline.
+  lower: number,
+  upper: number
 } | {
   type: 'setRange',
   dimension: string,

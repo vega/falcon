@@ -30,6 +30,13 @@ export const dimensions: Dimension[] = [{
 
 export const optimizations = {
   /**
+   * Naive Baseline. Enable this to remove all
+   * optimizations, used for testing the baseline.
+   * If you turn this on, all the other optimization
+   * flags are ignored.
+   */
+  naiveBaseline: true,
+  /**
    * Start preloading when the page is first loaded.
    */
   startOnPageload: true,
