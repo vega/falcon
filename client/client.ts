@@ -35,7 +35,7 @@ connection.onOpen(() => {
 
   const handleMousemove = (dimension: Dimension) => {
     return () => {
-      if (brushing) {
+      if (brushing || dimension.name !== api.activeDimension) {
         return;
       }
 
