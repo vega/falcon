@@ -42,9 +42,18 @@ wss.on('connection', (ws) => {
     console.log('received: %s', message);
     const request: Request = JSON.parse(message);
     switch (request.type) {
-      case 'loadInterval':
+      case 'init':
+        session.init(request.resolutions);
         break;
-    }
+      case 'load':
+        session.load(request.dimension, request.value);
+        break;
+      case 'preload':
+        session.preload(request.dimension, request.value, request.velocity);
+        break;
+      case 'setRange':
+        session.setRange(request.dimension, request.range);
+        break;    }
   });
 });
 
