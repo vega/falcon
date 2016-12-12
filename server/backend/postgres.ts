@@ -52,7 +52,6 @@ class Postgres implements Backend {
     const dim = config.dimensions.find(d => d.name === dimension);
     const range = dim.range;
 
-
     const wherePredicate = predicates.reduce(this.reducePredicates, {currentPredicate: '', varCount: 4});
 
     const SQL_QUERY = `
