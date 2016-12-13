@@ -32,10 +32,11 @@ connection.onOpen(() => {
   };
 
   let brushing = false;
+  let hasBrushed = false;
 
   const handleMousemove = (dimension: Dimension) => {
     return () => {
-      if (brushing || dimension.name !== api.activeDimension) {
+      if (!hasBrushed || brushing || dimension.name !== api.activeDimension) {
         return;
       }
 
@@ -53,6 +54,10 @@ connection.onOpen(() => {
    */
   const preloadBrushSelection = (dimension: Dimension) => {
     return () => {
+      if (!hasBrushed || dimension.name !== api.activeDimension) {
+        return;
+      }
+
       const extent = api.getRange(dimension);
       api.preload(dimension, extent, 0);
     };
@@ -61,6 +66,7 @@ connection.onOpen(() => {
   const handleBrushStart = (dimension: Dimension) => {
     return () => {
       brushing = true;
+      hasBrushed = true;
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));

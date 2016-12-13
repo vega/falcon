@@ -130,7 +130,7 @@ class API {
   public onResult(callback: (dimension: string, data: number[], rangeError: number) => any) {
     this._onResult = callback;
     return (result: Result) => {
-      console.log(result);
+      // console.log(result);
 
       // Ignore results from stale queries (wrong dimension)
       if (result.activeDimension === this.activeDimension) {
