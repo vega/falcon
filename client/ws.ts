@@ -1,5 +1,3 @@
-/// <reference path="../interfaces.d.ts" />
-
 import * as pako from 'pako';
 import * as config from '../config';
 

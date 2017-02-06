@@ -7,6 +7,7 @@
     "types": [
       "node"
     ],
+    "inlineSourceMap": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
     "noUnusedLocals": true,
@@ -15,7 +16,7 @@
   "include": [
     "server/**/*.ts",
     "client/**/*.ts",
-    "interfaces.d.ts"
+    "declarations/**.d.ts"
   ],
   "exclude": [
     "node_modules",

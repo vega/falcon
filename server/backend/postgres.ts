@@ -1,8 +1,11 @@
 import * as pgp from 'pg-promise';
 import * as d3 from 'd3';
-import { Backend, Predicate } from '.';
+import * as utils from '../../utils';
 
 import * as config from '../../config';
+
+type Predicate = (BrushRange | QueryDimension) & {name: string};
+type QueryPredicate = QueryDimension & {name: string};
 
 class Postgres implements Backend {
   private db: any;
@@ -32,7 +35,7 @@ class Postgres implements Backend {
     };
   }
 
-  private getPredicateVars(predicates: Predicate[]) {
+  private getPredicateVars(predicates: AbstractRange[]) {
     const vars: number[] = [];
     predicates.forEach((predicate) => {
       const { lower, upper } = predicate;
@@ -48,23 +51,20 @@ class Postgres implements Backend {
     return vars;
   }
 
-  public query(dimension: string, predicates: Predicate[]) {
-    const dim = config.dimensions.find(d => d.name === dimension);
-    const range = dim.range;
-
+  private async queryOne(dimension: QueryPredicate, predicates: Predicate[]): Promise<ResultRow> {
     const wherePredicate = predicates.reduce(this.reducePredicates, {currentPredicate: '', varCount: 4});
 
     const SQL_QUERY = `
-      SELECT width_bucket("${dim.name}", $1, $2, $3) as bucket, count(*)
+      SELECT width_bucket("${dimension.name}", $1, $2, $3) as bucket, count(*)
       FROM ${config.database.table}
-      WHERE ${wherePredicate.currentPredicate}
+      ${predicates.length > 0 ? `WHERE  ${wherePredicate.currentPredicate}` : ''}
       GROUP BY bucket order by bucket asc;
     `;
 
     let variables = [
-      range[0],
-      range[1],
-      dim.bins
+      dimension.range[0],
+      dimension.range[1],
+      dimension.bins
     ];
 
     variables = variables.concat(this.getPredicateVars(predicates));
@@ -75,13 +75,16 @@ class Postgres implements Backend {
     };
 
     if (config.optimizations.preparedStatements) {
-      queryConfig.name = `${dimension}-${wherePredicate.varCount}`;
+      const hashCode = function(s){
+        return s.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+      }
+      queryConfig.name = hashCode(SQL_QUERY);
     }
 
     return this.db
       .many(queryConfig)
       .then((results: {bucket: number, count: number}[]) => {
-        const r = d3.range(dim.bins + 1).map(() => 0);
+        const r = d3.range(dimension.bins + 1).map(() => 0);
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
           if (+d.bucket === 0) {
@@ -91,11 +94,39 @@ class Postgres implements Backend {
         return r;
       })
       .catch((err: Error) => {
-        console.log(err);
-        return d3.range(dim.bins + 1).map(() => 0);
-
+        console.warn(err);
+        return d3.range(dimension.bins + 1).map(() => 0);
       });
+  }
 
+  /**
+   * Runs multiple async queries and returns a promise for all resutlts.
+   */
+  public async query(dimensions: QueryConfig) {
+    const predicates: Predicate[] = utils.objectMap(dimensions, (d: BrushRange | QueryDimension, name) => {
+      return {
+        name,
+        ...d
+      }
+    });
+
+    // which dimensions do we want to query
+    const queryPredicates = predicates.filter(dim => dim.query) as QueryPredicate[];
+    const queue = queryPredicates.map(dim => this.queryOne(
+        dim,
+        // don't add predicate for the dimension we want the data for
+        // also filter all predicates that do nothing
+        predicates.filter(d => d.name !== dim.name && d.upper !== undefined)
+      ));
+
+    const pgResults = await Promise.all(queue);
+
+    let results: ResultData = {};
+    queryPredicates.forEach((d, i) => {
+      results[d.name] = pgResults[i];
+    })
+
+    return results;
   }
 }
 

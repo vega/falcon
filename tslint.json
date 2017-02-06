@@ -62,7 +62,6 @@
     "quotemark": [true, "single", "avoid-escape"],
     "triple-equals": [true, "allow-null-check"],
     "variable-name": [true, "check-format", "allow-leading-underscore", "ban-keywords"],
-    "interface-name": [true, "always-prefix"],
     "ordered-imports": false
   }
 }

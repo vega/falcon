@@ -10,75 +10,58 @@ const dimensions = config.dimensions;
 const server = createServer();
 const app = express();
 
-let ranges = {};
-let originalRanges = {};
-dimensions.forEach((dimension) => {
-  ranges[dimension.name] = dimension.range;
-  originalRanges[dimension.name] = dimension.range;
-});
+const brushes: {[dim: string]: Interval} = {};
 
 app.use(express.static(__dirname + '/../public'));
 
 
 app.get('/init', (req, res) => {
-  const predicates = dimensions.map((dimension) => {
-    return {
-      name: dimension.name,
-      lower: dimension.range[0],
-      upper: dimension.range[1]
+  const predicates: QueryConfig = {};
+
+  dimensions.forEach((dimension) => {
+    predicates[dimension.name] = {
+      query: true,
+      range: dimension.range,
+      bins: dimension.bins
     };
   });
 
-  const queries = dimensions.map((dimension) => {
-    return backend.query(dimension.name, predicates);
-  });
-
-  Promise
-    .all(queries)
-    .then((values) => {
-      let retObject = {};
-      values.forEach((results, i) => {
-        retObject[dimensions[i].name] = results;
-      });
-
-      res.json(retObject);
-    });
+  backend.query(predicates)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch(console.error)
 });
 
 app.get('/loadRange', (req, res) => {
   const params = req.query;
-  ranges[params.dimension] = [params.lower, params.upper];
+  brushes[params.dimension] = [params.lower, params.upper];
 
-  const dimLookup = [];
-  const queries = dimensions.filter((dim) => dim.name !== params.dimension).map((dimension) => {
-    const predicates = Object.keys(ranges).filter((dim) => dim !== dimension.name).map((dim) => {
-      const range = ranges[dim];
-      return {
-        name: dim,
-        lower: +range[0],
-        upper: +range[1]
-      };
-    }).concat([{
-      name: dimension.name,
-      lower: +originalRanges[dimension.name][0],
-      upper: +originalRanges[dimension.name][1]
-    }]);
+  const predicates: QueryConfig = {};
 
-    dimLookup.push(dimension.name);
-    return backend.query(dimension.name, predicates); 
+  dimensions.forEach((dimension) => {
+    const pred: QueryDimension = {
+      query: true,
+      range: dimension.range,
+      bins: dimension.bins
+    };
+
+    const brush = brushes[dimension.name];
+    if (brush) {
+      pred.lower = brush[0];
+      pred.upper = brush[1];
+    };
+
+    predicates[dimension.name] = pred;
   });
 
-  Promise
-    .all(queries)
-    .then((values) => {
-      let retObject = {};
-      values.forEach((results, i) => {
-        retObject[dimLookup[i]] = results;
-      });
+  console.log(brushes);
 
-      res.json(retObject);
-    });
-
+  backend.query(predicates)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch(console.error);
 });
 
 server.on('request', app);

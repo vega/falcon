@@ -2,6 +2,7 @@ import {scaleLinear, ScaleLinear} from 'd3-scale';
 import {debugging} from '../config';
 import {Cache, SnappingCache, SimpleCache} from './cache';
 import {optimizations} from '../config';
+import * as utils from '../utils';
 
 class API {
 
@@ -132,26 +133,28 @@ class API {
     return (result: Result) => {
       // console.log(result);
 
-      // Ignore results from stale queries (wrong dimension)
-      if (result.activeDimension === this.activeDimension) {
-        this.cache.set(result.index, result.dimension, result.data);
+      utils.objectMap(result.data, (resultRow: ResultRow, dimensions) => {
+        // Ignore results from stale queries (wrong dimension)
+        if (result.activeDimension === this.activeDimension) {
+          this.cache.set(result.index, dimensions, resultRow.values);
 
-        // This attempts to see if the new result is what
-        // the brush is set to now, and if so, updates it.
-        const range = this.ranges[this.activeDimension];
-        const scale = this.scales[this.activeDimension];
-        const scaledRange = range.map(d => Math.round(scale(d)));
+          // This attempts to see if the new result is what
+          // the brush is set to now, and if so, updates it.
+          const range = this.ranges[this.activeDimension];
+          const scale = this.scales[this.activeDimension];
+          const scaledRange = range.map(d => Math.round(scale(d)));
 
-        const data = this.cache.getCombined(scaledRange[0], scaledRange[1], result.dimension);
+          const data = this.cache.getCombined(scaledRange[0], scaledRange[1], dimensions);
 
-        if (data) {
-          if (this.hasUserBrushed && result.dimension === this.activeDimension) {
-            return;
+          if (data) {
+            if (this.hasUserBrushed && dimensions === this.activeDimension) {
+              return;
+            }
+            const rangeError = this.getRangeError(range, data.range.map(scale.invert) as Interval, scale);
+            return callback(dimensions, data.data, rangeError);
           }
-          const rangeError = this.getRangeError(range, data.range.map(scale.invert) as Interval, scale);
-          return callback(result.dimension, data.data, rangeError);
         }
-      }
+      })
     };
   }
 

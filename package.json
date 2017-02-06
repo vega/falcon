@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --ignore client --exec 'ts-node' ./server/index.ts",
+    "server-dbg": "ts-node debug ./server/index.ts",
     "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js -d -v",
     "build": "browserify client/index.ts -p [ tsify ] -o public/bundle.js -d",
     "test": "echo \"Error: no test specified\" && exit 1"
