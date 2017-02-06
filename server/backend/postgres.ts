@@ -7,7 +7,7 @@ import * as config from '../../config';
 class Postgres implements Backend {
   private db: any;
 
-  constructor(connection) {
+  constructor(connection: pgp.TConnectionOptions) {
     this.db = pgp({})(connection);
   }
 
@@ -80,7 +80,7 @@ class Postgres implements Backend {
 
     return this.db
       .many(queryConfig)
-      .then((results) => {
+      .then((results: {bucket: number, count: number}[]) => {
         const r = d3.range(dim.bins + 1).map(() => 0);
         results.forEach((d) => {
           r[+d.bucket] = +d.count;
@@ -90,7 +90,7 @@ class Postgres implements Backend {
         });
         return r;
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         console.log(err);
         return d3.range(dim.bins + 1).map(() => 0);
 

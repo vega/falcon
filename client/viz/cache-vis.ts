@@ -9,7 +9,7 @@ class CacheView {
   public contentWidth: number;
   public contentHeight: number;
 
-  constructor(private dimensions: Dimension[], options: { width: number, height: number }) {
+  constructor(dimensions: Dimension[], options: { width: number, height: number }) {
     const {
       width,
       height

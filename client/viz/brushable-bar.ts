@@ -75,7 +75,7 @@ class BrushableBar {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[], rangeError: number) {
-    const $bars = this.$content.selectAll('.bar').data(data, d => d);
+    const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
 
     const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
     this.y.domain([0, maxValue]);
@@ -89,14 +89,14 @@ class BrushableBar {
       .attr('y', this.y(0))
       .attr('height', 0)
     .merge($bars)
-      .attr('x', (d, i: number) => {
+      .attr('x', (_, i: number) => {
         const { range, bins } = this.dimension;
         return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
       })
-      .attr('y', (d, i: number) => {
+      .attr('y', (d) => {
         return this.y(d);
       })
-      .attr('width', (d, i: number) => {
+      .attr('width', () => {
         const { range, bins } = this.dimension;
         return this.x(range[0] + (range[1] - range[0]) / bins) - 2 * binPadding;
       })

@@ -8,7 +8,9 @@
       "node"
     ],
     "noImplicitAny": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false
   },
   "include": [
     "server/**/*.ts",

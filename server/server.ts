@@ -15,7 +15,7 @@ const app = express();
 app.use(express.static(__dirname + '/../public'));
 
 wss.on('connection', (ws) => {
-  const send = (obj) => {
+  const send = (obj: Object) => {
     const msg = config.optimizations.compression ? pako.deflate(JSON.stringify(obj), { to: 'string'}) : JSON.stringify(obj);
     ws.send(msg, (err) => {
       if (err) {

@@ -23,7 +23,7 @@ connection.onOpen(() => {
   let lastX: number = 0;
   let lastVelocityTime: number = 0;
 
-  const calculateVelocity = (xPixels) => {
+  const calculateVelocity = (xPixels: number) => {
       const t = Date.now();
       const v = (xPixels - lastX) / (t - lastVelocityTime);
       lastVelocityTime = t;

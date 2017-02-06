@@ -93,14 +93,13 @@ class Session {
         .then(this.handleQuery(ad, dimension, index1));
     });
 
-    const staticDimensions = this.getStaticDimensions();
     const indexLength = this.scales[ad.name].domain()[1];
 
     // Subdivide the range so we get an optimal distribution
     // of preloaded values
     const subdivisionLevels = 8;
-    let subdividedValues = [];
-    let subdividedIndices = [];
+    let subdividedValues: {index: number, value: number}[] = [];
+    let subdividedIndices: number[] = [];
     for (var i = 1; i < subdivisionLevels; i++) {
       for (var j = 1; j < Math.pow(2, i); j++) {
         const index = Math.round(j * indexLength / Math.pow(2, i));
@@ -134,7 +133,6 @@ class Session {
   public preload(dimension: string, value: number | number[], velocity: number) {
 
     this.setActiveDimension(dimension);
-    const staticDimensions = this.getStaticDimensions();
     const ad = this.getActiveDimension();
     const indexLength = this.scales[ad.name].domain()[1];
 
@@ -162,12 +160,12 @@ class Session {
           return {
             index: index,
             value: indexLength * indexLength
-          }
+          };
         } else {
           return {
             index: indexLength - index - 1,
             value: indexLength * indexLength
-          }
+          };
         }
       })),
       comparator: (a: QueueElement, b: QueueElement) => {

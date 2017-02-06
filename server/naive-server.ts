@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { initBackend, Predicate } from './backend';
+import { initBackend } from './backend';
 
 import * as express from 'express';
 import * as config from '../config';
@@ -57,7 +57,7 @@ app.get('/loadRange', (req, res) => {
         name: dim,
         lower: +range[0],
         upper: +range[1]
-      }
+      };
     }).concat([{
       name: dimension.name,
       lower: +originalRanges[dimension.name][0],

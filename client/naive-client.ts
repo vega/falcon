@@ -7,13 +7,14 @@ const dimensions = config.dimensions;
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
-const serialize = (obj) => {
+const serialize = (obj: Object) => {
   var str = [];
-  for(var p in obj)
+  for(var p in obj) {
     if (obj.hasOwnProperty(p)) {
-      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+      str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
     }
-  return str.join("&");
+  }
+  return str.join('&');
 };
 
 let currentRequest = null;
@@ -42,8 +43,8 @@ const handleBrushEnd = (dimension: Dimension) => {
         }
 
         const response = JSON.parse(d.response);
-        Object.keys(response).forEach((dimension) => {
-          vizs[dimension].update(response[dimension], 0);
+        Object.keys(response).forEach((dim) => {
+          vizs[dim].update(response[dim], 0);
         });
       });
   };
