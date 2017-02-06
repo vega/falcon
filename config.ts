@@ -28,6 +28,17 @@ export const dimensions: Dimension[] = [{
   bins: 25
 }];
 
+/**
+ * Dimensions indexed for easier access.
+ */
+export const dimensionIndex: {[dimension: string]: Dimension} = (() => {
+  let idx = {};
+  dimensions.forEach(d => {
+    idx[d.name] = d;
+  });
+  return idx;
+})();
+
 export const optimizations = {
   /**
    * Naive Baseline. Enable this to remove all

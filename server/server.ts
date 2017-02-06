@@ -26,12 +26,12 @@ wss.on('connection', (ws) => {
 
   const session = new Session(backend, config.dimensions);
 
-  session.onQuery((activeDimension, dimension, results, index) => {
+  session.onQuery((activeDimension, index, brushes, results) => {
     send({
       activeDimension: activeDimension,
-      dimension: dimension,
-      data: results,
-      index: index
+      index: index,
+      brushes: brushes,
+      data: results
     });
   });
 
@@ -43,17 +43,15 @@ wss.on('connection', (ws) => {
     const request: Request = JSON.parse(message);
     switch (request.type) {
       case 'init':
-        session.init(request.resolutions);
+        session.init();
         break;
       case 'load':
-        session.load(request.dimension, request.value);
+        session.load(request);
         break;
       case 'preload':
-        session.preload(request.dimension, request.value, request.velocity);
+        session.preload(request);
         break;
-      case 'setRange':
-        session.setRange(request.dimension, request.range);
-        break;    }
+      }
   });
 });
 
