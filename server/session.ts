@@ -1,5 +1,4 @@
 import * as PriorityQueue from 'js-priority-queue';
-import * as utils from '../utils';
 
 import * as config from '../config';
 
@@ -8,7 +7,7 @@ interface QueueElement {
   value: number;
 };
 
-declare type Callback = (dimension: string, value: number, brushes: Brushes, results: ResultData) => void;
+declare type Callback = (request: Init | Preload | Load, results: ResultData) => void;
 
 // This is responsible for keeping the priority queue,
 // rate limiting requests, and watching the cache.
@@ -20,41 +19,7 @@ class Session {
   private hasUserInteracted: boolean = false;
   private _onQuery: Callback;
 
-  constructor(public backend: Backend, public dimensions: Dimension[]) {
-  }
-
-  private getQueryConfiguration(activeDimension: string, value: number, dimensions: DimensionRanges, brushes: Brushes): QueryConfig {
-    const conf: QueryConfig = {};
-
-    // upper limit for active dimension
-    conf[activeDimension] = {
-      query: false,
-      upper: value
-    };
-
-    // dimensions we are going to query
-    utils.objectMap(dimensions, (range: Interval, k) => {
-      conf[k] = {
-        query: true,
-        bins: config.dimensionIndex[k].bins,
-        range: range
-      };
-    });
-
-    // all other dimensions for which we may only need the range
-    config.dimensions.filter(dim => dim.name !== activeDimension && !(dim.name in conf)).forEach(dim => {
-      let pred: BrushRange = {
-        query: false,
-      };
-      const range = brushes[dim.name];
-      if (range) {
-        pred.lower = range[0];
-        pred.upper = range[0];
-      }
-      conf[dim.name] = pred;
-    });
-
-    return conf;
+  constructor(public backend: Backend, public dimensions: View[]) {
   }
 
   // Return the initial queries back to the client
@@ -77,11 +42,15 @@ class Session {
 
   // Load a particular value immediately.
   public load(request: Load) {
-    const predicates = this.getQueryConfiguration(request.activeDimension, request.index, request.dimensions, request.brushes);
+    const queryConfig: QueryConfig = {
+      activeView: request.activeView,
+      index: request.index,
+      views: request.views
+    };
 
     this.backend
-      .query(predicates)
-      .then(this.handleQuery(request.activeDimension, request.index, request.brushes))
+      .query(queryConfig)
+      .then(this.handleQuery(request))
       .catch(console.error);
 
     this.hasUserInteracted = true;
@@ -91,7 +60,7 @@ class Session {
     // TODO
   }
 
-  private handleQuery(activeDimension: string, value: number, brushes: Brushes) {
+  private handleQuery(request: Load | Preload) {
     return (results: ResultData) => {
       if (this.closed) {
         return;
@@ -103,7 +72,7 @@ class Session {
       }
 
       if (this._onQuery) {
-        this._onQuery(activeDimension, value, brushes, results);
+        this._onQuery(request, results);
       }
     };
   }

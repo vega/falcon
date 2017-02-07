@@ -24,15 +24,13 @@ wss.on('connection', (ws) => {
     });
   };
 
-  const session = new Session(backend, config.dimensions);
+  const session = new Session(backend, config.views);
 
-  session.onQuery((activeDimension, index, brushes, results) => {
+  session.onQuery((request, results) => {
     send({
-      activeDimension: activeDimension,
-      index: index,
-      brushes: brushes,
+      request,
       data: results
-    });
+    } as Result);
   });
 
 

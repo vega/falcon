@@ -1,3 +1,3 @@
-export function objectMap<T, U>(o: Object, f: (value: U, key: string) => T) {
-  return Object.keys(o).map(k => f(o[k], k));
+export function isPoint2D(point: Point): point is Point2D {
+  return typeof point !== 'number';
 }
