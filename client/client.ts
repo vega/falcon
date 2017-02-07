@@ -18,7 +18,7 @@ const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
 
-  let lastExtent: Range = null;
+  let lastExtent: Interval<number> = null;
   let loadedStartValue: number = null;
   let lastX: number = 0;
   let lastVelocityTime: number = 0;
@@ -82,7 +82,7 @@ connection.onOpen(() => {
     return () => {
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
-      const s = d3.event.selection || viz.x.range();
+      const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       console.log(xPixels, calculateVelocity(xPixels));
       if (extent[0] === lastExtent[0]) {
@@ -144,7 +144,7 @@ connection.onOpen(() => {
   });
 
   // Initialize with resolutions
-  let sizes = {};
+  let sizes: Sizes = {};
   views.forEach((view) => {
     sizes[view.name] = vizs[view.name].contentWidth;
   });

@@ -12,7 +12,7 @@ class Postgres implements Backend {
     this.db = pgp({})(connection);
   }
 
-  private where(_var: (value: number) => void, name, lower, upper) {
+  private where(_var: (value: number) => void, name: string, lower: number, upper: number) {
     if (lower !== undefined && upper !== undefined) {
       return `$${_var(lower)} < "${name}" and "${name}" < $${_var(upper)}`;
     } else if (lower !== undefined) {
@@ -24,7 +24,7 @@ class Postgres implements Backend {
   }
 
   private buildQuery(view: ViewQuery, queryConfig: QueryConfig) {
-        let wherePredicate = [];
+    let wherePredicate: string[] = [];
     let values: number[] = [];
 
     let binning = '';
@@ -36,7 +36,7 @@ class Postgres implements Backend {
       return values.length;
     };
 
-    const _where = (name, lower, upper) => {
+    const _where = (name: string, lower: number, upper: number) => {
       const w = this.where(_var, name, lower, upper);
       if (w) {
         wherePredicate.push(w);
@@ -75,13 +75,14 @@ class Postgres implements Backend {
       }
 
       if (vq.name === queryConfig.activeView) {
-        if (utils.isPoint2D(queryConfig.index)) {
+        const idx = queryConfig.index;
+        if (utils.isPoint2D(idx)) {
           const v = viewIndex[queryConfig.activeView] as View2D;
-          _where(v.dimensions[0], undefined, queryConfig.index[0]);
-          _where(v.dimensions[1], undefined, queryConfig.index[1]);
+          _where(v.dimensions[0], undefined, idx[0]);
+          _where(v.dimensions[1], undefined, idx[1]);
         } else {
           const v = viewIndex[queryConfig.activeView] as View1D;
-          _where(v.dimension, undefined, queryConfig.index);
+          _where(v.dimension, undefined, idx);
         }
       }
 
@@ -112,10 +113,10 @@ class Postgres implements Backend {
     const query = this.buildQuery(view, queryConfig);
 
     if (config.optimizations.preparedStatements) {
-      const hashCode = function(s) {
+      const hashCode = function(s: string) {
         return s.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a;},0);
       };
-      query.name = hashCode(query.text);
+      query.name = '' + hashCode(query.text);
     }
 
     return this.db

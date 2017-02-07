@@ -91,14 +91,14 @@ class BrushableBar {
     .merge($bars)
       .attr('x', (_, i: number) => {
         const { range, bins } = this.view;
-        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins[0]);
+        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
       })
       .attr('y', (d) => {
         return this.y(d);
       })
       .attr('width', () => {
         const { range, bins } = this.view;
-        return this.x(range[0] + (range[1] - range[0]) / bins[0]) - 2 * binPadding;
+        return this.x(range[0] + (range[1] - range[0]) / bins) - 2 * binPadding;
       })
       .attr('height', (d) => {
         return this.y(0) - this.y(d);

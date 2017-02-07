@@ -7,7 +7,7 @@ const views = config.views;
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
-const serialize = (obj: Object) => {
+const serialize = (obj: {[key: string]: string}) => {
   var str = [];
   for(var p in obj) {
     if (obj.hasOwnProperty(p)) {
@@ -17,7 +17,7 @@ const serialize = (obj: Object) => {
   return str.join('&');
 };
 
-let currentRequest = null;
+let currentRequest: d3.Request = null;
 const handleBrushEnd = (dimension: View) => {
   return () => {
     if (currentRequest) {
@@ -35,7 +35,7 @@ const handleBrushEnd = (dimension: View) => {
     };
 
     currentRequest = d3.request('/loadRange?' + serialize(params))
-      .get((err, d) => {
+      .get((err: Error, d: any) => {
         // Set the data for each of the charts
         if (err) {
           console.error(err);
@@ -58,14 +58,14 @@ views.forEach(view => {
 });
 
 // Initialize with resolutions
-let initParams = {};
+let initParams: any = {};
 views.forEach(v => {
   initParams[v.name] = vizs[v.name].contentWidth;
 });
 
 // Send HTTP request with init parameters
 d3.request('/init?' + serialize(initParams))
-  .get((err, d) => {
+  .get((err: Error, d: any) => {
     // Set the initial data for each of the charts
     if (err) {
       console.error(err);

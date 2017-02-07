@@ -44,8 +44,8 @@ export const views: View[] = [{
 /**
  * Dimensions indexed for easier access.
  */
-export const viewIndex: {[dimension: string]: View} = (() => {
-  let idx = {};
+export const viewIndex = (() => {
+  let idx: {[dimension: string]: View} = {};
   views.forEach(d => {
     idx[d.name] = d;
   });
@@ -84,7 +84,7 @@ export const optimizations = {
    * Preload resolution - when preloading, how much space
    * do we want to provide between cachepoints by default?
    */
-  preloadResolution: resolution => resolution / 200
+  preloadResolution: (resolution: number) => resolution / 200
 };
 
 export const debugging = {

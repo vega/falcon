@@ -38,7 +38,7 @@ app.get('/init', (req, res) => {
   });
 
   backend.query({ views: viewQueries })
-    .then((result) => {
+    .then((result: ResultData) => {
       res.json(result);
     })
     .catch(console.error);
@@ -81,7 +81,7 @@ app.get('/loadRange', (req, res) => {
   });
 
   backend.query({ views: viewQueries })
-    .then((result) => {
+    .then((result: ResultData) => {
       res.json(result);
     })
     .catch(console.error);
