@@ -7,7 +7,7 @@ import * as d3 from 'd3';
 import * as config from '../config';
 
 const vizs: {[dimension: string]: BrushableBar} = {};
-let cacheVis: CacheVis = null;
+let cacheVis: CacheVis | null = null;
 
 const views = config.views as View1D[];
 
@@ -18,8 +18,8 @@ const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
 
-  let lastExtent: Interval<number> = null;
-  let loadedStartValue: number = null;
+  let lastExtent: Interval<number | null> = [null, null];
+  let loadedStartValue: number | null = null;
   let lastX: number = 0;
   let lastVelocityTime: number = 0;
 
@@ -46,7 +46,7 @@ connection.onOpen(() => {
 
       const x = viz.x.invert(xPixels);
       console.log(x);
-      api.preload(null);
+      api.preload({} as Preload);
     };
   };
 
@@ -55,7 +55,7 @@ connection.onOpen(() => {
    */
   const preloadBrushSelection = (dimension: View) => {
     return () => {
-      api.preload(null);
+      api.preload({} as Preload);
     };
   };
 
@@ -74,7 +74,7 @@ connection.onOpen(() => {
 
       loadedStartValue = extent[0];
 
-      api.load(null);
+      api.load({} as Load);
     };
   };
 

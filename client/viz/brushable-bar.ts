@@ -77,7 +77,8 @@ class BrushableBar {
   public update(data: number[], rangeError: number) {
     const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
 
-    const maxValue: number = d3.max([d3.max(data), this.y.domain()[1]]) || 0;
+    const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];
+    const maxValue: number = d3.max(arr) || 0;
     this.y.domain([0, maxValue]);
     this.$group.select('.axis--y').call(this.yAxis);
 

@@ -12,7 +12,7 @@ class Postgres implements Backend {
     this.db = pgp({})(connection);
   }
 
-  private where(_var: (value: number) => void, name: string, lower: number, upper: number) {
+  private where(_var: (value: number) => void, name: string, lower?: number, upper?: number) {
     if (lower !== undefined && upper !== undefined) {
       return `$${_var(lower)} < "${name}" and "${name}" < $${_var(upper)}`;
     } else if (lower !== undefined) {
@@ -36,7 +36,7 @@ class Postgres implements Backend {
       return values.length;
     };
 
-    const _where = (name: string, lower: number, upper: number) => {
+    const _where = (name: string, lower?: number, upper?: number) => {
       const w = this.where(_var, name, lower, upper);
       if (w) {
         wherePredicate.push(w);
@@ -74,7 +74,7 @@ class Postgres implements Backend {
         return;
       }
 
-      if (vq.name === queryConfig.activeView) {
+      if (vq.name === queryConfig.activeView && queryConfig.index !== undefined) {
         const idx = queryConfig.index;
         if (utils.isPoint2D(idx)) {
           const v = viewIndex[queryConfig.activeView] as View2D;
@@ -119,28 +119,38 @@ class Postgres implements Backend {
       query.name = '' + hashCode(query.text);
     }
 
+    const callback = (results: any[]) => {
+      if (view.type === '1D') {
+        const res = results as {bucket: string, count: string}[];
+        const r = d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+        res.forEach((d) => {
+          r[+d.bucket] = +d.count;
+        });
+        return r;
+      } else {
+        const res = results as {bucket1: string, bucket2: string, count: string}[];
+        const v = config.viewIndex[view.name] as View2D;
+        const r = d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+        res.forEach((d) => {
+          r[+d.bucket1][+d.bucket2] = +d.count;
+        });
+        return r;
+      }
+    };
+
     return this.db
       .many(query)
-      .then((results: any[]) => {
-        if (view.type === '1D') {
-          const r = d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
-          results.forEach((d) => {
-            r[+d.bucket] = +d.count;
-          });
-          return r;
-        } else {
-          const v = config.viewIndex[view.name] as View2D;
-          const r = d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
-          results.forEach((d) => {
-            r[+d.bucket1][+d.bucket2] = +d.count;
-          });
-          return r;
-        }
-      })
+      .then(callback)
       .catch((err: Error) => {
         console.warn(err);
-        // return d3.range(dimension.bins + 1).map(() => 0);
-        return null;
+
+        // return 0s
+        if (view.type === '1D') {
+          return d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+        } else {
+          const v = config.viewIndex[view.name] as View2D;
+          return d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+        }
       });
   }
 

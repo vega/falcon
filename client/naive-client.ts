@@ -17,7 +17,7 @@ const serialize = (obj: {[key: string]: string}) => {
   return str.join('&');
 };
 
-let currentRequest: d3.Request = null;
+let currentRequest: d3.Request | null = null;
 const handleBrushEnd = (dimension: View) => {
   return () => {
     if (currentRequest) {
