@@ -9,7 +9,8 @@
     "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js -d -v",
     "build": "browserify client/index.ts -p [ tsify ] -o public/bundle.js -d",
     "test": "mocha --compilers ts:ts-node/register",
-    "lint": "tslint --project ."
+    "lint": "tslint --project .",
+    "lint-fix": "tslint --project . --fix"
   },
   "repository": {
     "type": "git",

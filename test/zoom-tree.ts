@@ -30,7 +30,7 @@ describe('ZoomTree', function() {
         indices: [40],
         brushes: {}
       }, [10, 10, 10, 10, 10, 10]);
-    });  
+    });
 
     it('Should retrieve data where exact data is available', function() {
       const data = tree.get({
@@ -41,7 +41,7 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.eql([10, 9, 8, 7, 6, 5]);
-    });  
+    });
 
     it('Should retrieve data where only inexact data is available', function() {
       const data = tree.get({
@@ -52,7 +52,7 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.eql([10, 9, 8, 7, 6, 5]);
-    });  
+    });
 
     it('Should return null if there is nothing available for these brushes', function() {
       const data = tree.get({
@@ -63,9 +63,9 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.be(null);
-    });  
+    });
 
-  })
+  });
 
   describe('Simple 2 Dimensions test, resolution 0.', function() {
     let tree;
@@ -102,7 +102,7 @@ describe('ZoomTree', function() {
         indices: [40, 40],
         brushes: {}
       }, [[3, 4, 5, 6, 7, 8]]);
-    });  
+    });
 
     it('Should retrieve data where exact data is available', function() {
       const data = tree.get({
@@ -113,7 +113,7 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
-    });  
+    });
 
     it('Should retrieve data where only inexact data is available', function() {
       const data = tree.get({
@@ -124,7 +124,7 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
-    });  
+    });
 
     it('Should return null if there is nothing available for these brushes', function() {
       const data = tree.get({
@@ -135,8 +135,8 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.be(null);
-    });  
-  })
+    });
+  });
 
   describe('Zoom tests', function() {
     let tree;
@@ -174,7 +174,7 @@ describe('ZoomTree', function() {
         indices: [40],
         brushes: {}
       }, [10, 10, 10, 10, 10, 10]);
-    });  
+    });
 
     it('Should retrieve data at the proper range and resolution', function() {
       let data = tree.get({
@@ -194,7 +194,7 @@ describe('ZoomTree', function() {
       }, []);
 
       expect(data).to.eql([10, 10, 10, 10, 10, 10]);
-    });  
-  })
+    });
+  });
 
 });
