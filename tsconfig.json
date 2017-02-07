@@ -8,10 +8,10 @@
       "node"
     ],
     "inlineSourceMap": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
     "noUnusedLocals": true,
     "noUnusedParameters": false
   },

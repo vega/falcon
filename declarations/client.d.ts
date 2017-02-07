@@ -7,11 +7,11 @@ interface CacheIndexQuery {
    * multiple data chunks the cache will automatically combine 
    * the data
    */
-  ranges: [Interval] | [Interval, Interval],
+  ranges: [Interval<number>] | [Interval<number>, Interval<number>],
   /** The indices of the active dimension */
   indices: [number] | [number, number],
   /** The brushes set on inactive dimensions */
-  brushes: {[dimension: string]: Interval}
+  brushes: {[dimension: string]: Interval<number>}
 }
 
 
@@ -22,10 +22,10 @@ interface CacheRangeQuery {
    * multiple data chunks the cache will automatically combine 
    * the data
    */
-  ranges: [Interval] | [Interval, Interval],
+  ranges: [Interval<number>] | [Interval<number>, Interval<number>],
   /** The indices of the current range for the active dimension */
-  activeRangeIndices: [Interval] | [Interval, Interval],
+  activeRangeIndices: [Interval<number>] | [Interval<number>, Interval<number>],
   /** The brushes set on inactive dimensions */
-  brushes: {[dimension: string]: Interval}
+  brushes: {[dimension: string]: Interval<number>}
 }
 

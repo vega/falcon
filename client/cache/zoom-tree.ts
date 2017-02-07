@@ -78,7 +78,7 @@ class TreeNode {
     index.searchTree.insert(formattedPoint);
   }
 
-  public get(query: TreeNodeQuery): number[] | number[][] {
+  public get(query: TreeNodeQuery): number[] | number[][] | null {
     const index = this.getIndex(query);
 
     if (!index.searchTree) {
@@ -116,7 +116,7 @@ class ZoomTree {
 
   private root: TreeNode;
 
-  constructor(public numDimensions: number, public indexLength: [number] | [number, number], public ranges: [Interval] | [Interval, Interval], private inactiveDimensions: string[]) {
+  constructor(public numDimensions: number, public indexLength: [number] | [number, number], public ranges: [Interval<number>] | [Interval<number>, Interval<number>], private inactiveDimensions: string[]) {
     this.root = new TreeNode(this.numDimensions, this.indexLength, this.inactiveDimensions);
   }
 

@@ -1,7 +1,6 @@
 declare var describe: any;
 declare var it: any;
 declare var before: any;
-// declare var after: any;
 
 import * as expect from 'expect.js';
 import { ZoomTree } from '../client/cache/zoom-tree';
@@ -9,7 +8,7 @@ import { ZoomTree } from '../client/cache/zoom-tree';
 describe('ZoomTree', function() {
 
   describe('Simple 1-D tests with resolution 0', function() {
-    let tree;
+    let tree: ZoomTree;
 
     before(function() {
       // runs before all tests in this block
@@ -38,7 +37,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([10, 9, 8, 7, 6, 5]);
     });
@@ -49,7 +48,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 100]],
         activeRangeIndices: [[18, 37]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([10, 9, 8, 7, 6, 5]);
     });
@@ -60,7 +59,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: { dimA: [20, 30] }
-      }, []);
+      });
 
       expect(data).to.be(null);
     });
@@ -68,7 +67,7 @@ describe('ZoomTree', function() {
   });
 
   describe('Simple 2 Dimensions test, resolution 0.', function() {
-    let tree;
+    let tree: ZoomTree;
 
     before(function() {
       tree = new ZoomTree(2, [100, 100], [[0, 100], [0, 100]], ['dimA']);
@@ -110,7 +109,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[20, 40], [20, 40]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
     });
@@ -121,7 +120,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[18, 38], [22, 42]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
     });
@@ -132,14 +131,14 @@ describe('ZoomTree', function() {
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[18, 38], [22, 42]],
         brushes: { dimA: [20, 30] }
-      }, []);
+      });
 
       expect(data).to.be(null);
     });
   });
 
   describe('Zoom tests', function() {
-    let tree;
+    let tree: ZoomTree;
 
     before(function() {
       // runs before all tests in this block
@@ -182,7 +181,7 @@ describe('ZoomTree', function() {
         ranges: [[0, 50]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([-1, 0, 1, 2, 3, 4]);
 
@@ -191,7 +190,7 @@ describe('ZoomTree', function() {
         ranges: [[50, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
-      }, []);
+      });
 
       expect(data).to.eql([10, 10, 10, 10, 10, 10]);
     });
