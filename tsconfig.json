@@ -16,6 +16,7 @@
   "include": [
     "server/**/*.ts",
     "client/**/*.ts",
+    "test/**/*.ts",
     "declarations/**.d.ts"
   ],
   "exclude": [
