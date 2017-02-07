@@ -13,12 +13,11 @@ ws.onmessage = (event) => {
     if(callbacks.result) {
       callbacks.result(result);
     }
-  })
-
+  });
 };
 
 const connection = {
-  onOpen: (callback) => {
+  onOpen: (callback: any) => {
     ws.onopen = callback;
   },
 
@@ -26,7 +25,7 @@ const connection = {
     ws.send(JSON.stringify(message));
   },
 
-  onResult: (callback) => {
+  onResult: (callback: any) => {
     callbacks['result'] = callback;
   }
 };

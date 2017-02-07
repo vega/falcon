@@ -3,11 +3,11 @@ import * as d3 from 'd3';
 import * as config from '../config';
 
 const vizs: {[dimension: string]: BrushableBar} = {};
-const dimensions = config.dimensions;
+const views = config.views;
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
-const serialize = (obj: Object) => {
+const serialize = (obj: {[key: string]: string}) => {
   var str = [];
   for(var p in obj) {
     if (obj.hasOwnProperty(p)) {
@@ -17,8 +17,8 @@ const serialize = (obj: Object) => {
   return str.join('&');
 };
 
-let currentRequest = null;
-const handleBrushEnd = (dimension: Dimension) => {
+let currentRequest: d3.Request | null = null;
+const handleBrushEnd = (dimension: View) => {
   return () => {
     if (currentRequest) {
       currentRequest.abort();
@@ -27,7 +27,7 @@ const handleBrushEnd = (dimension: Dimension) => {
     const s = d3.event.selection || viz.x.range();
     const extent = (s.map(viz.x.invert, viz.x));
 
-    // Send HTTP request with range parameter 
+    // Send HTTP request with range parameter
     const params = {
       dimension: dimension.name,
       lower: extent[0],
@@ -35,7 +35,7 @@ const handleBrushEnd = (dimension: Dimension) => {
     };
 
     currentRequest = d3.request('/loadRange?' + serialize(params))
-      .get((err, d) => {
+      .get((err: Error, d: any) => {
         // Set the data for each of the charts
         if (err) {
           console.error(err);
@@ -51,21 +51,21 @@ const handleBrushEnd = (dimension: Dimension) => {
 };
 
 // Initialize empty charts
-dimensions.forEach(dim => {
-  const chart = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT});
-  chart.onBrush('end', handleBrushEnd(dim));
-  vizs[dim.name] = chart;
+views.forEach(view => {
+  const chart = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT});
+  chart.onBrush('end', handleBrushEnd(view));
+  vizs[view.name] = chart;
 });
 
 // Initialize with resolutions
-let initParams = {};
-dimensions.forEach((d) => {
-  initParams[d.name] = vizs[d.name].contentWidth;
+let initParams: any = {};
+views.forEach(v => {
+  initParams[v.name] = vizs[v.name].contentWidth;
 });
 
-// Send HTTP request with init parameters 
+// Send HTTP request with init parameters
 d3.request('/init?' + serialize(initParams))
-  .get((err, d) => {
+  .get((err: Error, d: any) => {
     // Set the initial data for each of the charts
     if (err) {
       console.error(err);

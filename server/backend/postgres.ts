@@ -1,136 +1,177 @@
+import { viewIndex } from '../../config';
 import * as pgp from 'pg-promise';
 import * as d3 from 'd3';
 import * as utils from '../../utils';
 
 import * as config from '../../config';
 
-type Predicate = (BrushRange | QueryDimension) & {name: string};
-type QueryPredicate = QueryDimension & {name: string};
-
 class Postgres implements Backend {
-  private db: any;
+  private db: pgp.IDatabase<any>;
 
   constructor(connection: pgp.TConnectionOptions) {
     this.db = pgp({})(connection);
   }
 
-  private reducePredicates(accumulator: {currentPredicate: string, varCount: number}, predicate: Predicate, index: number) {
-    let { currentPredicate, varCount } = accumulator;
-    if (index !== 0) {
-      currentPredicate += ' and ';
-    }
-
-    const { lower, upper, name } = predicate;
+  private where(_var: (value: number) => void, name: string, lower?: number, upper?: number) {
     if (lower !== undefined && upper !== undefined) {
-      currentPredicate += `$${varCount++} < "${name}" and "${name}" < $${varCount++}`;
+      return `$${_var(lower)} < "${name}" and "${name}" < $${_var(upper)}`;
     } else if (lower !== undefined) {
-      currentPredicate += `$${varCount++} < "${name}"`;
+      return `$${_var(lower)} < "${name}"`;
     } else if (upper !== undefined) {
-      currentPredicate += `"${name}" < $${varCount++}`;
+      return `"${name}" < $${_var(upper)}`;
     }
-
-    return {
-      currentPredicate,
-      varCount
-    };
+    return undefined;
   }
 
-  private getPredicateVars(predicates: AbstractRange[]) {
-    const vars: number[] = [];
-    predicates.forEach((predicate) => {
-      const { lower, upper } = predicate;
-      if (lower !== undefined && upper !== undefined) {
-        vars.push(lower);
-        vars.push(upper);
-      } else if (lower !== undefined) {
-        vars.push(lower);
-      } else if (upper !== undefined) {
-        vars.push(upper);
+  private buildQuery(view: ViewQuery, queryConfig: QueryConfig) {
+    let wherePredicate: string[] = [];
+    let values: number[] = [];
+
+    let binning = '';
+    let group;
+
+    // creates a new variable and collects the values
+    function _var(value: number) {
+      values.push(value);
+      return values.length;
+    };
+
+    const _where = (name: string, lower?: number, upper?: number) => {
+      const w = this.where(_var, name, lower, upper);
+      if (w) {
+        wherePredicate.push(w);
+      }
+    };
+
+    if (view.type === '1D') {
+      const v = viewIndex[view.name] as View1D;
+      values = [
+        view.range[0],
+        view.range[1],
+        v.bins
+      ];
+      binning = `width_bucket("${v.dimension}", $1, $2, $3) as bucket`;
+      group = `bucket`;
+      _where(v.dimension, view.range[0], view.range[1]);
+    } else {
+      const v = viewIndex[view.name] as View2D;
+      values = [
+        view.ranges[0][0],
+        view.ranges[0][1],
+        v.bins[0],
+        view.ranges[0][0],
+        view.ranges[0][1],
+        v.bins[1]
+      ];
+      binning = `width_bucket("${v.dimensions[0]}", $1, $2, $3) as bucket1, width_bucket("${v.dimensions[1]}", $4, $5, $6) as bucket2`;
+      group = `bucket1, bucket2`;
+      _where(v.dimensions[0], view.ranges[0][0], view.ranges[0][1]);
+      _where(v.dimensions[1], view.ranges[1][0], view.ranges[1][1]);
+    }
+
+    queryConfig.views.forEach(vq => {
+      if (vq.name === view.name) {
+        return;
+      }
+
+      if (vq.name === queryConfig.activeView && queryConfig.index !== undefined) {
+        const idx = queryConfig.index;
+        if (utils.isPoint2D(idx)) {
+          const v = viewIndex[queryConfig.activeView] as View2D;
+          _where(v.dimensions[0], undefined, idx[0]);
+          _where(v.dimensions[1], undefined, idx[1]);
+        } else {
+          const v = viewIndex[queryConfig.activeView] as View1D;
+          _where(v.dimension, undefined, idx);
+        }
+      }
+
+      if (vq.type === '1D' && vq.brush) {
+        const v = viewIndex[vq.name] as View1D;
+        _where(v.dimension, vq.brush[0], vq.brush[1]);
+      } else if (vq.type === '2D' && vq.brushes) {
+        const v = viewIndex[vq.name] as View2D;
+        _where(v.dimensions[0], vq.brushes[0][0], vq.brushes[0][1]);
+        _where(v.dimensions[1], vq.brushes[1][0], vq.brushes[1][1]);
       }
     });
-    return vars;
-  }
-
-  private async queryOne(dimension: QueryPredicate, predicates: Predicate[]): Promise<ResultRow> {
-    const wherePredicate = predicates.reduce(this.reducePredicates, {currentPredicate: '', varCount: 4});
 
     const SQL_QUERY = `
-      SELECT width_bucket("${dimension.name}", $1, $2, $3) as bucket, count(*)
+      SELECT ${binning}, count(*)
       FROM ${config.database.table}
-      ${predicates.length > 0 ? `WHERE  ${wherePredicate.currentPredicate}` : ''}
-      GROUP BY bucket order by bucket asc;
+      ${wherePredicate.length > 0 ? `WHERE  ${wherePredicate.join(' and ')}` : ''}
+      GROUP BY ${group} ORDER BY ${group} asc;
     `;
 
-    let variables = [
-      dimension.range[0],
-      dimension.range[1],
-      dimension.bins
-    ];
-
-    variables = variables.concat(this.getPredicateVars(predicates));
-
-    const queryConfig: {text: string, values: number[], name?: string} = {
+    return {
       text: SQL_QUERY,
-      values: variables
-    };
+      values
+    } as {text: string, values: number[], name?: string};
+  }
+
+  private async queryOne(view: ViewQuery, queryConfig: QueryConfig): Promise<ResultRow> {
+    const query = this.buildQuery(view, queryConfig);
 
     if (config.optimizations.preparedStatements) {
-      const hashCode = function(s){
-        return s.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
-      }
-      queryConfig.name = hashCode(SQL_QUERY);
+      const hashCode = function(s: string) {
+        return s.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a;},0);
+      };
+      query.name = '' + hashCode(query.text);
     }
 
-    return this.db
-      .many(queryConfig)
-      .then((results: {bucket: number, count: number}[]) => {
-        const r = d3.range(dimension.bins + 1).map(() => 0);
-        results.forEach((d) => {
+    const callback = (results: any[]) => {
+      if (view.type === '1D') {
+        const res = results as {bucket: string, count: string}[];
+        const r = d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+        res.forEach((d) => {
           r[+d.bucket] = +d.count;
-          if (+d.bucket === 0) {
-            r[0] = 0;
-          }
         });
         return r;
-      })
+      } else {
+        const res = results as {bucket1: string, bucket2: string, count: string}[];
+        const v = config.viewIndex[view.name] as View2D;
+        const r = d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+        res.forEach((d) => {
+          r[+d.bucket1][+d.bucket2] = +d.count;
+        });
+        return r;
+      }
+    };
+
+    return this.db
+      .many(query)
+      .then(callback)
       .catch((err: Error) => {
         console.warn(err);
-        return d3.range(dimension.bins + 1).map(() => 0);
+
+        // return 0s
+        if (view.type === '1D') {
+          return d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+        } else {
+          const v = config.viewIndex[view.name] as View2D;
+          return d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+        }
       });
   }
 
   /**
    * Runs multiple async queries and returns a promise for all resutlts.
    */
-  public async query(dimensions: QueryConfig) {
-    const predicates: Predicate[] = utils.objectMap(dimensions, (d: BrushRange | QueryDimension, name) => {
-      return {
-        name,
-        ...d
-      }
-    });
-
-    // which dimensions do we want to query
-    const queryPredicates = predicates.filter(dim => dim.query) as QueryPredicate[];
-    const queue = queryPredicates.map(dim => this.queryOne(
-        dim,
-        // don't add predicate for the dimension we want the data for
-        // also filter all predicates that do nothing
-        predicates.filter(d => d.name !== dim.name && d.upper !== undefined)
+  public async query(queryConfig: QueryConfig): Promise<ResultData> {
+    const queue = queryConfig.views.filter(view => view.query).map(view => this.queryOne(
+        view,
+        queryConfig
       ));
 
     const pgResults = await Promise.all(queue);
 
     let results: ResultData = {};
-    queryPredicates.forEach((d, i) => {
+    queryConfig.views.forEach((d, i) => {
       results[d.name] = pgResults[i];
-    })
+    });
 
     return results;
   }
 }
 
-
 export default Postgres;
-
-

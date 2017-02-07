@@ -8,7 +8,8 @@
     "server-dbg": "ts-node debug ./server/index.ts",
     "watch": "watchify client/index.ts -p [ tsify ] -o public/bundle.js -d -v",
     "build": "browserify client/index.ts -p [ tsify ] -o public/bundle.js -d",
-    "test": "mocha --compilers ts:ts-node/register"
+    "test": "mocha --compilers ts:ts-node/register",
+    "lint": "tslint --project ."
   },
   "repository": {
     "type": "git",

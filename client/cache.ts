@@ -6,7 +6,7 @@ export abstract class Cache {
   /**
    * Get all the combined values for all dimensions.
    */
-  public getAllCombined(start: number, end: number): { dimension: string, data: number[], range: Interval }[] {
+  public getAllCombined(start: number, end: number): ({ dimension: string, data: number[], range: Interval<number> }| undefined)[] {
     return this.getDimensions().map(dimension => {
       const result = this.getCombined(start, end, dimension);
 
@@ -18,6 +18,8 @@ export abstract class Cache {
           range
         };
       }
+
+      return undefined;
     }).filter(d => d);
   }
 
@@ -29,7 +31,7 @@ export abstract class Cache {
   /**
    * Get the combined data from start to end. Also returns the range that we actually get (if snapped).
    */
-  public abstract getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval}
+  public abstract getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval<number>} | null
 
   public abstract getDebugData(): {dimension: string, caches: number[]}[]
 
@@ -69,7 +71,7 @@ export class SimpleCache extends Cache {
   /**
    * Retrieve value from the cache. Returns null if there was no hit.
    */
-  private get(index: number, dimension: string): number[] {
+  private get(index: number, dimension: string): number[] | null {
     const entry = this.cache[dimension];
     if (!entry) {
       return null;
@@ -77,7 +79,7 @@ export class SimpleCache extends Cache {
     return entry[index] || null;
   }
 
-  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
+  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval<number>} | null {
     const low = this.get(start, dimension);
     if (low) {
       const high = this.get(end, dimension);
@@ -131,7 +133,7 @@ export class SnappingCache extends Cache {
    *  - Use a smarter index, e.g. range tree
    *  - Since many requests are for items that exist in the cache, we should probably add another secondary index for exact lookups.
    */
-  private get(index: number, dimension: string): { index: number, data: number[] } {
+  private get(index: number, dimension: string): { index: number, data: number[] } | null {
     const data = this.cache[dimension];
     if (!data || data.length === 0) {
       return null;
@@ -158,7 +160,7 @@ export class SnappingCache extends Cache {
 
   }
 
-  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval} {
+  public getCombined(start: number, end: number, dimension: string): {data: number[], range: Interval<number>} | null {
     // Note: We should use the closest value that is not the other side of the brush.
     // However, in this code we only find the closest point and do not igore the other
     // side of the brush. It should be okay in most cses, though.
