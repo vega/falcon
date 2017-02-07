@@ -210,7 +210,7 @@ class ZoomTree {
       //        incomplete we will just return the
       //        closest data at the proper resolution
       //        and won't use the results from the
-      //        courser zoom levels.
+      //        coarser zoom levels.
       return newData;
     };
 
