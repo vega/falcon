@@ -2,8 +2,8 @@ import BrushableBar from './viz/brushable-bar';
 import * as d3 from 'd3';
 import * as config from '../config';
 
-const vizs: {[dimension: string]: BrushableBar} = {};
-const views = config.views;
+const vizs: {[view: string]: BrushableBar} = {};
+const views = config.views.filter(v => v.type === '1D');
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
@@ -18,18 +18,18 @@ const serialize = (obj: {[key: string]: string}) => {
 };
 
 let currentRequest: d3.Request | null = null;
-const handleBrushEnd = (dimension: View) => {
+const handleBrushEnd = (view: View) => {
   return () => {
     if (currentRequest) {
       currentRequest.abort();
     }
-    const viz = vizs[dimension.name];
+    const viz = vizs[view.name];
     const s = d3.event.selection || viz.x.range();
     const extent = (s.map(viz.x.invert, viz.x));
 
     // Send HTTP request with range parameter
     const params = {
-      dimension: dimension.name,
+      view: view.name,
       lower: extent[0],
       upper: extent[1]
     };
@@ -43,8 +43,8 @@ const handleBrushEnd = (dimension: View) => {
         }
 
         const response = JSON.parse(d.response);
-        Object.keys(response).forEach((dim) => {
-          vizs[dim].update(response[dim], 0);
+        Object.keys(response).filter(v => v in vizs).forEach(v => {
+          vizs[v].update(response[v], 0);
         });
       });
   };
@@ -73,7 +73,7 @@ d3.request('/init?' + serialize(initParams))
     }
 
     const response = JSON.parse(d.response);
-    Object.keys(response).forEach((dimension) => {
-      vizs[dimension].update(response[dimension], 0);
+    Object.keys(response).filter(v => v in vizs).forEach((view) => {
+      vizs[view].update(response[view], 0);
     });
   });
