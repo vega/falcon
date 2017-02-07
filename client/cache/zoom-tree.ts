@@ -6,8 +6,8 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
-const distanceGenerator = (n) => {
-  return (a, b) => {
+const distanceGenerator = (n: number) => {
+  return (a: number[], b: number[]) => {
     let d = 0;
     for (let i = 0; i < n; i++) {
       d += Math.pow(a[i] - b[i], 2);
@@ -70,7 +70,7 @@ class TreeNode {
     }
 
     // Insert the value into the KD-tree
-    const formattedPoint = {};
+    const formattedPoint: {[key: string]: number} = {};
     query.indices.forEach((d, i) => {
       formattedPoint[i] = d;
     });
@@ -85,7 +85,7 @@ class TreeNode {
       return null;
     }
 
-    const formattedPoint = {};
+    const formattedPoint: {[key: string]: number} = {};
     query.indices.forEach((d, i) => {
       formattedPoint[i] = d;
     });
@@ -205,7 +205,7 @@ class ZoomTree {
     const bins = lowerBins;
     let data = [];
 
-    const mergeData = (currentData, newData) => {
+    const mergeData = (currentData: any, newData: any) => {
       // TODO - Fill this in. With this functionality
       //        incomplete we will just return the
       //        closest data at the proper resolution

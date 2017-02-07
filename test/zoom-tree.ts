@@ -1,8 +1,5 @@
-declare var describe: any;
-declare var it: any;
-declare var before: any;
-
-import * as expect from 'expect.js';
+import {} from 'mocha';
+const expect = require('expect.js');
 import { ZoomTree } from '../client/cache/zoom-tree';
 
 describe('ZoomTree', function() {

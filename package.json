@@ -24,8 +24,10 @@
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
     "@types/d3": "^4.4.1",
+    "@types/expect.js": "^0.3.29",
     "@types/express": "^4.0.35",
     "@types/js-priority-queue": "0.0.5",
+    "@types/mocha": "^2.2.39",
     "@types/node-uuid": "0.0.28",
     "@types/pako": "^0.2.31",
     "@types/ws": "0.0.38",
