@@ -20,7 +20,7 @@ class TreeNode {
   public children: TreeNode[];
   private rangeIndex: any;
 
-  constructor(private numDimensions: number, private indexLength: [number] | [number, number], private inactiveDimensions: string[]) {
+  constructor(private numDimensions: 1 | 2, private indexLength: [number] | [number, number], private inactiveDimensions: string[]) {
     const childrenLength: number = Math.pow(2, numDimensions);
     this.children = Array(childrenLength);
     this.rangeIndex = {};
@@ -116,7 +116,7 @@ class ZoomTree {
 
   private root: TreeNode;
 
-  constructor(public numDimensions: number, public indexLength: [number] | [number, number], public ranges: [Interval<number>] | [Interval<number>, Interval<number>], private inactiveDimensions: string[]) {
+  constructor(public numDimensions: 1 | 2, public indexLength: [number] | [number, number], public ranges: [Interval<number>] | [Interval<number>, Interval<number>], private inactiveDimensions: string[]) {
     this.root = new TreeNode(this.numDimensions, this.indexLength, this.inactiveDimensions);
   }
 
@@ -172,7 +172,6 @@ class ZoomTree {
           }
           bins[0] = bins[0] - offset;
         }
-
       } else {
         throw new Error('Not implimented for more than 2 dimensions.');
       }
