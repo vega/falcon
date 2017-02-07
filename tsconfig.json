@@ -10,6 +10,8 @@
     "inlineSourceMap": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false
   },

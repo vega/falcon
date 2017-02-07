@@ -11,29 +11,42 @@ export const database = {
   }
 };
 
-export const dimensions: Dimension[] = [{
+export const views: View[] = [{
+  type: '1D',
   name: 'ARR_DELAY',
   title: 'Arrival Delay',
+  dimension: 'ARR_DELAY',
   range: [-10, 100],
   bins: 25
 }, {
+  type: '1D',
   name: 'DISTANCE',
   title: 'Distance',
+  dimension: 'DISTANCE',
   range: [50, 2000],
   bins: 25
 }, {
+  type: '1D',
   name: 'DEP_DELAY',
   title: 'Departure Delay',
+  dimension: 'DEP_DELAY',
   range: [-10, 100],
   bins: 25
+}, {
+  type: '2D',
+  name: 'DEP_DELAY_ARR_DELAY',
+  title: 'Delay Matrix',
+  dimensions: ['DEP_DELAY', 'ARR_DELAY'],
+  ranges: [[-10, 100], [-10, 100]],
+  bins: [25, 25]
 }];
 
 /**
  * Dimensions indexed for easier access.
  */
-export const dimensionIndex: {[dimension: string]: Dimension} = (() => {
+export const viewIndex: {[dimension: string]: View} = (() => {
   let idx = {};
-  dimensions.forEach(d => {
+  views.forEach(d => {
     idx[d.name] = d;
   });
   return idx;
@@ -46,7 +59,7 @@ export const optimizations = {
    * If you turn this on, all the other optimization
    * flags are ignored.
    */
-  naiveBaseline: false,
+  naiveBaseline: true,
   /**
    * Start preloading when the page is first loaded.
    */

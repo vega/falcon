@@ -9,9 +9,9 @@ import * as config from '../config';
 const vizs: {[dimension: string]: BrushableBar} = {};
 let cacheVis: CacheVis = null;
 
-const dimensions = config.dimensions;
+const views = config.views as View1D[];
 
-const api = new API(dimensions, connection);
+const api = new API(views, connection);
 
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
@@ -34,9 +34,9 @@ connection.onOpen(() => {
   let brushing = false;
   let hasBrushed = false;
 
-  const handleMousemove = (dimension: Dimension) => {
+  const handleMousemove = (dimension: View) => {
     return () => {
-      if (!hasBrushed || brushing || dimension.name !== api.activeDimension) {
+      if (!hasBrushed || brushing) {
         return;
       }
 
@@ -45,25 +45,21 @@ connection.onOpen(() => {
       const xPixels = d3.mouse(viz.$content.node())[0];
 
       const x = viz.x.invert(xPixels);
-      api.preload(dimension, x, calculateVelocity(xPixels));
+      console.log(x);
+      api.preload(null);
     };
   };
 
   /**
    * Mouse moves into the brush selection. We preload the start and end of the brush.
    */
-  const preloadBrushSelection = (dimension: Dimension) => {
+  const preloadBrushSelection = (dimension: View) => {
     return () => {
-      if (!hasBrushed || dimension.name !== api.activeDimension) {
-        return;
-      }
-
-      const extent = api.getRange(dimension);
-      api.preload(dimension, extent, 0);
+      api.preload(null);
     };
   };
 
-  const handleBrushStart = (dimension: Dimension) => {
+  const handleBrushStart = (dimension: View) => {
     return () => {
       brushing = true;
       hasBrushed = true;
@@ -78,45 +74,44 @@ connection.onOpen(() => {
 
       loadedStartValue = extent[0];
 
-      api.load(dimension, extent[0]);
+      api.load(null);
     };
   };
 
-  const handleBrushMove = (dimension: Dimension) => {
+  const handleBrushMove = (dimension: View) => {
     return () => {
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      api.setState(dimension, extent);
+      console.log(xPixels, calculateVelocity(xPixels));
       if (extent[0] === lastExtent[0]) {
         // move left side of brush
-        api.preload(dimension, extent[1], calculateVelocity(xPixels));
+        // api.preload(dimension, extent[1], calculateVelocity(xPixels));
       } else if (extent[1] === lastExtent[1]) {
         // move right side of brush
-        api.preload(dimension, extent[0], calculateVelocity(xPixels));
+        // api.preload(dimension, extent[0], calculateVelocity(xPixels));
       } else {
         // move the whole brush
-        api.preload(dimension, extent, calculateVelocity(xPixels));
+        // api.preload(dimension, extent, calculateVelocity(xPixels));
       }
       lastExtent = extent;
     };
   };
 
-  const handleBrushEnd = (dimension: Dimension) => {
+  const handleBrushEnd = (dimension: View) => {
     return () => {
       brushing = false;
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      api.setRange(dimension, extent);
       if (extent[0] === loadedStartValue) {
-        api.load(dimension, extent[1]);
+        // api.load(dimension, extent[1]);
       } else if (extent[1] === loadedStartValue) {
-        api.load(dimension, extent[0]);
+        // api.load(dimension, extent[0]);
       } else {
-        api.load(dimension, extent[0]);
-        api.load(dimension, extent[1]);
+        // api.load(dimension, extent[0]);
+        // api.load(dimension, extent[1]);
       }
       lastExtent = extent;
     };
@@ -134,25 +129,27 @@ connection.onOpen(() => {
   }));
 
   if (config.debugging.visualizeCache) {
-    cacheVis = new CacheVis(dimensions, {width: CHART_WIDTH, height: 100});
+    cacheVis = new CacheVis(views, {width: CHART_WIDTH, height: 100});
   }
 
   // Initialize empty charts
-  dimensions.forEach(dim => {
-    vizs[dim.name] = new BrushableBar(dim, {width: CHART_WIDTH, height: CHART_HEIGHT})
-      .onBrush('start', handleBrushStart(dim))
-      .onBrush('brush', handleBrushMove(dim))
-      .onBrush('end', handleBrushEnd(dim))
-      .onOverlay('mousemove', handleMousemove(dim))
-      .onOverlay('mouseout', preloadBrushSelection(dim))
-      .onSelection('mouseover', preloadBrushSelection(dim));
+  views.forEach(view => {
+    vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      .onBrush('start', handleBrushStart(view))
+      .onBrush('brush', handleBrushMove(view))
+      .onBrush('end', handleBrushEnd(view))
+      .onOverlay('mousemove', handleMousemove(view))
+      .onOverlay('mouseout', preloadBrushSelection(view))
+      .onSelection('mouseover', preloadBrushSelection(view));
   });
 
   // Initialize with resolutions
-  api.init(dimensions.map((d) => {
-    return {
-      dimension: d.name,
-      value: vizs[d.name].contentWidth
-    };
-  }));
+  let sizes = {};
+  views.forEach((view) => {
+    sizes[view.name] = vizs[view.name].contentWidth;
+  });
+  api.init({
+    type: 'init',
+    sizes
+  });
 });

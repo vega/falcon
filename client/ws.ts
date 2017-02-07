@@ -13,7 +13,7 @@ ws.onmessage = (event) => {
     if(callbacks.result) {
       callbacks.result(result);
     }
-  })
+  });
 
 };
 
