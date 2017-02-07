@@ -5,7 +5,6 @@ class API {
 
   public cache: Cache;
   private _onResult: any;
-  private hasUserBrushed: boolean = false;
 
   constructor(public views: View[], public connection: any) {
   }
@@ -13,7 +12,7 @@ class API {
 
   public init(request: Init) {
     if (debugging.logApi) {
-      console.log(`API: init ${request}`);
+      console.log(`API: init`, request);
     }
 
     this.connection.send(request);
@@ -22,10 +21,8 @@ class API {
   // Call this when you want to request a value
   // to be computed immediately.
   public load(request: Load) {
-    this.hasUserBrushed = true;
-
     if (debugging.logApi) {
-      console.log(`API: load ${request}`);
+      console.log(`API: load`, request);
     }
 
     this.connection.send(request);
@@ -35,7 +32,7 @@ class API {
   // server should prioritize background queries.
   public preload(request: Preload) {
     if (debugging.logApi) {
-      console.log(`API: preload ${request}`);
+      console.log(`API: preload`, request);
     }
 
     this.connection.send(request);

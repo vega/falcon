@@ -9,7 +9,7 @@ import * as config from '../config';
 const vizs: {[dimension: string]: BrushableBar} = {};
 let cacheVis: CacheVis | null = null;
 
-const views = config.views as View1D[];
+const views = config.views.filter(v => v.type === '1D') as View1D[];
 
 const api = new API(views, connection);
 

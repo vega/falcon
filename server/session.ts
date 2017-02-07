@@ -17,13 +17,16 @@ class Session {
   private queryCount: number = 0;
   private closed: boolean = false;
   private hasUserInteracted: boolean = false;
+  private sizes: Sizes = {};
   private _onQuery: Callback;
 
   constructor(public backend: Backend, public dimensions: View[]) {
   }
 
   // Return the initial queries back to the client
-  public init() {
+  public init(request: Init) {
+    this.sizes = request.sizes;
+
     this.queue = new PriorityQueue<QueueElement>({
       initialValues: [],
       comparator: (a: QueueElement, b: QueueElement) => {

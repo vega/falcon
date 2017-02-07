@@ -37,11 +37,11 @@ wss.on('connection', (ws) => {
   ws.on('close', () => session.close());
 
   ws.on('message', (message: string) => {
-    console.log('received: %s', message);
+    // console.debug('received: %s', message);
     const request: Request = JSON.parse(message);
     switch (request.type) {
       case 'init':
-        session.init();
+        session.init(request);
         break;
       case 'load':
         session.load(request);
