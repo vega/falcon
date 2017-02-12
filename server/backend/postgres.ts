@@ -12,7 +12,7 @@ class Postgres implements Backend {
     this.db = pgp({})(connection);
   }
 
-  private where(_var: (value: number) => void, name: string, lower?: number, upper?: number) {
+  public static where(_var: (value: number) => void, name: string, lower?: number, upper?: number) {
     if (lower !== undefined && upper !== undefined) {
       return `$${_var(lower)} < "${name}" and "${name}" < $${_var(upper)}`;
     } else if (lower !== undefined) {
@@ -23,7 +23,7 @@ class Postgres implements Backend {
     return undefined;
   }
 
-  private buildQuery(view: ViewQuery, queryConfig: QueryConfig) {
+  public static buildQuery(view: ViewQuery, queryConfig: QueryConfig) {
     let wherePredicate: string[] = [];
     let values: number[] = [];
 
@@ -37,7 +37,7 @@ class Postgres implements Backend {
     };
 
     const _where = (name: string, lower?: number, upper?: number) => {
-      const w = this.where(_var, name, lower, upper);
+      const w = Postgres.where(_var, name, lower, upper);
       if (w) {
         wherePredicate.push(w);
       }
@@ -84,15 +84,15 @@ class Postgres implements Backend {
           const v = viewIndex[queryConfig.activeView] as View1D;
           _where(v.dimension, undefined, idx);
         }
-      }
-
-      if (vq.type === '1D' && vq.brush) {
-        const v = viewIndex[vq.name] as View1D;
-        _where(v.dimension, vq.brush[0], vq.brush[1]);
-      } else if (vq.type === '2D' && vq.brushes) {
-        const v = viewIndex[vq.name] as View2D;
-        _where(v.dimensions[0], vq.brushes[0][0], vq.brushes[0][1]);
-        _where(v.dimensions[1], vq.brushes[1][0], vq.brushes[1][1]);
+      } else {
+        if (vq.type === '1D' && vq.brush) {
+          const v = viewIndex[vq.name] as View1D;
+          _where(v.dimension, vq.brush[0], vq.brush[1]);
+        } else if (vq.type === '2D' && vq.brushes) {
+          const v = viewIndex[vq.name] as View2D;
+          _where(v.dimensions[0], vq.brushes[0][0], vq.brushes[0][1]);
+          _where(v.dimensions[1], vq.brushes[1][0], vq.brushes[1][1]);
+        }
       }
     });
 
@@ -110,7 +110,7 @@ class Postgres implements Backend {
   }
 
   private async queryOne(view: ViewQuery, queryConfig: QueryConfig): Promise<ResultRow> {
-    const query = this.buildQuery(view, queryConfig);
+    const query = Postgres.buildQuery(view, queryConfig);
 
     if (config.optimizations.preparedStatements) {
       const hashCode = function(s: string) {
