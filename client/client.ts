@@ -117,11 +117,11 @@ connection.onOpen(() => {
     };
   };
 
-  connection.onResult(api.onResult((dimension, data, rangeError) => {
+  connection.onResult(api.onResult((result: Result) => {
     // API filters the results so at this point
     // we only see results we want to draw to the
     // screen immediately.
-    vizs[dimension].update(data, rangeError);
+    // vizs[dimension].update(data, rangeError);
 
     if (cacheVis) {
       // cacheVis.update(cache.getDebugData());
