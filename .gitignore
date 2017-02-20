@@ -1,6 +1,6 @@
-
 node_modules/
-public/bundle.js
+public/*.js
+public/*.js.map
 env/
 npm-debug.log
 build/

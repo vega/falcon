@@ -1,14 +1,8 @@
 import {debugging} from '../config';
-import {Cache} from './cache';
 
 class API {
-
-  public cache: Cache;
-  private _onResult: any;
-
-  constructor(public views: View[], public connection: any) {
+  constructor(public connection: any) {
   }
-
 
   public init(request: Init) {
     if (debugging.logApi) {
@@ -38,11 +32,12 @@ class API {
     this.connection.send(request);
   }
 
-  public onResult(callback: (dimension: string, data: number[], rangeError: number) => any) {
-    this._onResult = callback;
-    return (result: Result) => {
-      console.log(result);
-    };
+  public send(request: Preload | Load | Init) {
+    this.connection.send(request);
+  }
+
+  public onResult(callback: (result: Result) => void) {
+    this.connection.onResult(callback);
   }
 }
 

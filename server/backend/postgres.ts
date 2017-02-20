@@ -158,7 +158,8 @@ class Postgres implements Backend {
    * Runs multiple async queries and returns a promise for all resutlts.
    */
   public async query(queryConfig: QueryConfig): Promise<ResultData> {
-    const queue = queryConfig.views.filter(view => view.query).map(view => this.queryOne(
+    const viewsToQuery = queryConfig.views.filter(view => view.query);
+    const queue = viewsToQuery.map(view => this.queryOne(
         view,
         queryConfig
       ));
@@ -166,7 +167,7 @@ class Postgres implements Backend {
     const pgResults = await Promise.all(queue);
 
     let results: ResultData = {};
-    queryConfig.views.forEach((d, i) => {
+    viewsToQuery.forEach((d, i) => {
       results[d.name] = pgResults[i];
     });
 

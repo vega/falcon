@@ -23,7 +23,7 @@ class Session {
   constructor(public backend: Backend, public dimensions: View[]) {
   }
 
-  // Return the initial queries back to the client
+  // Set the sizes of the charts and initialize the session.
   public init(request: Init) {
     this.sizes = request.sizes;
 
@@ -45,14 +45,8 @@ class Session {
 
   // Load a particular value immediately.
   public load(request: Load) {
-    const queryConfig: QueryConfig = {
-      activeView: request.activeView,
-      index: request.index,
-      views: request.views
-    };
-
     this.backend
-      .query(queryConfig)
+      .query(request)
       .then(this.handleQuery(request))
       .catch(console.error);
 
@@ -66,11 +60,12 @@ class Session {
   private handleQuery(request: Load | Preload) {
     return (results: ResultData) => {
       if (this.closed) {
+        console.warn('Connection closed.');
         return;
       }
 
       this.queryCount--;
-      if ((config.optimizations.startOnPageload || this.hasUserInteracted) && config.optimizations.preload && this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
+      if (config.optimizations.preload && this.queryCount < config.database.max_connections - (this.dimensions.length - 1)) {
         this.nextQuery();
       }
 
