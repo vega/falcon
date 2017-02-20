@@ -117,7 +117,7 @@ connection.onOpen(() => {
     };
   };
 
-  connection.onResult(api.onResult((result: Result) => {
+  api.onResult((result: Result) => {
     // API filters the results so at this point
     // we only see results we want to draw to the
     // screen immediately.
@@ -126,7 +126,7 @@ connection.onOpen(() => {
     if (cacheVis) {
       // cacheVis.update(cache.getDebugData());
     }
-  }));
+  });
 
   if (config.debugging.visualizeCache) {
     cacheVis = new CacheVis(views, {width: CHART_WIDTH, height: 100});

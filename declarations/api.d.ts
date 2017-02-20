@@ -28,7 +28,7 @@ interface Preload extends AbstractLoad {
   type: 'preload'
   /** Like value in preload but can be multiple values. */
   indexes: Point[]
-  /** Velocity in pixels per ms. */
+  /** Velocity in units per ms. */
   velocity: Point
 }
 

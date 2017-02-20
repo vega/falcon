@@ -1,6 +1,6 @@
 import * as config from '../config';
 
-if (config.optimizations.naiveBaseline) {
+if (!config.debugging.debugClient && config.optimizations.naiveBaseline) {
   require('./naive-server');
 } else {
   require('./server');

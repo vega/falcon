@@ -1,19 +1,10 @@
-import * as PriorityQueue from 'js-priority-queue';
-
 import * as config from '../config';
-
-interface QueueElement {
-  index: number;
-  value: number;
-};
 
 declare type Callback = (request: Init | Preload | Load, results: ResultData) => void;
 
 // This is responsible for keeping the priority queue,
 // rate limiting requests, and watching the cache.
 class Session {
-
-  private queue: PriorityQueue<QueueElement>;
   private queryCount: number = 0;
   private closed: boolean = false;
   private hasUserInteracted: boolean = false;
@@ -27,12 +18,27 @@ class Session {
   public init(request: Init) {
     this.sizes = request.sizes;
 
-    this.queue = new PriorityQueue<QueueElement>({
-      initialValues: [],
-      comparator: (a: QueueElement, b: QueueElement) => {
-        return a.value - b.value;
-      }
-    });
+    // load data for everything except the first view with the first view being active
+    const first = config.views[0];
+    const load: Load = {
+      type: 'load',
+      index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
+      activeView: first.name,
+      views: config.views.filter(v => v.name !== first.name).map(v => {
+        return {...v, query: true};
+      })
+    };
+    this.load(load);
+
+    // load data for the first view, making the second one active
+    const second = config.views[1];
+    const activeLoad: Load = {
+      type: 'load',
+      index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
+      activeView: second.name,
+      views: [{...first, query: true}]
+    };
+    this.load(activeLoad);
   }
 
   public onQuery(cb: Callback) {
@@ -41,6 +47,7 @@ class Session {
 
   public preload(request: Preload) {
     // TODO
+    console.log(request);
   }
 
   // Load a particular value immediately.
