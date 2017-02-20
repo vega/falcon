@@ -59,11 +59,7 @@ export const optimizations = {
    * If you turn this on, all the other optimization
    * flags are ignored.
    */
-  naiveBaseline: true,
-  /**
-   * Start preloading when the page is first loaded.
-   */
-  startOnPageload: true,
+  naiveBaseline: false,
   /**
    * Preload data.
    */
@@ -96,5 +92,10 @@ export const debugging = {
   /**
    * Show visualization of the cache state.
    */
-  visualizeCache: true
+  visualizeCache: true,
+
+  /**
+   * Show debug client instead of visualizations.
+   */
+  debugClient: true
 };

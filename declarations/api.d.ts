@@ -35,7 +35,7 @@ interface Preload extends AbstractLoad {
 type Sizes = {[view: string]: number | number[]}
 
 /**
- * Initialize the app. Sets the sizes of the views on the server and sends initial data to the client.
+ * Initialize the app. Sets the sizes of the views on the server.
  */
 interface Init {
   type: 'init'

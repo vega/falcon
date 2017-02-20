@@ -11,7 +11,7 @@ let cacheVis: CacheVis | null = null;
 
 const views = config.views.filter(v => v.type === '1D') as View1D[];
 
-const api = new API(views, connection);
+const api = new API(connection);
 
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
@@ -124,7 +124,7 @@ connection.onOpen(() => {
     vizs[dimension].update(data, rangeError);
 
     if (cacheVis) {
-      cacheVis.update(api.cache.getDebugData());
+      // cacheVis.update(cache.getDebugData());
     }
   }));
 
