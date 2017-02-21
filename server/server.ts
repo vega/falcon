@@ -24,7 +24,7 @@ wss.on('connection', (ws) => {
     });
   };
 
-  const session = new Session(backend, config.views);
+  const session = new Session(backend);
 
   session.onQuery((query, results) => {
     send({

@@ -61,6 +61,10 @@ export const optimizations = {
    */
   naiveBaseline: false,
   /**
+   * Load data on init.
+   */
+  loadOnInit: true,
+  /**
    * Preload data.
    */
   preload: true,
@@ -80,7 +84,7 @@ export const optimizations = {
    * Preload resolution - when preloading, how much space
    * do we want between cachepoints by default?
    */
-  preloadSpacing: 20
+  preloadSpacing: 50
 };
 
 export const debugging = {
