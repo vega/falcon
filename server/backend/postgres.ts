@@ -43,6 +43,11 @@ class Postgres implements Backend {
       }
     };
 
+    if (!(view.name in viewIndex)) {
+      console.error('Unknown view', view.name);
+      return null;
+    }
+
     if (view.type === '1D') {
       const v = viewIndex[view.name] as View1D;
       values = [
@@ -112,6 +117,10 @@ class Postgres implements Backend {
   private async queryOne(view: ViewQuery, queryConfig: QueryConfig): Promise<ResultRow> {
     const query = Postgres.buildQuery(view, queryConfig);
 
+    if (query === null) {
+      return [];
+    }
+
     if (config.optimizations.preparedStatements) {
       const hashCode = function(s: string) {
         return s.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a;},0);
@@ -155,7 +164,7 @@ class Postgres implements Backend {
   }
 
   /**
-   * Runs multiple async queries and returns a promise for all resutlts.
+   * Runs multiple async queries and returns a promise for all results.
    */
   public async query(queryConfig: QueryConfig): Promise<ResultData> {
     const viewsToQuery = queryConfig.views.filter(view => view.query);

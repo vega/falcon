@@ -26,13 +26,12 @@ wss.on('connection', (ws) => {
 
   const session = new Session(backend, config.views);
 
-  session.onQuery((request, results) => {
+  session.onQuery((query, results) => {
     send({
-      request,
+      query,
       data: results
     } as Result);
   });
-
 
   ws.on('close', () => session.close());
 

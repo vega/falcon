@@ -38,7 +38,7 @@ class API {
   public onResult(callback: (result: Result) => void) {
     this.connection.onResult((r: Result) => {
       if (debugging.logApi) {
-        console.log(`API: received ${r.request.type}`, r);
+        console.log(`API: received result`, r);
       }
       callback(r);
     });

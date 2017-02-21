@@ -78,9 +78,9 @@ export const optimizations = {
   preparedStatements: false,
   /**
    * Preload resolution - when preloading, how much space
-   * do we want to provide between cachepoints by default?
+   * do we want between cachepoints by default?
    */
-  preloadResolution: (resolution: number) => resolution / 200
+  preloadSpacing: 20
 };
 
 export const debugging = {
