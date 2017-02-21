@@ -12,10 +12,12 @@ const binPadding = 1;
 class BrushableBar {
   public x: d3.ScaleLinear<number, number>;
   private y: d3.ScaleLinear<number, number>;
+  private color: d3.ScaleSequential<any>;
   public brush: d3.BrushBehavior<any>;
   public $content: any;
   private $group: d3.Selection<any, any, any, any>;
   private $groupX: d3.Selection<any, any, any, any>;
+  private $groupY: d3.Selection<any, any, any, any>;
   private xAxis: d3.Axis<number | { valueOf(): number}>;
   private yAxis: d3.Axis<number | { valueOf(): number}>;
   private zoom: d3.ZoomBehavior<any, number>;
@@ -24,7 +26,7 @@ class BrushableBar {
   private resolution: number;
   private _transformCallback: (transform: d3.ZoomTransform, resolutionChanged: boolean) => void;
 
-  constructor(private view: View1D, options: { width: number, height: number }) {
+  constructor(private view: View2D, options: { width: number, height: number }) {
     const {
       width,
       height
@@ -37,16 +39,19 @@ class BrushableBar {
 
     this.x = d3.scaleLinear()
       .range([0, contentWidth])
-      .domain(view.range);
+      .domain(view.ranges[0]);
 
     this.y = d3.scaleLinear()
-      .domain([0, 100])
-      .range([contentHeight, 0]);
+      .range([contentHeight, 0])
+      .domain(view.ranges[1]);
+
+    this.color = d3.scaleSequential(d3.interpolateViridis)
+      .domain([0, 100]);
 
     this.xAxis = d3.axisBottom(this.x);
     this.yAxis = d3.axisLeft(this.y);
 
-    this.brush = d3.brushX().extent([[0, 0], [contentWidth, contentHeight]]);
+    this.brush = d3.brush().extent([[0, 0], [contentWidth, contentHeight]]);
 
     d3.select('body').append('div').text(view.title || '');
     const $container = d3.select('body').append('div');
@@ -59,19 +64,17 @@ class BrushableBar {
     this.$content = this.$group.append('g').classed('content', true);
 
     // this.$group.append('g')
-    //     .attr('class', 'x brush')
+    //     .attr('class', 'brush')
     //     .call(this.brush);
-        // .call(this.brush.move, this.x.range());
 
     this.$groupX = this.$group.append('g')
       .attr('class', 'axis axis--x')
       .attr('transform', 'translate(0,' + contentHeight + ')')
       .call(this.xAxis);
 
-    this.$group.append('g')
+    this.$groupY = this.$group.append('g')
       .attr('class', 'axis axis--y')
       .call(this.yAxis);
-
 
     this.zoom = d3.zoom()
         .scaleExtent([1, 10])
@@ -99,6 +102,7 @@ class BrushableBar {
     }
     this._transformCallback && this._transformCallback(transform, resolutionChanged);
     this.$groupX.call(this.xAxis.scale(transform.rescaleX(this.x)));
+    this.$groupY.call(this.yAxis.scale(transform.rescaleY(this.y)));
     // gY.call(yAxis.scale(d3.event.transform.rescaleY(y)));
   }
 
@@ -106,43 +110,49 @@ class BrushableBar {
     this._transformCallback = _onTransform;
     return this;
   }
-
   /**
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[], rangeError: number) {
-    const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
+    const $bins = (this.$content.selectAll('.bin') as d3.Selection<any, any, any, any>).data(data, d => d);
 
     const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];
     const maxValue: number = d3.max(arr) || 0;
-    this.y.domain([0, maxValue]);
+    this.color.domain([0, maxValue]);
     this.$group.select('.axis--y').call(this.yAxis);
 
-    $bars
+    $bins
       .enter()
       .append('rect')
-      .attr('class', 'bar')
-      .attr('fill', 'steelblue')
-      .attr('y', this.y(0))
-      .attr('height', 0)
-    .merge($bars)
+      .attr('class', 'bin')
+
+    .merge($bins)
       .attr('x', (_, i: number) => {
-        const { range, bins } = this.view;
-        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
+        const { ranges, bins } = this.view;
+        const range = ranges[0]
+        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins[0]);
       })
-      .attr('y', (d) => {
-        return this.y(d);
+      .attr('y', (d, i) => {
+        const { ranges, bins } = this.view;
+        const range = ranges[1]
+        return this.y(range[0] + (i - 1) * (range[1] - range[0]) / bins[1]);
       })
       .attr('width', () => {
-        const { range, bins } = this.view;
-        return this.x(range[0] + (range[1] - range[0]) / bins) - 2 * binPadding;
+        const { ranges, bins } = this.view;
+        const range = ranges[0];
+        return this.x(range[0] + (range[1] - range[0]) / bins[0]) - 2 * binPadding;
       })
       .attr('height', (d) => {
-        return this.y(0) - this.y(d);
+        const { ranges, bins } = this.view;
+        const range = ranges[1];
+        return this.y(range[0] + (range[1] - range[0]) / bins[1]) - 2 * binPadding;
+      })
+      .attr('fill', (d) => {
+        return this.color(d);
       })
       .attr('opacity',  1 - rangeError);
 
-    $bars.exit().remove();
+    $bins.exit().remove();
 
     return this;
   }
