@@ -27,6 +27,10 @@ describe('Postgres', function() {
         }]
       });
 
+      expect(query).to.not.be(null);
+
+      if (query === null) {return;}
+
       expect(clean(query.text)).to.eql(clean(`SELECT width_bucket("DEP_DELAY", $1, $2, $3) as bucket, count(*)
       FROM flights
       WHERE $4 < "DEP_DELAY" and "DEP_DELAY" < $5 and "ARR_DELAY" < $6

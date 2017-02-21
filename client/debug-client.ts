@@ -4,11 +4,11 @@ import * as d3 from 'd3';
 
 import * as config from '../config';
 
-const views = config.views.filter(v => v.type === '1D');
+const views = config.views;  // .filter(v => v.type === '1D');
 
 let sizes: Sizes = {};
 config.views.forEach((view) => {
-  sizes[view.name] = 500;
+  sizes[view.name] = view.type === '1D' ? 500 : [500, 300];
 });
 const INIT: Init = {
   type: 'init',
@@ -20,12 +20,10 @@ const LOAD_MESSAGE: Load = {
   type: 'load',
   index: 10,
   activeView: 'ARR_DELAY',
-  views: views.map((v: View1D) => {
+  views: views.map(v => {
     return {
-      type: v.type,
       query: v.name !== 'ARR_DELAY',
-      name: v.name,
-      range: v.range
+      ...v
     };
   })
 };
@@ -35,12 +33,10 @@ const PRE_LOAD_MESSAGE: Preload = {
   indexes: [-5, 20],
   velocity: 10,
   activeView: 'ARR_DELAY',
-  views: views.map((v: View1D) => {
+  views: views.map(v => {
     return {
-      type: v.type,
       query: v.name !== 'ARR_DELAY',
-      name: v.name,
-      range: v.range
+      ...v
     };
   })
 };
@@ -59,7 +55,7 @@ connection.onOpen(() => {
 
   api.onResult((result) => {
     const details = output.append('details');
-    details.append('summary').text(`${result.request.type} returned at ${d3.timeFormat('%H:%M:%S.%L')(new Date())}`);
+    details.append('summary').text(`request with data for ${result.query.activeView} ${result.query.index} returned at ${d3.timeFormat('%H:%M:%S.%L')(new Date())}`);
     details.append('pre').text(JSON.stringify(result, null, 2));
   });
 

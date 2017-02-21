@@ -49,9 +49,9 @@ declare type Request = Init | Preload | Load;
  */
 
 interface Result {
-  request: Load | Preload | Init
+  query: QueryConfig
   /** The data for each view. */
-  data: ResultData,
+  data: ResultData
 }
 
 type ResultRow = number[] | number[][];
