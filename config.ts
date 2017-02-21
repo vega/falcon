@@ -109,5 +109,5 @@ export const debugging = {
   /**
    * Show debug client instead of visualizations.
    */
-  debugClient: true
+  debugClient: false
 };

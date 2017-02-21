@@ -1,20 +1,29 @@
 import BrushableBar from './viz/brushable-bar';
+// import Brushable2D from './viz/brushable-2d';
 import CacheVis from './viz/cache-vis';
 import connection from './ws';
 import API from './api';
 import * as d3 from 'd3';
+import { ZoomTree } from './cache/zoom-tree';
 
 import * as config from '../config';
+
+const CHART_WIDTH = 600;
+const CHART_HEIGHT = 250;
 
 const vizs: {[dimension: string]: BrushableBar} = {};
 let cacheVis: CacheVis | null = null;
 
-const views = config.views.filter(v => v.type === '1D') as View1D[];
+let activeView: string = "ARR_DELAY";
 
+/**
+ * We need to go from 
+ * active dimension -> current dimension -> zoom tree -> ranges -> data
+ */
+const cache: {[view: string]: {[view: string]: ZoomTree}} = {};
+const views = config.views.filter(v => v.type === '1D') as View1D[];
 const api = new API(connection);
 
-const CHART_WIDTH = 600;
-const CHART_HEIGHT = 250;
 
 connection.onOpen(() => {
 
@@ -117,11 +126,58 @@ connection.onOpen(() => {
     };
   };
 
+  const handleZoom = (view: View) => {
+    return (transform: d3.ZoomTransform, resolutionChanged: boolean) => {
+      if (resolutionChanged) {
+        // TODO - Fetch data at this new resolution
+        console.log(view.name + ' zoomed to resolution ' + transform.k);
+      }
+    };
+  }
+
   api.onResult((result: Result) => {
-    // API filters the results so at this point
-    // we only see results we want to draw to the
-    // screen immediately.
-    // vizs[dimension].update(data, rangeError);
+    /**
+     * 1. Put the new data in the cache
+     * 2. Update the viz with the closest data,
+     *    given that it may have changed
+     */
+
+     result.query.views.forEach((view, i) => {
+       if (!result.query.activeView) {
+        console.log('No active view');
+        // TODO - what should we do in this case? 
+        //        pick a random one?
+        return;
+       }
+
+      let brushes: {[dimension: string]: Interval<number>} = {};
+      result.query.views.forEach((inactiveView, j) => {
+        if (inactiveView.type === '1D' && inactiveView.brush) {
+          brushes[inactiveView.name] = inactiveView.brush;
+        } else if (inactiveView.type === '2D' && inactiveView.brushes) {
+          // TODO - 2d case
+        }
+      });
+
+      if (view.type === '1D') {
+        // TODO - What does "no index" mean?
+        const index = (result.query.index as number) || -1;
+        cache[result.query.activeView][view.name].set({
+            resolution: 0,
+            ranges: [view.range],
+            indices: [index],
+            brushes: brushes
+          }, result.data[view.name]);
+      }
+    })
+
+    // If the active dimension is correct,
+    // for each view in the returned data, have it update from the cache.
+    if (activeView === result.query.activeView) {
+      result.query.views.forEach((view) => {
+        updateViz(view.name);
+      });
+    }
 
     if (cacheVis) {
       // cacheVis.update(cache.getDebugData());
@@ -134,13 +190,20 @@ connection.onOpen(() => {
 
   // Initialize empty charts
   views.forEach(view => {
+    if (view.type === '1D') {
+      vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+    } else {
+      // vizs[view.name] = new Brushable2D(view as View2D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+    }
+    
     vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
       .onBrush('start', handleBrushStart(view))
       .onBrush('brush', handleBrushMove(view))
       .onBrush('end', handleBrushEnd(view))
       .onOverlay('mousemove', handleMousemove(view))
       .onOverlay('mouseout', preloadBrushSelection(view))
-      .onSelection('mouseover', preloadBrushSelection(view));
+      .onSelection('mouseover', preloadBrushSelection(view))
+      .onTransform(handleZoom(view));
   });
 
   // Initialize with resolutions
@@ -148,6 +211,60 @@ connection.onOpen(() => {
   views.forEach((view) => {
     sizes[view.name] = vizs[view.name].contentWidth;
   });
+
+  config.views.forEach((activeView, i) => {
+    cache[activeView.name] = {};
+    config.views.forEach((dataView, j) => {
+      if (i === j) {
+        return;
+      }
+      const inactiveViews = config.views.filter((_, k) => j !== k).map((v) => v.name);
+      let dimensionView;
+
+      if (dataView.type === '1D') {
+        dimensionView = dataView as View1D;
+        cache[activeView.name][dataView.name] = new ZoomTree(1, [sizes[dataView.name] as number], [dataView.range], inactiveViews);
+      } else {
+        dimensionView = dataView as View2D;
+        // TODO - need to update `sizes` before this will work
+        // cache[activeView.name][dataView.name] = new ZoomTree(2, [CHART_WIDTH, CHART_HEIGHT], dataView.ranges, inactiveViews);
+      }
+    });
+  });
+
+  const updateViz = (name: string) => {
+    const brushes: {[dimension: string]: Interval<number>} = {};
+
+    // TOOO - Make sure we are getting the correct 
+    //        brush extents, and don't pass anything in 
+    //        for an empty brush.
+    // views.filter((view) => view.name !== name).forEach((view) => {
+      // const viz = vizs[view.name];
+      // if (viz.brush.empty()) {
+      //   return;
+      // }
+      // const extentFunc = viz.brush.extent() as any;
+      // const extent = extentFunc() as [[number, number], [number, number]];
+      // const brushVal = [vizs[view.name].x.invert(extent[0][0]), vizs[view.name].x.invert(extent[1][0])];
+      // brushes[view.name] = brushVal as Interval<number>;
+    // });
+
+    const viz = vizs[name];
+    if (!viz) {
+      return;
+    }
+    const data = cache[activeView][name].get({
+      activeRangeIndices: [[0, 100]],
+      resolution: 0,
+      ranges: [viz.x.domain() as [number, number]],
+      brushes: brushes
+    });
+
+    if (data) {
+      viz.update(data as number[], 0);
+    }
+  }
+
   api.init({
     type: 'init',
     sizes
