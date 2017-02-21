@@ -1,3 +1,4 @@
+import {ascending} from 'd3-array';
 import * as config from '../config';
 
 declare type Callback = (query: QueryConfig, results: ResultData) => void;
@@ -55,6 +56,39 @@ export function new1DIterator(indexes: Point1D[], distance: Point1D, range: Inte
   };
 
   return next;
+}
+
+export function getKeys(query: QueryConfig) {
+  // active view
+  const active = `${query.activeView}:${query.index}`;
+
+  const views = query.views.filter(v => v.name !== query.activeView);
+
+  // brushes are in all views
+  const brushes = views.map(v => {
+    if (v.type === '1D') {
+      if (v.brush) {
+        return [v.name, `${v.name}:${v.brush}`];
+      }
+    } else {
+      if (v.brushes) {
+        return [v.name, `${v.name}:${v.brushes}`];
+      }
+    }
+    return null;
+  }).filter(v => v) as [string, string][];
+
+  const keys: {[key: string]: string} = {};
+
+  views.filter(v => v.query).forEach(v => {
+    const br = brushes.filter(b => b[0] !== v.name).map(b => b[1]).join(' ');
+    if (v.type === '1D') {
+      keys[v.name] = `${v.name} ${active} ${v.range} ${br}`;
+    } else {
+      keys[v.name] = `${v.name} ${active} ${v.ranges} ${br}`;
+    };
+  });
+  return keys;
 }
 
 export function new2DIterator(indexes: Point2D[], distance: Point2D, range: [Interval<number>, Interval<number>]) {
@@ -131,34 +165,38 @@ class Session {
   private _preload?: Preload;
   private nextIndex: () => Point | null;
 
-  constructor(public backend: Backend, public dimensions: View[]) {
-  }
+  private cache: {[key: string]: ResultRow};
+
+  constructor(public readonly backend: Backend) { }
 
   // Set the sizes of the charts and initialize the session.
   public init(request: Init) {
     this.sizes = request.sizes;
+    this.cache = {};
 
-    // load data for everything except the first view with the first view being active
-    const first = config.views[0];
-    const load: Load = {
-      type: 'load',
-      index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
-      activeView: first.name,
-      views: config.views.filter(v => v.name !== first.name).map(v => {
-        return {...v, query: true};
-      })
-    };
-    this.load(load);
+    if (config.optimizations.loadOnInit) {
+      // load data for everything except the first view with the first view being active
+      const first = config.views[0];
+      const load: Load = {
+        type: 'load',
+        index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
+        activeView: first.name,
+        views: config.views.filter(v => v.name !== first.name).map(v => {
+          return {...v, query: true};
+        })
+      };
+      this.query(load);
 
-    // load data for the first view, making the second one active
-    const second = config.views[1];
-    const activeLoad: Load = {
-      type: 'load',
-      index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
-      activeView: second.name,
-      views: [{...first, query: true}]
-    };
-    this.load(activeLoad);
+      // load data for the first view, making the second one active
+      const second = config.views[1];
+      const activeLoad: Load = {
+        type: 'load',
+        index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
+        activeView: second.name,
+        views: [{...first, query: true}]
+      };
+      this.query(activeLoad);
+    }
   }
 
   public onQuery(cb: Callback) {
@@ -192,14 +230,53 @@ class Session {
     this.nextQuery();
   }
 
+  private query(query: QueryConfig) {
+    // assert that we don't query the active view
+    const active = query.views.filter(v => v.name === query.activeView);
+    if (active.length > 0 && active[0].query === true) {
+      throw new Error('Cannot query the active view');
+    }
+
+    this.queryCount += query.views.filter(v => v.query).length;
+
+    // sort views to guarantee stable keys
+    query.views = query.views.sort((x, y) => ascending(x.name, y.name));
+
+    // check for cached results
+    const results: ResultData = {};
+    const keys = getKeys(query);
+    query.views.filter(v => v.query).forEach((v, i) => {
+      const hit = this.cache[keys[v.name]];
+      console.log(`hit for ${keys[v.name]}`);
+      if (hit) {
+        results[v.name] = hit;
+
+        // no need to query any more
+        query.views[i].query = false;
+      }
+    });
+
+    const l = Object.keys(results).length;
+    if (l) {
+      console.log(`Sending cached result with ${l} entries`);
+      if (this._onQuery) {
+        this._onQuery(query, results);
+      }
+    }
+
+    if (query.views.filter(v => v.query).length > 0) {
+      this.backend
+        .query(query)
+        .then(this.handleQuery(query))
+        .catch(console.error);
+    } else {
+      this.nextQuery();
+    }
+  }
+
   // Load a particular value immediately.
   public load(request: Load) {
-    this.queryCount += request.views.filter(v => v.query).length;
-
-    this.backend
-      .query(request)
-      .then(this.handleQuery(request))
-      .catch(console.error);
+    this.query(request);
 
     this.hasUserInteracted = true;
   }
@@ -223,12 +300,7 @@ class Session {
       views: this._preload.views
     };
 
-    this.queryCount += this._preload.views.filter(v => v.query).length;
-
-    this.backend
-      .query(request)
-      .then(this.handleQuery(request))
-      .catch(console.error);
+    this.query(request);
   }
 
   private handleQuery(query: QueryConfig) {
@@ -240,6 +312,12 @@ class Session {
       }
 
       this.queryCount -= Object.keys(results).length;
+
+      // add new query results to cache
+      const keys = getKeys(query);
+      query.views.filter(v => v.query).forEach(v => {
+        this.cache[keys[v.name]] = results[v.name];
+      });
 
       if (config.optimizations.preload && this.queryCount < config.database.max_connections) {
         this.nextQuery();
