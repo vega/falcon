@@ -6,7 +6,7 @@ import { getKeys, new1DIterator, new2DIterator } from '../server/session';
 describe('Session', function() {
   describe('Iterator', function() {
     it('should iterate over 1D space', function() {
-      const iter = new1DIterator([3, 10], 2, 20);
+      const iter = new1DIterator([3, 10], 2, 1, 20);
       const collector = [];
 
       let n = iter.next();
@@ -21,7 +21,7 @@ describe('Session', function() {
     });
 
     it('should iterate over 2D space', function() {
-      const iter = new2DIterator([[0, 1], [8, 6]], 2, [20, 15]);
+      const iter = new2DIterator([[0, 1], [8, 6]], 2, 1, [20, 15]);
 
       const collector = [];
 

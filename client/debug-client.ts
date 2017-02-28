@@ -17,12 +17,15 @@ const INIT: Init = {
   sizes
 };
 
+
+const active = 'ARR_DELAY';
+
 /*
 const LOAD_MESSAGE: Load = {
   type: 'load',
   index: 10,
-  activeView: views.find(v => v.name === 'ARR_DELAY') as View1D,
-  views: views.map(v => {
+  activeView: views.find(v => v.name === active) as View1D,
+  views: views.filter(v => v.name !== active).map(v => {
     return {
       query: true,
       ...v
@@ -34,8 +37,8 @@ const PRE_LOAD_MESSAGE: Preload = {
   type: 'preload',
   indexes: [-5, 20],
   velocity: 10,
-  activeView: views.find(v => v.name === 'ARR_DELAY') as View1D,
-  views: views.map(v => {
+  activeView: views.find(v => v.name === active) as View1D,
+  views: views.filter(v => v.name !== active).map(v => {
     return {
       query: true,
       ...v
@@ -57,7 +60,8 @@ connection.onOpen(() => {
 
   api.onResult((result) => {
     const details = output.append('details');
-    details.append('summary').text(`request with data for ${result.query.activeView} ${result.query.index} returned at ${d3.timeFormat('%H:%M:%S.%L')(new Date())}`);
+    const av = result.query.activeView;
+    details.append('summary').text(`request with data for ${av && av.name} ${result.query.index} returned at ${d3.timeFormat('%H:%M:%S.%L')(new Date())}`);
     details.append('pre').text(JSON.stringify(result, null, 2));
   });
 

@@ -8,7 +8,7 @@ declare type Callback = (query: QueryConfig, results: ResultData) => void;
  *
  * Need to provide the initia positions, the grid size, and the maximum range.
  */
-export function* new1DIterator(indexes: Point1D[], subdivisions: number, range: number): IterableIterator<Point1D> {
+export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes: number, range: number): IterableIterator<Point1D> {
   // cycle through seeds
   let which = 0;
 
@@ -64,10 +64,10 @@ export function* new1DIterator(indexes: Point1D[], subdivisions: number, range: 
 
     // double the resolution and start again
     dist /= 2;
-  } while (dist >= 1);
+  } while (dist >= maxRes);
 };
 
-export function* new2DIterator(indexes: Point2D[], subdivisions: number, range: [number, number]): IterableIterator<Point2D> {
+export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes: number, range: [number, number]): IterableIterator<Point2D> {
   let which = 0;
 
   let dist = Math.pow(2, subdivisions);
@@ -126,7 +126,7 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, range: 
 
     // double the resolution and start again
     dist /= 2;
-  } while (dist >= 1);
+  } while (dist >= maxRes);
 }
 
 /**
@@ -221,15 +221,16 @@ class Session {
     this._preloadKeys = getKeys(request);
 
     const subdivisions = config.optimizations.preloadSubdivisions;
+    const maxRes = config.optimizations.maxResolution;
 
     if (request.activeView.type === '1D') {
       const width = this.sizes[request.activeView.name] as number;
-      this.nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, width);
+      this.nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, width);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
       const dimensions = this.sizes[request.activeView.name] as [number, number];
-      this.nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, dimensions);
+      this.nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, dimensions);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }

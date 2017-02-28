@@ -86,6 +86,10 @@ export const optimizations = {
    */
   preloadSubdivisions: 6,
   /**
+   * Highest resolution.
+   */
+  maxResolution: 4,
+  /**
    * Send results that are cached.
    */
   sendCached: false
