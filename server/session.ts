@@ -26,11 +26,11 @@ export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes:
       const idx = Math.round(i / dist) * dist;
 
       function add(ii: Point1D, d: Point1D, start: Point1D) {
-        indexSeeds.push([ii, d, start]);
+        indexSeeds.push([ii + d, d, start]);
       }
 
       add(idx, dist, idx);
-      add(idx - dist, -dist, idx);
+      add(idx, -dist, idx);
     });
 
     while (indexSeeds.length) {
@@ -68,35 +68,57 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes:
 
   let dist = Math.pow(2, subdivisions);
 
-  const indexSeeds: [Point2D, Point2D][] = [];
+  const indexSeeds: [Point2D, Point2D, boolean][] = [];
 
   const returned: {[key: string]: boolean} = {};
 
-  function add(ii: Point2D, d: Point2D) {
-    indexSeeds.push([ii, d]);
+  // add seed but start translated
+  function add(ii: Point2D, d: Point2D, seed: boolean) {
+    const [x, y] = ii;
+    if (0 <= x && x <= range[0] && 0 <= y && y <= range[1]) {
+      indexSeeds.push([[x + d[0], y + d[1]], d, seed]);
+    }
   }
 
   do {
-    indexes.forEach(i => {
+    for (let i = 0; i < indexes.length; i++) {
+      const idx = indexes[i];
+
       // snap
-      const x = Math.round(i[0] / dist) * dist;
-      const y = Math.round(i[1] / dist) * dist;
+      const x = Math.round(idx[0] / dist) * dist;
+      const y = Math.round(idx[1] / dist) * dist;
+
+      // yield the center
+      yield [x, y];
 
       // go into 4 directions
-      add([x, y], [dist, 0]);
-      add([x - dist, y], [-dist, 0]);
-      add([x, y - dist], [0, -dist]);
-      add([x, y + dist], [0, dist]);
-    });
+      add([x, y], [dist, 0], true);
+      add([x, y], [-dist, 0], true);
+      add([x, y], [0, -dist], true);
+      add([x, y], [0, dist], true);
+    }
 
     while (indexSeeds.length > 0) {
       which %= indexSeeds.length;
 
-      const [x, y] = indexSeeds[which][0];
+      const idx = indexSeeds[which];
+      let [x, y] = idx[0];
 
-      if (x < 0 || range[0] < x || y < 0 || range[1] < y) {
-        indexSeeds.splice(which, 1);
-        continue;
+      const [dxx, dyy] = idx[1];
+
+      if (idx[2]) {
+        // spawn new seed (counter clockwise)
+        if (dxx === dist && dyy === 0) {
+          add([x, y], [0, dist], false);
+        } else if (dxx === 0 && dyy === dist) {
+          add([x, y], [-dist, 0], false);
+        } else if (dxx === -dist && dyy === 0) {
+          add([x, y], [0, -dist], false);
+        } else if (dxx === 0 && dyy === -dist) {
+          add([x, y], [dist, 0], false);
+        } else {
+          throw new Error('Invalid direction');
+        }
       }
 
       const key = `${x}_${y}`;
@@ -105,13 +127,17 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes:
         yield [x, y];
       }
 
-      // move new index value
-      const [dxx, dyy] = indexSeeds[which][1];
-      indexSeeds[which][0][0] += dxx;
-      indexSeeds[which][0][1] += dyy;
+      // move index value
+      x = idx[0][0] += dxx;
+      y = idx[0][1] += dyy;
 
-      // the next seed
-      which++;
+      // remove seeds that left the range
+      if (x < 0 || range[0] < x || y < 0 || range[1] < y) {
+        indexSeeds.splice(which, 1);
+      } else {
+        // the next seed
+        which++;
+      }
     };
 
     // double the resolution and start again
