@@ -4,12 +4,14 @@ import * as d3 from 'd3';
 
 import * as config from '../config';
 
-const views = config.views;  // .filter(v => v.type === '1D');
+// const views = config.views;
+const views = config.views.filter(v => v.type === '1D');
 
 let sizes: Sizes = {};
-config.views.forEach((view) => {
+views.forEach((view) => {
   sizes[view.name] = view.type === '1D' ? 500 : [500, 300];
 });
+
 const INIT: Init = {
   type: 'init',
   sizes
@@ -19,10 +21,10 @@ const INIT: Init = {
 const LOAD_MESSAGE: Load = {
   type: 'load',
   index: 10,
-  activeView: 'ARR_DELAY',
+  activeView: views.find(v => v.name === 'ARR_DELAY') as View1D,
   views: views.map(v => {
     return {
-      query: v.name !== 'ARR_DELAY',
+      query: true,
       ...v
     };
   })
@@ -32,10 +34,10 @@ const PRE_LOAD_MESSAGE: Preload = {
   type: 'preload',
   indexes: [-5, 20],
   velocity: 10,
-  activeView: 'ARR_DELAY',
+  activeView: views.find(v => v.name === 'ARR_DELAY') as View1D,
   views: views.map(v => {
     return {
-      query: v.name !== 'ARR_DELAY',
+      query: true,
       ...v
     };
   })

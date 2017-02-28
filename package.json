@@ -9,6 +9,7 @@
     "build": "webpack",
     "watch": "webpack --watch",
     "test": "mocha --compilers ts:ts-node/register",
+    "test-debug": "tsc && mocha debug --require source-map-support/register build/test",
     "lint": "tslint --project .",
     "lint-fix": "tslint --project . --fix"
   },
@@ -23,11 +24,12 @@
   },
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
+    "@types/chai": "^3.4.35",
     "@types/d3": "^4.5.0",
-    "@types/expect.js": "^0.3.29",
     "@types/express": "^4.0.35",
     "@types/js-priority-queue": "0.0.5",
     "@types/mocha": "^2.2.39",
+    "@types/node": "^7.0.5",
     "@types/node-uuid": "0.0.28",
     "@types/pako": "^1.0.0",
     "@types/ws": "0.0.38",
@@ -43,7 +45,7 @@
     "ws": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^7.0.5",
+    "chai": "^3.5.0",
     "expect.js": "^0.3.1",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",

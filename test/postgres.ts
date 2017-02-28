@@ -1,5 +1,5 @@
 import {} from 'mocha';
-const expect = require('expect.js');
+import {expect} from 'chai';
 import Postgres from '../server/backend/postgres';
 
 function clean(s: string) {
@@ -16,18 +16,17 @@ describe('Postgres', function() {
         name: 'DEP_DELAY',
         range: [-10, 42]
       }, {
-        activeView: 'ARR_DELAY',
-        index: 2,
-        views: [{
+        activeView: {
           type: '1D',
-          query: false,
           name: 'ARR_DELAY',
-          range: [0, 0],
-          brush: [10, 120]
-        }]
+          range: [0, 0]  // should not matter
+        },
+        index: 2,
+        views: [],
+        cacheKeys: {}
       });
 
-      expect(query).to.not.be(null);
+      expect(query).to.not.be.null;
 
       if (query === null) {return;}
 

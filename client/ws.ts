@@ -36,7 +36,7 @@ const connection: Connection = {
 
 export type Connection = {
     onOpen: (callback: () => void) => void;
-    send: (message: Request) => void;
+    send: (message: ApiRequest) => void;
     onResult: (callback: (data: any) => void) => void;
 };
 

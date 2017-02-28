@@ -81,10 +81,14 @@ export const optimizations = {
    */
   preparedStatements: false,
   /**
-   * Preload resolution - when preloading, how much space
-   * do we want between cachepoints by default?
+   * How many subdivisions to create when determining the preloading resolution.
+   * The session will preload at 2^n pixels resolution and subdivide this range repeatedly until the resolution is 1px.
    */
-  preloadSpacing: 50
+  preloadSubdivisions: 6,
+  /**
+   * Send results that are cached.
+   */
+  sendCached: false
 };
 
 export const debugging = {
