@@ -15,11 +15,8 @@ export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes:
   // make distance so that we can easily subdivide it
   let dist = Math.pow(2, subdivisions);
 
-  // pairs of index value and direction
-  const indexSeeds: [Point1D, Point1D][] = [];
-
-  // where should we sample
-  const seeds: {[key: number]: boolean} = {};
+  // tuple of index value, direction, starting point
+  const indexSeeds: [Point1D, Point1D, Point1D][] = [];
 
   const returned: {[key: number]: boolean} = {};
 
@@ -28,24 +25,23 @@ export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes:
       // snap
       const idx = Math.round(i / dist) * dist;
 
-      // only add if we don't already have a seed for this
-      function add(ii: Point1D, d: Point1D) {
-        if (!seeds[ii]) {
-          indexSeeds.push([ii, d]);
-          seeds[ii] = true;
-        }
+      function add(ii: Point1D, d: Point1D, start: Point1D) {
+        indexSeeds.push([ii, d, start]);
       }
 
-      add(idx, dist);
-      add(idx - dist, -dist);
+      add(idx, dist, idx);
+      add(idx - dist, -dist, idx);
     });
 
     while (indexSeeds.length) {
       which %= indexSeeds.length;
 
-      const ret = indexSeeds[which][0];
+      const idx = indexSeeds[which];
+      const ret = idx[0];
+      const d = Math.abs(idx[0] - idx[2]);
 
-      if (ret < 0 || range < ret) {
+      // TODO: check that this rule makes sense
+      if (ret < 0 || range < ret || (d > range/dist && dist > maxRes)) {
         indexSeeds.splice(which, 1);
         continue;
       }
@@ -56,7 +52,7 @@ export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes:
       }
 
       // move new index value
-      indexSeeds[which][0] += indexSeeds[which][1];
+      idx[0] += idx[1];
 
       // the next seed
       which++;
@@ -73,24 +69,18 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes:
   let dist = Math.pow(2, subdivisions);
 
   const indexSeeds: [Point2D, Point2D][] = [];
-  const seeds: {[key: string]: boolean} = {};
 
   const returned: {[key: string]: boolean} = {};
+
+  function add(ii: Point2D, d: Point2D) {
+    indexSeeds.push([ii, d]);
+  }
 
   do {
     indexes.forEach(i => {
       // snap
       const x = Math.round(i[0] / dist) * dist;
       const y = Math.round(i[1] / dist) * dist;
-
-      // only add if we don't already have a seed for this
-      function add(ii: Point2D, d: Point2D) {
-        const key = `${ii[0]}_${ii[1]}`;
-        if (!seeds[key]) {
-          indexSeeds.push([ii, d]);
-          seeds[key] = true;
-        }
-      }
 
       // go into 4 directions
       add([x, y], [dist, 0]);
