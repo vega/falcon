@@ -37,7 +37,7 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (message: string) => {
     // console.debug('received: %s', message);
-    const request: Request = JSON.parse(message);
+    const request: ApiRequest = JSON.parse(message);
     switch (request.type) {
       case 'init':
         session.init(request);

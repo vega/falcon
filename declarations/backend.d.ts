@@ -6,23 +6,27 @@ interface Backend {
 }
 
 interface QueryConfig {
-  activeView?: string,
-  index?: Point,
+  activeView?: ActiveView
+  index?: Point
   views: ViewQuery[]
+  cacheKeys?: {[view: string]: string}
 }
 
-interface ViewQuery1D {
-  type: '1D',
-  query: boolean,
+interface AbstractViewQuery {
+  /** Whether to query this view or not. */
+  query: boolean
+  /** The name of the view. */
   name: string
+}
+
+interface ViewQuery1D extends AbstractViewQuery {
+  type: '1D'
   range: Interval<number>
   brush?: Interval<number>
 }
 
-interface ViewQuery2D {
-  type: '2D',
-  query: boolean,
-  name: string
+interface ViewQuery2D extends AbstractViewQuery{
+  type: '2D'
   ranges: [Interval<number>, Interval<number>]
   brushes?: [Interval<number>, Interval<number>]
 }

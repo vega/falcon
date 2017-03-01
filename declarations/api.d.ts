@@ -4,20 +4,30 @@
 
 interface AbstractLoad {
   /** Dimension for which the index is valid. This is usually the dimension which the user is interacting with.  */
-  activeView: string
+  activeView: ActiveView
   /**
    * Views for which we want data including their extents.
-   * Usually this will be all views but it may be only one if we are zooming in or out and need new data.
+   * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
    **/
   views: ViewQuery[]
 }
+
+type ActiveView = {
+  name: string
+} & ({
+  type: '1D'
+  range: Interval<number>
+} | {
+  type: '2D'
+  ranges: [Interval<number>, Interval<number>]
+})
 
 /**
  * Load data with maximum priority and cannot be cancelled.
  */
 interface Load extends AbstractLoad {
   type: 'load'
-  /** In the active dimension, get the data until here. */
+  /** In the active dimension, get the data until here. In pixel domain. */
   index: Point
 }
 
@@ -42,7 +52,7 @@ interface Init {
   sizes: Sizes
 }
 
-declare type Request = Init | Preload | Load;
+declare type ApiRequest = Init | Preload | Load;
 
 /**
  * Responses

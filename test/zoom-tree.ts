@@ -1,5 +1,5 @@
 import {} from 'mocha';
-const expect = require('expect.js');
+import {expect} from 'chai';
 import { ZoomTree } from '../client/cache/zoom-tree';
 
 describe('ZoomTree', function() {
@@ -58,7 +58,7 @@ describe('ZoomTree', function() {
         brushes: { dimA: [20, 30] }
       });
 
-      expect(data).to.be(null);
+      expect(data).to.be.null;
     });
 
   });
@@ -130,7 +130,7 @@ describe('ZoomTree', function() {
         brushes: { dimA: [20, 30] }
       });
 
-      expect(data).to.be(null);
+      expect(data).to.be.null;
     });
   });
 

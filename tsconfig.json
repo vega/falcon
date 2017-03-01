@@ -1,12 +1,10 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "module": "commonjs",
     "target": "es6",
     "outDir": "build",
-    "types": [
-      "node"
-    ],
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitReturns": true,

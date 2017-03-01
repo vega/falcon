@@ -27,7 +27,7 @@ class API {
   /**
    * Send an arbitrary requet to the server.
    */
-  public send(request: Preload | Load | Init) {
+  public send(request: ApiRequest) {
     if (debugging.logApi) {
       console.log(`API: ${request.type}`, request);
     }

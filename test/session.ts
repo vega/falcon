@@ -1,34 +1,54 @@
 import {} from 'mocha';
-const expect = require('expect.js');
+import {assert, expect} from 'chai';
 
-import {new1DIterator, new2DIterator, getKeys} from '../server/session';
+import { getKeys, new1DIterator, new2DIterator } from '../server/session';
 
 describe('Session', function() {
   describe('Iterator', function() {
     it('should iterate over 1D space', function() {
-      const iter = new1DIterator([20.1, 9.2], 2, [8, 30]);
-      const indexes = [0,0,0,0,0,0,0,0,0,0,0,0,0,0].map(() => iter());
-      expect(indexes).to.eql([20, 18, 10, 8, 22, 12, 24, 14, 26, 16, 28, 30, null, null]);
+      const iter = new1DIterator([3, 10], 2, 1, 20);
+      const collector = [];
+
+      let n = iter.next();
+      while(!n.done) {
+        collector.push(n.value);
+        n = iter.next();
+      }
+
+      // console.log(collector);
+
+      expect(collector).to.have.members([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
     });
 
     it('should iterate over 2D space', function() {
-      const iter = new2DIterator([[0, 0], [8, 6]], [2, 3], [[-2, 6], [-6, 9]]);
-      const indexes = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0].map(() => iter());
-      expect(indexes).to.eql([[0, 0], [-2, 0], [0, -3], [-2, -3], [6, 6], [6, 3], [2, 3], [2, -6], [4, 9], [4, 0], [4, 6], [2, -3], [6, 9], [0, -6], null, null]);
+      const iter = new2DIterator([[0, 1], [8, 6]], 2, 1, [20, 15]);
+
+      const collector = [];
+
+      let n = iter.next();
+      while(!n.done) {
+        collector.push(n.value);
+        n = iter.next();
+      }
+
+      // console.log(collector);
+
+      // TODO
+      assert.includeDeepMembers(collector, [[0, 1], [1, 1]]);
     });
   });
 
   describe('Cache', function() {
     it('should create correct keys', function() {
       const keys = getKeys({
-        activeView: 'active',
-        index: 0.5,
-        views: [{
+        activeView: {
           type: '1D',
-          query: true,
           name: 'active',
-          range: [0, 1]
-        }, {
+          range: [0, 0]  // should not matter
+        },
+        index: 0.5,
+        cacheKeys: {},
+        views: [{
           type: '1D',
           query: true,
           name: 'foo',
@@ -48,9 +68,9 @@ describe('Session', function() {
         }]});
 
       expect(keys).to.eql({
-        foo: 'foo active:0.5 0,10 bar:2,4 baz:2,4,10,20',
-        bar: 'bar active:0.5 -10,20 baz:2,4,10,20',
-        baz: 'baz active:0.5 0,10,0,100 bar:2,4'
+        foo: 'foo active 0,10 bar:2,4 baz:2,4,10,20',
+        bar: 'bar active -10,20 baz:2,4,10,20',
+        baz: 'baz active 0,10,0,100 bar:2,4'
       });
     });
   });

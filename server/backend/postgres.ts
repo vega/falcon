@@ -74,30 +74,31 @@ class Postgres implements Backend {
       _where(v.dimensions[1], view.ranges[1][0], view.ranges[1][1]);
     }
 
+    // where clause for active view
+    if (queryConfig.activeView && queryConfig.index) {
+      const idx = queryConfig.index;
+      if (utils.isPoint2D(idx)) {
+        const v = viewIndex[queryConfig.activeView.name] as View2D;
+        _where(v.dimensions[0], undefined, idx[0]);
+        _where(v.dimensions[1], undefined, idx[1]);
+      } else {
+        const v = viewIndex[queryConfig.activeView.name] as View1D;
+        _where(v.dimension, undefined, idx);
+      }
+    }
+
     queryConfig.views.forEach(vq => {
       if (vq.name === view.name) {
         return;
       }
 
-      if (vq.name === queryConfig.activeView && queryConfig.index !== undefined) {
-        const idx = queryConfig.index;
-        if (utils.isPoint2D(idx)) {
-          const v = viewIndex[queryConfig.activeView] as View2D;
-          _where(v.dimensions[0], undefined, idx[0]);
-          _where(v.dimensions[1], undefined, idx[1]);
-        } else {
-          const v = viewIndex[queryConfig.activeView] as View1D;
-          _where(v.dimension, undefined, idx);
-        }
-      } else {
-        if (vq.type === '1D' && vq.brush) {
-          const v = viewIndex[vq.name] as View1D;
-          _where(v.dimension, vq.brush[0], vq.brush[1]);
-        } else if (vq.type === '2D' && vq.brushes) {
-          const v = viewIndex[vq.name] as View2D;
-          _where(v.dimensions[0], vq.brushes[0][0], vq.brushes[0][1]);
-          _where(v.dimensions[1], vq.brushes[1][0], vq.brushes[1][1]);
-        }
+      if (vq.type === '1D' && vq.brush) {
+        const v = viewIndex[vq.name] as View1D;
+        _where(v.dimension, vq.brush[0], vq.brush[1]);
+      } else if (vq.type === '2D' && vq.brushes) {
+        const v = viewIndex[vq.name] as View2D;
+        _where(v.dimensions[0], vq.brushes[0][0], vq.brushes[0][1]);
+        _where(v.dimensions[1], vq.brushes[1][0], vq.brushes[1][1]);
       }
     });
 
