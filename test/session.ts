@@ -21,7 +21,7 @@ describe('Session', function() {
     });
 
     it('should iterate over 2D space', function() {
-      const iter = new2DIterator([[0, 1], [8, 6]], 2, 1, [20, 15]);
+      const iter = new2DIterator([[2, 5], [10, 10]], 2, 1, [20, 17]);
 
       const collector = [];
 
@@ -33,8 +33,17 @@ describe('Session', function() {
 
       // console.log(collector);
 
-      // TODO
-      assert.includeDeepMembers(collector, [[0, 1], [1, 1]]);
+      // initial seeds continue
+      assert.includeDeepMembers(collector, [[2, 5], [6, 5], [10, 5], [14, 5], [20, 5]]);
+
+      // spawns left
+      assert.includeDeepMembers(collector, [[2, 9], [6, 9], [10, 9], [14, 9], [20, 9]]);
+
+      // spawns continue
+      assert.includeDeepMembers(collector, [[2, 9], [2, 13], [2, 17]]);
+
+      // resolution increases
+      assert.includeDeepMembers(collector, [[2, 5], [3, 5], [4, 5], [5, 5]]);
     });
   });
 
