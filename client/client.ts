@@ -40,6 +40,17 @@ connection.onOpen(() => {
       return v;
   };
 
+  const getInactiveViews = (dimension: View) => {
+    return views.filter(v => { return v.name !== dimension.name }).map((v) => {
+      return {
+        type: v.type,
+        range: vizs[v.name].x.range() as [number, number],
+        query: true,
+        name: v.name
+      };
+    });
+  }
+
   let brushing = false;
   let hasBrushed = false;
 
@@ -54,8 +65,14 @@ connection.onOpen(() => {
       const xPixels = d3.mouse(viz.$content.node())[0];
 
       const x = viz.x.invert(xPixels);
-      console.log(x);
-      api.preload({} as Preload);
+
+      console.log('handleMousemove');
+      api.preload({
+        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        views: getInactiveViews(dimension),
+        indexes: [x],
+        velocity: calculateVelocity(xPixels)
+      });
     };
   };
 
@@ -64,7 +81,11 @@ connection.onOpen(() => {
    */
   const preloadBrushSelection = (dimension: View) => {
     return () => {
-      api.preload({} as Preload);
+      // TODO - make sure the brush is turned on..
+      console.log('preloadBrushSelection');
+      // api.preload({
+
+      // } as Preload);
     };
   };
 
@@ -83,7 +104,12 @@ connection.onOpen(() => {
 
       loadedStartValue = extent[0];
 
-      api.load({} as Load);
+
+      api.load({
+        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        views: getInactiveViews(dimension),
+        index: extent[0]
+      });
     };
   };
 
@@ -93,17 +119,25 @@ connection.onOpen(() => {
       const xPixels = d3.mouse(viz.$content.node())[0];
       const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      console.log(xPixels, calculateVelocity(xPixels));
+
+      let indexes: Point[] = [];
       if (extent[0] === lastExtent[0]) {
         // move left side of brush
-        // api.preload(dimension, extent[1], calculateVelocity(xPixels));
+        indexes.push(extent[1]);
       } else if (extent[1] === lastExtent[1]) {
         // move right side of brush
-        // api.preload(dimension, extent[0], calculateVelocity(xPixels));
+        indexes.push(extent[0]);
       } else {
         // move the whole brush
-        // api.preload(dimension, extent, calculateVelocity(xPixels));
+        indexes = indexes.concat(extent);
       }
+      console.log('handleBrushmove');
+      api.preload({
+        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        views: getInactiveViews(dimension),
+        indexes: indexes,
+        velocity: calculateVelocity(xPixels)
+      });
       lastExtent = extent;
     };
   };
@@ -114,14 +148,21 @@ connection.onOpen(() => {
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
+      const loadIndices = [];
       if (extent[0] === loadedStartValue) {
-        // api.load(dimension, extent[1]);
+        loadIndices.push(extent[1]);
       } else if (extent[1] === loadedStartValue) {
-        // api.load(dimension, extent[0]);
+        loadIndices.push(extent[0]);
       } else {
-        // api.load(dimension, extent[0]);
-        // api.load(dimension, extent[1]);
+        loadIndices.push(extent[0]);
+        loadIndices.push(extent[1]);
       }
+
+      const views = getInactiveViews(dimension);
+      const activeView = Object.assign({}, dimension, { range: viz.x.range() });
+      loadIndices.forEach((index) => {
+        api.load({ activeView, views, index });
+      });
       lastExtent = extent;
     };
   };
@@ -266,7 +307,6 @@ connection.onOpen(() => {
   }
 
   api.init({
-    type: 'init',
     sizes
   });
 });

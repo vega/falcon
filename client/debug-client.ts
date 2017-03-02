@@ -13,7 +13,6 @@ views.forEach((view) => {
 });
 
 const INIT: Init = {
-  type: 'init',
   sizes
 };
 

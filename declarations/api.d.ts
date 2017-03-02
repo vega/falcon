@@ -32,8 +32,7 @@ type ActiveView = {
  * Load data with maximum priority and cannot be cancelled.
  */
 interface Load extends AbstractLoad {
-  type: 'load'
-  /** In the active dimension, get the data until here. In pixel domain. */
+  /** In the active dimension, get the data until here. In data domain. */
   index: Point
 }
 
@@ -41,8 +40,7 @@ interface Load extends AbstractLoad {
  * Load data around this query.
  */
 interface Preload extends AbstractLoad {
-  type: 'preload'
-  /** Like value in preload but can be multiple values. */
+  /** Like value in load but can be multiple values. */
   indexes: Point[]
   /** Velocity in units per ms. */
   velocity: Point
@@ -54,11 +52,13 @@ type Sizes = {[view: string]: number | number[]}
  * Initialize the app. Sets the sizes of the views on the server.
  */
 interface Init {
-  type: 'init'
   sizes: Sizes
 }
 
-declare type ApiRequest = Init | Preload | Load;
+
+declare type ApiRequest = (Init | Preload | Load) & {
+  type: 'init' | 'preload' | 'load'
+}
 
 /**
  * Responses
