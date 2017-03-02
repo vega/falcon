@@ -17,7 +17,7 @@ let cacheVis: CacheVis | null = null;
 let activeView: string = "ARR_DELAY";
 
 /**
- * We need to go from 
+ * We need to go from
  * active dimension -> current dimension -> zoom tree -> ranges -> data
  */
 const cache: {[view: string]: {[view: string]: ZoomTree}} = {};
@@ -141,11 +141,10 @@ connection.onOpen(() => {
      * 2. Update the viz with the closest data,
      *    given that it may have changed
      */
-
      result.query.views.forEach((view, i) => {
        if (!result.query.activeView) {
         console.log('No active view');
-        // TODO - what should we do in this case? 
+        // TODO - what should we do in this case?
         //        pick a random one?
         return;
        }
@@ -162,7 +161,7 @@ connection.onOpen(() => {
       if (view.type === '1D') {
         // TODO - What does "no index" mean?
         const index = (result.query.index as number) || -1;
-        cache[result.query.activeView][view.name].set({
+        cache[result.query.activeView.name][view.name].set({
             resolution: 0,
             ranges: [view.range],
             indices: [index],
@@ -173,7 +172,7 @@ connection.onOpen(() => {
 
     // If the active dimension is correct,
     // for each view in the returned data, have it update from the cache.
-    if (activeView === result.query.activeView) {
+    if (result.query.activeView && activeView === result.query.activeView.name) {
       result.query.views.forEach((view) => {
         updateViz(view.name);
       });
@@ -195,7 +194,7 @@ connection.onOpen(() => {
     } else {
       // vizs[view.name] = new Brushable2D(view as View2D, {width: CHART_WIDTH, height: CHART_HEIGHT})
     }
-    
+
     vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
       .onBrush('start', handleBrushStart(view))
       .onBrush('brush', handleBrushMove(view))
@@ -235,8 +234,8 @@ connection.onOpen(() => {
   const updateViz = (name: string) => {
     const brushes: {[dimension: string]: Interval<number>} = {};
 
-    // TOOO - Make sure we are getting the correct 
-    //        brush extents, and don't pass anything in 
+    // TOOO - Make sure we are getting the correct
+    //        brush extents, and don't pass anything in
     //        for an empty brush.
     // views.filter((view) => view.name !== name).forEach((view) => {
       // const viz = vizs[view.name];
