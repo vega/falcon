@@ -40,13 +40,13 @@ wss.on('connection', (ws) => {
     const request: ApiRequest = JSON.parse(message);
     switch (request.type) {
       case 'init':
-        session.init(request);
+        session.init(request as Init);
         break;
       case 'load':
-        session.load(request);
+        session.load(request as Load);
         break;
       case 'preload':
-        session.preload(request);
+        session.preload(request as Preload);
         break;
       }
   });

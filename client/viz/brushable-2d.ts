@@ -9,7 +9,7 @@ export const padding = {
 
 const binPadding = 1;
 
-class BrushableBar {
+class Brushable2D {
   public x: d3.ScaleLinear<number, number>;
   private y: d3.ScaleLinear<number, number>;
   private color: d3.ScaleSequential<any>;
@@ -180,4 +180,4 @@ class BrushableBar {
 }
 
 
-export default BrushableBar;
+export default Brushable2D;
