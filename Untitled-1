@@ -1,6 +1,0 @@
-
-notes for dom
--- 
-- init responses still returning an index instead of infinite / nobrush
-- comment said load/preload are in pixel space but really this should be in API space
-- range in the results seems to be wrong.
