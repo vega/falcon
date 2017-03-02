@@ -193,9 +193,10 @@ connection.onOpen(() => {
       vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
     } else {
       // vizs[view.name] = new Brushable2D(view as View2D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      return;
     }
 
-    vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+    vizs[view.name]
       .onBrush('start', handleBrushStart(view))
       .onBrush('brush', handleBrushMove(view))
       .onBrush('end', handleBrushEnd(view))
