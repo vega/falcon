@@ -47,6 +47,9 @@ class TreeNode {
   }
 
   public set(query: TreeNodeQuery, data: number[] | number[][]): void {
+
+    console.log('settinging in tree node');
+    console.log(query);
     // Here we can assume that this data is at the
     // proper resolution for this node.
     const index = this.getIndex(query);
@@ -121,6 +124,12 @@ class ZoomTree {
   }
 
   public set(query: CacheIndexQuery, data: number[] | number[][]): void {
+
+
+    console.log('settinging in tree node');
+    console.log(query);
+
+
     let currentResolution = 0;
     let currentNode = this.root;
     const resolution = query.resolution;

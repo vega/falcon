@@ -44,7 +44,7 @@ connection.onOpen(() => {
     return views.filter(v => { return v.name !== dimension.name }).map((v) => {
       return {
         type: v.type,
-        range: vizs[v.name].x.range() as [number, number],
+        range: vizs[v.name].x.domain() as [number, number],
         query: true,
         name: v.name
       };
@@ -68,7 +68,7 @@ connection.onOpen(() => {
 
       console.log('handleMousemove');
       api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
         views: getInactiveViews(dimension),
         indexes: [x],
         velocity: calculateVelocity(xPixels)
@@ -106,7 +106,7 @@ connection.onOpen(() => {
 
 
       api.load({
-        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
         views: getInactiveViews(dimension),
         index: extent[0]
       });
@@ -133,7 +133,7 @@ connection.onOpen(() => {
       }
       console.log('handleBrushmove');
       api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.range() }),
+        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
         views: getInactiveViews(dimension),
         indexes: indexes,
         velocity: calculateVelocity(xPixels)
@@ -159,7 +159,7 @@ connection.onOpen(() => {
       }
 
       const views = getInactiveViews(dimension);
-      const activeView = Object.assign({}, dimension, { range: viz.x.range() });
+      const activeView = Object.assign({}, dimension, { range: viz.x.domain() });
       loadIndices.forEach((index) => {
         api.load({ activeView, views, index });
       });
