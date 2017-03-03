@@ -188,11 +188,12 @@ class Session {
   private sizes: Sizes = {};
   private _onQuery: Callback;
 
+  private cache: SimpleCache;
+
+  // preloading
   private _preload?: Preload;
   private _preloadKeys: {[view: string]: string};
-  private nextIndex: IterableIterator<Point>;
-
-  private cache: SimpleCache;
+  private _nextIndex: IterableIterator<Point>;
 
   constructor(public readonly backend: Backend) { }
 
@@ -240,13 +241,11 @@ class Session {
     const maxRes = config.optimizations.maxResolution;
 
     if (request.activeView.type === '1D') {
-      const width = this.sizes[request.activeView.name] as number;
-      this.nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, width);
+      this._nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, request.activeView.dimension);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
-      const dimensions = this.sizes[request.activeView.name] as [number, number];
-      this.nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, dimensions);
+      this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.dimensions);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }
@@ -304,7 +303,7 @@ class Session {
       return;
     }
 
-    const {value, done} = this.nextIndex.next();
+    const {value, done} = this._nextIndex.next();
     if (done) {
       console.log('Nothing left to preload');
       this._preload = undefined;
