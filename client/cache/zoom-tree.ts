@@ -6,6 +6,8 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
+// TODO - Add an exact check to see if we can
+//        avoid sending any sort of load.
 const distanceGenerator = (n: number) => {
   return (a: number[], b: number[]) => {
     let d = 0;
@@ -28,9 +30,8 @@ class TreeNode {
 
   private getIndex(query: TreeNodeQuery) {
     const indexKeys = this.inactiveDimensions.map((d) => {
-      // TODO - We should snap these values to something.
       const brushes = query.brushes[d];
-      if (brushes) {
+      if (brushes && typeof brushes !== 'string') {
         return brushes.join(',');
       }
       return 'nobrush';
@@ -47,15 +48,12 @@ class TreeNode {
   }
 
   public set(query: TreeNodeQuery, data: number[] | number[][]): void {
-
-    console.log('settinging in tree node');
-    console.log(query);
     // Here we can assume that this data is at the
     // proper resolution for this node.
     const index = this.getIndex(query);
 
     if (!index.searchTree) {
-      const searchTree = createKdTree([], distanceGenerator(this.numDimensions) , query.indices.map((_, i) => i));
+      const searchTree = createKdTree([], distanceGenerator(this.numDimensions), query.indices.map((_, i) => i));
       index.searchTree = searchTree;
     }
 
@@ -124,12 +122,6 @@ class ZoomTree {
   }
 
   public set(query: CacheIndexQuery, data: number[] | number[][]): void {
-
-
-    console.log('settinging in tree node');
-    console.log(query);
-
-
     let currentResolution = 0;
     let currentNode = this.root;
     const resolution = query.resolution;
@@ -149,9 +141,7 @@ class ZoomTree {
     });
 
     const bins = lowerBins;
-
     while (currentResolution < resolution) {
-
       if (this.numDimensions === 1) {
         const bin = bins[0];
         const offset = Math.pow(2, resolution - currentResolution - 1);
@@ -265,7 +255,7 @@ class ZoomTree {
     return mergeData(data, currentNode.get(query as TreeNodeQuery));
   }
 
-  public get(query: CacheRangeQuery)  {
+  public get(query: CacheRangeQuery): {data: any, distance: number}  {
     /**
      * TODO - For now this just handles exact ranges
      *        e.g. if our data range is 0-100, ranges
@@ -285,10 +275,10 @@ class ZoomTree {
       const b = this.getAtIndices(indexQueryB) as number[];
 
       if (a === null || b === null) {
-        return null;
+        return { data: null, distance: Number.POSITIVE_INFINITY };
       }
 
-      return b.map((d, i) => d - a[i]);
+      return { data: b.map((d, i) => d - a[i]), distance: 1 };
     } else if (this.numDimensions === 2) {
       // throw new Error('Not implimented for 2 dimensions.');
       const indexQueryA = Object.assign({}, query, {
@@ -311,12 +301,12 @@ class ZoomTree {
       const d = this.getAtIndices(indexQueryD) as number[][];
 
       if (a === null || b === null || c === null || d === null) {
-        return null;
+        return { data: null, distance: Number.POSITIVE_INFINITY };
       }
 
       // Return
       // D - C - B + A
-      return d.map((arr, i) => arr.map((datum, j) => datum - b[i][j] - c[i][j] + a[i][j]));
+      return { data: d.map((arr, i) => arr.map((datum, j) => datum - b[i][j] - c[i][j] + a[i][j])), distance: 1 };
 
     } else {
       throw new Error('Not implimented for more than 2 dimensions.');
