@@ -6,6 +6,14 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
+/**
+ * TODO - To get this to work properly with
+ *        two dimensions we need to update the
+ *        zoomtree to have two dimension params,
+ *        the activedimension size, and the
+ *        data dimension size.
+ */
+
 const distanceGenerator = (n: number) => {
   return (a: number[], b: number[]) => {
     let d = 0;
@@ -278,7 +286,10 @@ class ZoomTree {
 
       return { data: b.map((d, i) => d - a[i]), distance: 1 };
     } else if (this.numDimensions === 2) {
-      // throw new Error('Not implimented for 2 dimensions.');
+
+      console.log('Querying 2D: ');
+      console.log(query);
+
       const indexQueryA = Object.assign({}, query, {
         indices: [query.activeRangeIndices[0][0], query.activeRangeIndices[1][0]] as [number, number]
       }) as CacheIndexQuery;

@@ -1,5 +1,5 @@
 import BrushableBar from './viz/brushable-bar';
-// import Brushable2D from './viz/brushable-2d';
+import Brushable2D from './viz/brushable-2d';
 import CacheVis from './viz/cache-vis';
 import connection from './ws';
 import API from './api';
@@ -11,7 +11,7 @@ import * as config from '../config';
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
-const vizs: {[dimension: string]: BrushableBar} = {};
+const vizs: {[dimension: string]: BrushableBar | Brushable2D} = {};
 const brushes: {[view: string]: (d3.BrushSelection | 'nobrush')} = {};
 let cacheVis: CacheVis | null = null;
 
@@ -22,9 +22,8 @@ let activeView: string = "ARR_DELAY";
  * active dimension -> current dimension -> zoom tree -> ranges -> data
  */
 const cache: {[view: string]: {[view: string]: ZoomTree}} = {};
-const views = config.views.filter(v => v.type === '1D') as View1D[];
+const views = config.views;
 const api = new API(connection);
-
 
 connection.onOpen(() => {
 
@@ -43,12 +42,24 @@ connection.onOpen(() => {
 
   const getInactiveViews = (dimension: View) => {
     return views.filter(v => { return v.name !== dimension.name }).map((v) => {
-      return {
-        type: v.type,
-        range: vizs[v.name].x.domain() as [number, number],
-        query: true,
-        name: v.name
-      };
+
+      if (v.type === '1D') {
+        return {
+          type: v.type,
+          range: vizs[v.name].x.domain() as [number, number],
+          query: true,
+          name: v.name
+        };
+      } else if (v.type === '2D') {
+        return {
+          type: v.type,
+          ranges: [vizs[v.name].x.domain(), vizs[v.name].y.domain()] as [[number, number], [number, number]],
+          query: true,
+          name: v.name
+        }
+      } else {
+        throw new Error('More than 2 Dimensions not supported');
+      }
     });
   }
 
@@ -61,15 +72,15 @@ connection.onOpen(() => {
         return;
       }
       // Start preloading values from this dimension.
-      const viz = vizs[dimension.name];
-      const xPixels = d3.mouse(viz.$content.node())[0];
-      const x = viz.x.invert(xPixels);
-      api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
-        views: getInactiveViews(dimension),
-        indexes: [x],
-        velocity: calculateVelocity(xPixels)
-      });
+      // const viz = vizs[dimension.name];
+      // const xPixels = d3.mouse(viz.$content.node())[0];
+      // const x = viz.x.invert(xPixels);
+      // api.preload({
+      //   activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+      //   views: getInactiveViews(dimension),
+      //   indexes: [x],
+      //   velocity: calculateVelocity(xPixels)
+      // });
     };
   };
 
@@ -165,7 +176,7 @@ connection.onOpen(() => {
   const handleBrushMove = (dimension: View) => {
     return () => {
       const viz = vizs[dimension.name];
-      const xPixels = d3.mouse(viz.$content.node())[0];
+      // const xPixels = d3.mouse(viz.$content.node())[0];
       const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       brushes[dimension.name] = extent;
@@ -185,12 +196,12 @@ connection.onOpen(() => {
         loadClosestForView(view.name);
       });
 
-      api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
-        views: inactiveViews,
-        indexes: indexes,
-        velocity: calculateVelocity(xPixels)
-      });
+      // api.preload({
+      //   activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+      //   views: inactiveViews,
+      //   indexes: indexes,
+      //   velocity: calculateVelocity(xPixels)
+      // });
       lastExtent = extent;
     };
   };
@@ -280,16 +291,16 @@ connection.onOpen(() => {
   });
 
   if (config.debugging.visualizeCache) {
-    cacheVis = new CacheVis(views, {width: CHART_WIDTH, height: 100});
+    // cacheVis = new CacheVis(views, {width: CHART_WIDTH, height: 100});
   }
 
   // Initialize empty charts
   views.forEach(view => {
     brushes[view.name] = 'nobrush';
     if (view.type === '1D') {
-      vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT});
     } else {
-      // vizs[view.name] = new Brushable2D(view as View2D, {width: CHART_WIDTH, height: CHART_HEIGHT})
+      vizs[view.name] = new Brushable2D(view as View2D, {width: CHART_WIDTH, height: CHART_HEIGHT});
       return;
     }
 
@@ -306,7 +317,11 @@ connection.onOpen(() => {
   // Initialize with resolutions
   let sizes: Sizes = {};
   views.forEach((view) => {
-    sizes[view.name] = vizs[view.name].contentWidth;
+    if (view.type === '1D') {
+      sizes[view.name] = vizs[view.name].contentWidth;
+    } else {
+      sizes[view.name] = [vizs[view.name].contentWidth, vizs[view.name].contentHeight];
+    }
   });
 
   views.forEach((activeView, i) => {
@@ -318,14 +333,13 @@ connection.onOpen(() => {
       const inactiveViews = views.filter((_, k) => j !== k).map((v) => v.name);
       let dimensionView;
 
-      // if (dataView.type === '1D') {
+      if (activeView.type === '1D') {
         dimensionView = dataView as View1D;
-        cache[activeView.name][dataView.name] = new ZoomTree(1, [sizes[dataView.name] as number], [dataView.range], inactiveViews);
-      // } else {
-      //   dimensionView = dataView as View2D;
-      //   // TODO - need to update `sizes` before this will work
-      //   // cache[activeView.name][dataView.name] = new ZoomTree(2, [CHART_WIDTH, CHART_HEIGHT], dataView.ranges, inactiveViews);
-      // }
+        cache[activeView.name][dataView.name] = new ZoomTree(1, [sizes[dataView.name] as number], dataView.type === '1D' ? [dataView.range] : dataView.ranges, inactiveViews);
+      } else {
+        dimensionView = dataView as View2D;
+        cache[activeView.name][dataView.name] = new ZoomTree(2, sizes[dataView.name] as [number, number], dataView.type === '1D' ? [dataView.range] : dataView.ranges, inactiveViews);
+      }
     });
   });
 

@@ -11,7 +11,7 @@ const binPadding = 1;
 
 class BrushableBar {
   public x: d3.ScaleLinear<number, number>;
-  private y: d3.ScaleLinear<number, number>;
+  public y: d3.ScaleLinear<number, number>;
   public brush: d3.BrushBehavior<any>;
   public $content: any;
   private $group: d3.Selection<any, any, any, any>;
