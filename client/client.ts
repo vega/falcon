@@ -12,6 +12,7 @@ const CHART_WIDTH = 600;
 const CHART_HEIGHT = 250;
 
 const vizs: {[dimension: string]: BrushableBar} = {};
+const brushes: {[view: string]: (d3.BrushSelection | 'nobrush')} = {};
 let cacheVis: CacheVis | null = null;
 
 let activeView: string = "ARR_DELAY";
@@ -59,14 +60,10 @@ connection.onOpen(() => {
       if (!hasBrushed || brushing) {
         return;
       }
-
       // Start preloading values from this dimension.
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
-
       const x = viz.x.invert(xPixels);
-
-      console.log('handleMousemove');
       api.preload({
         activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
         views: getInactiveViews(dimension),
@@ -82,11 +79,49 @@ connection.onOpen(() => {
   const preloadBrushSelection = (dimension: View) => {
     return () => {
       // TODO - make sure the brush is turned on..
-      console.log('preloadBrushSelection');
+      // console.log('preloadBrushSelection');
       // api.preload({
 
       // } as Preload);
     };
+  };
+
+  const loadClosestForView = (view: string) => {
+    let activeRangeIndices: any;
+    if (brushes[activeView] as any === 'nobrush') {
+      activeRangeIndices = vizs[activeView].x.domain();
+    } else {
+      activeRangeIndices = brushes[activeView];
+    }
+    const viz = vizs[view];
+    const inactiveBrushes: {[dimension: string]: Interval<number>} = {};
+    views.filter((view) => view.name !== name && view.name !== activeView).forEach((view) => {
+      inactiveBrushes[view.name] = brushes[view.name] as [number, number];
+    });
+
+    const { data, distance } = cache[activeView][view].get({
+      activeRangeIndices: [activeRangeIndices as [number, number]],
+      resolution: 0,
+      ranges: [viz.x.domain() as [number, number]],
+      brushes: inactiveBrushes
+    });
+
+    viz.update(data as number[], 0);
+    return distance;
+  }
+
+  const load = (loadQuery: Load) => {
+    // 1. Do a cache get.
+    // 2. If the distance is nonzero (or more than some epsilon?),
+    //    do a load call.
+    const loadViews: ViewQuery[] = [];
+    loadQuery.views.forEach((inactiveView) => {
+      const distance = loadClosestForView(inactiveView.name);
+      if (distance > 0) {
+        loadViews.push(inactiveView);
+      }
+    })
+    api.load(Object.assign({}, loadQuery, { views: loadViews }));
   };
 
   const handleBrushStart = (dimension: View) => {
@@ -96,16 +131,14 @@ connection.onOpen(() => {
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-
+      brushes[dimension.name] = extent;
       // Extent [0] === [1] in this case so it doesn't matter
       // which we use. We need to hang on to this value tho
       // so that we can load the proper one on brush end.
       lastExtent = extent;
-
       loadedStartValue = extent[0];
 
-
-      api.load({
+      load({
         activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
         views: getInactiveViews(dimension),
         index: extent[0]
@@ -119,7 +152,7 @@ connection.onOpen(() => {
       const xPixels = d3.mouse(viz.$content.node())[0];
       const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-
+      brushes[dimension.name] = extent;
       let indexes: Point[] = [];
       if (extent[0] === lastExtent[0]) {
         // move left side of brush
@@ -131,10 +164,14 @@ connection.onOpen(() => {
         // move the whole brush
         indexes = indexes.concat(extent);
       }
-      console.log('handleBrushmove');
+      const inactiveViews = getInactiveViews(dimension);
+      inactiveViews.forEach((view) => {
+        loadClosestForView(view.name);
+      });
+
       api.preload({
         activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
-        views: getInactiveViews(dimension),
+        views: inactiveViews,
         indexes: indexes,
         velocity: calculateVelocity(xPixels)
       });
@@ -148,6 +185,7 @@ connection.onOpen(() => {
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
+      brushes[dimension.name] = extent;
       const loadIndices = [];
       if (extent[0] === loadedStartValue) {
         loadIndices.push(extent[1]);
@@ -161,7 +199,7 @@ connection.onOpen(() => {
       const views = getInactiveViews(dimension);
       const activeView = Object.assign({}, dimension, { range: viz.x.domain() });
       loadIndices.forEach((index) => {
-        api.load({ activeView, views, index });
+        load({ activeView, views, index });
       });
       lastExtent = extent;
     };
@@ -215,6 +253,7 @@ connection.onOpen(() => {
     // for each view in the returned data, have it update from the cache.
     if (result.query.activeView && activeView === result.query.activeView.name) {
       result.query.views.forEach((view) => {
+
         updateViz(view.name);
       });
     }
@@ -230,6 +269,7 @@ connection.onOpen(() => {
 
   // Initialize empty charts
   views.forEach(view => {
+    brushes[view.name] = 'nobrush';
     if (view.type === '1D') {
       vizs[view.name] = new BrushableBar(view as View1D, {width: CHART_WIDTH, height: CHART_HEIGHT})
     } else {
@@ -274,36 +314,17 @@ connection.onOpen(() => {
   });
 
   const updateViz = (name: string) => {
-    const brushes: {[dimension: string]: Interval<number>} = {};
-
-    // TOOO - Make sure we are getting the correct
-    //        brush extents, and don't pass anything in
-    //        for an empty brush.
-    // views.filter((view) => view.name !== name).forEach((view) => {
-      // const viz = vizs[view.name];
-      // if (viz.brush.empty()) {
-      //   return;
-      // }
-      // const extentFunc = viz.brush.extent() as any;
-      // const extent = extentFunc() as [[number, number], [number, number]];
-      // const brushVal = [vizs[view.name].x.invert(extent[0][0]), vizs[view.name].x.invert(extent[1][0])];
-      // brushes[view.name] = brushVal as Interval<number>;
-    // });
+    const inactiveBrushes: {[dimension: string]: Interval<number>} = {};
+    views.filter((view) => view.name !== name && view.name !== activeView).forEach((view) => {
+      inactiveBrushes[view.name] = brushes[view.name] as [number, number];
+    });
 
     const viz = vizs[name];
     if (!viz) {
       return;
     }
-    const data = cache[activeView][name].get({
-      activeRangeIndices: [[0, 100]],
-      resolution: 0,
-      ranges: [viz.x.domain() as [number, number]],
-      brushes: brushes
-    });
 
-    if (data) {
-      viz.update(data as number[], 0);
-    }
+    loadClosestForView(name);
   }
 
   api.init({
