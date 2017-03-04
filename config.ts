@@ -109,5 +109,10 @@ export const debugging = {
   /**
    * Show debug client instead of visualizations.
    */
-  debugClient: false
+  debugClient: false,
+
+  /**
+   * Show execution time of critical functions
+   */
+  logPerformace: true
 };

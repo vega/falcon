@@ -87,6 +87,7 @@ connection.onOpen(() => {
   };
 
   const loadClosestForView = (view: string) => {
+    var t0 = performance.now();
     let activeRangeIndices: any;
     if (brushes[activeView] as any === 'nobrush') {
       activeRangeIndices = vizs[activeView].x.domain();
@@ -107,6 +108,11 @@ connection.onOpen(() => {
     });
 
     viz.update(data as number[], 0);
+    var t1 = performance.now();
+
+    if (config.debugging.logPerformace) {
+      console.log("Load closest took " + (t1 - t0) + " milliseconds.");
+    }
     return distance;
   }
 
@@ -114,6 +120,7 @@ connection.onOpen(() => {
     // 1. Do a cache get.
     // 2. If the distance is nonzero (or more than some epsilon?),
     //    do a load call.
+    var t0 = performance.now();
     const loadViews: ViewQuery[] = [];
     loadQuery.views.forEach((inactiveView) => {
       const distance = loadClosestForView(inactiveView.name);
@@ -122,6 +129,10 @@ connection.onOpen(() => {
       }
     })
     api.load(Object.assign({}, loadQuery, { views: loadViews }));
+    var t1 = performance.now();
+    if (config.debugging.logPerformace) {
+      console.log("Load took " + (t1 - t0) + " milliseconds.");
+    }
   };
 
   const handleBrushStart = (dimension: View) => {
