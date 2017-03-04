@@ -100,6 +100,8 @@ connection.onOpen(() => {
       inactiveBrushes[view.name] = brushes[view.name] as [number, number];
     });
 
+    console.log(cache);
+    console.log(activeView + ' ' + view);
     const { data, distance } = cache[activeView][view].get({
       activeRangeIndices: [activeRangeIndices as [number, number]],
       resolution: 0,
@@ -107,7 +109,9 @@ connection.onOpen(() => {
       brushes: inactiveBrushes
     });
 
-    viz.update(data as number[], 0);
+    if (data) {
+      viz.update(data as number[], 0);
+    }
     var t1 = performance.now();
 
     if (config.debugging.logPerformace) {
@@ -139,6 +143,7 @@ connection.onOpen(() => {
     return () => {
       brushing = true;
       hasBrushed = true;
+      activeView = dimension.name;
       const viz = vizs[dimension.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
@@ -304,23 +309,23 @@ connection.onOpen(() => {
     sizes[view.name] = vizs[view.name].contentWidth;
   });
 
-  config.views.forEach((activeView, i) => {
+  views.forEach((activeView, i) => {
     cache[activeView.name] = {};
-    config.views.forEach((dataView, j) => {
+    views.forEach((dataView, j) => {
       if (i === j) {
         return;
       }
-      const inactiveViews = config.views.filter((_, k) => j !== k).map((v) => v.name);
+      const inactiveViews = views.filter((_, k) => j !== k).map((v) => v.name);
       let dimensionView;
 
-      if (dataView.type === '1D') {
+      // if (dataView.type === '1D') {
         dimensionView = dataView as View1D;
         cache[activeView.name][dataView.name] = new ZoomTree(1, [sizes[dataView.name] as number], [dataView.range], inactiveViews);
-      } else {
-        dimensionView = dataView as View2D;
-        // TODO - need to update `sizes` before this will work
-        // cache[activeView.name][dataView.name] = new ZoomTree(2, [CHART_WIDTH, CHART_HEIGHT], dataView.ranges, inactiveViews);
-      }
+      // } else {
+      //   dimensionView = dataView as View2D;
+      //   // TODO - need to update `sizes` before this will work
+      //   // cache[activeView.name][dataView.name] = new ZoomTree(2, [CHART_WIDTH, CHART_HEIGHT], dataView.ranges, inactiveViews);
+      // }
     });
   });
 

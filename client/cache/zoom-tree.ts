@@ -6,8 +6,6 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
-// TODO - Add an exact check to see if we can
-//        avoid sending any sort of load.
 const distanceGenerator = (n: number) => {
   return (a: number[], b: number[]) => {
     let d = 0;
