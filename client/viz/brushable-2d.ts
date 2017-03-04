@@ -11,7 +11,7 @@ const binPadding = 1;
 
 class Brushable2D {
   public x: d3.ScaleLinear<number, number>;
-  private y: d3.ScaleLinear<number, number>;
+  public y: d3.ScaleLinear<number, number>;
   private color: d3.ScaleSequential<any>;
   public brush: d3.BrushBehavior<any>;
   public $content: any;
