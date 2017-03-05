@@ -7,7 +7,7 @@ export const padding = {
   right: 20
 };
 
-const binPadding = 1;
+const binPadding = 0;
 
 class Brushable2D {
   public x: d3.ScaleLinear<number, number>;
@@ -37,12 +37,13 @@ class Brushable2D {
 
     this.resolution = 0;
 
+    console.log(view.ranges);
     this.x = d3.scaleLinear()
       .range([0, contentWidth])
       .domain(view.ranges[0]);
 
     this.y = d3.scaleLinear()
-      .range([contentHeight, 0])
+      .range([0, contentHeight])
       .domain(view.ranges[1]);
 
     this.color = d3.scaleSequential(d3.interpolateViridis)
@@ -114,14 +115,22 @@ class Brushable2D {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[][], rangeError: number) {
-
-    console.log('received data !!!!!!!!!!!!!');
-    console.log(data);
-    const $bins = (this.$content.selectAll('.bin') as d3.Selection<any, any, any, any>).data(data, d => d);
-
     const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;
     this.color.domain([0, maxValue]);
-    this.$group.select('.axis--y').call(this.yAxis);
+
+    const $groups = (this.$content.selectAll('.data-group') as d3.Selection<any, any, any, any>).data(data, d => d)
+      .enter()
+      .append('g')
+      .attr('class', 'data-group')
+      .attr('transform', (d, i) => {
+        const { ranges, bins } = this.view;
+        const range = ranges[1];
+        console.log()
+        return `translate(0, ${this.y(range[0] + (i - 1) * (range[1] - range[0]) / bins[1])})`;
+      });
+
+    // this.$group.select('.axis--y').call(this.yAxis);
+    const $bins = $groups.selectAll('.bin').data((d) => d);
 
     $bins
       .enter()
@@ -129,16 +138,6 @@ class Brushable2D {
       .attr('class', 'bin')
 
     .merge($bins)
-      .attr('x', (_, i: number) => {
-        const { ranges, bins } = this.view;
-        const range = ranges[0]
-        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins[0]);
-      })
-      .attr('y', (d, i) => {
-        const { ranges, bins } = this.view;
-        const range = ranges[1]
-        return this.y(range[0] + (i - 1) * (range[1] - range[0]) / bins[1]);
-      })
       .attr('width', () => {
         const { ranges, bins } = this.view;
         const range = ranges[0];
@@ -147,7 +146,12 @@ class Brushable2D {
       .attr('height', (d) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        return this.y(range[0] + (range[1] - range[0]) / bins[1]) - 2 * binPadding;
+        return this.y((range[1] - range[0]) / bins[1]);
+      })
+      .attr('x', (_, i: number) => {
+        const { ranges, bins } = this.view;
+        const range = ranges[0];
+        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins[0]);
       })
       .attr('fill', (d) => {
         return this.color(d);
