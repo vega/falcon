@@ -268,11 +268,22 @@ connection.onOpen(() => {
         // TODO - What does "no index" mean?
         const index = (result.query.index as number) || -1;
         cache[result.query.activeView.name][view.name].set({
-            resolution: 0,
+            resolution: 0, // TODO - set resolution properly...
             ranges: [view.range],
             indices: [index],
             brushes: brushes
           }, result.data[view.name]);
+      } else {
+        console.log('2D RESULTS');
+        console.log(view);
+        const index = (result.query.index as number) || -1;
+        cache[result.query.activeView.name][view.name].set({
+            resolution: 0, // TODO - set resolution properly...
+            ranges: view.ranges,
+            indices: [index],
+            brushes: brushes
+          }, result.data[view.name]);
+
       }
     })
 
@@ -330,15 +341,19 @@ connection.onOpen(() => {
       if (i === j) {
         return;
       }
-      const inactiveViews = views.filter((_, k) => j !== k).map((v) => v.name);
-      let dimensionView;
-
+      const inactiveViews = views.filter((_, k) => j !== k && i !== k).map((v) => v.name);
       if (activeView.type === '1D') {
-        dimensionView = dataView as View1D;
-        cache[activeView.name][dataView.name] = new ZoomTree(1, [sizes[dataView.name] as number], dataView.type === '1D' ? [dataView.range] : dataView.ranges, inactiveViews);
+        if (dataView.type === '1D') {
+          cache[activeView.name][dataView.name] = new ZoomTree(1, 1, [sizes[activeView.name] as number], [dataView.range], inactiveViews);
+        } else {
+          cache[activeView.name][dataView.name] = new ZoomTree(1, 2, [sizes[activeView.name] as number], dataView.ranges, inactiveViews);
+        }
       } else {
-        dimensionView = dataView as View2D;
-        cache[activeView.name][dataView.name] = new ZoomTree(2, sizes[dataView.name] as [number, number], dataView.type === '1D' ? [dataView.range] : dataView.ranges, inactiveViews);
+        if (dataView.type === '1D') {
+          cache[activeView.name][dataView.name] = new ZoomTree(2, 1, sizes[activeView.name] as [number, number], [dataView.range], inactiveViews);
+        } else {
+          cache[activeView.name][dataView.name] = new ZoomTree(2, 2, sizes[activeView.name] as [number, number], dataView.ranges, inactiveViews);
+        }
       }
     });
   });

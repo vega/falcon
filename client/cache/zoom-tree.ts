@@ -6,14 +6,6 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
-/**
- * TODO - To get this to work properly with
- *        two dimensions we need to update the
- *        zoomtree to have two dimension params,
- *        the activedimension size, and the
- *        data dimension size.
- */
-
 const distanceGenerator = (n: number) => {
   return (a: number[], b: number[]) => {
     let d = 0;
@@ -28,8 +20,8 @@ class TreeNode {
   public children: TreeNode[];
   private rangeIndex: any;
 
-  constructor(private numDimensions: 1 | 2, private indexLength: [number] | [number, number], private inactiveDimensions: string[]) {
-    const childrenLength: number = Math.pow(2, numDimensions);
+  constructor(private activeDimensions: 1 | 2, private dataDimensions: 1 | 2, private indexLength: [number] | [number, number], private inactiveDimensions: string[]) {
+    const childrenLength: number = Math.pow(2, this.dataDimensions);
     this.children = Array(childrenLength);
     this.rangeIndex = {};
   }
@@ -59,7 +51,7 @@ class TreeNode {
     const index = this.getIndex(query);
 
     if (!index.searchTree) {
-      const searchTree = createKdTree([], distanceGenerator(this.numDimensions), query.indices.map((_, i) => i));
+      const searchTree = createKdTree([], distanceGenerator(this.activeDimensions), query.indices.map((_, i) => i));
       index.searchTree = searchTree;
     }
 
@@ -67,7 +59,7 @@ class TreeNode {
       index.dataIndex = {};
     }
 
-    if (this.numDimensions === 1) {
+    if (this.activeDimensions === 1) {
       index.dataIndex[query.indices[0]] = data;
     } else {
       if (!index.dataIndex[query.indices[0]]) {
@@ -103,7 +95,7 @@ class TreeNode {
 
     point = point[0][0];
     let currentDataIndex = index.dataIndex;
-    for (let i = 0; i < this.numDimensions; i++) {
+    for (let i = 0; i < this.activeDimensions; i++) {
       currentDataIndex = currentDataIndex[point[i]];
     }
     return currentDataIndex;
@@ -114,7 +106,7 @@ class TreeNode {
       return this.children[index];
     }
 
-    this.children[index] = new TreeNode(this.numDimensions, this.indexLength, this.inactiveDimensions);
+    this.children[index] = new TreeNode(this.activeDimensions, this.dataDimensions, this.indexLength, this.inactiveDimensions);
     return this.children[index];
   }
 };
@@ -123,8 +115,8 @@ class ZoomTree {
 
   private root: TreeNode;
 
-  constructor(public numDimensions: 1 | 2, public indexLength: [number] | [number, number], public ranges: [Interval<number>] | [Interval<number>, Interval<number>], private inactiveDimensions: string[]) {
-    this.root = new TreeNode(this.numDimensions, this.indexLength, this.inactiveDimensions);
+  constructor(public activeDimensions: 1 | 2, public dataDimensions: 1 | 2, public indexLength: [number] | [number, number], public ranges: [Interval<number>] | [Interval<number>, Interval<number>], private inactiveDimensions: string[]) {
+    this.root = new TreeNode(this.activeDimensions, this.dataDimensions, this.indexLength, this.inactiveDimensions);
   }
 
   public set(query: CacheIndexQuery, data: number[] | number[][]): void {
@@ -148,7 +140,7 @@ class ZoomTree {
 
     const bins = lowerBins;
     while (currentResolution < resolution) {
-      if (this.numDimensions === 1) {
+      if (this.dataDimensions === 1) {
         const bin = bins[0];
         const offset = Math.pow(2, resolution - currentResolution - 1);
         if (bin < offset) {
@@ -157,7 +149,7 @@ class ZoomTree {
           currentNode = currentNode.getChild(1);
           bins[0] = bins[0] - offset;
         }
-      } else if (this.numDimensions === 2) {
+      } else if (this.dataDimensions === 2) {
         const xBin = bins[0];
         const yBin = bins[1];
         const offset = Math.pow(2, resolution - currentResolution - 1);
@@ -220,7 +212,7 @@ class ZoomTree {
 
     while (currentResolution < resolution) {
 
-      if (this.numDimensions === 1) {
+      if (this.dataDimensions === 1) {
         const bin = bins[0];
         const offset = Math.pow(2, resolution - currentResolution - 1);
         if (bin < offset) {
@@ -229,7 +221,7 @@ class ZoomTree {
           currentNode = currentNode.getChild(1);
           bins[0] = bins[0] - offset;
         }
-      } else if (this.numDimensions === 2) {
+      } else if (this.dataDimensions === 2) {
         const xBin = bins[0];
         const yBin = bins[1];
         const offset = Math.pow(2, resolution - currentResolution - 1);
@@ -269,7 +261,7 @@ class ZoomTree {
      *        It probably makes sense to make this function
      *        smart enough to combine the ranges itself
      */
-    if (this.numDimensions === 1) {
+    if (this.activeDimensions === 1) {
       const indexQueryA = Object.assign({}, query, {
         indices: [query.activeRangeIndices[0][0]] as [number]
       }) as CacheIndexQuery;
@@ -277,15 +269,20 @@ class ZoomTree {
         indices: [query.activeRangeIndices[0][1]] as [number]
       }) as CacheIndexQuery;
 
-      const a = this.getAtIndices(indexQueryA) as number[];
-      const b = this.getAtIndices(indexQueryB) as number[];
+      const a = this.getAtIndices(indexQueryA);
+      const b = this.getAtIndices(indexQueryB);
 
       if (a === null || b === null) {
         return { data: null, distance: Number.POSITIVE_INFINITY };
       }
 
-      return { data: b.map((d, i) => d - a[i]), distance: 1 };
-    } else if (this.numDimensions === 2) {
+      if (this.dataDimensions === 1) {
+        return { data: (b as number[]).map((d, i) => d - (a as number[])[i]), distance: 1 };
+      } else {
+        return { data: (b as number[][]).map((d, i) => { return d.map((e, j) => { return e - (a as number[][])[i][j]; }) }), distance: 1 };
+      }
+
+    } else if (this.activeDimensions === 2) {
 
       console.log('Querying 2D: ');
       console.log(query);
@@ -304,10 +301,10 @@ class ZoomTree {
       }) as CacheIndexQuery;
 
 
-      const a = this.getAtIndices(indexQueryA) as number[][];
-      const b = this.getAtIndices(indexQueryB) as number[][];
-      const c = this.getAtIndices(indexQueryC) as number[][];
-      const d = this.getAtIndices(indexQueryD) as number[][];
+      let a = this.getAtIndices(indexQueryA);
+      let b = this.getAtIndices(indexQueryB);
+      let c = this.getAtIndices(indexQueryC);
+      let d = this.getAtIndices(indexQueryD);
 
       if (a === null || b === null || c === null || d === null) {
         return { data: null, distance: Number.POSITIVE_INFINITY };
@@ -315,7 +312,19 @@ class ZoomTree {
 
       // Return
       // D - C - B + A
-      return { data: d.map((arr, i) => arr.map((datum, j) => datum - b[i][j] - c[i][j] + a[i][j])), distance: 1 };
+      if (this.dataDimensions === 1) {
+        a = a as number[];
+        b = b as number[];
+        c = c as number[];
+        d = d as number[];
+        return { data: d.map((datum, i) => datum - (c as number[])[i] - (b as number[])[i] + (a as number[])[i]), distance: 1 };
+      } else {
+        a = a as number[][];
+        b = b as number[][];
+        c = c as number[][];
+        d = d as number[][];
+        return { data: d.map((arr, i) => arr.map((datum, j) => datum - (b as number[][])[i][j] - (c as number[][])[i][j] + (a as number[][])[i][j])), distance: 1 };
+      }
 
     } else {
       throw new Error('Not implimented for more than 2 dimensions.');
