@@ -37,7 +37,6 @@ class Brushable2D {
 
     this.resolution = 0;
 
-    console.log(view.ranges);
     this.x = d3.scaleLinear()
       .range([0, contentWidth])
       .domain(view.ranges[0]);
@@ -54,8 +53,9 @@ class Brushable2D {
 
     this.brush = d3.brush().extent([[0, 0], [contentWidth, contentHeight]]);
 
-    d3.select('body').append('div').text(view.title || '');
-    const $container = d3.select('body').append('div');
+    const $vizContainer = d3.select('body').append('div').style('display', 'inline-block');
+    $vizContainer.append('div').text(view.title || '');
+    const $container = $vizContainer.append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$group = $svg.append('g')
@@ -115,6 +115,8 @@ class Brushable2D {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[][], rangeError: number) {
+    data = data.slice(1).map(d => d.slice(1));
+
     const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;
     this.color.domain([0, maxValue]);
 
@@ -125,8 +127,7 @@ class Brushable2D {
       .attr('transform', (d, i) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        console.log()
-        return `translate(0, ${this.y(range[0] + (i - 1) * (range[1] - range[0]) / bins[1])})`;
+        return `translate(0, ${this.y(range[0] + (i) * (range[1] - range[0]) / bins[1])})`;
       });
 
     // this.$group.select('.axis--y').call(this.yAxis);
@@ -146,12 +147,12 @@ class Brushable2D {
       .attr('height', (d) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        return this.y((range[1] - range[0]) / bins[1]);
+        return this.y(range[0] + (range[1] - range[0]) / bins[1]);
       })
       .attr('x', (_, i: number) => {
         const { ranges, bins } = this.view;
         const range = ranges[0];
-        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins[0]);
+        return this.x(range[0] + (i) * (range[1] - range[0]) / bins[0]);
       })
       .attr('fill', (d) => {
         return this.color(d);
