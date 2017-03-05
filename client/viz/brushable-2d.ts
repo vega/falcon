@@ -113,11 +113,13 @@ class Brushable2D {
   /**
    * Update with new data and the range that was used for this data.
    */
-  public update(data: number[], rangeError: number) {
+  public update(data: number[][], rangeError: number) {
+
+    console.log('received data !!!!!!!!!!!!!');
+    console.log(data);
     const $bins = (this.$content.selectAll('.bin') as d3.Selection<any, any, any, any>).data(data, d => d);
 
-    const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];
-    const maxValue: number = d3.max(arr) || 0;
+    const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;
     this.color.domain([0, maxValue]);
     this.$group.select('.axis--y').call(this.yAxis);
 
