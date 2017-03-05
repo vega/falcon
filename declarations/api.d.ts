@@ -19,13 +19,13 @@ type ActiveView = {
   // range to preload in
   range: Interval<number>
   // number of pixels
-  dimension: number
+  pixel: number
 } | {
   type: '2D'
   // renages to preload in in x and y
   ranges: [Interval<number>, Interval<number>]
   // number of pixels in x and y dimension
-  dimensions: [number, number]
+  pixels: [number, number]
 })
 
 /**

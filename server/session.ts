@@ -205,9 +205,10 @@ class Session {
     if (config.optimizations.loadOnInit) {
       // load data for everything except the first view with the first view being active
       const first = config.views[0];
+      const firstActiveView = {...first, pixel: this.sizes[first.name]} as ActiveView;
       const load: QueryConfig = {
         index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
-        activeView: first,
+        activeView: firstActiveView,
         views: config.views.slice(1).map(v => {
           return {...v, query: true};
         }),
@@ -218,9 +219,10 @@ class Session {
 
       // load data for the first view, making the second one active
       const second = config.views[1];
+      const secondActiveView = {...second, pixel: this.sizes[second.name]} as ActiveView;
       const activeLoad: QueryConfig = {
         index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
-        activeView: second,
+        activeView: secondActiveView,
         views: [{...first, query: true}],
         cacheKeys: {}  // tmp
       };
@@ -241,11 +243,11 @@ class Session {
     const maxRes = config.optimizations.maxResolution;
 
     if (request.activeView.type === '1D') {
-      this._nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, request.activeView.dimension);
+      this._nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, request.activeView.pixel);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
-      this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.dimensions);
+      this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.pixels);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }

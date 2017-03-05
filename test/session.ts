@@ -53,7 +53,8 @@ describe('Session', function() {
         activeView: {
           type: '1D',
           name: 'active',
-          range: [0, 0]  // should not matter
+          range: [0, 0],  // should not matter
+          pixel: 500
         },
         index: 0.5,
         cacheKeys: {},

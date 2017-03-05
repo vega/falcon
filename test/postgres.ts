@@ -19,7 +19,8 @@ describe('Postgres', function() {
         activeView: {
           type: '1D',
           name: 'ARR_DELAY',
-          range: [0, 0]  // should not matter
+          range: [0, 0],  // should not matter
+          pixel: 500
         },
         index: 2,
         views: [],
