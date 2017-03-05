@@ -33,7 +33,7 @@ describe('Postgres', function() {
 
       expect(clean(query.text)).to.eql(clean(`SELECT width_bucket("DEP_DELAY", $1, $2, $3) as bucket, count(*)
       FROM flights
-      WHERE $4 < "DEP_DELAY" and "DEP_DELAY" < $5 and "ARR_DELAY" < $6
+      WHERE $4 <= "DEP_DELAY" and "DEP_DELAY" < $5 and "ARR_DELAY" < $6
       GROUP BY bucket
       ORDER BY bucket asc;`));
       expect(query.values).to.eql([-10, 42, 25, -10, 42, 2]);

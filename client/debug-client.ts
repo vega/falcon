@@ -21,10 +21,10 @@ const INIT: Init = {
 const active = 'ARR_DELAY';
 
 /*
-const LOAD_MESSAGE: Load = {
+const MESSAGE: Load = {
   type: 'load',
   index: 10,
-  activeView: views.find(v => v.name === active) as View1D,
+  activeView: {... views.find(v => v.name === active) as View1D, pixel: 500},
   views: views.filter(v => v.name !== active).map(v => {
     return {
       query: true,
@@ -33,7 +33,7 @@ const LOAD_MESSAGE: Load = {
   })
 };
 /*/
-const PRE_LOAD_MESSAGE: Preload = {
+const MESSAGE: Preload = {
   type: 'preload',
   indexes: [-5, 20],
   velocity: 10,
@@ -49,7 +49,7 @@ const PRE_LOAD_MESSAGE: Preload = {
 
 const div = d3.select('body').append('div');
 
-const textarea = div.append('textarea').style('display', 'block').style('height', '500px').style('width', '700px').text(JSON.stringify(PRE_LOAD_MESSAGE, null, 2));
+const textarea = div.append('textarea').style('display', 'block').style('height', '500px').style('width', '700px').text(JSON.stringify(MESSAGE, null, 2));
 const button = div.append('button').style('margin', '8px 0').style('font-size', '1.4em').text('Send request');
 const output = div.append('div').style('font-size', '0.9em');
 

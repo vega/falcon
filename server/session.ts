@@ -259,9 +259,10 @@ class Session {
     // check for cached results
     const results: ResultData = {};
     query.views.filter(v => v.query).forEach((v, i) => {
-      const hit = this.cache.get((query.cacheKeys|| {})[v.name], query.index);
-      console.log(`hit for ${(query.cacheKeys|| {})[v.name]}`);
+      const key = (query.cacheKeys|| {})[v.name];
+      const hit = this.cache.get(key, query.index);
       if (hit) {
+        console.log(`hit for ${key}`);
         results[v.name] = hit;
 
         // no need to query any more since we can already send the results
@@ -301,7 +302,6 @@ class Session {
 
   private nextQuery() {
     if (this._preload === undefined) {
-      console.log('Nothing to preload');
       return;
     }
 
