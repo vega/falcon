@@ -1,6 +1,34 @@
 
 import { createKdTree } from 'kd.tree';
 
+
+/**
+ * A few useful functions for checking the integrety of ranges
+ * passed to the zoom tree, and for combining multiple results
+ * correctly
+*/
+const getIndexOfValue = (bins: number, value: number, range: [number, number]) => {
+  return Math.floor((value - range[0]) / ((range[1] - range[0]) / bins));
+};
+
+const getSnappedRange = (index: number, bins: number, range: [number, number]) => {
+  return [range[0] + index * ((range[1] - range[0]) / bins), range[0] + (index + 1) * ((range[1] - range[0]) / bins)];
+};
+
+const isFullRange = (bins: number, range: [number, number], totalRange: [number, number]) => {
+  const idxA = getIndexOfValue(bins, range[0], totalRange);
+  const idxB = getIndexOfValue(bins, range[1], totalRange);
+  if (idxA === idxB - 1) {
+    const fullRange = getSnappedRange(idxA, bins, totalRange);
+    return range[0] === fullRange[0] && range[1] === fullRange[1];
+  }
+  return false;
+};
+
+
+/**
+ * Helpers for the TreeNode class
+ */
 interface TreeNodeQuery {
   indices: [number] | [number, number];
   brushes: { [dimension: string]: Interval<number> };
@@ -16,6 +44,9 @@ const distanceGenerator = (n: number) => {
   };
 };
 
+/**
+ * This class represents on node on the zoom tree.
+ */
 class TreeNode {
   public children: TreeNode[];
   private rangeIndex: any;
@@ -111,6 +142,10 @@ class TreeNode {
   }
 };
 
+
+/**
+ * Multidimensinal zoom-tree cache class
+ */
 class ZoomTree {
 
   private root: TreeNode;
@@ -127,13 +162,11 @@ class ZoomTree {
     // Calculate the bin # of the start and end of the
     // query dataRange
     const numBins = Math.pow(2, query.resolution);
-
-    const lowerBins = query.ranges.map((range, i) => Math.floor(range[0] - this.ranges[i][0] / (this.ranges[i][1] - this.ranges[i][0]) / numBins));
-    const upperBins = query.ranges.map((range, i) => Math.floor(range[1] - this.ranges[i][0] / (this.ranges[i][1] - this.ranges[i][0]) / numBins));
-
+    const lowerBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
+    const upperBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[1], this.ranges[i]));
     lowerBins.forEach((lowerBin, i) => {
       const upperBin = upperBins[i];
-      if (lowerBin !== upperBin && query.ranges[i][1] !== query.ranges[i][0] + (this.ranges[i][1] - this.ranges[i][0]) / numBins) {
+      if (lowerBin !== upperBin && !isFullRange(numBins, query.ranges[i], this.ranges[i])) {
         throw new Error('Invalid range. Both ends of the provided range must fall in the same node on the tree');
       }
     });
@@ -187,18 +220,7 @@ class ZoomTree {
     // Calculate the bin # of the start and end of the
     // query dataRange
     const numBins = Math.pow(2, query.resolution);
-
-    const lowerBins = query.ranges.map((range, i) => Math.floor(range[0] - this.ranges[i][0] / (this.ranges[i][1] - this.ranges[i][0]) / numBins));
-    const upperBins = query.ranges.map((range, i) => Math.floor(range[1] - this.ranges[i][0] / (this.ranges[i][1] - this.ranges[i][0]) / numBins));
-
-    lowerBins.forEach((lowerBin, i) => {
-      const upperBin = upperBins[i];
-      if (lowerBin !== upperBin && query.ranges[i][1] !== query.ranges[i][0] + (this.ranges[i][1] - this.ranges[i][0]) / numBins) {
-        throw new Error('Invalid range. Both ends of the provided range must fall in the same node on the tree');
-      }
-    });
-
-    const bins = lowerBins;
+    const bins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
     let data = [];
 
     const mergeData = (currentData: any, newData: any) => {
@@ -253,14 +275,7 @@ class ZoomTree {
     return mergeData(data, currentNode.get(query as TreeNodeQuery));
   }
 
-  public get(query: CacheRangeQuery): {data: any, distance: number}  {
-    /**
-     * TODO - For now this just handles exact ranges
-     *        e.g. if our data range is 0-100, ranges
-     *        in the form 0-100, 50-100, 25-50, etc.
-     *        It probably makes sense to make this function
-     *        smart enough to combine the ranges itself
-     */
+  private getSingleRange(query: CacheRangeQuery): {data: any, distance: number} {
     if (this.activeDimensions === 1) {
       const indexQueryA = Object.assign({}, query, {
         indices: [query.activeRangeIndices[0][0]] as [number]
@@ -283,10 +298,6 @@ class ZoomTree {
       }
 
     } else if (this.activeDimensions === 2) {
-
-      console.log('Querying 2D: ');
-      console.log(query);
-
       const indexQueryA = Object.assign({}, query, {
         indices: [query.activeRangeIndices[0][0], query.activeRangeIndices[1][0]] as [number, number]
       }) as CacheIndexQuery;
@@ -329,6 +340,43 @@ class ZoomTree {
     } else {
       throw new Error('Not implimented for more than 2 dimensions.');
     }
+  }
+
+  public get(query: CacheRangeQuery): {data: any, distance: number}  {
+    const numBins = Math.pow(2, query.resolution);
+    const lowerBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
+    const upperBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[1], this.ranges[i]));
+    let multipleRanges = false;
+    lowerBins.forEach((lowerBin, i) => {
+      const upperBin = upperBins[i];
+      if (lowerBin !== upperBin && !isFullRange(numBins, query.ranges[i], this.ranges[i])) {
+        multipleRanges = true;
+      }
+    });
+
+    if (!multipleRanges) {
+      return this.getSingleRange(query);
+    }
+
+    // TODO - Confirm this works properly for 2D as well.
+    const ranges = lowerBins.map((bin, i) => {
+      return getSnappedRange(bin, numBins, this.ranges[i]);
+    }).concat(upperBins.map((bin, i) => {
+      return getSnappedRange(bin, numBins, this.ranges[i])
+    }));
+
+    const results = ranges.map((range) => {
+      return this.getSingleRange(Object.assign({}, query, {
+        ranges: [range]
+      }));
+    });
+
+    return results.reduce((acc, val, index) => {
+      return {
+        data: acc.data.concat(val.data),
+        distance: acc.distance + val.distance
+      };
+    }, { data: [], distance: 0});
   }
 }
 

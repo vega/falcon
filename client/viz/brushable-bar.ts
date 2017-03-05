@@ -48,8 +48,9 @@ class BrushableBar {
 
     this.brush = d3.brushX().extent([[0, 0], [contentWidth, contentHeight]]);
 
-    d3.select('body').append('div').text(view.title || '');
-    const $container = d3.select('body').append('div');
+    const $vizContainer = d3.select('body').append('div').style('display', 'inline-block');
+    $vizContainer.append('div').text(view.title || '');
+    const $container = $vizContainer.append('div');
     const $svg = $container.append('svg').attr('width', width).attr('height', height);
 
     this.$group = $svg.append('g')
@@ -111,6 +112,8 @@ class BrushableBar {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[], rangeError: number) {
+
+    data = data.slice(1);
     const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
 
     const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];
@@ -128,7 +131,7 @@ class BrushableBar {
     .merge($bars)
       .attr('x', (_, i: number) => {
         const { range, bins } = this.view;
-        return this.x(range[0] + (i - 1) * (range[1] - range[0]) / bins);
+        return this.x(range[0] + (i) * (range[1] - range[0]) / bins);
       })
       .attr('y', (d) => {
         return this.y(d);

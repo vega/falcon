@@ -72,15 +72,15 @@ connection.onOpen(() => {
         return;
       }
       // Start preloading values from this dimension.
-      // const viz = vizs[dimension.name];
-      // const xPixels = d3.mouse(viz.$content.node())[0];
-      // const x = viz.x.invert(xPixels);
-      // api.preload({
-      //   activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
-      //   views: getInactiveViews(dimension),
-      //   indexes: [x],
-      //   velocity: calculateVelocity(xPixels)
-      // });
+      const viz = vizs[dimension.name];
+      const xPixels = d3.mouse(viz.$content.node())[0];
+      const x = viz.x.invert(xPixels);
+      api.preload({
+        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+        views: getInactiveViews(dimension),
+        indexes: [x],
+        velocity: calculateVelocity(xPixels)
+      });
     };
   };
 
@@ -111,8 +111,6 @@ connection.onOpen(() => {
       inactiveBrushes[view.name] = brushes[view.name] as [number, number];
     });
 
-    console.log(cache);
-    console.log(activeView + ' ' + view);
     const { data, distance } = cache[activeView][view].get({
       activeRangeIndices: [activeRangeIndices as [number, number]],
       resolution: 0,
@@ -176,7 +174,7 @@ connection.onOpen(() => {
   const handleBrushMove = (dimension: View) => {
     return () => {
       const viz = vizs[dimension.name];
-      // const xPixels = d3.mouse(viz.$content.node())[0];
+      const xPixels = d3.mouse(viz.$content.node())[0];
       const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
       brushes[dimension.name] = extent;
@@ -196,12 +194,12 @@ connection.onOpen(() => {
         loadClosestForView(view.name);
       });
 
-      // api.preload({
-      //   activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
-      //   views: inactiveViews,
-      //   indexes: indexes,
-      //   velocity: calculateVelocity(xPixels)
-      // });
+      api.preload({
+        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+        views: inactiveViews,
+        indexes: indexes,
+        velocity: calculateVelocity(xPixels)
+      });
       lastExtent = extent;
     };
   };
@@ -274,8 +272,6 @@ connection.onOpen(() => {
             brushes: brushes
           }, result.data[view.name]);
       } else {
-        console.log('2D RESULTS');
-        console.log(view);
         const index = (result.query.index as number) || -1;
         cache[result.query.activeView.name][view.name].set({
             resolution: 0, // TODO - set resolution properly...
@@ -283,7 +279,6 @@ connection.onOpen(() => {
             indices: [index],
             brushes: brushes
           }, result.data[view.name]);
-
       }
     })
 

@@ -9,7 +9,7 @@ describe('ZoomTree', function() {
 
     before(function() {
       // runs before all tests in this block
-      tree = new ZoomTree(1, [100], [[0, 100]], ['dimA']);
+      tree = new ZoomTree(1, 1, [100], [[0, 100]], ['dimA']);
     });
 
     it('should set a value properly', function() {
@@ -29,36 +29,36 @@ describe('ZoomTree', function() {
     });
 
     it('Should retrieve data where exact data is available', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
       });
 
-      expect(data).to.eql([10, 9, 8, 7, 6, 5]);
+      expect(results.data).to.eql([10, 9, 8, 7, 6, 5]);
     });
 
     it('Should retrieve data where only inexact data is available', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100]],
         activeRangeIndices: [[18, 37]],
         brushes: {}
       });
 
-      expect(data).to.eql([10, 9, 8, 7, 6, 5]);
+      expect(results.data).to.eql([10, 9, 8, 7, 6, 5]);
     });
 
     it('Should return null if there is nothing available for these brushes', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: { dimA: [20, 30] }
       });
 
-      expect(data).to.be.null;
+      expect(results.data).to.be.null;
     });
 
   });
@@ -67,7 +67,7 @@ describe('ZoomTree', function() {
     let tree: ZoomTree;
 
     before(function() {
-      tree = new ZoomTree(2, [100, 100], [[0, 100], [0, 100]], ['dimA']);
+      tree = new ZoomTree(2, 2, [100, 100], [[0, 100], [0, 100]], ['dimA']);
     });
 
     it('should set a value properly', function() {
@@ -101,36 +101,36 @@ describe('ZoomTree', function() {
     });
 
     it('Should retrieve data where exact data is available', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[20, 40], [20, 40]],
         brushes: {}
       });
 
-      expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
+      expect(results.data).to.eql([[0, 1, 2, 3, 4, 5]]);
     });
 
     it('Should retrieve data where only inexact data is available', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[18, 38], [22, 42]],
         brushes: {}
       });
 
-      expect(data).to.eql([[0, 1, 2, 3, 4, 5]]);
+      expect(results.data).to.eql([[0, 1, 2, 3, 4, 5]]);
     });
 
     it('Should return null if there is nothing available for these brushes', function() {
-      const data = tree.get({
+      const results = tree.get({
         resolution: 0,
         ranges: [[0, 100], [0, 100]],
         activeRangeIndices: [[18, 38], [22, 42]],
         brushes: { dimA: [20, 30] }
       });
 
-      expect(data).to.be.null;
+      expect(results.data).to.be.null;
     });
   });
 
@@ -139,7 +139,7 @@ describe('ZoomTree', function() {
 
     before(function() {
       // runs before all tests in this block
-      tree = new ZoomTree(1, [100], [[0, 100]], ['dimA']);
+      tree = new ZoomTree(1, 1, [100], [[0, 100]], ['dimA']);
     });
 
     it('should set a value properly', function() {
@@ -173,24 +173,36 @@ describe('ZoomTree', function() {
     });
 
     it('Should retrieve data at the proper range and resolution', function() {
-      let data = tree.get({
+      let results = tree.get({
         resolution: 1,
         ranges: [[0, 50]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
       });
 
-      expect(data).to.eql([-1, 0, 1, 2, 3, 4]);
+      expect(results.data).to.eql([-1, 0, 1, 2, 3, 4]);
 
-      data = tree.get({
+      results = tree.get({
         resolution: 1,
         ranges: [[50, 100]],
         activeRangeIndices: [[20, 40]],
         brushes: {}
       });
 
-      expect(data).to.eql([10, 10, 10, 10, 10, 10]);
+      expect(results.data).to.eql([10, 10, 10, 10, 10, 10]);
     });
+
+    it('Should combine results for offset ranges', function() {
+        const results = tree.get({
+          resolution: 1,
+          ranges: [[25, 75]],
+          activeRangeIndices: [[20, 40]],
+          brushes: {}
+        });
+
+        expect(results.data).to.eql([-1, 0, 1, 2, 3, 4, 10, 10, 10, 10, 10, 10]);
+    });
+
   });
 
 });

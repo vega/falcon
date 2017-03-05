@@ -99,7 +99,7 @@ export const debugging = {
   /**
    * Log api calls in the client.
    */
-  logApi: true,
+  logApi: false,
 
   /**
    * Show visualization of the cache state.
@@ -114,5 +114,5 @@ export const debugging = {
   /**
    * Show execution time of critical functions
    */
-  logPerformace: true
+  logPerformace: false
 };
