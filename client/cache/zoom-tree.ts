@@ -37,6 +37,11 @@ interface TreeNodeQuery {
   brushes: { [dimension: string]: Interval<number> };
 }
 
+interface CacheResults {
+  data: number[] | number[][] | null,
+  distance: number
+}
+
 const distanceGenerator = (n: number) => {
   return (a: number[], b: number[]) => {
     let d = 0;
@@ -111,11 +116,11 @@ class TreeNode {
     index.searchTree.insert(formattedPoint);
   }
 
-  public get(query: TreeNodeQuery): number[] | number[][] | null {
+  public get(query: TreeNodeQuery): CacheResults {
     const index = this.getIndex(query);
 
     if (!index.searchTree) {
-      return null;
+      return { data: null, distance: Number.POSITIVE_INFINITY };
     }
 
     const formattedPoint: {[key: string]: number} = {};
@@ -124,15 +129,17 @@ class TreeNode {
     });
     let point = index.searchTree.nearest(formattedPoint, 1);
     if (!point.length || !point[0].length) {
-      return null;
+      return { data: null, distance: Number.POSITIVE_INFINITY };
     }
 
     point = point[0][0];
     let currentDataIndex = index.dataIndex;
+    let distance = 0;
     for (let i = 0; i < this.activeDimensions; i++) {
+      distance += Math.pow(point[i] - query.indices[i], 2);
       currentDataIndex = currentDataIndex[point[i]];
     }
-    return currentDataIndex;
+    return { data: currentDataIndex, distance: Math.sqrt(distance) };
   }
 
   public getChild(index: number): TreeNode {
@@ -213,7 +220,7 @@ class ZoomTree {
     return currentNode.set(query, data);
   }
 
-  private getAtIndices(query: CacheIndexQuery): number[] | number[][] {
+  private getAtIndices(query: CacheIndexQuery): CacheResults {
     let currentResolution = 0;
     let currentNode = this.root;
     let resolution = query.resolution;
@@ -222,15 +229,18 @@ class ZoomTree {
     // query dataRange
     const numBins = Math.pow(2, query.resolution);
     const bins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
-    let data = [];
+    let data: CacheResults = { data: null, distance: Number.POSITIVE_INFINITY };
 
-    const mergeData = (currentData: any, newData: any) => {
-      // TODO - Fill this in. With this functionality
-      //        incomplete we will just return the
-      //        closest data at the proper resolution
-      //        and won't use the results from the
-      //        coarser zoom levels.
-      return newData;
+    const mergeData = (currentResults: CacheResults, newResults: CacheResults): CacheResults => {
+      if (!currentResults.data) {
+        return newResults;
+      }
+
+      if (newResults.data && newResults.distance < currentResults.distance) {
+        return newResults;
+      }
+
+      return currentResults;
     };
 
     while (currentResolution < resolution) {
@@ -276,7 +286,7 @@ class ZoomTree {
     return mergeData(data, currentNode.get(query as TreeNodeQuery));
   }
 
-  private getSingleRange(query: CacheRangeQuery): {data: any, distance: number} {
+  private getSingleRange(query: CacheRangeQuery): CacheResults {
     if (this.activeDimensions === 1) {
       const indexQueryA = Object.assign({}, query, {
         indices: [query.activeRangeIndices[0][0]] as [number]
@@ -288,14 +298,14 @@ class ZoomTree {
       const a = this.getAtIndices(indexQueryA);
       const b = this.getAtIndices(indexQueryB);
 
-      if (a === null || b === null) {
+      if (a.data === null || b.data === null) {
         return { data: null, distance: Number.POSITIVE_INFINITY };
       }
 
       if (this.dataDimensions === 1) {
-        return { data: (b as number[]).map((d, i) => d - (a as number[])[i]), distance: 1 };
+        return { data: (b.data as number[]).map((d, i) => d - (a.data as number[])[i]), distance: 1 };
       } else {
-        return { data: (b as number[][]).map((d, i) => { return d.map((e, j) => { return e - (a as number[][])[i][j]; }) }), distance: 1 };
+        return { data: (b.data as number[][]).map((d, i) => { return d.map((e, j) => { return e - (a.data as number[][])[i][j]; }) }), distance: 1 };
       }
 
     } else if (this.activeDimensions === 2) {
@@ -318,24 +328,16 @@ class ZoomTree {
       let c = this.getAtIndices(indexQueryC);
       let d = this.getAtIndices(indexQueryD);
 
-      if (a === null || b === null || c === null || d === null) {
+      if (a.data === null || b.data === null || c.data === null || d.data === null) {
         return { data: null, distance: Number.POSITIVE_INFINITY };
       }
 
       // Return
       // D - C - B + A
       if (this.dataDimensions === 1) {
-        a = a as number[];
-        b = b as number[];
-        c = c as number[];
-        d = d as number[];
-        return { data: d.map((datum, i) => datum - (c as number[])[i] - (b as number[])[i] + (a as number[])[i]), distance: 1 };
+        return { data: (d.data as number[]).map((datum, i) => datum - (c.data as number[])[i] - (b.data as number[])[i] + (a.data as number[])[i]), distance: 1 };
       } else {
-        a = a as number[][];
-        b = b as number[][];
-        c = c as number[][];
-        d = d as number[][];
-        return { data: d.map((arr, i) => arr.map((datum, j) => datum - (b as number[][])[i][j] - (c as number[][])[i][j] + (a as number[][])[i][j])), distance: 1 };
+        return { data: (d.data as number[][]).map((arr, i) => arr.map((datum, j) => datum - (b.data as number[][])[i][j] - (c.data as number[][])[i][j] + (a.data as number[][])[i][j])), distance: 1 };
       }
 
     } else {
@@ -372,9 +374,9 @@ class ZoomTree {
       }));
     });
 
-    return results.reduce((acc, val, index) => {
+    return results.reduce((acc: CacheResults, val, index) => {
       return {
-        data: acc.data.concat(val.data),
+        data: (acc.data || []).concat(val.data || []),
         distance: acc.distance + val.distance
       };
     }, { data: [], distance: 0});

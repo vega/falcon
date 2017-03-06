@@ -74,12 +74,12 @@ class BrushableBar {
       .call(this.yAxis);
 
 
-    // this.zoom = d3.zoom()
-    //     .scaleExtent([1, 10])
-    //     .translateExtent([[0, 0], [contentWidth, contentHeight]])
-    //     .on('zoom', this._zoomed.bind(this));
+    this.zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .translateExtent([[0, 0], [contentWidth, contentHeight]])
+        .on('zoom', this._zoomed.bind(this));
 
-    // $svg.call(this.zoom);
+    $svg.call(this.zoom);
 
     this.contentWidth = contentWidth;
     this.contentHeight = contentHeight;
