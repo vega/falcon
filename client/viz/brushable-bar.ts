@@ -21,7 +21,7 @@ class BrushableBar {
   private zoom: d3.ZoomBehavior<any, number>;
   public contentWidth: number;
   public contentHeight: number;
-  private resolution: number;
+  public resolution: number;
   private _transformCallback: (transform: d3.ZoomTransform, resolutionChanged: boolean) => void;
 
   constructor(private view: View1D, options: { width: number, height: number }) {

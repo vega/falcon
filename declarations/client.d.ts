@@ -4,8 +4,19 @@ interface CacheIndexQuery {
   /** The resolution for which to get data */
   resolution: number,
   /** The range to grab data for. If this overlaps
-   * multiple data chunks the cache will automatically combine 
+   * multiple data chunks the cache will automatically combine
    * the data
+   */
+  ranges: [Interval<number>] | [Interval<number>, Interval<number>],
+  /** The indices of the active dimension */
+  indices: [number] | [number, number],
+  /** The brushes set on inactive dimensions */
+  brushes: {[dimension: string]: Interval<number>}
+}
+
+interface CacheIndexSet {
+  /** The range to set data for. This must be properly snapped to
+   * a reasonable range
    */
   ranges: [Interval<number>] | [Interval<number>, Interval<number>],
   /** The indices of the active dimension */
@@ -19,7 +30,7 @@ interface CacheRangeQuery {
   /** The resolution for which to get data */
   resolution: number,
   /** The range to grab data for. If this overlaps
-   * multiple data chunks the cache will automatically combine 
+   * multiple data chunks the cache will automatically combine
    * the data
    */
   ranges: [Interval<number>] | [Interval<number>, Interval<number>],
