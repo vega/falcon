@@ -26,7 +26,7 @@ const isFullRange = (bins: number, range: [number, number], totalRange: [number,
 const getResolution = (range: [number, number], totalRange: [number, number]) => {
   const a = range[1] - range[0];
   const b = totalRange[1] - totalRange[0];
-  return Math.round(b / a);
+  return Math.round(b / a) - 1;
 };
 
 /**
@@ -162,9 +162,6 @@ class ZoomTree {
     let currentNode = this.root;
 
     const resolution = query.ranges.length ? getResolution(query.ranges[0], this.ranges[0]) : 0;
-
-    // Calculate the bin # of the start and end of the
-    // query dataRange
     const numBins = Math.pow(2, resolution);
     const lowerBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
     const upperBins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[1], this.ranges[i]));
