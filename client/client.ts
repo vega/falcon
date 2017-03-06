@@ -107,19 +107,23 @@ connection.onOpen(() => {
     }
     const viz = vizs[view];
     const inactiveBrushes: {[dimension: string]: Interval<number>} = {};
-    views.filter((view) => view.name !== name && view.name !== activeView).forEach((view) => {
-      inactiveBrushes[view.name] = brushes[view.name] as [number, number];
+    views.filter((v) => v.name !== view && v.name !== activeView).forEach((v) => {
+      inactiveBrushes[v.name] = brushes[v.name] as [number, number];
     });
 
     const { data, distance } = cache[activeView][view].get({
       activeRangeIndices: [activeRangeIndices as [number, number]],
-      resolution: 0,
+      resolution: viz.resolution,
       ranges: [viz.x.domain() as [number, number]],
       brushes: inactiveBrushes
     });
 
     if (data) {
-      viz.update(data as number[], 0);
+      /**
+       * TODO - I don't know how to make typescript stop
+       * complaining about this.....
+       */
+      viz.update(data, 0);
     }
     var t1 = performance.now();
 
@@ -266,7 +270,6 @@ connection.onOpen(() => {
         // TODO - What does "no index" mean?
         const index = (result.query.index as number) || -1;
         cache[result.query.activeView.name][view.name].set({
-            resolution: 0, // TODO - set resolution properly...
             ranges: [view.range],
             indices: [index],
             brushes: brushes
@@ -274,7 +277,6 @@ connection.onOpen(() => {
       } else {
         const index = (result.query.index as number) || -1;
         cache[result.query.activeView.name][view.name].set({
-            resolution: 0, // TODO - set resolution properly...
             ranges: view.ranges,
             indices: [index],
             brushes: brushes

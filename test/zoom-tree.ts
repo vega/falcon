@@ -14,14 +14,12 @@ describe('ZoomTree', function() {
 
     it('should set a value properly', function() {
       tree.set({
-        resolution: 0,
         ranges: [[0, 100]],
         indices: [20],
         brushes: {}
       }, [0, 1, 2, 3, 4, 5]);
 
       tree.set({
-        resolution: 0,
         ranges: [[0, 100]],
         indices: [40],
         brushes: {}
@@ -72,28 +70,24 @@ describe('ZoomTree', function() {
 
     it('should set a value properly', function() {
       tree.set({
-        resolution: 0,
         ranges: [[0, 100], [0, 100]],
         indices: [20, 20],
         brushes: {}
       }, [[1, 1, 1, 1, 1, 1]]);
 
       tree.set({
-        resolution: 0,
         ranges: [[0, 100], [0, 100]],
         indices: [20, 40],
         brushes: {}
       }, [[2, 2, 2, 2, 2, 2]]);
 
       tree.set({
-        resolution: 0,
         ranges: [[0, 100], [0, 100]],
         indices: [40, 20],
         brushes: {}
       }, [[2, 2, 2, 2, 2, 2]]);
 
       tree.set({
-        resolution: 0,
         ranges: [[0, 100], [0, 100]],
         indices: [40, 40],
         brushes: {}
@@ -144,28 +138,24 @@ describe('ZoomTree', function() {
 
     it('should set a value properly', function() {
       tree.set({
-        resolution: 1,
         ranges: [[0, 50]],
         indices: [20],
         brushes: {}
       }, [1, 1, 1, 1, 1, 1]);
 
       tree.set({
-        resolution: 1,
         ranges: [[0, 50]],
         indices: [40],
         brushes: {}
       }, [0, 1, 2, 3, 4, 5]);
 
       tree.set({
-        resolution: 1,
         ranges: [[50, 100]],
         indices: [20],
         brushes: {}
       }, [0, 0, 0, 0, 0, 0]);
 
       tree.set({
-        resolution: 1,
         ranges: [[50, 100]],
         indices: [40],
         brushes: {}

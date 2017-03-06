@@ -23,7 +23,7 @@ class Brushable2D {
   private zoom: d3.ZoomBehavior<any, number>;
   public contentWidth: number;
   public contentHeight: number;
-  private resolution: number;
+  public resolution: number;
   private _transformCallback: (transform: d3.ZoomTransform, resolutionChanged: boolean) => void;
 
   constructor(private view: View2D, options: { width: number, height: number }) {
@@ -115,10 +115,19 @@ class Brushable2D {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[][], rangeError: number) {
+    this.$content.selectAll('.data-group').remove();
     data = data.slice(1).map(d => d.slice(1));
 
     const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;
+
+    if (maxValue === 0) {
+      return;
+    }
     this.color.domain([0, maxValue]);
+
+    const snapToHalfPixel = (x: number) => {
+      return Math.round(x * 2) / 2;
+    };
 
     const $groups = (this.$content.selectAll('.data-group') as d3.Selection<any, any, any, any>).data(data, d => d)
       .enter()
@@ -127,7 +136,7 @@ class Brushable2D {
       .attr('transform', (d, i) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        return `translate(0, ${this.y(range[0] + (i) * (range[1] - range[0]) / bins[1])})`;
+        return `translate(0, ${snapToHalfPixel(this.y(range[0] + (i) * (range[1] - range[0]) / bins[1]))})`;
       });
 
     // this.$group.select('.axis--y').call(this.yAxis);
@@ -147,7 +156,7 @@ class Brushable2D {
       .attr('height', (d) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        return this.y(range[0] + (range[1] - range[0]) / bins[1]);
+        return snapToHalfPixel(this.y(range[0] + (range[1] - range[0]) / bins[1]));
       })
       .attr('x', (_, i: number) => {
         const { ranges, bins } = this.view;
