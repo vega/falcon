@@ -32,9 +32,6 @@ class Brushable2D {
 
     const contentHeight = height - padding.bottom - padding.top;
     const contentWidth = width - padding.left - padding.right;
-
-    console.log(contentHeight);
-    console.log(contentWidth);
     this.resolution = 0;
 
     this.x = d3.scaleLinear()
@@ -129,8 +126,6 @@ class Brushable2D {
       return Math.round(x * r) / r;
     };
 
-    console.log('ok');
-
     const $groups = (this.$content.selectAll('.data-group') as d3.Selection<any, any, any, any>).data(data, d => d)
       .enter()
       .append('g')
@@ -143,8 +138,6 @@ class Brushable2D {
 
     // this.$group.select('.axis--y').call(this.yAxis);
     const $bins = $groups.selectAll('.bin').data((d) => d);
-
-    console.log(this.view);
     $bins
       .enter()
       .append('rect')
