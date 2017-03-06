@@ -188,11 +188,12 @@ class Session {
   private sizes: Sizes = {};
   private _onQuery: Callback;
 
+  private cache: SimpleCache;
+
+  // preloading
   private _preload?: Preload;
   private _preloadKeys: {[view: string]: string};
-  private nextIndex: IterableIterator<Point>;
-
-  private cache: SimpleCache;
+  private _nextIndex: IterableIterator<Point>;
 
   constructor(public readonly backend: Backend) { }
 
@@ -204,9 +205,10 @@ class Session {
     if (config.optimizations.loadOnInit) {
       // load data for everything except the first view with the first view being active
       const first = config.views[0];
+      const firstActiveView = {...first, pixel: this.sizes[first.name]} as ActiveView;
       const load: QueryConfig = {
         index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
-        activeView: first,
+        activeView: firstActiveView,
         views: config.views.slice(1).map(v => {
           return {...v, query: true};
         }),
@@ -217,9 +219,10 @@ class Session {
 
       // load data for the first view, making the second one active
       const second = config.views[1];
+      const secondActiveView = {...second, pixel: this.sizes[second.name]} as ActiveView;
       const activeLoad: QueryConfig = {
         index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
-        activeView: second,
+        activeView: secondActiveView,
         views: [{...first, query: true}],
         cacheKeys: {}  // tmp
       };
@@ -240,13 +243,11 @@ class Session {
     const maxRes = config.optimizations.maxResolution;
 
     if (request.activeView.type === '1D') {
-      const width = this.sizes[request.activeView.name] as number;
-      this.nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, width);
+      this._nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, request.activeView.pixel);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
-      const dimensions = this.sizes[request.activeView.name] as [number, number];
-      this.nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, dimensions);
+      this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.pixels);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }
@@ -258,9 +259,10 @@ class Session {
     // check for cached results
     const results: ResultData = {};
     query.views.filter(v => v.query).forEach((v, i) => {
-      const hit = this.cache.get((query.cacheKeys|| {})[v.name], query.index);
-      console.log(`hit for ${(query.cacheKeys|| {})[v.name]}`);
+      const key = (query.cacheKeys|| {})[v.name];
+      const hit = this.cache.get(key, query.index);
       if (hit) {
+        console.log(`hit for ${key}`);
         results[v.name] = hit;
 
         // no need to query any more since we can already send the results
@@ -300,11 +302,10 @@ class Session {
 
   private nextQuery() {
     if (this._preload === undefined) {
-      console.log('Nothing to preload');
       return;
     }
 
-    const {value, done} = this.nextIndex.next();
+    const {value, done} = this._nextIndex.next();
     if (done) {
       console.log('Nothing left to preload');
       this._preload = undefined;

@@ -38,7 +38,7 @@ export const views: View[] = [{
   title: 'Delay Matrix',
   dimensions: ['DEP_DELAY', 'ARR_DELAY'],
   ranges: [[-10, 100], [-10, 100]],
-  bins: [25, 25]
+  bins: [30, 25]
 }];
 
 /**

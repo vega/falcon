@@ -14,9 +14,9 @@ class Postgres implements Backend {
 
   public static where(_var: (value: number) => void, name: string, lower?: number, upper?: number) {
     if (lower !== undefined && upper !== undefined) {
-      return `$${_var(lower)} < "${name}" and "${name}" < $${_var(upper)}`;
+      return `$${_var(lower)} <= "${name}" and "${name}" < $${_var(upper)}`;
     } else if (lower !== undefined) {
-      return `$${_var(lower)} < "${name}"`;
+      return `$${_var(lower)} <= "${name}"`;
     } else if (upper !== undefined) {
       return `"${name}" < $${_var(upper)}`;
     }
@@ -132,17 +132,17 @@ class Postgres implements Backend {
     const callback = (results: any[]) => {
       if (view.type === '1D') {
         const res = results as {bucket: string, count: string}[];
-        const r = d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+        const r = d3.range(config.viewIndex[view.name].bins as number).map(() => 0);
         res.forEach((d) => {
-          r[+d.bucket] = +d.count;
+          r[+d.bucket-1] = +d.count;
         });
         return r;
       } else {
         const res = results as {bucket1: string, bucket2: string, count: string}[];
         const v = config.viewIndex[view.name] as View2D;
-        const r = d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+        const r = d3.range(v.bins[0]).map(() => d3.range(v.bins[1]).map(() => 0));
         res.forEach((d) => {
-          r[+d.bucket1][+d.bucket2] = +d.count;
+          r[+d.bucket1-1][+d.bucket2-1] = +d.count;
         });
         return r;
       }
@@ -156,10 +156,10 @@ class Postgres implements Backend {
 
         // return 0s
         if (view.type === '1D') {
-          return d3.range(config.viewIndex[view.name].bins as number + 1).map(() => 0);
+          return d3.range(config.viewIndex[view.name].bins as number).map(() => 0);
         } else {
           const v = config.viewIndex[view.name] as View2D;
-          return d3.range(v.bins[0] + 1).map(() => d3.range(v.bins[1] + 1).map(() => 0));
+          return d3.range(v.bins[0]).map(() => d3.range(v.bins[1]).map(() => 0));
         }
       });
   }
