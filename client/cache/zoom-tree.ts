@@ -231,7 +231,7 @@ class ZoomTree {
     const bins = query.ranges.map((range, i) => getIndexOfValue(numBins, range[0], this.ranges[i]));
     let data: CacheResults = { data: null, distance: Number.POSITIVE_INFINITY };
 
-    const mergeData = (currentResults: CacheResults, newResults: CacheResults): CacheResults => {
+    const mergeData = (currentResults: CacheResults, newResults: CacheResults, index: number): CacheResults => {
       if (!currentResults.data) {
         return newResults;
       }
@@ -239,19 +239,50 @@ class ZoomTree {
       if (newResults.data && newResults.distance < currentResults.distance) {
         return newResults;
       }
+      console.log('MERGING!!!');
 
-      return currentResults;
+      if (this.dataDimensions === 1) {
+        const mergedResults: number[] = [];
+        const len = currentResults.data.length;
+        let half = Math.ceil(currentResults.data.length / 2);
+        switch (index) {
+          case 0:
+            (currentResults.data as number[]).slice(0, half).forEach((d, i) => {
+              mergedResults.push(d);
+              if (len % 2 === 0 || i !== half - 1) {
+                mergedResults.push(d);
+              }
+            });
+            break;
+          case 1:
+            if (len % 2 !== 0) {
+              half -= 1;
+            }
+            (currentResults.data as number[]).slice(half).forEach((d, i) => {
+              if (len % 2 === 0 || i !== 0) {
+                mergedResults.push(d);
+              }
+              mergedResults.push(d);
+            });
+            break;
+        }
+        console.log(mergedResults);
+        return { data: mergedResults, distance: currentResults.distance };
+      } else {
+        return currentResults;
+      }
     };
 
+    let childIndex = 0;
     while (currentResolution < resolution) {
 
       if (this.dataDimensions === 1) {
         const bin = bins[0];
         const offset = Math.pow(2, resolution - currentResolution - 1);
         if (bin < offset) {
-          currentNode = currentNode.getChild(0);
+          childIndex = 0;
         } else {
-          currentNode = currentNode.getChild(1);
+          childIndex = 1;
           bins[0] = bins[0] - offset;
         }
       } else if (this.dataDimensions === 2) {
@@ -260,16 +291,16 @@ class ZoomTree {
         const offset = Math.pow(2, resolution - currentResolution - 1);
         if (xBin < offset) {
           if (yBin < offset) {
-            currentNode = currentNode.getChild(0);
+            childIndex = 0;
           } else {
-            currentNode = currentNode.getChild(2);
+            childIndex = 2;
             bins[1] = bins[1] - offset;
           }
         } else {
           if (yBin < offset) {
-            currentNode = currentNode.getChild(1);
+            childIndex = 1;
           } else {
-            currentNode = currentNode.getChild(3);
+            childIndex = 3;
             bins[1] = bins[1] - offset;
           }
           bins[0] = bins[0] - offset;
@@ -279,11 +310,12 @@ class ZoomTree {
         throw new Error('Not implimented for more than 2 dimensions.');
       }
 
-      data = mergeData(data, currentNode.get(query as TreeNodeQuery));
+      currentNode = currentNode.getChild(childIndex);
+      data = mergeData(data, currentNode.get(query as TreeNodeQuery), childIndex);
       currentResolution++;
     }
 
-    return mergeData(data, currentNode.get(query as TreeNodeQuery));
+    return mergeData(data, currentNode.get(query as TreeNodeQuery), childIndex);;
   }
 
   private getSingleRange(query: CacheRangeQuery): CacheResults {
@@ -375,8 +407,10 @@ class ZoomTree {
     });
 
     return results.reduce((acc: CacheResults, val, index) => {
+      const currentData = acc.data as any[];
+      const newData = val.data as any[];
       return {
-        data: (acc.data || []).concat(val.data || []),
+        data: currentData.concat(newData),
         distance: acc.distance + val.distance
       };
     }, { data: [], distance: 0});
