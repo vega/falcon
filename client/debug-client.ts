@@ -33,7 +33,6 @@ const MESSAGE: Load = {
 };
 /*/
 const MESSAGE: Preload = {
-  type: 'preload',
   indexes: [-5, 20],
   velocity: 10,
   activeView: {... views.find(v => v.name === active) as View1D, pixel: 500},

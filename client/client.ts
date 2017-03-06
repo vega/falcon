@@ -40,6 +40,23 @@ connection.onOpen(() => {
       return v;
   };
 
+  const formatActiveView = (view: View): ActiveView => {
+    const viz = vizs[view.name];
+
+    if (view.type === '1D') {
+      return Object.assign({}, view, {
+        range: viz.x.domain(),
+        pixel: viz.contentWidth,
+      });
+    }
+    return {
+      name: view.name,
+      type: view.type,
+      ranges: [viz.x.domain(), viz.y.domain()] as [Interval<number>, Interval<number>],
+      pixels: [viz.contentWidth, viz.contentHeight],
+    };
+  }
+
   const getInactiveViews = (dimension: View) => {
     return views.filter(v => { return v.name !== dimension.name }).map((v) => {
 
@@ -76,7 +93,7 @@ connection.onOpen(() => {
       const xPixels = d3.mouse(viz.$content.node())[0];
       const x = viz.x.invert(xPixels);
       api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+        activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         indexes: [x],
         velocity: calculateVelocity(xPixels)
@@ -123,7 +140,7 @@ connection.onOpen(() => {
        * TODO - I don't know how to make typescript stop
        * complaining about this.....
        */
-      viz.update(data, 0);
+      viz.update(data as any[], 0);
     }
     var t1 = performance.now();
 
@@ -168,7 +185,7 @@ connection.onOpen(() => {
       loadedStartValue = extent[0];
 
       load({
-        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+        activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         index: extent[0]
       });
@@ -199,7 +216,7 @@ connection.onOpen(() => {
       });
 
       api.preload({
-        activeView: Object.assign({}, dimension, { range: viz.x.domain() }),
+        activeView: formatActiveView(dimension),
         views: inactiveViews,
         indexes: indexes,
         velocity: calculateVelocity(xPixels)
@@ -226,7 +243,7 @@ connection.onOpen(() => {
       }
 
       const views = getInactiveViews(dimension);
-      const activeView = Object.assign({}, dimension, { range: viz.x.domain() });
+      const activeView = formatActiveView(dimension);
       loadIndices.forEach((index) => {
         load({ activeView, views, index });
       });

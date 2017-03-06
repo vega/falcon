@@ -112,8 +112,6 @@ class BrushableBar {
    * Update with new data and the range that was used for this data.
    */
   public update(data: number[], rangeError: number) {
-
-    data = data.slice(1);
     const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
 
     const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];

@@ -7,8 +7,6 @@ export const padding = {
   right: 20
 };
 
-const binPadding = 0;
-
 class Brushable2D {
   public x: d3.ScaleLinear<number, number>;
   public y: d3.ScaleLinear<number, number>;
@@ -35,6 +33,8 @@ class Brushable2D {
     const contentHeight = height - padding.bottom - padding.top;
     const contentWidth = width - padding.left - padding.right;
 
+    console.log(contentHeight);
+    console.log(contentWidth);
     this.resolution = 0;
 
     this.x = d3.scaleLinear()
@@ -116,7 +116,6 @@ class Brushable2D {
    */
   public update(data: number[][], rangeError: number) {
     this.$content.selectAll('.data-group').remove();
-    data = data.slice(1).map(d => d.slice(1));
 
     const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;
 
@@ -125,9 +124,12 @@ class Brushable2D {
     }
     this.color.domain([0, maxValue]);
 
-    const snapToHalfPixel = (x: number) => {
-      return Math.round(x * 2) / 2;
+    const snapToResolution = (x: number, r: number) => {
+      // return Math.round(x);
+      return Math.round(x * r) / r;
     };
+
+    console.log('ok');
 
     const $groups = (this.$content.selectAll('.data-group') as d3.Selection<any, any, any, any>).data(data, d => d)
       .enter()
@@ -135,13 +137,14 @@ class Brushable2D {
       .attr('class', 'data-group')
       .attr('transform', (d, i) => {
         const { ranges, bins } = this.view;
-        const range = ranges[1];
-        return `translate(0, ${snapToHalfPixel(this.y(range[0] + (i) * (range[1] - range[0]) / bins[1]))})`;
+        const range = ranges[0];
+        return `translate(${snapToResolution(this.x(range[0] + (i) * (range[1] - range[0]) / bins[0]), 1)}, 0)`;
       });
 
     // this.$group.select('.axis--y').call(this.yAxis);
     const $bins = $groups.selectAll('.bin').data((d) => d);
 
+    console.log(this.view);
     $bins
       .enter()
       .append('rect')
@@ -151,17 +154,17 @@ class Brushable2D {
       .attr('width', () => {
         const { ranges, bins } = this.view;
         const range = ranges[0];
-        return this.x(range[0] + (range[1] - range[0]) / bins[0]) - 2 * binPadding;
+        return snapToResolution(this.x(range[0] + (range[1] - range[0]) / bins[0]), 1);
       })
       .attr('height', (d) => {
         const { ranges, bins } = this.view;
         const range = ranges[1];
-        return snapToHalfPixel(this.y(range[0] + (range[1] - range[0]) / bins[1]));
+        return snapToResolution(this.y(range[0] + (range[1] - range[0]) / bins[1]), 2);
       })
-      .attr('x', (_, i: number) => {
+      .attr('y', (_, i: number) => {
         const { ranges, bins } = this.view;
-        const range = ranges[0];
-        return this.x(range[0] + (i) * (range[1] - range[0]) / bins[0]);
+        const range = ranges[1];
+        return snapToResolution(this.y(range[0] + (i) * (range[1] - range[0]) / bins[1]), 2);
       })
       .attr('fill', (d) => {
         return this.color(d);
