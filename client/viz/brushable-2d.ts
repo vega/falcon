@@ -64,9 +64,9 @@ class Brushable2D {
 
     this.$content = this.$group.append('g').classed('content', true);
 
-    // this.$group.append('g')
-    //     .attr('class', 'brush')
-    //     .call(this.brush);
+    this.$group.append('g')
+        .attr('class', 'brush')
+        .call(this.brush);
 
     this.$groupX = this.$group.append('g')
       .attr('class', 'axis axis--x')
