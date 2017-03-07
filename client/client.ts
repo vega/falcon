@@ -25,6 +25,8 @@ const cache: {[view: string]: {[view: string]: ZoomTree}} = {};
 const views = config.views;
 const api = new API(connection);
 
+let requestId = 0;
+
 connection.onOpen(() => {
 
   let lastExtent: Interval<number | null> = [null, null];
@@ -94,6 +96,7 @@ connection.onOpen(() => {
       const x = viz.x.invert(xPixels);
       api.send({
         type: 'preload',
+        requestId: requestId++,
         activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         indexes: [x],
@@ -215,6 +218,7 @@ connection.onOpen(() => {
 
       api.send({
         type: 'preload',
+        requestId: requestId++,
         activeView: formatActiveView(dimension),
         views: inactiveViews,
         indexes: indexes,

@@ -41,6 +41,8 @@ interface Load extends AbstractLoad {
  * Load data around this query.
  */
 interface Preload extends AbstractLoad {
+  /** Identifier for this request. */
+  requestId: number,
   type: 'preload',
   /** Like value in load but can be multiple values. */
   indexes: Point[]
@@ -58,15 +60,16 @@ interface Init {
   sizes: Sizes
 }
 
-type Profile = {
+interface Profile {
   type: 'profile',
+  /** Timing stats for each view. */
   stats: {[view: string]: {
     mean: number,
     median: number
   }}
 }
 
-declare type ApiRequest = Init | Preload | Load | Profile
+declare type ApiRequest = Init | Preload | Load | Profile;
 
 /**
  * Responses
