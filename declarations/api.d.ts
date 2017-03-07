@@ -40,15 +40,18 @@ interface Load extends AbstractLoad {
 /**
  * Load data around this query.
  */
-interface Preload extends AbstractLoad {
+interface GenericPreload<T extends Point> extends AbstractLoad {
   /** Identifier for this request. */
   requestId: number,
   type: 'preload',
   /** Like value in load but can be multiple values. */
-  indexes: Point[]
+  indexes: T[]
   /** Velocity in units per ms. */
-  velocity: Point
+  velocity: T,
+  acceleration: T;
 }
+
+type Preload = GenericPreload<Point1D> | GenericPreload<Point2D>
 
 type Sizes = {[view: string]: number | number[]}
 
