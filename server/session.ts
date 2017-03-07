@@ -210,7 +210,6 @@ class Session {
       // load data for everything except the first view with the first view being active
       const first = config.views[0];
       const load: QueryConfig = {
-        index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
         activeViewName: first.name,
         views: config.views.slice(1).map(v => {
           return {...v, query: true};
@@ -223,7 +222,6 @@ class Session {
       // load data for the first view, making the second one active
       const second = config.views[1];
       const activeLoad: QueryConfig = {
-        index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
         activeViewName: second.name,
         views: [{...first, query: true}],
         cacheKeys: {}  // tmp
@@ -288,7 +286,9 @@ class Session {
     if (config.optimizations.sendCached && l) {
       console.log(`Sending cached result with ${l} entries`);
       if (this._onQuery) {
-        this._onQuery(query, results);
+        const q = Object.assign({}, query);
+        delete q.cacheKeys;
+        this._onQuery(q, results);
       }
     }
 
@@ -370,7 +370,9 @@ class Session {
       }
 
       if (this._onQuery) {
-        this._onQuery(query, results);
+        const q = Object.assign({}, query);
+        delete q.cacheKeys;
+        this._onQuery(q, results);
       }
     };
   }
