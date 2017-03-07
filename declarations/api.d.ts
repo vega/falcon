@@ -3,6 +3,8 @@
  */
 
 interface AbstractLoad {
+  requestId: number,
+
   /** Dimension for which the index is valid. This is usually the dimension which the user is interacting with.  */
   activeView: ActiveView
   /**
@@ -58,8 +60,15 @@ interface Init {
   sizes: Sizes
 }
 
+type Profile = {
+  type: 'profile',
+  stats: {[view: string]: {
+    mean: number,
+    median: number
+  }}
+}
 
-declare type ApiRequest = Init | Preload | Load
+declare type ApiRequest = Init | Preload | Load | Profile
 
 /**
  * Responses
