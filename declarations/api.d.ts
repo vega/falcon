@@ -40,17 +40,25 @@ interface Load extends AbstractLoad {
 /**
  * Load data around this query.
  */
-interface Preload extends AbstractLoad {
+interface GenericPreload<T extends Point> extends AbstractLoad {
   /** Identifier for this request. */
   requestId: number,
   type: 'preload',
   /** Like value in load but can be multiple values. */
-  indexes: Point[]
+  indexes: T[]
   /** Velocity in units per ms. */
-  velocity: Point
+  velocity: T,
+  acceleration: T;
 }
 
+type Preload = GenericPreload<Point1D> | GenericPreload<Point2D>
+
 type Sizes = {[view: string]: number | number[]}
+
+type Stats = {[view: string]: {
+  mean: number,
+  median: number
+}}
 
 /**
  * Initialize the app. Sets the sizes of the views on the server.
@@ -63,13 +71,10 @@ interface Init {
 interface Profile {
   type: 'profile',
   /** Timing stats for each view. */
-  stats: {[view: string]: {
-    mean: number,
-    median: number
-  }}
+  stats: Stats
 }
 
-declare type ApiRequest = Init | Preload | Load | Profile;
+declare type ApiRequest = Init | Preload | Load | Profile
 
 /**
  * Responses

@@ -186,6 +186,8 @@ class Session {
   private closed: boolean = false;
   private hasUserInteracted: boolean = false;
   private sizes: Sizes = {};
+  private stats: Stats = {};
+
   private _onQuery: Callback;
 
   private cache: SimpleCache;
@@ -231,6 +233,10 @@ class Session {
     }
   }
 
+  public profile(request: Profile) {
+    this.stats = request.stats;
+  }
+
   public onQuery(cb: Callback) {
     this._onQuery = cb;
   }
@@ -243,10 +249,18 @@ class Session {
     const maxRes = config.optimizations.maxResolution;
 
     if (request.activeView.type === '1D') {
-      this._nextIndex = new1DIterator(request.indexes as Point1D[], subdivisions, maxRes, request.activeView.pixel);
+      const idx = request.indexes as Point1D[];
+      const vel = request.velocity as number;
+      const acc = request.acceleration as number;
+      const times = request.views.filter(v => v.query).map(v => this.stats[v.name].median || config.optimizations.defaultRoundtripTime);
+      const time = times.length ? times.reduce((p, c) => p + c) / times.length : config.optimizations.defaultRoundtripTime;
+      const offset = vel * time + (acc * time * time) / 2;
+
+      this._nextIndex = new1DIterator(idx.map(i => i + offset), subdivisions, maxRes, request.activeView.pixel);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
+      // TODO: use velocity and acceleration in 2D
       this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.pixels);
 
       console.log('Create new 2D preload iterator', request.indexes);

@@ -13,7 +13,7 @@ const CHART_HEIGHT = 250;
 
 const vizs: {[dimension: string]: BrushableBar | Brushable2D} = {};
 const brushes: {[view: string]: (d3.BrushSelection | 'nobrush')} = {};
-let cacheVis: CacheVis | null = null;
+const cacheVis: CacheVis | null = null;
 
 let activeView: string = 'ARR_DELAY';
 
@@ -100,7 +100,9 @@ connection.onOpen(() => {
         activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         indexes: [x],
-        velocity: calculateVelocity(xPixels)
+        velocity: calculateVelocity(xPixels),
+        // TODO: implement acceleration
+        acceleration: 0
       });
     };
   };
@@ -193,14 +195,14 @@ connection.onOpen(() => {
     };
   };
 
-  const handleBrushMove = (dimension: View) => {
+  const handleBrushMove = (view: View) => {
     return () => {
-      const viz = vizs[dimension.name];
+      const viz = vizs[view.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const s: Interval<number> = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      brushes[dimension.name] = extent;
-      let indexes: Point[] = [];
+      brushes[view.name] = extent;
+      let indexes: Point1D[] = [];
       if (extent[0] === lastExtent[0]) {
         // move left side of brush
         indexes.push(extent[1]);
@@ -211,30 +213,32 @@ connection.onOpen(() => {
         // move the whole brush
         indexes = indexes.concat(extent);
       }
-      const inactiveViews = getInactiveViews(dimension);
-      inactiveViews.forEach((view) => {
-        loadClosestForView(view.name);
+      const inactiveViews = getInactiveViews(view);
+      inactiveViews.forEach(v => {
+        loadClosestForView(v.name);
       });
 
       api.send({
         type: 'preload',
         requestId: requestId++,
-        activeView: formatActiveView(dimension),
+        activeView: formatActiveView(view),
         views: inactiveViews,
         indexes: indexes,
-        velocity: calculateVelocity(xPixels)
+        velocity: calculateVelocity(xPixels),
+        // TODO: implement acceleration
+        acceleration: 0
       });
       lastExtent = extent;
     };
   };
 
-  const handleBrushEnd = (dimension: View) => {
+  const handleBrushEnd = (view: View) => {
     return () => {
       brushing = false;
-      const viz = vizs[dimension.name];
+      const viz = vizs[view.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      brushes[dimension.name] = extent;
+      brushes[view.name] = extent;
       const loadIndices = [];
       if (extent[0] === loadedStartValue) {
         loadIndices.push(extent[1]);
@@ -245,8 +249,8 @@ connection.onOpen(() => {
         loadIndices.push(extent[1]);
       }
 
-      const views = getInactiveViews(dimension);
-      const activeView = formatActiveView(dimension);
+      const views = getInactiveViews(view);
+      const activeView = formatActiveView(view);
       loadIndices.forEach((index) => {
         load({ activeView, views, index, type: 'load' });
       });
@@ -277,7 +281,7 @@ connection.onOpen(() => {
         return;
        }
 
-      let brushes: {[dimension: string]: Interval<number>} = {};
+      const brushes: {[dimension: string]: Interval<number>} = {};
       result.query.views.forEach((inactiveView, j) => {
         if (inactiveView.type === '1D' && inactiveView.brush) {
           brushes[inactiveView.name] = inactiveView.brush;
@@ -342,7 +346,7 @@ connection.onOpen(() => {
   });
 
   // Initialize with resolutions
-  let sizes: Sizes = {};
+  const sizes: Sizes = {};
   views.forEach((view) => {
     if (view.type === '1D') {
       sizes[view.name] = vizs[view.name].contentWidth;

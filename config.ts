@@ -92,7 +92,11 @@ export const optimizations = {
   /**
    * Send results that are cached.
    */
-  sendCached: false
+  sendCached: false,
+  /**
+   * Default query and network roundtrip time in ms.
+   */
+  defaultRoundtripTime: 200
 };
 
 export const debugging = {
