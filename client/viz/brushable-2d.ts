@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { is1D } from '../../utils';
 
 export const padding = {
   top: 10,
@@ -111,7 +112,11 @@ class Brushable2D {
   /**
    * Update with new data and the range that was used for this data.
    */
-  public update(data: number[][], rangeError: number) {
+  public update(data: ResultRow, rangeError: number) {
+    if (is1D(data)) {
+      throw new Error('2D visualization can only handle 2D data');
+    }
+
     this.$content.selectAll('.data-group').remove();
 
     const maxValue: number = d3.max(data.map((arr) => { return d3.max(arr) as number; })) as number;

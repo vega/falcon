@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { is2D } from '../../utils';
 
 export const padding = {
   top: 10,
@@ -111,7 +112,11 @@ class BrushableBar {
   /**
    * Update with new data and the range that was used for this data.
    */
-  public update(data: number[], rangeError: number) {
+  public update(data: ResultRow, rangeError: number) {
+    if (is2D(data)) {
+      throw new Error('1D visualization can only handle 1D data');
+    }
+
     const $bars = (this.$content.selectAll('.bar') as d3.Selection<any, any, any, any>).data(data, d => d);
 
     const arr = [d3.max(data) || 0, this.y.domain()[1] || 0];

@@ -15,7 +15,7 @@ const vizs: {[dimension: string]: BrushableBar | Brushable2D} = {};
 const brushes: {[view: string]: (d3.BrushSelection | 'nobrush')} = {};
 let cacheVis: CacheVis | null = null;
 
-let activeView: string = "ARR_DELAY";
+let activeView: string = 'ARR_DELAY';
 
 /**
  * We need to go from
@@ -55,10 +55,10 @@ connection.onOpen(() => {
       ranges: [viz.x.domain(), viz.y.domain()] as [Interval<number>, Interval<number>],
       pixels: [viz.contentWidth, viz.contentHeight],
     };
-  }
+  };
 
   const getInactiveViews = (dimension: View) => {
-    return views.filter(v => { return v.name !== dimension.name }).map((v) => {
+    return views.filter(v => { return v.name !== dimension.name; }).map((v) => {
 
       if (v.type === '1D') {
         return {
@@ -73,12 +73,12 @@ connection.onOpen(() => {
           ranges: [vizs[v.name].x.domain(), vizs[v.name].y.domain()] as [[number, number], [number, number]],
           query: true,
           name: v.name
-        }
+        };
       } else {
         throw new Error('More than 2 Dimensions not supported');
       }
     });
-  }
+  };
 
   let brushing = false;
   let hasBrushed = false;
@@ -115,9 +115,9 @@ connection.onOpen(() => {
   };
 
   const loadClosestForView = (view: string) => {
-    var t0 = performance.now();
+    const t0 = performance.now();
     let activeRangeIndices: any;
-    if (brushes[activeView] as any === 'nobrush') {
+    if (brushes[activeView] === 'nobrush') {
       activeRangeIndices = vizs[activeView].x.domain();
     } else {
       activeRangeIndices = brushes[activeView];
@@ -136,19 +136,15 @@ connection.onOpen(() => {
     });
 
     if (data) {
-      /**
-       * TODO - I don't know how to make typescript stop
-       * complaining about this.....
-       */
-      viz.update(data as any[], 0);
+      viz.update(data, 0);
     }
-    var t1 = performance.now();
+    const t1 = performance.now();
 
     if (config.debugging.logPerformace) {
-      console.log("Load closest took " + (t1 - t0) + " milliseconds.");
+      console.log(`Load closest took ${t1 - t0} milliseconds.`);
     }
     return distance;
-  }
+  };
 
   const load = (loadQuery: Load) => {
     // 1. Do a cache get.
@@ -161,11 +157,11 @@ connection.onOpen(() => {
       if (distance > 0) {
         loadViews.push(inactiveView);
       }
-    })
+    });
     api.load(Object.assign({}, loadQuery, { views: loadViews }));
     var t1 = performance.now();
     if (config.debugging.logPerformace) {
-      console.log("Load took " + (t1 - t0) + " milliseconds.");
+      console.log('Load took ' + (t1 - t0) + ' milliseconds.');
     }
   };
 
@@ -258,7 +254,7 @@ connection.onOpen(() => {
         console.log(view.name + ' zoomed to resolution ' + transform.k);
       }
     };
-  }
+  };
 
   api.onResult((result: Result) => {
     /**
@@ -299,13 +295,12 @@ connection.onOpen(() => {
             brushes: brushes
           }, result.data[view.name]);
       }
-    })
+    });
 
     // If the active dimension is correct,
     // for each view in the returned data, have it update from the cache.
     if (result.query.activeView && activeView === result.query.activeView.name) {
       result.query.views.forEach((view) => {
-
         updateViz(view.name);
       });
     }
@@ -384,7 +379,7 @@ connection.onOpen(() => {
     }
 
     loadClosestForView(name);
-  }
+  };
 
   api.init({
     sizes
