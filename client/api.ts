@@ -4,26 +4,6 @@ import {Connection} from './ws';
 class API {
   constructor(public connection: Connection) {
   }
-
-  /**
-   * Initialize sizes and get initial data.
-   */
-  public init(request: Init) {
-    this.send(Object.assign({}, { type: 'init' },  request) as ApiRequest);
-  }
-
-  // Call this when you want to request a value
-  // to be computed immediately.
-  public load(request: Load) {
-    this.send(Object.assign({}, { type: 'load' },  request) as ApiRequest);
-  }
-
-  // Call this when you want to suggest how the
-  // server should prioritize background queries.
-  public preload(request: Preload) {
-    this.send(Object.assign({}, { type: 'preload' },  request) as ApiRequest);
-  }
-
   /**
    * Send an arbitrary requet to the server.
    */
