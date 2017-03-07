@@ -3,8 +3,6 @@
  */
 
 interface AbstractLoad {
-  requestId: number,
-
   /** Dimension for which the index is valid. This is usually the dimension which the user is interacting with.  */
   activeView: ActiveView
   /**
