@@ -6,7 +6,7 @@ interface Backend {
 }
 
 interface QueryConfig {
-  activeView?: ActiveView
+  activeViewName?: string
   index?: Point
   views: ViewQuery[]
   cacheKeys?: {[view: string]: string}

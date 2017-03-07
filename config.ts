@@ -96,7 +96,7 @@ export const optimizations = {
   /**
    * Default query and network roundtrip time in ms.
    */
-  defaultRoundtripTime: 200
+  defaultRoundtripTime: 20
 };
 
 export const debugging = {

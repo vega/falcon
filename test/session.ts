@@ -50,12 +50,7 @@ describe('Session', function() {
   describe('Cache', function() {
     it('should create correct keys', function() {
       const keys = getKeys({
-        activeView: {
-          type: '1D',
-          name: 'active',
-          range: [0, 0],  // should not matter
-          pixel: 500
-        },
+        activeViewName: 'active',
         index: 0.5,
         cacheKeys: {},
         views: [{

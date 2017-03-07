@@ -7,12 +7,7 @@ describe('Random', function() {
     const r = new Random();
     const query = r.query({
       index: 20,
-      activeView: {
-        name: 'DEP_DELAY',
-        type: '1D',
-        range: [-10, 100],
-        pixel: 500
-      },
+      activeViewName: 'DEP_DELAY',
       views: [{
         name: 'ARR_DELAY',
         type: '1D',

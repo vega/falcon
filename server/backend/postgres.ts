@@ -75,14 +75,14 @@ class Postgres implements Backend {
     }
 
     // where clause for active view
-    if (queryConfig.activeView && queryConfig.index) {
+    if (queryConfig.activeViewName && queryConfig.index) {
       const idx = queryConfig.index;
       if (utils.isPoint2D(idx)) {
-        const v = viewIndex[queryConfig.activeView.name] as View2D;
+        const v = viewIndex[queryConfig.activeViewName] as View2D;
         _where(v.dimensions[0], undefined, idx[0]);
         _where(v.dimensions[1], undefined, idx[1]);
       } else {
-        const v = viewIndex[queryConfig.activeView.name] as View1D;
+        const v = viewIndex[queryConfig.activeViewName] as View1D;
         _where(v.dimension, undefined, idx);
       }
     }

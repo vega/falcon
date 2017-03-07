@@ -16,12 +16,7 @@ describe('Postgres', function() {
         name: 'DEP_DELAY',
         range: [-10, 42]
       }, {
-        activeView: {
-          type: '1D',
-          name: 'ARR_DELAY',
-          range: [0, 0],  // should not matter
-          pixel: 500
-        },
+        activeViewName: 'ARR_DELAY',
         index: 2,
         views: [],
         cacheKeys: {}

@@ -1,12 +1,13 @@
 import * as config from '../config';
 import { SimpleCache } from '../client/cache/simple';
+import { clamp } from '../utils';
 
 declare type Callback = (query: QueryConfig, results: ResultData) => void;
 
 /**
  * Returns an iterator over the space in a grid of size distances.
  *
- * Need to provide the initia positions, the grid size, and the maximum range.
+ * Need to provide the initial positions, the grid size, and the maximum range.
  */
 export function* new1DIterator(indexes: Point1D[], subdivisions: number, maxRes: number, range: number): IterableIterator<Point1D> {
   // cycle through seeds
@@ -150,7 +151,7 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes:
  */
 export function getKeys(query: Load | Preload | QueryConfig) {
   // active view
-  const active = `${query.activeView && query.activeView.name}`;
+  const active = `${query.activeViewName}`;
 
   // brushes are in all views
   const brushes = query.views.map(v => {
@@ -163,8 +164,9 @@ export function getKeys(query: Load | Preload | QueryConfig) {
         return [v.name, `${v.name}:${v.brushes}`];
       }
     }
-    return null;
-  }).filter(v => v) as [string, string][];
+    // should never happen
+    return '';
+  }).filter(v => v);
 
   const keys: {[key: string]: string} = {};
   query.views.filter(v => v.query).forEach(v => {
@@ -207,10 +209,9 @@ class Session {
     if (config.optimizations.loadOnInit) {
       // load data for everything except the first view with the first view being active
       const first = config.views[0];
-      const firstActiveView = {...first, pixel: this.sizes[first.name]} as ActiveView;
       const load: QueryConfig = {
         index: first.type === '1D' ? first.range[1] : [first.ranges[0][1], first.ranges[1][1]],
-        activeView: firstActiveView,
+        activeViewName: first.name,
         views: config.views.slice(1).map(v => {
           return {...v, query: true};
         }),
@@ -221,10 +222,9 @@ class Session {
 
       // load data for the first view, making the second one active
       const second = config.views[1];
-      const secondActiveView = {...second, pixel: this.sizes[second.name]} as ActiveView;
       const activeLoad: QueryConfig = {
         index: second.type === '1D' ? second.range[1] : [second.ranges[0][1], second.ranges[1][1]],
-        activeView: secondActiveView,
+        activeViewName: second.name,
         views: [{...first, query: true}],
         cacheKeys: {}  // tmp
       };
@@ -248,20 +248,20 @@ class Session {
     const subdivisions = config.optimizations.preloadSubdivisions;
     const maxRes = config.optimizations.maxResolution;
 
-    if (request.activeView.type === '1D') {
-      const idx = request.indexes as Point1D[];
-      const vel = request.velocity as number;
-      const acc = request.acceleration as number;
-      const times = request.views.filter(v => v.query).map(v => this.stats[v.name].median || config.optimizations.defaultRoundtripTime);
+    if (request.activeViewType === '1D') {
+      const idx = request.indexes;
+      const vel = request.velocity;
+      const acc = request.acceleration;
+      const times = request.views.filter(v => v.query).map(v => (this.stats[v.name] || {}).median || config.optimizations.defaultRoundtripTime);
       const time = times.length ? times.reduce((p, c) => p + c) / times.length : config.optimizations.defaultRoundtripTime;
       const offset = vel * time + (acc * time * time) / 2;
 
-      this._nextIndex = new1DIterator(idx.map(i => i + offset), subdivisions, maxRes, request.activeView.pixel);
+      this._nextIndex = new1DIterator(idx.map(i => clamp(i + offset, [0, request.pixel])), subdivisions, maxRes, request.pixel);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
       // TODO: use velocity and acceleration in 2D
-      this._nextIndex = new2DIterator(request.indexes as Point2D[], subdivisions, maxRes, request.activeView.pixels);
+      this._nextIndex = new2DIterator(request.indexes, subdivisions, maxRes, request.pixels);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }
@@ -307,7 +307,9 @@ class Session {
   // Load a particular value immediately.
   public load(request: Load) {
     this.query({
-      ...request,
+      activeViewName: request.activeViewName,
+      views: request.views,
+      index: request.index,
       cacheKeys: getKeys(request)
     });
 
@@ -326,25 +328,24 @@ class Session {
       return;
     }
 
-    const av = this._preload.activeView;
+    const preload = this._preload;
 
     let indexValue = value;
     // translate back from pixel domain to data domain
-    if (av.type === '1D') {
-      indexValue = av.range[0] + (av.range[1] - av.range[0]) / (this.sizes[av.name] as number) * (indexValue as number);
+    if (preload.activeViewType === '1D') {
+      indexValue = preload.range[0] + (preload.range[1] - preload.range[0]) / (this.sizes[preload.activeViewName] as number) * (indexValue as number);
     } else {
       const v = indexValue as Point2D;
-      const size = this.sizes[av.name] as [number, number];
+      const size = this.sizes[preload.activeViewName] as [number, number];
       indexValue = [
-        av.ranges[0][0] + (av.ranges[0][1] - av.ranges[0][0]) / size[0] * v[0],
-        av.ranges[1][0] + (av.ranges[1][1] - av.ranges[1][0]) / size[1] * v[1]
+        preload.ranges[0][0] + (preload.ranges[0][1] - preload.ranges[0][0]) / size[0] * v[0],
+        preload.ranges[1][0] + (preload.ranges[1][1] - preload.ranges[1][0]) / size[1] * v[1]
       ];
     }
 
     this.query({
       index: indexValue,
-      activeView: this._preload.activeView,
-      views: this._preload.views,
+      ...this._preload,
       cacheKeys: this._preloadKeys
     });
   }
