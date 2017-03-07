@@ -92,7 +92,8 @@ connection.onOpen(() => {
       const viz = vizs[dimension.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const x = viz.x.invert(xPixels);
-      api.preload({
+      api.send({
+        type: 'preload',
         activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         indexes: [x],
@@ -158,7 +159,7 @@ connection.onOpen(() => {
         loadViews.push(inactiveView);
       }
     });
-    api.load(Object.assign({}, loadQuery, { views: loadViews }));
+    api.send(Object.assign({}, loadQuery, { views: loadViews }));
     var t1 = performance.now();
     if (config.debugging.logPerformace) {
       console.log('Load took ' + (t1 - t0) + ' milliseconds.');
@@ -181,6 +182,7 @@ connection.onOpen(() => {
       loadedStartValue = extent[0];
 
       load({
+        type: 'load',
         activeView: formatActiveView(dimension),
         views: getInactiveViews(dimension),
         index: extent[0]
@@ -211,7 +213,8 @@ connection.onOpen(() => {
         loadClosestForView(view.name);
       });
 
-      api.preload({
+      api.send({
+        type: 'preload',
         activeView: formatActiveView(dimension),
         views: inactiveViews,
         indexes: indexes,
@@ -241,7 +244,7 @@ connection.onOpen(() => {
       const views = getInactiveViews(dimension);
       const activeView = formatActiveView(dimension);
       loadIndices.forEach((index) => {
-        load({ activeView, views, index });
+        load({ activeView, views, index, type: 'load' });
       });
       lastExtent = extent;
     };
@@ -381,7 +384,8 @@ connection.onOpen(() => {
     loadClosestForView(name);
   };
 
-  api.init({
+  api.send({
+    type: 'init',
     sizes
   });
 });

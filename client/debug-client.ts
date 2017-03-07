@@ -13,6 +13,7 @@ views.forEach((view) => {
 });
 
 const INIT: Init = {
+  type: 'init',
   sizes
 };
 
@@ -33,6 +34,7 @@ const MESSAGE: Load = {
 };
 /*/
 const MESSAGE: Preload = {
+  type: 'preload',
   indexes: [-5, 20],
   velocity: 10,
   activeView: {... views.find(v => v.name === active) as View1D, pixel: 500},
@@ -69,5 +71,5 @@ connection.onOpen(() => {
   });
 
   // initialize the client/ session
-  api.init(INIT);
+  api.send(INIT);
 });
