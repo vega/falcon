@@ -2,9 +2,15 @@
  * Requests
  */
 
-interface AbstractLoad {
-  /** Dimension for which the index is valid. This is usually the dimension which the user is interacting with.  */
-  activeView: ActiveView
+/**
+ * Load data with maximum priority and cannot be cancelled.
+ */
+interface Load {
+  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
+  activeViewName: string
+  type: 'load'
+  /** In the active dimension, get the data until here. In pixel domain. */
+  index: Point
   /**
    * Views for which we want data including their extents.
    * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
@@ -12,46 +18,46 @@ interface AbstractLoad {
   views: ViewQuery[]
 }
 
-type ActiveView = {
-  name: string
-} & ({
-  type: '1D'
-  // range to preload in
-  range: Interval<number>
-  // number of pixels
-  pixel: number
-} | {
-  type: '2D'
-  // renages to preload in in x and y
-  ranges: [Interval<number>, Interval<number>]
-  // number of pixels in x and y dimension
-  pixels: [number, number]
-})
-
-/**
- * Load data with maximum priority and cannot be cancelled.
- */
-interface Load extends AbstractLoad {
-  type: 'load',
-  /** In the active dimension, get the data until here. In data domain. */
-  index: Point
-}
-
 /**
  * Load data around this query.
  */
-interface GenericPreload<T extends Point> extends AbstractLoad {
+interface AbstractPreload<T extends Point>{
   /** Identifier for this request. */
   requestId: number,
   type: 'preload',
-  /** Like value in load but can be multiple values. */
+  /** Like index value in load but can be multiple values. */
   indexes: T[]
   /** Velocity in units per ms. */
   velocity: T,
   acceleration: T;
+  /**
+   * Views for which we want data including their extents.
+   * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
+   **/
+  views: ViewQuery[]
 }
 
-type Preload = GenericPreload<Point1D> | GenericPreload<Point2D>
+interface Preload1D extends AbstractPreload<Point1D> {
+  activeViewType: '1D'
+  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
+  activeViewName: string,
+  // range to preload in
+  range: Interval<number>
+  // number of pixels
+  pixel: number
+}
+
+interface Preload2D extends AbstractPreload<Point2D> {
+  activeViewType: '2D'
+  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
+  activeViewName: string,
+  // ranges to preload in in x and y
+  ranges: [Interval<number>, Interval<number>]
+  // number of pixels in x and y dimension
+  pixels: [number, number]
+}
+
+type Preload = Preload1D | Preload2D
 
 type Sizes = {[view: string]: number | number[]}
 

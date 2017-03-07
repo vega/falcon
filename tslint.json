@@ -32,7 +32,6 @@
     "no-shadowed-variable": true,
     "no-string-literal": false,
     "no-trailing-whitespace": true,
-    "no-use-before-declare": true,
     "one-line": [
       true,
       "check-open-brace",

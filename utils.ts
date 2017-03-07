@@ -14,3 +14,7 @@ export function is2D(data: ResultRow): data is number[][] {
 export function is1D(data: ResultRow): data is number[] {
   return !is2D(data);
 }
+
+export function clamp(i: number, range: [number, number]) {
+  return Math.max(range[0], Math.min(range[1], i));
+}

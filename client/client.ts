@@ -42,21 +42,36 @@ connection.onOpen(() => {
       return v;
   };
 
-  const formatActiveView = (view: View): ActiveView => {
+  const preload = (view: View, indexes: Point[], velocity: Point, acceleration: Point, viewQueries: ViewQuery[]) => {
     const viz = vizs[view.name];
 
     if (view.type === '1D') {
-      return Object.assign({}, view, {
-        range: viz.x.domain(),
+      api.send({
+        type: 'preload',
+        requestId: requestId++,
+        activeViewType: view.type,
+        activeViewName: view.name,
+        indexes: indexes as Point1D[],
+        velocity: velocity as Point1D,
+        acceleration: velocity as Point1D,
+        range: viz.x.domain() as [number, number],
         pixel: viz.contentWidth,
+        views: viewQueries
+      });
+    } else {
+      api.send({
+        type: 'preload',
+        requestId: requestId++,
+        activeViewType: view.type,
+        activeViewName: view.name,
+        indexes: indexes as Point2D[],
+        velocity: velocity as Point2D,
+        acceleration: velocity as Point2D,
+        ranges: [viz.x.domain(), viz.y.domain()] as [Interval<number>, Interval<number>],
+        pixels: [viz.contentWidth, viz.contentHeight],
+        views: viewQueries
       });
     }
-    return {
-      name: view.name,
-      type: view.type,
-      ranges: [viz.x.domain(), viz.y.domain()] as [Interval<number>, Interval<number>],
-      pixels: [viz.contentWidth, viz.contentHeight],
-    };
   };
 
   const getInactiveViews = (dimension: View) => {
@@ -85,25 +100,18 @@ connection.onOpen(() => {
   let brushing = false;
   let hasBrushed = false;
 
-  const handleMousemove = (dimension: View) => {
+  const handleMousemove = (view: View) => {
     return () => {
       if (!hasBrushed || brushing) {
         return;
       }
       // Start preloading values from this dimension.
-      const viz = vizs[dimension.name];
+      const viz = vizs[view.name];
       const xPixels = d3.mouse(viz.$content.node())[0];
       const x = viz.x.invert(xPixels);
-      api.send({
-        type: 'preload',
-        requestId: requestId++,
-        activeView: formatActiveView(dimension),
-        views: getInactiveViews(dimension),
-        indexes: [x],
-        velocity: calculateVelocity(xPixels),
-        // TODO: implement acceleration
-        acceleration: 0
-      });
+
+      // TODO: implement acceleration
+      preload(view, [x], calculateVelocity(xPixels), 0, getInactiveViews(view));
     };
   };
 
@@ -167,19 +175,19 @@ connection.onOpen(() => {
     api.send(Object.assign({}, loadQuery, { views: loadViews }));
     var t1 = performance.now();
     if (config.debugging.logPerformace) {
-      console.log('Load took ' + (t1 - t0) + ' milliseconds.');
+      console.log(`Load took ${t1 - t0} milliseconds.`);
     }
   };
 
-  const handleBrushStart = (dimension: View) => {
+  const handleBrushStart = (view: View) => {
     return () => {
       brushing = true;
       hasBrushed = true;
-      activeView = dimension.name;
-      const viz = vizs[dimension.name];
+      activeView = view.name;
+      const viz = vizs[view.name];
       const s = d3.event.selection || viz.x.range();
       const extent = (s.map(viz.x.invert, viz.x));
-      brushes[dimension.name] = extent;
+      brushes[view.name] = extent;
       // Extent [0] === [1] in this case so it doesn't matter
       // which we use. We need to hang on to this value tho
       // so that we can load the proper one on brush end.
@@ -188,8 +196,8 @@ connection.onOpen(() => {
 
       load({
         type: 'load',
-        activeView: formatActiveView(dimension),
-        views: getInactiveViews(dimension),
+        activeViewName: view.name,
+        views: getInactiveViews(view),
         index: extent[0]
       });
     };
@@ -218,16 +226,9 @@ connection.onOpen(() => {
         loadClosestForView(v.name);
       });
 
-      api.send({
-        type: 'preload',
-        requestId: requestId++,
-        activeView: formatActiveView(view),
-        views: inactiveViews,
-        indexes: indexes,
-        velocity: calculateVelocity(xPixels),
-        // TODO: implement acceleration
-        acceleration: 0
-      });
+      // TODO: implement acceleration
+      preload(view, indexes, calculateVelocity(xPixels), 0, inactiveViews);
+
       lastExtent = extent;
     };
   };
@@ -249,10 +250,9 @@ connection.onOpen(() => {
         loadIndices.push(extent[1]);
       }
 
-      const views = getInactiveViews(view);
-      const activeView = formatActiveView(view);
+      const viewsToLoad = getInactiveViews(view);
       loadIndices.forEach((index) => {
-        load({ activeView, views, index, type: 'load' });
+        load({ type: 'load', activeViewName: view.name, views: viewsToLoad, index });
       });
       lastExtent = extent;
     };
@@ -274,7 +274,7 @@ connection.onOpen(() => {
      *    given that it may have changed
      */
      result.query.views.forEach((view, i) => {
-       if (!result.query.activeView) {
+       if (!result.query.activeViewName) {
         console.log('No active view');
         // TODO - what should we do in this case?
         //        pick a random one?
@@ -293,14 +293,14 @@ connection.onOpen(() => {
       if (view.type === '1D') {
         // TODO - What does "no index" mean?
         const index = (result.query.index as number) || -1;
-        cache[result.query.activeView.name][view.name].set({
+        cache[result.query.activeViewName][view.name].set({
             ranges: [view.range],
             indices: [index],
             brushes: brushes
           }, result.data[view.name]);
       } else {
         const index = (result.query.index as number) || -1;
-        cache[result.query.activeView.name][view.name].set({
+        cache[result.query.activeViewName][view.name].set({
             ranges: view.ranges,
             indices: [index],
             brushes: brushes
@@ -310,7 +310,7 @@ connection.onOpen(() => {
 
     // If the active dimension is correct,
     // for each view in the returned data, have it update from the cache.
-    if (result.query.activeView && activeView === result.query.activeView.name) {
+    if (result.query.activeViewName && activeView === result.query.activeViewName) {
       result.query.views.forEach((view) => {
         updateViz(view.name);
       });
@@ -355,24 +355,24 @@ connection.onOpen(() => {
     }
   });
 
-  views.forEach((activeView, i) => {
-    cache[activeView.name] = {};
+  views.forEach((av, i) => {
+    cache[av.name] = {};
     views.forEach((dataView, j) => {
       if (i === j) {
         return;
       }
       const inactiveViews = views.filter((_, k) => j !== k && i !== k).map((v) => v.name);
-      if (activeView.type === '1D') {
+      if (av.type === '1D') {
         if (dataView.type === '1D') {
-          cache[activeView.name][dataView.name] = new ZoomTree(1, 1, [sizes[activeView.name] as number], [dataView.range], inactiveViews);
+          cache[av.name][dataView.name] = new ZoomTree(1, 1, [sizes[av.name] as number], [dataView.range], inactiveViews);
         } else {
-          cache[activeView.name][dataView.name] = new ZoomTree(1, 2, [sizes[activeView.name] as number], dataView.ranges, inactiveViews);
+          cache[av.name][dataView.name] = new ZoomTree(1, 2, [sizes[av.name] as number], dataView.ranges, inactiveViews);
         }
       } else {
         if (dataView.type === '1D') {
-          cache[activeView.name][dataView.name] = new ZoomTree(2, 1, sizes[activeView.name] as [number, number], [dataView.range], inactiveViews);
+          cache[av.name][dataView.name] = new ZoomTree(2, 1, sizes[av.name] as [number, number], [dataView.range], inactiveViews);
         } else {
-          cache[activeView.name][dataView.name] = new ZoomTree(2, 2, sizes[activeView.name] as [number, number], dataView.ranges, inactiveViews);
+          cache[av.name][dataView.name] = new ZoomTree(2, 2, sizes[av.name] as [number, number], dataView.ranges, inactiveViews);
         }
       }
     });
