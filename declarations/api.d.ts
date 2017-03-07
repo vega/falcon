@@ -55,6 +55,11 @@ type Preload = GenericPreload<Point1D> | GenericPreload<Point2D>
 
 type Sizes = {[view: string]: number | number[]}
 
+type Stats = {[view: string]: {
+  mean: number,
+  median: number
+}}
+
 /**
  * Initialize the app. Sets the sizes of the views on the server.
  */
@@ -66,13 +71,10 @@ interface Init {
 interface Profile {
   type: 'profile',
   /** Timing stats for each view. */
-  stats: {[view: string]: {
-    mean: number,
-    median: number
-  }}
+  stats: Stats
 }
 
-declare type ApiRequest = Init | Preload | Load | Profile;
+declare type ApiRequest = Init | Preload | Load | Profile
 
 /**
  * Responses
