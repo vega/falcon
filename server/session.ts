@@ -286,7 +286,9 @@ class Session {
     if (config.optimizations.sendCached && l) {
       console.log(`Sending cached result with ${l} entries`);
       if (this._onQuery) {
-        this._onQuery(query, results);
+        const q = Object.assign({}, query);
+        delete q.cacheKeys;
+        this._onQuery(q, results);
       }
     }
 
@@ -368,7 +370,9 @@ class Session {
       }
 
       if (this._onQuery) {
-        this._onQuery(query, results);
+        const q = Object.assign({}, query);
+        delete q.cacheKeys;
+        this._onQuery(q, results);
       }
     };
   }
