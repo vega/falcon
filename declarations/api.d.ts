@@ -9,7 +9,7 @@ interface Load {
   /** View for which the index is valid. This is usually the view which the user is interacting with.  */
   activeViewName: string
   type: 'load'
-  /** In the active dimension, get the data until here. In pixel domain. */
+  /** In the active dimension, get the data until here. In data domain. */
   index: Point
   /**
    * Views for which we want data including their extents.
@@ -27,8 +27,9 @@ interface AbstractPreload<T extends Point>{
   type: 'preload',
   /** Like index value in load but can be multiple values. */
   indexes: T[]
-  /** Velocity in units per ms. */
+  /** Velocity in pixels per ms. */
   velocity: T,
+  /** Acceleration in pixel domain. */
   acceleration: T;
   /**
    * Views for which we want data including their extents.

@@ -1,6 +1,7 @@
 import * as config from '../config';
 import { SimpleCache } from '../client/cache/simple';
 import { clamp } from '../utils';
+import { scaleLinear } from 'd3';
 
 declare type Callback = (query: QueryConfig, results: ResultData) => void;
 
@@ -198,6 +199,8 @@ class Session {
   private _preload?: Preload;
   private _preloadKeys: {[view: string]: string};
   private _nextIndex: IterableIterator<Point>;
+  private _scaleWidth: d3.ScaleLinear<number, number>;
+  private _scaleHeight: d3.ScaleLinear<number, number>;
 
   constructor(public readonly backend: Backend) { }
 
@@ -247,19 +250,27 @@ class Session {
     const maxRes = config.optimizations.maxResolution;
 
     if (request.activeViewType === '1D') {
-      const idx = request.indexes;
+      this._scaleWidth = scaleLinear().domain(request.range).range([0, request.pixel]);
+
+      // in pixel space already
       const vel = request.velocity;
       const acc = request.acceleration;
       const times = request.views.filter(v => v.query).map(v => (this.stats[v.name] || {}).median || config.optimizations.defaultRoundtripTime);
       const time = times.length ? times.reduce((p, c) => p + c) / times.length : config.optimizations.defaultRoundtripTime;
       const offset = vel * time + (acc * time * time) / 2;
 
-      this._nextIndex = new1DIterator(idx.map(i => clamp(i + offset, [0, request.pixel])), subdivisions, maxRes, request.pixel);
+      this._nextIndex = new1DIterator(request.indexes.map(i => clamp(this._scaleWidth(i) + offset, [0, request.pixel])), subdivisions, maxRes, request.pixel);
 
       console.log('Create new 1D preload iterator', request.indexes);
     } else {
+      this._scaleWidth = scaleLinear().domain(request.ranges[0]).range([0, request.pixels[0]]);
+      this._scaleHeight = scaleLinear().domain(request.ranges[1]).range([0, request.pixels[1]]);
+
       // TODO: use velocity and acceleration in 2D
-      this._nextIndex = new2DIterator(request.indexes, subdivisions, maxRes, request.pixels);
+      this._nextIndex = new2DIterator(
+        request.indexes.map(i =>
+          [this._scaleWidth(i[0]), this._scaleHeight(i[1])] as Point2D
+        ), subdivisions, maxRes, request.pixels);
 
       console.log('Create new 2D preload iterator', request.indexes);
     }
@@ -333,14 +344,10 @@ class Session {
     let indexValue = value;
     // translate back from pixel domain to data domain
     if (preload.activeViewType === '1D') {
-      indexValue = preload.range[0] + (preload.range[1] - preload.range[0]) / (this.sizes[preload.activeViewName] as number) * (indexValue as number);
+      indexValue = this._scaleWidth.invert(indexValue as Point1D);
     } else {
       const v = indexValue as Point2D;
-      const size = this.sizes[preload.activeViewName] as [number, number];
-      indexValue = [
-        preload.ranges[0][0] + (preload.ranges[0][1] - preload.ranges[0][0]) / size[0] * v[0],
-        preload.ranges[1][0] + (preload.ranges[1][1] - preload.ranges[1][0]) / size[1] * v[1]
-      ];
+      indexValue = [this._scaleWidth.invert(v[0]), this._scaleHeight.invert(v[1])];
     }
 
     this.query({
