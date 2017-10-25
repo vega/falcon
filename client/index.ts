@@ -3,6 +3,8 @@ import * as vega from 'vega';
 
 import { views } from '../shared/config';
 import { is1DView, stepSize } from '../shared/util';
+import API from './api';
+import connection from './ws';
 
 const vegaViews = {};
 
@@ -113,26 +115,67 @@ for (const view of views) {
   vegaViews[view.name] = vegaView;
 }
 
-window.setInterval(() => {
+connection.onOpen(() => {
+  console.info('Intialized connection...');
+
+  // initialize
+  const api = new API(connection);
+
+  const sizes = {};
   for (const view of views) {
     if (is1DView(view)) {
-      const step = stepSize(view.range, view.bins);
-      const bins = d3.range(view.range[0], view.range[1] + step, step);
-
-      const data = d3.histogram()
-        .domain(view.range)
-        .thresholds(bins.slice(0, bins.length - 1))(d3.range(100).map(() => view.range[0] + d3.randomBates(10)() * step * view.bins))
-        .map((d, i) => ({
-          value: bins[i],
-          value_end: bins[i + 1],
-          count: d.length,
-        }));
-
-      const changeSet = vega.changeset().remove(() => true).insert(data);
-      vegaViews[view.name].change('table', changeSet).run();
-    } else {
-      // TODO
-      continue;
+      sizes[view.name] = 600;
     }
   }
-}, 1000);
+
+  api.send({
+    type: 'init',
+    sizes,
+  });
+
+  api.onResult( result => {
+    for (const view of views) {
+      if (is1DView(view)) {
+        const results = result.data[view.name];
+
+        if (results) {
+          const step = stepSize(view.range, view.bins);
+          const bins = d3.range(view.range[0], view.range[1] + step, step);
+
+          const data = bins.map((bin, i) => ({
+            value: bin,
+            value_end: bin + step,
+            count: results[i],
+          }));
+
+          const changeSet = vega.changeset().remove(() => true).insert(data);
+          vegaViews[view.name].change('table', changeSet).run();
+        }
+      }
+    }
+  });
+
+  // window.setInterval(() => {
+  //   for (const view of views) {
+  //     if (is1DView(view)) {
+  //       const step = stepSize(view.range, view.bins);
+  //       const bins = d3.range(view.range[0], view.range[1] + step, step);
+
+  //       const data = d3.histogram()
+  //         .domain(view.range)
+  //         .thresholds(bins.slice(0, bins.length - 1))(d3.range(100).map(() => view.range[0] + d3.randomBates(10)() * step * view.bins))
+  //         .map((d, i) => ({
+  //           value: bins[i],
+  //           value_end: bins[i + 1],
+  //           count: d.length,
+  //         }));
+
+  //       const changeSet = vega.changeset().remove(() => true).insert(data);
+  //       vegaViews[view.name].change('table', changeSet).run();
+  //     } else {
+  //       // TODO
+  //       continue;
+  //     }
+  //   }
+  // }, 1000);
+});

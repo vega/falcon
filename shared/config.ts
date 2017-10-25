@@ -29,3 +29,75 @@ export const views: View[] = [{
   title: 'Delay Matrix',
   type: '2D',
 }];
+
+/**
+ * Dimensions indexed for easier access.
+ */
+export const viewIndex = (() => {
+  const idx: {[dimension: string]: View} = {};
+  views.forEach(d => {
+    idx[d.name] = d;
+  });
+  return idx;
+})();
+
+export const optimizations = {
+  /**
+   * Naive Baseline. Enable this to remove all
+   * optimizations, used for testing the baseline.
+   * If you turn this on, all the other optimization
+   * flags are ignored.
+   */
+  naiveBaseline: false,
+  /**
+   * Load data on init.
+   */
+  loadOnInit: true,
+  /**
+   * Preload data.
+   */
+  preload: true,
+  /**
+   * Snap to the closest cache.
+   */
+  snapping: true,
+  /**
+   * How many subdivisions to create when determining the preloading resolution.
+   * The session will preload at 2^n pixels resolution and subdivide this range repeatedly until the resolution is 1px.
+   */
+  preloadSubdivisions: 6,
+  /**
+   * Highest resolution.
+   */
+  maxResolution: 4,
+  /**
+   * Send results that are cached.
+   */
+  sendCached: false,
+  /**
+   * Default query and network roundtrip time in ms.
+   */
+  defaultRoundtripTime: 20,
+};
+
+export const debugging = {
+  /**
+   * Log api calls in the client.
+   */
+  logApi: true,
+
+  /**
+   * Show visualization of the cache state.
+   */
+  visualizeCache: true,
+
+  /**
+   * Show debug client instead of visualizations.
+   */
+  debugClient: false,
+
+  /**
+   * Show execution time of critical functions
+   */
+  logPerformace: false,
+};

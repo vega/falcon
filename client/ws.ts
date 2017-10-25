@@ -1,0 +1,39 @@
+const host = window.document.location.host.replace(/:.*/, '');
+const ws = new WebSocket('ws://' + host + ':4080');
+
+const callbacks: {
+  result?: (data: any) => void,
+} = {
+  result: undefined,
+};
+
+ws.onmessage = event => {
+  setTimeout(() => {
+    const result: any = JSON.parse(event.data);
+    if (callbacks.result) {
+      callbacks.result(result);
+    }
+  });
+};
+
+const connection: Connection = {
+  onOpen: callback => {
+    ws.onopen = callback;
+  },
+
+  send: message => {
+    ws.send(JSON.stringify(message));
+  },
+
+  onResult: callback => {
+    callbacks.result = callback;
+  },
+};
+
+export interface Connection {
+    onOpen: (callback: () => void) => void;
+    send: (message: ApiRequest) => void;
+    onResult: (callback: (data: any) => void) => void;
+}
+
+export default connection;

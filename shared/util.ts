@@ -13,3 +13,7 @@ export function is1DView(view: View): view is View1D {
 export function stepSize(range: [number, number], bins: number) {
   return (range[1] - range[0]) / bins;
 }
+
+export function clamp(i: number, range: [number, number]) {
+  return Math.max(range[0], Math.min(range[1], i));
+}
