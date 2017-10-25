@@ -1,8 +1,17 @@
+body {
+  font: 10px sans-serif;
+}
+
+.title {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #999
+}
+
 .bar rect {
   fill: steelblue;
 }
 
 .bar text {
   fill: #fff;
-  font: 10px sans-serif;
 }

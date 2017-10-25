@@ -1,23 +1,24 @@
 {
-    "compilerOptions": {
-        "inlineSourceMap": true,
-        "inlineSources": true,
-        "module": "commonjs",
-        "target": "es6",
-        "outDir": "build",
-        "noImplicitAny": true,
-        "strictNullChecks": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": false 
-    },
-    "include": [
-        "server/**/*.ts",
-        "client/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "public"
-    ]
-  }
+  "compilerOptions": {
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "build",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "typings/*.d.ts",
+    "server/**/*.ts",
+    "client/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "public"
+  ]
+}

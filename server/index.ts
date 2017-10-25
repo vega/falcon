@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
+import * as config from '../shared/config';
 
 const server = createServer();
 const wss = new WebSocketServer({ server });
@@ -17,4 +18,4 @@ wss.on('connection', ws => {
 });
 
 server.on('request', app);
-server.listen(8080, () => { console.info('Go to http://localhost:' + server.address().port); });
+server.listen(config.port, () => { console.info('Go to http://localhost:' + server.address().port); });
