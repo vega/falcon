@@ -1,92 +1,138 @@
 import * as d3 from 'd3';
-import {views} from '../shared/config';
+import * as vega from 'vega';
 
-const element = d3.select('#view');
+import { views } from '../shared/config';
+import { is1DView, stepSize } from '../shared/util';
+
+const vegaViews = {};
+
+const element = document.querySelector('#view')!;
 
 for (const view of views) {
-  const data = d3.range(1000).map(d3.randomBates(10));
-  const el = renderView(element, view.title || '');
+  let vgSpec;
 
-  updateChart(el, data);
+  if (is1DView(view)) {
+    const step = stepSize(view.range, view.bins);
+    const bins = d3.range(view.range[0], view.range[1] + step, step);
 
-  const data2 = d3.range(1000).map(d3.randomBates(10));
-  updateChart(el, data2);
+    vgSpec = {
+      $schema: 'https://vega.github.io/schema/vega/v3.0.json',
+      autosize: 'pad',
+      padding: 5,
+      width: 600,
+      height: 180,
+      data: [
+        {name: 'table'},
+      ],
+      marks: [
+        {
+          name: 'marks',
+          type: 'rect',
+          from: {data: 'table'},
+          encode: {
+            update: {
+              x2: {
+                scale: 'x',
+                field: 'value',
+                offset: 1,
+              },
+              x: {scale: 'x', field: 'value_end'},
+              y: {scale: 'y', field: 'count'},
+              y2: {scale: 'y', value: 0},
+              fill: {value: '#4c78a8'},
+            },
+          },
+        },
+      ],
+      scales: [
+        {
+          name: 'x',
+          type: 'linear',
+          domain: view.range,
+          range: 'width',
+          zero: false,
+        },
+        {
+          name: 'y',
+          type: 'linear',
+          domain: {data: 'table', field: 'count'},
+          range: 'height',
+          nice: true,
+          zero: true,
+        },
+      ],
+      axes: [
+        {
+          scale: 'x',
+          orient: 'bottom',
+          labelOverlap: true,
+          tickCount: {signal: 'ceil(width/20)'},
+          title: view.title,
+          values: bins,
+          zindex: 1,
+        },
+        {
+          scale: 'y',
+          orient: 'left',
+          labelOverlap: true,
+          tickCount: {signal: 'ceil(height/40)'},
+          title: 'Count',
+          zindex: 1,
+        },
+        {
+          scale: 'y',
+          orient: 'left',
+          domain: false,
+          grid: true,
+          labels: false,
+          maxExtent: 0,
+          minExtent: 0,
+          tickCount: {signal: 'ceil(height/40)'},
+          ticks: false,
+          zindex: 0,
+          gridScale: 'x',
+        },
+      ],
+      config: {axisY: {minExtent: 30}},
+    };
+  } else {
+    // TODO
+    continue;
+  }
+
+  const runtime = vega.parse(vgSpec);
+
+  const el = element.appendChild(window.document.createElement('div'));
+
+  const vegaView = new vega.View(runtime)
+    .logLevel(vega.Warn)
+    .initialize(el)
+    .renderer('svg')
+    .run();
+
+  vegaViews[view.name] = vegaView;
 }
 
-type Selection = d3.Selection<d3.BaseType, {}, HTMLElement, any>;
+window.setInterval(() => {
+  for (const view of views) {
+    if (is1DView(view)) {
+      const step = stepSize(view.range, view.bins);
+      const bins = d3.range(view.range[0], view.range[1] + step, step);
 
-function renderView(el: Selection, title: string) {
-  const svg = el.append('svg');
+      const data = d3.histogram()
+        .domain(view.range)
+        .thresholds(bins.slice(0, bins.length - 1))(d3.range(100).map(() => view.range[0] + d3.randomBates(10)() * step * view.bins))
+        .map((d, i) => ({
+          value: bins[i],
+          value_end: bins[i + 1],
+          count: d.length,
+        }));
 
-  const w = 600;
-  const h = 220;
-  const margin = {top: 10, right: 10, bottom: 50, left: 40};
-  const width = w - margin.left - margin.right;
-  const height = h - margin.top - margin.bottom;
-  const g = svg.append('g').attr('transform', `translate( ${margin.left}, ${margin.top})`);
-
-  svg.attr('width', w).attr('height', h);
-
-  const x = d3.scaleLinear()
-    .rangeRound([0, width]);
-
-  g.append('g')
-    .attr('class', 'axis axis--x')
-    .attr('transform', `translate(0, ${height})`)
-    .call(d3.axisBottom(x));
-
-  g.append('g')
-    .attr('class', 'axis axis--y')
-    .attr('transform', `translate(0, 0)`);
-
-  g.append('text')
-    .attr('class', 'title')
-    .attr('x', width / 2)
-    .attr('y', height + 30)
-    .attr('text-anchor', 'middle')
-    .text(title);
-
-  return g;
-}
-
-function updateChart(el: Selection, data: number[]) {
-  const formatCount = d3.format(',.0f');
-
-  const w = 600;
-  const h = 220;
-  const margin = {top: 10, right: 10, bottom: 50, left: 40};
-  const width = w - margin.left - margin.right;
-  const height = h - margin.top - margin.bottom;
-
-  const x = d3.scaleLinear()
-    .rangeRound([0, width]);
-
-  const bins = d3.histogram()
-    .domain(x.domain() as [number, number])
-    .thresholds(x.ticks(20))(data);
-
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(bins, d => d.length)!])
-    .range([height, 0]);
-
-  const bar = el.selectAll('.bar')
-    .data(bins)
-    .enter().append('g')
-      .attr('class', 'bar')
-      .attr('transform', d => `translate(${x(d.x0)}, ${y(d.length)})`);
-
-  bar.append('rect')
-    .attr('x', 1)
-    .attr('width', x(bins[0].x1) - x(bins[0].x0) - 1)
-    .attr('height', d => height - y(d.length));
-
-  el.select('axis axis--y')
-    .call(d3.axisLeft(y));
-
-  bar.append('text')
-    .attr('dy', '.75em')
-    .attr('y', 6)
-    .attr('x', (x(bins[0].x1) - x(bins[0].x0)) / 2)
-    .attr('text-anchor', 'middle')
-    .text(d => formatCount(d.length));
-}
+      const changeSet = vega.changeset().remove(() => true).insert(data);
+      vegaViews[view.name].change('table', changeSet).run();
+    } else {
+      // TODO
+      continue;
+    }
+  }
+}, 1000);
