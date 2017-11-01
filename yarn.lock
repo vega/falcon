@@ -2852,9 +2852,9 @@ vega-dataflow@3:
     vega-loader "2"
     vega-util "1"
 
-vega-datasets@vega/vega-datasets#gh-pages:
-  version "1.10.0"
-  resolved "https://codeload.github.com/vega/vega-datasets/tar.gz/7080ba8297825d27495bdfb8386d10cff83cbacf"
+"vega-datasets@github:vega/vega-datasets#gh-pages":
+  version "1.11.0"
+  resolved "https://codeload.github.com/vega/vega-datasets/tar.gz/944ef1da8d352d3b2161e1a6f306ca2ca141a2e1"
 
 vega-encode@2:
   version "2.0.4"
@@ -3025,9 +3025,9 @@ vega-wordcloud@2:
     canvas "^1.6"
     canvas-prebuilt "^1.6"
 
-vega@^3.0.6:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/vega/-/vega-3.0.6.tgz#d7ad62d9ff7f954f72e6c1ca5288da501f560778"
+vega@^3.0.7:
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/vega/-/vega-3.0.7.tgz#ad3f67338a2b28c375cf6bf7de749b51a38d744e"
   dependencies:
     vega-crossfilter "2"
     vega-dataflow "3"
