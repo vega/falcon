@@ -184,7 +184,6 @@ export function getKeys(query: Load | Preload | QueryConfig) {
 // rate limiting requests, and watching the cache.
 class Session {
   private closed: boolean = false;
-  private hasUserInteracted: boolean = false;
   private sizes: Sizes = {};
   private stats: Stats = {};
 
@@ -281,14 +280,13 @@ class Session {
 
   // Load a particular value immediately.
   public load(request: Load) {
+    console.info(this.sizes);
     this.query({
       activeViewName: request.activeViewName,
       views: request.views,
       index: request.index,
       cacheKeys: getKeys(request),
     });
-
-    this.hasUserInteracted = true;
   }
 
   private query(query: QueryConfig) {
@@ -351,7 +349,9 @@ class Session {
 
     this.query({
       index: indexValue,
-      ...this._preload,
+      activeViewName: this._preload.activeViewName,
+      activeViewType: this._preload.activeViewType,
+      views: this._preload.views,
       cacheKeys: this._preloadKeys,
     });
   }

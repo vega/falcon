@@ -26,24 +26,123 @@ for (const view of views) {
       data: [
         {name: 'table'},
       ],
+      signals: [
+        { name: 'xmove', value: 0,
+          on: [{events: 'window:mousemove', update: 'x()'}],
+        },
+        { name: 'extent', value: view.range },
+        { name: 'range', update: 'extent',
+          on: [
+            {
+              events: {signal: 'zoom'},
+              update: '[(range[0]+range[1])/2 - zoom, (range[0]+range[1])/2 + zoom]',
+            },
+            {
+              events: '@chart:dblclick!, @brush:dblclick!',
+              update: '[extent[0], extent[1]]',
+            },
+            {
+              events: '[@brush:mousedown, window:mouseup] > window:mousemove!',
+              update: '[range[0] + invert("x", x()) - invert("x", xmove), range[1] + invert("x", x()) - invert("x", xmove)]',
+            },
+            {
+              events: '[@chart:mousedown, window:mouseup] > window:mousemove!',
+              update: '[min(anchor, invert("x", x())), max(anchor, invert("x", x()))]',
+            },
+          ],
+        },
+        { name: 'zoom', value: 0,
+          on: [{
+            events: '@chart:wheel!, @brush:wheel!',
+            update: '0.5 * abs(span(range)) * pow(1.0005, event.deltaY * pow(16, event.deltaMode))',
+          }],
+        },
+        { name: 'anchor', value: 0,
+          on: [{
+            events: '@chart:mousedown!',
+            update: 'invert("x", x())'},
+          ],
+        },
+      ],
       marks: [
         {
-          name: 'marks',
-          type: 'rect',
-          from: {data: 'table'},
+          type: 'group',
+          name: 'chart',
           encode: {
-            update: {
-              x2: {
-                scale: 'x',
-                field: 'value',
-                offset: 1,
-              },
-              x: {scale: 'x', field: 'value_end'},
-              y: {scale: 'y', field: 'count'},
-              y2: {scale: 'y', value: 0},
-              fill: {value: '#4c78a8'},
+            enter: {
+              height: {signal: 'height'},
+              width: {signal: 'width'},
+              clip: {value: true},
+              fill: {value: 'transparent'},
             },
           },
+          marks: [
+            {
+              type: 'rect',
+              name: 'brush',
+              encode: {
+                enter: {
+                  y: {value: 0},
+                  height: {field: {group: 'height'}},
+                  fill: {value: '#000'},
+                  opacity: {value: 0.1},
+                },
+                update: {
+                  x: {signal: 'scale("x", range[0])'},
+                  x2: {signal: 'scale("x", range[1])'},
+                },
+              },
+            },
+            {
+              name: 'marks',
+              type: 'rect',
+              interactive: false,
+              from: {data: 'table'},
+              encode: {
+                update: {
+                  x2: {
+                    scale: 'x',
+                    field: 'value',
+                    offset: 1,
+                  },
+                  x: {scale: 'x', field: 'value_end'},
+                  y: {scale: 'y', field: 'count'},
+                  y2: {scale: 'y', value: 0},
+                  fill: {value: '#4c78a8'},  // darker blue
+                },
+              },
+            },
+            {
+              type: 'rect',
+              interactive: false,
+              encode: {
+                enter: {
+                  y: {value: 0},
+                  height: {field: {group: 'height'}},
+                  fill: {value: 'firebrick'},
+                },
+                update: {
+                  x: {signal: 'scale("x", range[0])'},
+                  width: {value: 1},
+                },
+              },
+            },
+            {
+              type: 'rect',
+              interactive: false,
+              encode: {
+                enter: {
+                  y: {value: 0},
+                  height: {field: {group: 'height'}},
+                  fill: {value: 'firebrick'},
+                },
+                update: {
+                  x: {signal: 'scale("x", range[1])'},
+                  width: {value: 1},
+                },
+              },
+            },
+          ],
         },
       ],
       scales: [

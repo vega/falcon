@@ -15,6 +15,7 @@
     "no-bitwise": false,
     "interface-name": false,
     "object-literal-sort-keys": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "variable-name": false
   }
 }

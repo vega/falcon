@@ -16,7 +16,7 @@ interface Load {
    * Views for which we want data including their extents.
    * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
    **/
-  views: ViewQuery[]
+  views: View[]
 }
 
 /**
@@ -36,7 +36,7 @@ interface AbstractPreload<T extends Point>{
    * Views for which we want data including their extents.
    * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
    **/
-  views: ViewQuery[]
+  views: View[]
 }
 
 interface Preload1D extends AbstractPreload<Point1D> {
@@ -105,8 +105,10 @@ declare type ResultData = {[view: string]: ResultRow}
 interface AbstractView {
   /** The name of the view. */
   name: string
-  /** Title for exis titles. */
+  /** Title for axes. */
   title?: string
+  /** Whether to query a view or not. */
+  query?: boolean
 }
 
 interface View1D extends AbstractView {
@@ -115,6 +117,7 @@ interface View1D extends AbstractView {
   dimension: string
   /** Initial range for the dimensions. */
   range: Interval<number>
+  brush?: Interval<number>
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number
 }
@@ -125,6 +128,7 @@ interface View2D extends AbstractView {
   dimensions: [string, string]
   /** Initial range for the dimensions. */
   ranges: [Interval<number>, Interval<number>]
+  brushes?: [Interval<number>, Interval<number>]
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: [number, number]
 }
