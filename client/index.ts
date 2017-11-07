@@ -35,7 +35,7 @@ for (const view of views) {
           on: [
             {
               events: {signal: 'zoom'},
-              update: '[(range[0]+range[1])/2 - zoom, (range[0]+range[1])/2 + zoom]',
+              update: '[clamp((range[0]+range[1])/2 - zoom, extent[0], extent[1]), clamp((range[0]+range[1])/2 + zoom, extent[0], extent[1])]',
             },
             {
               events: '@chart:dblclick!, @brush:dblclick!',
@@ -85,7 +85,7 @@ for (const view of views) {
                   y: {value: 0},
                   height: {field: {group: 'height'}},
                   fill: {value: '#000'},
-                  opacity: {value: 0.1},
+                  opacity: {value: 0.07},
                 },
                 update: {
                   x: {signal: 'scale("x", range[0])'},
@@ -122,7 +122,7 @@ for (const view of views) {
                   fill: {value: 'firebrick'},
                 },
                 update: {
-                  x: {signal: 'scale("x", range[0])'},
+                  x: {signal: 'max(1, scale("x", range[0]))'},
                   width: {value: 1},
                 },
               },
@@ -137,7 +137,7 @@ for (const view of views) {
                   fill: {value: 'firebrick'},
                 },
                 update: {
-                  x: {signal: 'scale("x", range[1])'},
+                  x: {signal: 'min(width - 1, scale("x", range[1]))'},
                   width: {value: 1},
                 },
               },
@@ -179,19 +179,7 @@ for (const view of views) {
           tickCount: {signal: 'ceil(height/40)'},
           title: 'Count',
           zindex: 1,
-        },
-        {
-          scale: 'y',
-          orient: 'left',
-          domain: false,
           grid: true,
-          labels: false,
-          maxExtent: 0,
-          minExtent: 0,
-          tickCount: {signal: 'ceil(height/40)'},
-          ticks: false,
-          zindex: 0,
-          gridScale: 'x',
         },
       ],
       config: {axisY: {minExtent: 30}},
