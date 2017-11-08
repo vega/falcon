@@ -7,9 +7,9 @@
  * Load data with maximum priority and cannot be cancelled.
  */
 interface Load {
+  type: 'load'
   /** View for which the index is valid. This is usually the view which the user is interacting with.  */
   activeViewName: string
-  type: 'load'
   /** In the active dimension, get the data until here. In data domain. */
   index: Point
   /**
@@ -26,6 +26,8 @@ interface AbstractPreload<T extends Point>{
   /** Identifier for this request. */
   requestId: number,
   type: 'preload',
+  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
+  activeViewName: string,
   /** Like index value in load but can be multiple values. */
   indexes: T[]
   /** Velocity in pixels per ms. */
@@ -41,8 +43,6 @@ interface AbstractPreload<T extends Point>{
 
 interface Preload1D extends AbstractPreload<Point1D> {
   activeViewType: '1D'
-  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
-  activeViewName: string,
   // range to preload in
   range: Interval<number>
   // number of pixels
@@ -51,8 +51,6 @@ interface Preload1D extends AbstractPreload<Point1D> {
 
 interface Preload2D extends AbstractPreload<Point2D> {
   activeViewType: '2D'
-  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
-  activeViewName: string,
   // ranges to preload in in x and y
   ranges: [Interval<number>, Interval<number>]
   // number of pixels in x and y dimension

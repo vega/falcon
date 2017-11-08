@@ -10,6 +10,8 @@ const vegaViews = {};
 
 const element = document.querySelector('#view')!;
 
+let api: API;
+
 for (const view of views) {
   let vgSpec;
 
@@ -204,6 +206,21 @@ for (const view of views) {
     .renderer('svg')
     .run();
 
+  vegaView.addSignalListener('range', (name, value) => {
+    api.send({
+      requestId: 0,
+      type: 'preload',
+      activeViewName: view.name,
+      activeViewType: '1D',
+      indexes: value,
+      range: [0, 1],
+      views,
+      velocity: 0,
+      acceleration: 0,
+      pixel: 1,
+    });
+  });
+
   vegaViews[view.name] = vegaView;
 }
 
@@ -211,7 +228,7 @@ connection.onOpen(() => {
   console.info('Intialized connection...');
 
   // initialize
-  const api = new API(connection);
+  api = new API(connection);
 
   const sizes = {};
   for (const view of views) {
@@ -241,7 +258,9 @@ connection.onOpen(() => {
           }));
 
           const changeSet = vega.changeset().remove(() => true).insert(data);
-          vegaViews[view.name].change('table', changeSet).run();
+          if (view.name in vegaViews) {
+            vegaViews[view.name].change('table', changeSet).run();
+          }
         }
       }
     }
