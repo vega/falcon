@@ -170,7 +170,6 @@ for (const view of views) {
           tickCount: {signal: 'ceil(width/20)'},
           title: view.title,
           values: bins,
-          zindex: 1,
         },
         {
           scale: 'y',
@@ -178,8 +177,14 @@ for (const view of views) {
           labelOverlap: true,
           tickCount: {signal: 'ceil(height/40)'},
           title: 'Count',
-          zindex: 1,
           grid: true,
+          encode: {
+            grid: {
+              update: {
+                stroke: {value: '#ddd'},
+              },
+            },
+          },
         },
       ],
       config: {axisY: {minExtent: 30}},
