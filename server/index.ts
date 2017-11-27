@@ -2,14 +2,20 @@ import * as express from 'express';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
 import * as config from '../shared/config';
-import Random from './random-backend';
 import Session from './session';
 
 const server = createServer();
 const wss = new WebSocketServer({ server });
 const app = express();
 
+/*
+import Flights from './flight-backend';
+const backend = new Flights();
+/*/
+import Random from './random-backend';
 const backend = new Random();
+// */
+
 let session = new Session(backend);
 
 app.use(express.static(__dirname + '/../public'));

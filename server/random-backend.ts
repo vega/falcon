@@ -18,7 +18,7 @@ export default class Random implements Backend {
       }
     });
 
-    const results = new Promise<ResultData>((resolve, rejext) => {
+    const results = new Promise<ResultData>((resolve, reject) => {
       resolve(data);
     });
 
