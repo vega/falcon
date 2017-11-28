@@ -82,9 +82,9 @@ export const optimizations = {
 
 export const debugging = {
   /**
-   * Log api calls in the client.
+   * Log API calls in the client.
    */
-  logApi: true,
+  logApi: false,
 
   /**
    * Show visualization of the cache state.
@@ -92,12 +92,7 @@ export const debugging = {
   visualizeCache: true,
 
   /**
-   * Show debug client instead of visualizations.
-   */
-  debugClient: false,
-
-  /**
-   * Show execution time of critical functions
+   * Show execution time of critical functions.
    */
   logPerformace: false,
 };

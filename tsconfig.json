@@ -10,7 +10,10 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "typeRoots": [
+      "typings", "node_modules/@types"
+    ]
   },
   "include": [
     "typings/*.d.ts",

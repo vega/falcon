@@ -1,7 +1,6 @@
 import { scaleLinear } from 'd3';
 import * as config from '../shared/config';
-import { clamp } from '../shared/util';
-import { SimpleCache } from './simple-cache';
+import { clamp, is1DPreload } from '../shared/util';
 
 declare type Callback = (query: QueryConfig, results: ResultData) => void;
 
@@ -150,7 +149,7 @@ export function* new2DIterator(indexes: Point2D[], subdivisions: number, maxRes:
  */
 export function getKeys(query: Load | Preload | QueryConfig) {
   // active view
-  const active = `${query.activeViewName}`;
+  const active = `${query.activeView ? query.activeView.name : 'NULL'}`;
 
   // brushes are in all views
   const brushes = query.views.map(v => {
@@ -168,7 +167,7 @@ export function getKeys(query: Load | Preload | QueryConfig) {
   }).filter(v => v);
 
   const keys: {[key: string]: string} = {};
-  query.views.filter(v => v.query).forEach(v => {
+  query.views.forEach(v => {
     const br = brushes.filter(b => b[0] !== v.name).map(b => b[1]).join(' ');
     if (v.type === '1D') {
       keys[v.name] = `${v.name} ${active} ${v.range} ${br}`;
@@ -189,11 +188,8 @@ class Session {
 
   private _onQuery: Callback;
 
-  private cache: SimpleCache;
-
   // preloading
   private _preload?: Preload;
-  private _preloadKeys: {[view: string]: string};
   private _nextIndex: IterableIterator<Point>;
   private _scaleWidth: d3.ScaleLinear<number, number>;
   private _scaleHeight: d3.ScaleLinear<number, number>;
@@ -203,30 +199,11 @@ class Session {
   // Set the sizes of the charts and initialize the session.
   public init(request: Init) {
     this.sizes = request.sizes;
-    this.cache = new SimpleCache();
 
     if (config.optimizations.loadOnInit) {
-      // load data for everything except the first view with the first view being active
-      const first = config.views[0];
-      const load: QueryConfig = {
-        activeViewName: first.name,
-        views: config.views.slice(1).map(v => {
-          return {...v, query: true};
-        }),
-        cacheKeys: {},  // tmp
-      };
-      load.cacheKeys = getKeys(load);
-      this.query(load);
-
-      // load data for the first view, making the second one active
-      const second = config.views[1];
-      const activeLoad: QueryConfig = {
-        activeViewName: second.name,
-        views: [{...first, query: true}],
-        cacheKeys: {},  // tmp
-      };
-      activeLoad.cacheKeys = getKeys(activeLoad);
-      this.query(activeLoad);
+      this.query({
+        views: config.views,
+      });
     }
   }
 
@@ -240,33 +217,36 @@ class Session {
 
   public preload(request: Preload) {
     this._preload = request;
-    this._preloadKeys = getKeys(request);
 
     const subdivisions = config.optimizations.preloadSubdivisions;
     const maxRes = config.optimizations.maxResolution;
 
-    if (request.activeViewType === '1D') {
-      this._scaleWidth = scaleLinear().domain(request.range).range([0, request.pixel]);
+    if (is1DPreload(request)) {
+      const activeView = request.activeView;
+      const width = this.sizes[activeView.name] as number;
+      this._scaleWidth = scaleLinear().domain(activeView.range).range([0, width]);
 
       // in pixel space already
       const vel = request.velocity;
       const acc = request.acceleration;
-      const times = request.views.filter(v => v.query).map(v => (this.stats[v.name] || {}).median || config.optimizations.defaultRoundtripTime);
+      const times = request.views.map(v => (this.stats[v.name] || {}).median || config.optimizations.defaultRoundtripTime);
       const time = times.length ? times.reduce((p, c) => p + c) / times.length : config.optimizations.defaultRoundtripTime;
       const offset = vel * time + (acc * time * time) / 2;
 
-      this._nextIndex = new1DIterator(request.indexes.map(i => clamp(this._scaleWidth(i) + offset, [0, request.pixel])), subdivisions, maxRes, request.pixel);
+      this._nextIndex = new1DIterator(request.indexes.map(i => clamp(this._scaleWidth(i) + offset, [0, width])), subdivisions, maxRes, width);
 
       console.info('Create new 1D preload iterator', request.indexes);
     } else {
-      this._scaleWidth = scaleLinear().domain(request.ranges[0]).range([0, request.pixels[0]]);
-      this._scaleHeight = scaleLinear().domain(request.ranges[1]).range([0, request.pixels[1]]);
+      const activeView = request.activeView;
+      const size = this.sizes[activeView.name] as [number, number];
+      this._scaleWidth = scaleLinear().domain(activeView.ranges[0]).range([0, size[0]]);
+      this._scaleHeight = scaleLinear().domain(activeView.ranges[1]).range([0, size[1]]);
 
       // TODO: use velocity and acceleration in 2D
       this._nextIndex = new2DIterator(
         request.indexes.map(i =>
           [this._scaleWidth(i[0]), this._scaleHeight(i[1])] as Point2D,
-        ), subdivisions, maxRes, request.pixels);
+        ), subdivisions, maxRes, size);
 
       console.info('Create new 2D preload iterator', request.indexes);
     }
@@ -282,39 +262,25 @@ class Session {
   public load(request: Load) {
     console.info(this.sizes);
     this.query({
-      activeViewName: request.activeViewName,
+      activeView: request.activeView,
       views: request.views,
       index: request.index,
-      cacheKeys: getKeys(request),
     });
   }
 
   private query(query: QueryConfig) {
-    // check for cached results
     const results: ResultData = {};
-    query.views.filter(v => v.query).forEach((v, i) => {
-      const key = (query.cacheKeys || {})[v.name];
-      const hit = this.cache.get(key, query.index);
-      if (hit) {
-        console.info(`hit for ${key}`);
-        results[v.name] = hit;
-
-        // no need to query any more since we can already send the results
-        query.views[i].query = false;
-      }
-    });
 
     const l = Object.keys(results).length;
     if (config.optimizations.sendCached && l) {
       console.info(`Sending cached result with ${l} entries`);
       if (this._onQuery) {
         const q = Object.assign({}, query);
-        delete q.cacheKeys;
         this._onQuery(q, results);
       }
     }
 
-    if (query.views.filter(v => v.query).length > 0) {
+    if (query.views.length > 0) {
       this.backend
         .query(query)
         .then(this.handleQuery(query))
@@ -340,7 +306,7 @@ class Session {
 
     let indexValue = value;
     // translate back from pixel domain to data domain
-    if (preload.activeViewType === '1D') {
+    if (preload.activeView.type === '1D') {
       indexValue = this._scaleWidth.invert(indexValue as Point1D);
     } else {
       const v = indexValue as Point2D;
@@ -349,10 +315,8 @@ class Session {
 
     this.query({
       index: indexValue,
-      activeViewName: this._preload.activeViewName,
-      activeViewType: this._preload.activeViewType,
+      activeView: this._preload.activeView,
       views: this._preload.views,
-      cacheKeys: this._preloadKeys,
     });
   }
 
@@ -364,18 +328,12 @@ class Session {
         return;
       }
 
-      // add new query results to cache
-      query.views.filter(v => v.query).forEach(v => {
-        this.cache.set((query.cacheKeys || {})[v.name], query.index, results[v.name]);
-      });
-
       if (config.optimizations.preload) {
         this.nextQuery();
       }
 
       if (this._onQuery) {
         const q = Object.assign({}, query);
-        delete q.cacheKeys;
         this._onQuery(q, results);
       }
     };

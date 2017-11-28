@@ -8,8 +8,7 @@
  */
 interface Load {
   type: 'load'
-  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
-  activeViewName: string
+  activeView: View
   /** In the active dimension, get the data until here. In data domain. */
   index: Point
   /**
@@ -26,8 +25,6 @@ interface AbstractPreload<T extends Point>{
   /** Identifier for this request. */
   requestId: number,
   type: 'preload',
-  /** View for which the index is valid. This is usually the view which the user is interacting with.  */
-  activeViewName: string,
   /** Like index value in load but can be multiple values. */
   indexes: T[]
   /** Velocity in pixels per ms. */
@@ -36,25 +33,16 @@ interface AbstractPreload<T extends Point>{
   acceleration: T;
   /**
    * Views for which we want data including their extents.
-   * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
    **/
   views: View[]
 }
 
 interface Preload1D extends AbstractPreload<Point1D> {
-  activeViewType: '1D'
-  // range to preload in
-  range: Interval<number>
-  // number of pixels
-  pixel: number
+  activeView: View1D
 }
 
 interface Preload2D extends AbstractPreload<Point2D> {
-  activeViewType: '2D'
-  // ranges to preload in in x and y
-  ranges: [Interval<number>, Interval<number>]
-  // number of pixels in x and y dimension
-  pixels: [number, number]
+  activeView: View2D
 }
 
 type Preload = Preload1D | Preload2D
@@ -67,7 +55,7 @@ type Stats = {[view: string]: {
 }}
 
 /**
- * Initialize the app. Sets the sizes of the views on the server.
+ * Initialize the app.
  */
 interface Init {
   type: 'init',
@@ -105,15 +93,13 @@ interface AbstractView {
   name: string
   /** Title for axes. */
   title?: string
-  /** Whether to query a view or not. */
-  query?: boolean
 }
 
 interface View1D extends AbstractView {
   type: '1D';
   /** The dimensions for this view. */
   dimension: string
-  /** Initial range for the dimensions. */
+  /** Range for the dimensions. */
   range: Interval<number>
   brush?: Interval<number>
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
@@ -132,4 +118,3 @@ interface View2D extends AbstractView {
 }
 
 type View = View1D | View2D;
-

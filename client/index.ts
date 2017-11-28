@@ -1,18 +1,65 @@
 import * as d3 from 'd3';
 import * as vega from 'vega';
 
+import { bs } from '../shared/binary-search';
 import { views } from '../shared/config';
+import { throttle } from '../shared/throttle';
 import { is1DView, stepSize } from '../shared/util';
 import API from './api';
 import connection from './ws';
 
-const vegaViews = {};
+interface CacheEntry {
+  index: number;
+  data: number[];
+}
 
-const element = document.querySelector('#view')!;
+interface Cache {[view: string]: CacheEntry[]; }
 
-let api: API;
+function createDebugView(element, view): vega.View {
+  const vgSpec = {
+    autosize: 'none',
+    padding: {top: 5, left: 60, right: 5, bottom: 5},
+    width: 600,
+    height: 10,
+    data: [
+      {name: 'points'},
+    ],
+    scales: [
+      {
+        name: 'x',
+        type: 'linear',
+        domain: view.range,
+        range: 'width',
+        zero: false,
+      },
+    ],
+    marks: [{
+      type: 'rect',
+      from: {data: 'points'},
+      encode: {
+        enter: {
+          x: {scale: 'x', field: 'index'},
+          width: {value: 1},
+          height: {signal: 'height'},
+          fill: {value: 'steelblue'},
+          fillOpacity: {value: 0.4},
+        },
+      },
+    }],
+  };
 
-for (const view of views) {
+  const runtime = vega.parse(vgSpec);
+
+  const el = element.appendChild(window.document.createElement('div'));
+
+  return new vega.View(runtime)
+    .logLevel(vega.Warn)
+    .initialize(el)
+    .renderer('svg')
+    .run();
+}
+
+function createView(element, view): vega.View {
   let vgSpec;
 
   if (is1DView(view)) {
@@ -21,8 +68,8 @@ for (const view of views) {
 
     vgSpec = {
       $schema: 'https://vega.github.io/schema/vega/v3.0.json',
-      autosize: 'pad',
-      padding: 5,
+      autosize: 'none',
+      padding: {top: 5, left: 60, right: 5, bottom: 40},
       width: 600,
       height: 180,
       data: [
@@ -193,42 +240,115 @@ for (const view of views) {
     };
   } else {
     // TODO
-    continue;
+    return;
   }
 
   const runtime = vega.parse(vgSpec);
 
   const el = element.appendChild(window.document.createElement('div'));
 
-  const vegaView = new vega.View(runtime)
+  return new vega.View(runtime)
     .logLevel(vega.Warn)
     .initialize(el)
     .renderer('svg')
     .run();
+}
 
-  vegaView.addSignalListener('range', (name, value) => {
-    api.send({
-      requestId: 0,
-      type: 'preload',
-      activeViewName: view.name,
-      activeViewType: '1D',
-      indexes: value,
-      range: [0, 1],
-      views,
-      velocity: 0,
-      acceleration: 0,
-      pixel: 1,
-    });
-  });
+function diff(a: number[], b: number[]) {
+  const out = new Array<number>(a.length);
+  for (let i = 0; i < a.length; i++) {
+    out[i] = b[i] - a[i];
+  }
+  return out;
+}
 
-  vegaViews[view.name] = vegaView;
+const cmp = (a, b) => a.index - b.index;
+
+function absIdx(x: number) {
+  if (x >= 0) {
+    return x;
+  }
+  x = -x - 2;
+  return x >= 0 ? x : 0;
+}
+
+function keyCacheKeys(cache: CacheEntry[], indexes: [number, number]) {
+  if (cache.length === 2) {
+    return [0, 0];
+  }
+
+  let pos0 = absIdx(bs<Partial<CacheEntry>>(cache, {index: indexes[0]}, cmp));
+  let pos1 = absIdx(bs<Partial<CacheEntry>>(cache, {index: indexes[1]}, cmp, pos0, cache.length - 1));
+
+  // make sure that the two indexes are not the same
+  if (pos0 === pos1) {
+    if (pos0 > 0) {
+      pos0--;
+    } else {
+      pos1++;
+    }
+  }
+
+  return [pos0, pos1];
 }
 
 connection.onOpen(() => {
   console.info('Intialized connection...');
 
-  // initialize
-  api = new API(connection);
+  // standard comparator for cache
+  const vegaViews = {};
+  const element = document.querySelector('#view')!;
+  const api = new API(connection);
+  const cache: Cache = {};
+
+  const dbgView = createDebugView(element, views[0]);
+
+  for (const view of views) {
+    const vegaView = createView(element, view);
+
+    if (!vegaView) {
+      continue;
+    }
+
+    const throttledSend = throttle(api.send.bind(api), 5000);
+
+    vegaView.addSignalListener('range', (name: string, value: [number, number]) => {
+      const nonActiveViews = views.filter(is1DView).filter(v => v.name !== view.name);
+      for (const v of nonActiveViews) {
+        if (v.name in cache && cache[v.name].length > 1) {
+          const c = cache[v.name];
+          const [pos0, pos1] = keyCacheKeys(c, value);
+          update(vegaViews[v.name], v, diff(c[pos0].data, c[pos1].data));
+        }
+      }
+
+      throttledSend({
+        requestId: 0,
+        type: 'preload',
+        activeView: view,
+        indexes: value,
+        views: nonActiveViews,
+        velocity: 0,
+        acceleration: 0,
+      });
+    });
+
+    vegaViews[view.name] = vegaView;
+  }
+
+  function update(vegaView: vega.View, view: View1D, results: number[]) {
+    const step = stepSize(view.range, view.bins);
+    const bins = d3.range(view.range[0], view.range[1] + step, step);
+
+    const data = bins.map((bin, i) => ({
+      value: bin,
+      value_end: bin + step,
+      count: results[i],
+    }));
+
+    const changeSet = vega.changeset().remove(() => true).insert(data);
+    vegaView.change('table', changeSet).run();
+  }
 
   const sizes = {};
   for (const view of views) {
@@ -242,51 +362,35 @@ connection.onOpen(() => {
     sizes,
   });
 
-  api.onResult( result => {
+  api.onResult(result => {
+    const changeSet = vega.changeset().remove(d => d.index === result.query.index).insert([{index: result.query.index}]);
+    dbgView.change('points', changeSet).run();
+
     for (const view of views) {
       if (is1DView(view)) {
-        const results = result.data[view.name];
+        const results = result.data[view.name] as number[];
 
         if (results) {
-          const step = stepSize(view.range, view.bins);
-          const bins = d3.range(view.range[0], view.range[1] + step, step);
+          const index = result.query.index as number;
+          if (index) {
+            const name = view.name;
 
-          const data = bins.map((bin, i) => ({
-            value: bin,
-            value_end: bin + step,
-            count: results[i],
-          }));
+            if (!(name in cache)) {
+              cache[name] = [];
+            }
 
-          const changeSet = vega.changeset().remove(() => true).insert(data);
-          if (view.name in vegaViews) {
-            vegaViews[view.name].change('table', changeSet).run();
+            const position = bs<Partial<CacheEntry>>(cache[name], {index}, cmp);
+            if (position < 0) {
+              cache[name].splice(-position - 1, 0, {
+                index,
+                data: results,
+              });
+            }
+          } else {
+            update(vegaViews[view.name], view, results);
           }
         }
       }
     }
   });
-
-  // window.setInterval(() => {
-  //   for (const view of views) {
-  //     if (is1DView(view)) {
-  //       const step = stepSize(view.range, view.bins);
-  //       const bins = d3.range(view.range[0], view.range[1] + step, step);
-
-  //       const data = d3.histogram()
-  //         .domain(view.range)
-  //         .thresholds(bins.slice(0, bins.length - 1))(d3.range(100).map(() => view.range[0] + d3.randomBates(10)() * step * view.bins))
-  //         .map((d, i) => ({
-  //           value: bins[i],
-  //           value_end: bins[i + 1],
-  //           count: d.length,
-  //         }));
-
-  //       const changeSet = vega.changeset().remove(() => true).insert(data);
-  //       vegaViews[view.name].change('table', changeSet).run();
-  //     } else {
-  //       // TODO
-  //       continue;
-  //     }
-  //   }
-  // }, 1000);
 });
