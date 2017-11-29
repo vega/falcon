@@ -265,6 +265,7 @@ class Session {
       activeView: request.activeView,
       views: request.views,
       index: request.index,
+      size: this.sizes[request.activeView.name],
     });
   }
 
@@ -317,6 +318,7 @@ class Session {
       index: indexValue,
       activeView: this._preload.activeView,
       views: this._preload.views,
+      size: this.sizes[this._preload.activeView.name],
     });
   }
 

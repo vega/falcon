@@ -15,12 +15,15 @@ interface CacheEntry {
 
 interface Cache {[view: string]: CacheEntry[]; }
 
-function createDebugView(element, view): vega.View {
+function createDebugView(element): vega.View {
   const vgSpec = {
     autosize: 'none',
     padding: {top: 5, left: 60, right: 5, bottom: 5},
     width: 600,
     height: 10,
+    signals: [
+      {name: 'domain', value: [0, 100]},
+    ],
     data: [
       {name: 'points'},
     ],
@@ -28,7 +31,7 @@ function createDebugView(element, view): vega.View {
       {
         name: 'x',
         type: 'linear',
-        domain: view.range,
+        domain: {signal: 'domain'},
         range: 'width',
         zero: false,
       },
@@ -299,9 +302,10 @@ connection.onOpen(() => {
   const vegaViews = {};
   const element = document.querySelector('#view')!;
   const api = new API(connection);
-  const cache: Cache = {};
+  let cache: Cache = {};
+  let activeView: View1D;
 
-  const dbgView = createDebugView(element, views[0]);
+  const dbgView = createDebugView(element);
 
   for (const view of views) {
     const vegaView = createView(element, view);
@@ -313,8 +317,16 @@ connection.onOpen(() => {
     const throttledSend = throttle(api.send.bind(api), 5000);
 
     vegaView.addSignalListener('range', (name: string, value: [number, number]) => {
+      if (!activeView || view.name !== activeView.name) {
+        switchActiveView(view as View1D);
+      }
+
       const nonActiveViews = views.filter(is1DView).filter(v => v.name !== view.name);
       for (const v of nonActiveViews) {
+        const brush = vegaViews[v.name].signal('range');
+        if (brush) {
+          v.brush = brush;
+        }
         if (v.name in cache && cache[v.name].length > 1) {
           const c = cache[v.name];
           const [pos0, pos1] = keyCacheKeys(c, value);
@@ -334,6 +346,14 @@ connection.onOpen(() => {
     });
 
     vegaViews[view.name] = vegaView;
+  }
+
+  function switchActiveView(newActiveView: View1D) {
+    activeView = newActiveView;
+    cache = {};
+    dbgView
+      .signal('domain', activeView.range)
+      .remove('points', d => true).run();
   }
 
   function update(vegaView: vega.View, view: View1D, results: number[]) {
@@ -363,8 +383,17 @@ connection.onOpen(() => {
   });
 
   api.onResult(result => {
-    const changeSet = vega.changeset().remove(d => d.index === result.query.index).insert([{index: result.query.index}]);
-    dbgView.change('points', changeSet).run();
+    if (result.query.activeView) {
+      if (result.query.activeView.name !== activeView.name) {
+        console.info('Outdated result.');
+        return;
+      }
+
+      const changeSet = vega.changeset().remove(d => d.index === result.query.index).insert([{index: result.query.index}]);
+      dbgView
+        .signal('domain', activeView.range)
+        .change('points', changeSet).run();
+    }
 
     for (const view of views) {
       if (is1DView(view)) {

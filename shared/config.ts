@@ -69,7 +69,7 @@ export const optimizations = {
   /**
    * Highest resolution.
    */
-  maxResolution: 4,
+  maxResolution: 1,
   /**
    * Send results that are cached.
    */

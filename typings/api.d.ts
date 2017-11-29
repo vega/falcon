@@ -47,7 +47,7 @@ interface Preload2D extends AbstractPreload<Point2D> {
 
 type Preload = Preload1D | Preload2D
 
-type Sizes = {[view: string]: number | number[]}
+type Sizes = {[view: string]: Point}
 
 type Stats = {[view: string]: {
   mean: number,

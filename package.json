@@ -8,7 +8,7 @@
     "build": "rollup -c",
     "watch": "rollup -w -c",
     "start": "nodemon --ignore client --exec 'ts-node' server/index.ts",
-    "start:debug": "ts-node debug server/index.ts",
+    "start:debug": "ts-node --inspect server/index.ts",
     "lint": "tslint --project .",
     "clean": "rm -f public/client.js*"
   },
