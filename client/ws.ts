@@ -8,7 +8,7 @@ const callbacks: {
 };
 
 ws.onmessage = event => {
-  setTimeout(() => {
+  setTimeout(() => {  // don't block on parsing all messages
     const result: any = JSON.parse(event.data);
     if (callbacks.result) {
       callbacks.result(result);
