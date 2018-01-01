@@ -8,13 +8,14 @@ const server = createServer();
 const wss = new WebSocketServer({ server });
 const app = express();
 
-// *
-import Flights from './flight-backend';
-const backend = new Flights();
-/*/
-import Random from './random-backend';
-const backend = new Random();
-// */
+// import Flights from './flight-backend';
+// const backend = new Flights();
+
+import Postgres from './pg-backend';
+const backend = new Postgres({connectionString: 'postgresql:///postgres'});
+
+// import Random from './random-backend';
+// const backend = new Random();
 
 let session = new Session(backend);
 

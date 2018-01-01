@@ -1,9 +1,7 @@
 import * as d3 from 'd3';
 import {readFileSync} from 'fs';
 import * as config from '../shared/config';
-import { is1DView, stepSize } from '../shared/util';
-
-const EPSILON = 1e-15;
+import { binningFunc, is1DView, stepSize } from '../shared/util';
 
 // Like d3.time.format, but faster.
 function parseDate(d) {
@@ -49,15 +47,15 @@ export default class Flights implements Backend {
       const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
       const index = binActive(queryConfig.index as number);
 
-      queryConfig.views.forEach(view => {
+      for (const view of queryConfig.views) {
         if (view.type === '1D') {
           data[view.name] = this.cache[view.name][index];
         } else {
           // TODO
         }
-      });
+      }
     } else {
-      queryConfig.views.forEach(view => {
+      for (const view of queryConfig.views) {
         if (view.type === '1D') {
           const step = stepSize(view.range, view.bins);
           const bins = d3.range(view.range[0], view.range[1] + step, step);
@@ -70,7 +68,7 @@ export default class Flights implements Backend {
         } else {
           // TODO
         }
-      });
+      }
     }
 
     const results = new Promise<ResultData>((resolve, reject) => {
@@ -128,9 +126,4 @@ export default class Flights implements Backend {
       }
     }
   }
-}
-
-function binningFunc(range: [number, number], bins: number) {
-  const step = stepSize(range, bins);
-  return (v: number) => Math.floor((v - range[0]) / step + EPSILON);
 }

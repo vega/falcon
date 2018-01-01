@@ -1,3 +1,5 @@
+export const EPSILON = 1e-15;
+
 export function isPoint2D(point: Point): point is Point2D {
   return typeof point !== 'number';
 }
@@ -24,4 +26,9 @@ export function stepSize(range: [number, number], bins: number) {
 
 export function clamp(i: number, range: [number, number]) {
   return Math.max(range[0], Math.min(range[1], i));
+}
+
+export function binningFunc(range: [number, number], bins: number) {
+  const step = stepSize(range, bins);
+  return (v: number) => Math.floor((v - range[0]) / step + EPSILON);
 }
