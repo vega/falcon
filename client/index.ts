@@ -18,7 +18,7 @@ interface Cache {[view: string]: CacheEntry[]; }
 function createDebugView(element): vega.View {
   const vgSpec = {
     autosize: 'none',
-    padding: {top: 5, left: 60, right: 5, bottom: 5},
+    padding: {top: 5, left: 60, right: 20, bottom: 5},
     width: 600,
     height: 10,
     signals: [
@@ -72,11 +72,27 @@ function createView(element, view): vega.View {
     vgSpec = {
       $schema: 'https://vega.github.io/schema/vega/v3.0.json',
       autosize: 'none',
-      padding: {top: 5, left: 60, right: 5, bottom: 40},
+      padding: {top: 5, left: 60, right: 60, bottom: 40},
       width: 600,
       height: 180,
       data: [
         {name: 'table'},
+        {
+          name: 'sum',
+          source: 'table',
+          transform: [{
+            type: 'aggregate',
+            ops: [
+              'sum',
+            ],
+            fields: [
+              'count',
+            ],
+            as: [
+              'sum',
+            ],
+          }],
+        },
       ],
       signals: [
         { name: 'xmove', value: 0,
@@ -117,6 +133,17 @@ function createView(element, view): vega.View {
         },
       ],
       marks: [
+        {
+          type: 'text',
+          from: {data: 'sum'},
+          encode: {
+            update: {
+              x: {signal: 'width', offset: 5},
+              y: {value: 10},
+              text: {field: 'sum'},
+            },
+          },
+        },
         {
           type: 'group',
           name: 'chart',

@@ -16,6 +16,10 @@ First version that turned out to be too complicated is at https://github.com/uwd
 
 ### Import into MonetDB
 
+Run: `monetdbd start monet`
+
+Connect: `mclient -u monetdb -d flights`
+
 `COPY INTO flights from '/Users/domoritz/Developer/UW/crossfilter/data/flights-3m.csv' USING DELIMITERS ',','\n','\"' best effort;`
 
 ### Create Table

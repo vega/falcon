@@ -28,16 +28,16 @@ class Postgres implements Backend {
 
       for (const view of queryConfig.views) {
         if (view.type === '1D') {
-          data[view.name] = this.cache[view.name][index];
+          data[view.name] = fullHist(this.cache[view.name][index]);
         } else {
           // TODO
         }
       }
     } else {
       // run queries to get histograms in parallel
-      const resolved = await Promise.all(queryConfig.views.filter(view => view.type === '1D').map(view => hist1D(view as View1D, this.pool)));
+      const resolved = await Promise.all(queryConfig.views.filter(view => view.type === '1D').map(view => hist1D(view as View1D, this.pool, queryConfig.views.filter(v => v.type === '1D') as any)));
       resolved.map(res => {
-        data[res.name] = res.hist;
+        data[res.name] = fullHist(res.hist);
       });
     }
 
@@ -58,12 +58,25 @@ class Postgres implements Backend {
       if (view.type === '1D') {
         this.cache[view.name] = {};
 
+        // filter for view range or brush for all views except the active view and the current view
+        const where = queryConfig.views
+          .filter(v => v.name !== view.name).filter(v => v.name !== this.activeView.name)
+          .filter(v => v.type === '1D')
+          .map((v: View1D) => {
+              const range = v.brush || v.range;
+              return `${range[0]} <= "${v.name}" and "${v.name}" < ${range[1]}`;
+            });
+
         const text = `with binned as (
                         select
                           floor(1.0 * ("${this.activeView.name}" - ${this.activeView.range[0]}) / (${this.activeView.range[1]} - ${this.activeView.range[0]}) * ${queryConfig.size}) as activeBucket,
                           floor(1.0 * ("${view.name}" - ${view.range[0]}) / (${view.range[1]} - ${view.range[0]}) * ${view.bins}) as bucket
                         from flights
-                        where ${view.range[0]} <= "${view.name}" and "${view.name}" < ${view.range[1]}
+                        where
+                          -- only data in the visible range
+                          ${view.range[0]} <= "${view.name}" and "${view.name}" < ${view.range[1]}
+                          -- other filters
+                          ${where.length > 0 ? ' and ' + where.join(' and ') : ''}
                         and ${this.activeView.range[0]} <= "${this.activeView.name}" and "${this.activeView.name}" < ${this.activeView.range[1]}
                       )
                       select activeBucket, bucket, sum(count(*)) over (partition by bucket order by activeBucket) as cnt
@@ -78,14 +91,15 @@ class Postgres implements Backend {
           rowMode: 'array',
         });
 
-        let current = res.rows[0][0];
-        let acc: number[] = [];
+        let current = null;
+        let acc: number[] = new Array(view.bins);
 
         for (const row of res.rows) {
-          this.cache[view.name][row[0]] = acc;
           if (current !== row[0]) {
+            // set current and create new accumulator
             current = row[0];
             acc = [];
+            this.cache[view.name][row[0]] = acc;
           }
           acc[row[1]] = +row[2];
         }
@@ -94,24 +108,18 @@ class Postgres implements Backend {
   }
 }
 
-async function allHist1D(view: View1D, pool: pg.Pool) {
-  const text = `with binned as (
-                  select floor("DEP_DELAY"/10)*10 "BIN_DEP_DELAY", floor("ARR_DELAY"/10)*10 "BIN_ARR_DELAY", "DISTANCE"
-                  from flights
-                  where "DEP_DELAY" is not null and "ARR_DELAY" is not null and "DISTANCE" is not null)
-                select "BIN_DEP_DELAY", "BIN_ARR_DELAY", sum(count(*)) OVER (ORDER BY "BIN_DEP_DELAY")
-                from binned
-                where "DISTANCE" < 2000
-                group by "BIN_DEP_DELAY", "BIN_ARR_DELAY"`;
-}
-
 /**
- * Get a 1D histogram without any restrictions.
+ * Get a 1D histogram for the visible ranges at intialization time.
+ * The histograms are filtered to the visible range.
  */
-async function hist1D(view: View1D, pool: pg.Pool) {
+async function hist1D(view: View1D, pool: pg.Pool, views: View1D[]) {
+  // filter to active range
+  const where = views.map(
+    v => `${v.range[0]} <= "${v.name}" and "${v.name}" < ${v.range[1]}`).join(' and ');
+
   const text = `select count(*)
                 from flights
-                where ${view.range[0]} <= "${view.name}" and "${view.name}" < ${view.range[1]}
+                where ${where}
                 group by floor(1.0 * ("${view.name}" - ${view.range[0]}) / (${view.range[1]} - ${view.range[0]}) * ${view.bins})`;
   const res = await pool.query({
     text,
@@ -119,6 +127,31 @@ async function hist1D(view: View1D, pool: pg.Pool) {
   });
 
   return {name: view.name, hist: res.rows.map(d => +d[0])};
+}
+
+/**
+ * Function to complete a missing accumulative histogram. Histograms may be
+ * missing entries but they are needed because the histogram is supposed to be
+ * accumulative.
+ *
+ * this function expects that the histogram is always limited to the current
+ * range and thus, the first bucket has to be 0 if the histogram has no value in
+ * the first bucket.
+ */
+function fullHist(hist: number[]) {
+  if (!hist) {
+    return hist;
+  }
+
+  if (hist[0] === undefined) {
+    hist[0] = 0;
+  }
+  for (let i = 1; i < hist.length; i++) {
+    if (hist[i] === undefined) {
+      hist[i] = hist[i - 1];
+    }
+  }
+  return hist;
 }
 
 export default Postgres;
