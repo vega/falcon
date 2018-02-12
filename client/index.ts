@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import {range} from 'd3-array';
 import * as vega from 'vega';
 
 import { bs } from '../shared/binary-search';
@@ -67,7 +67,7 @@ function createView(element, view): vega.View {
 
   if (is1DView(view)) {
     const step = stepSize(view.range, view.bins);
-    const bins = d3.range(view.range[0], view.range[1] + step, step);
+    const bins = range(view.range[0], view.range[1] + step, step);
 
     vgSpec = {
       $schema: 'https://vega.github.io/schema/vega/v3.0.json',
@@ -385,7 +385,7 @@ connection.onOpen(() => {
 
   function update(vegaView: vega.View, view: View1D, results: number[]) {
     const step = stepSize(view.range, view.bins);
-    const bins = d3.range(view.range[0], view.range[1] + step, step);
+    const bins = range(view.range[0], view.range[1] + step, step);
 
     const data = bins.map((bin, i) => ({
       value: bin,
