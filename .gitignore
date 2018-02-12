@@ -3,3 +3,4 @@ node_modules
 public/*.js
 public/*.js.map
 .vscode/tags
+monet
