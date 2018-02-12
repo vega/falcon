@@ -6,9 +6,9 @@ export default {
   input: 'client/index.ts',
   output: {
     file: 'public/client.js',
-    format: 'iife'
+    format: 'iife',
+    sourcemap: true
   },
-  sourcemap: true,
   plugins: [
     resolveCache(nodeResolve({main: true, jsnext: true})),
     json(),
