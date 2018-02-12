@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { range } from 'd3-array';
 import {readFileSync} from 'fs';
 import * as config from '../shared/config';
 import { binningFunc, is1DView, stepSize } from '../shared/util';
@@ -12,8 +13,10 @@ function parseDate(d) {
     d.substring(10, 12));
 }
 
+type FlightData = Array<{index: number, date: Date, delay: number, distance: number}>;
+
 export default class Flights implements Backend {
-  private flights: Array<{index: number, date: Date, delay: number, distance: number}>;
+  private flights: FlightData;
 
   private activeView: View1D;
 
@@ -39,9 +42,20 @@ export default class Flights implements Backend {
   public async query(queryConfig: QueryConfig): Promise<ResultData> {
     const data: ResultData = {};
 
+    // Only look at flights that are within the visible boundaries.
+    // The semantics of crossfilter are not all that obvious.
+    const flights = this.flights.filter(d => {
+      for (const view of queryConfig.views.filter(v => v.type === '1D') as View1D[]) {
+        if (d[view.name] < view.range[0] || view.range[1] <= d[view.name]) {
+          return false;
+        }
+      }
+      return true;
+    });
+
     if (queryConfig.activeView) {
       if (queryConfig.activeView.name !== (this.activeView && this.activeView.name)) {
-        this.switchActiveView(queryConfig);
+        this.switchActiveView(queryConfig, flights);
       }
 
       const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
@@ -61,7 +75,7 @@ export default class Flights implements Backend {
           const bins = d3.range(view.range[0], view.range[1] + step, step);
           const hist = d3.histogram()
             .domain(view.range)
-            .thresholds(bins)(this.flights.map(d => d[view.name]))
+            .thresholds(bins)(flights.map(d => d[view.name]))
             .map(d => d.length);
 
           data[view.name] = hist;
@@ -78,13 +92,13 @@ export default class Flights implements Backend {
     return results;
   }
 
-  private switchActiveView(queryConfig: QueryConfig) {
+  private switchActiveView(queryConfig: QueryConfig, flights: FlightData) {
     this.activeView = queryConfig.activeView as View1D;
 
     // reset the cache
     this.cache = {};
 
-    this.flights.sort((a, b) => a[this.activeView.name] - b[this.activeView.name]);
+    flights.sort((a, b) => a[this.activeView.name] - b[this.activeView.name]);
 
     const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
 
@@ -97,7 +111,7 @@ export default class Flights implements Backend {
         let hist: number[] = new Array(view.bins);
         for (let i = 0; i < hist.length; i++) { hist[i] = 0; }
 
-        for (const d of this.flights) {
+        for (const d of flights) {
           const newActiveBucket = binActive(d[this.activeView.name]);
 
           if (activeBucket !== newActiveBucket) {
