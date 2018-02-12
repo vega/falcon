@@ -60,7 +60,8 @@ class Postgres implements Backend {
 
         // filter for view range or brush for all views except the active view and the current view
         const where = queryConfig.views
-          .filter(v => v.name !== view.name).filter(v => v.name !== this.activeView.name)
+          .filter(v => v.name !== view.name)
+          .filter(v => v.name !== this.activeView.name)
           .filter(v => v.type === '1D')
           .map((v: View1D) => {
               const range = v.brush || v.range;
