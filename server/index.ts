@@ -58,7 +58,11 @@ wss.on('connection', ws => {
       case 'profile':
         session.profile(request);
         break;
-      }
+    }
+  });
+
+  ws.on('error', e => {
+    console.warn(e);
   });
 });
 
