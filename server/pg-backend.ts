@@ -85,7 +85,7 @@ class Postgres implements Backend {
                       group by activeBucket, bucket
                       order by activeBucket, bucket`;
 
-        console.log(text);
+        console.info(text);
 
         const res = await this.pool.query({
           text,

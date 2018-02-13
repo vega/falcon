@@ -10,7 +10,7 @@
   "rules": {
     "quotemark": [true, "single"],
     "arrow-parens": [true, "ban-single-arg-parens"],
-    "no-console": [true, "log", "error"],
+    "no-console": [true, "log"],
     "max-line-length": false,
     "no-bitwise": false,
     "interface-name": false,
