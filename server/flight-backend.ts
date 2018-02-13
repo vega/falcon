@@ -102,7 +102,9 @@ export default class Flights implements Backend {
 
     const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
 
-    for (const view of config.views.filter(v => v.name !== this.activeView.name)) {
+    const nonActiveViews = config.views.filter(v => v.name !== this.activeView.name);
+
+    for (const view of nonActiveViews) {
       if (view.type === '1D') {
         this.cache[view.name] = {};
 
@@ -122,8 +124,8 @@ export default class Flights implements Backend {
 
           // filter by the other views
           let filtered = false;
-          for (const otherView of queryConfig.views) {
-            if (is1DView(otherView) && otherView.brush) {
+          for (const otherView of nonActiveViews) {
+            if (otherView.name !== view.name && is1DView(otherView) && otherView.brush) {
               if (d[otherView.name] < otherView.brush[0] || otherView.brush[1] < d[otherView.name]) {
                 filtered = true;
                 break;

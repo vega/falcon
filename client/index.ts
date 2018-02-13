@@ -284,6 +284,9 @@ function createView(element, view): vega.View {
     .run();
 }
 
+/**
+ * calculates the diff between two arrays.
+ */
 function diff(a: number[], b: number[]) {
   const out = new Array<number>(a.length);
   for (let i = 0; i < a.length; i++) {
@@ -302,6 +305,9 @@ function absIdx(x: number) {
   return x >= 0 ? x : 0;
 }
 
+/**
+ * Finds the two entries in the cache closest to the indexes.
+ */
 function keyCacheKeys(cache: CacheEntry[], indexes: [number, number]) {
   if (cache.length === 2) {
     return [0, 0];
@@ -375,6 +381,25 @@ connection.onOpen(() => {
     vegaViews[view.name] = vegaView;
   }
 
+  const throttledUpdateAll = throttle(updateAll, 1000);
+
+  function updateAll() {
+    // TODO: make this smarter, only redraw if indexes have changed
+    const value = vegaViews[activeView.name].signal('range');
+
+    for (const view of views) {
+      const nonActiveViews = views.filter(is1DView).filter(v => v.name !== view.name);
+      for (const v of nonActiveViews) {
+        const brush = vegaViews[v.name].signal('range');
+        if (v.name in cache && cache[v.name].length > 1) {
+          const c = cache[v.name];
+          const [pos0, pos1] = keyCacheKeys(c, value);
+          update(vegaViews[v.name], v, diff(c[pos0].data, c[pos1].data));
+        }
+      }
+    }
+  }
+
   function switchActiveView(newActiveView: View1D) {
     activeView = newActiveView;
     cache = {};
@@ -413,6 +438,7 @@ connection.onOpen(() => {
     if (result.query.activeView) {
       if (result.query.activeView.name !== activeView.name) {
         console.info('Outdated result.');
+        // TODO: requests may be outdated if we zoomed in. check for ranges.
         return;
       }
 
@@ -442,6 +468,8 @@ connection.onOpen(() => {
                 data: results,
               });
             }
+
+            throttledUpdateAll();
           } else {
             update(vegaViews[view.name], view, results);
           }

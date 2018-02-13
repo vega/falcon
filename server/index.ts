@@ -62,7 +62,7 @@ wss.on('connection', ws => {
   });
 
   ws.on('error', e => {
-    console.warn(e);
+    console.error(e);
   });
 });
 

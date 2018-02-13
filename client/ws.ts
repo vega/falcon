@@ -30,6 +30,10 @@ const connection: Connection = {
   },
 };
 
+window.addEventListener('beforeunload', () => {
+  ws.close();
+});
+
 export interface Connection {
     onOpen: (callback: () => void) => void;
     send: (message: ApiRequest) => void;

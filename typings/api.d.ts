@@ -89,9 +89,9 @@ declare type ResultData = {[view: string]: ResultRow}
  */
 
 interface AbstractView {
-  /** The name of the view. */
+  /** The name of the view. Can be used as an identifier. */
   name: string
-  /** Title for axes. */
+  /** Title for axis. Should not be used as an identifier. */
   title?: string
 }
 
