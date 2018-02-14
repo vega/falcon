@@ -1,23 +1,15 @@
 export const EPSILON = 1e-15;
 
-export function isPoint2D(point: Point): point is Point2D {
-  return typeof point !== 'number';
-}
-
-export function isPoint1D(point: Point): point is Point1D {
+export function isPoint1D(point: Point1D | Point2D): point is Point1D {
   return typeof point === 'number';
 }
 
-export function is1DView(view: View): view is View1D {
+export function isPoint2D(point: Point1D | Point2D): point is Point2D {
+  return typeof point !== 'number';
+}
+
+export function is1DView(view: View1D | View2D): view is View1D {
   return 'range' in view;
-}
-
-export function is1DPreload(preload: Preload): preload is Preload1D {
-  return preload.activeView.type === '1D';
-}
-
-export function is2DPreload(preload: Preload): preload is Preload2D {
-  return preload.activeView.type === '2D';
 }
 
 export function stepSize(range: [number, number], bins: number) {

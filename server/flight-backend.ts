@@ -15,15 +15,11 @@ function parseDate(d) {
 
 type FlightData = Array<{index: number, date: Date, delay: number, distance: number}>;
 
-export default class Flights implements Backend {
+export default class Flights {
   private flights: FlightData;
 
-  private activeView: View1D;
-
-  private cache: {[view: string]: {[index: number]: number[]}};
-
   constructor() {
-    const data = readFileSync('data/flights-10k.csv', 'utf8');
+    const data = readFileSync('data/flights-200k.csv', 'utf8');
 
     this.flights = d3.csvParse(data) as any;
 
@@ -39,107 +35,82 @@ export default class Flights implements Backend {
     console.info(`${this.flights.length} flights initialized`);
   }
 
-  public async query(queryConfig: QueryConfig): Promise<ResultData> {
-    const data: ResultData = {};
+  public load(request: Init, sizes: Sizes): ResultSlice {
+    const data: ResultSlice = {};
+    const flights = this.filterFlights(request.views);
 
+    for (const view of request.views) {
+      const step = stepSize(view.range, view.bins);
+      const bins = d3.range(view.range[0], view.range[1] + step, step);
+      const hist = d3.histogram()
+        .domain(view.range)
+        .thresholds(bins)(flights.map(d => d[view.name]))
+        .map(d => d.length);
+
+      data[view.name] = hist;
+    }
+
+    return data;
+  }
+
+  public loadAll(request: Load, sizes: Sizes): ResultCube {
+    const data: ResultCube = {};
+
+    const flights = this.filterFlights(request.views.concat([request.activeView]));
+
+    const activeView = request.activeView;
+
+    flights.sort((a, b) => a[activeView.name] - b[activeView.name]);
+
+    const binActive = binningFunc(activeView.range, sizes[request.activeView.name] / config.optimizations.maxResolution);
+
+    for (const view of request.views) {
+      data[view.name] = [];
+
+      const bin = binningFunc(view.range, view.bins);
+      let activeBucket;  // what bucket in the active dimension are we at
+      let hist: number[] = new Array(view.bins);
+      for (let i = 0; i < hist.length; i++) { hist[i] = 0; }
+
+      for (const d of flights) {
+        const newActiveBucket = binActive(d[activeView.name]);
+
+        if (activeBucket !== newActiveBucket) {
+          activeBucket = newActiveBucket;
+          hist = hist.slice();
+          data[view.name][activeBucket] = hist;
+        }
+
+        // filter by the other views
+        let filtered = false;
+        for (const otherView of request.views) {
+          if (otherView.name !== view.name && otherView.brush) {
+            if (d[otherView.name] < otherView.brush[0] || otherView.brush[1] < d[otherView.name]) {
+              filtered = true;
+              break;
+            }
+          }
+        }
+
+        if (!filtered) {
+          hist[bin(d[view.name])]++;
+        }
+      }
+    }
+
+    return data;
+  }
+
+  private filterFlights(views: View[]) {
     // Only look at flights that are within the visible boundaries.
     // The semantics of crossfilter are not all that obvious.
-    const flights = this.flights.filter(d => {
-      for (const view of queryConfig.views.filter(v => v.type === '1D') as View1D[]) {
+    return this.flights.filter(d => {
+      for (const view of views) {
         if (d[view.name] < view.range[0] || view.range[1] <= d[view.name]) {
           return false;
         }
       }
       return true;
     });
-
-    if (queryConfig.activeView) {
-      if (queryConfig.activeView.name !== (this.activeView && this.activeView.name)) {
-        this.switchActiveView(queryConfig, flights);
-      }
-
-      const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
-      const index = binActive(queryConfig.index as number);
-
-      for (const view of queryConfig.views) {
-        if (view.type === '1D') {
-          data[view.name] = this.cache[view.name][index];
-        } else {
-          // TODO
-        }
-      }
-    } else {
-      for (const view of queryConfig.views) {
-        if (view.type === '1D') {
-          const step = stepSize(view.range, view.bins);
-          const bins = d3.range(view.range[0], view.range[1] + step, step);
-          const hist = d3.histogram()
-            .domain(view.range)
-            .thresholds(bins)(flights.map(d => d[view.name]))
-            .map(d => d.length);
-
-          data[view.name] = hist;
-        } else {
-          // TODO
-        }
-      }
-    }
-
-    const results = new Promise<ResultData>((resolve, reject) => {
-      resolve(data);
-    });
-
-    return results;
-  }
-
-  private switchActiveView(queryConfig: QueryConfig, flights: FlightData) {
-    this.activeView = queryConfig.activeView as View1D;
-
-    // reset the cache
-    this.cache = {};
-
-    flights.sort((a, b) => a[this.activeView.name] - b[this.activeView.name]);
-
-    const binActive = binningFunc(this.activeView.range, queryConfig.size as number);
-
-    const nonActiveViews = config.views.filter(v => v.name !== this.activeView.name);
-
-    for (const view of nonActiveViews) {
-      if (view.type === '1D') {
-        this.cache[view.name] = {};
-
-        const bin = binningFunc(view.range, view.bins);
-        let activeBucket;  // what bucket in the active dimension are we at
-        let hist: number[] = new Array(view.bins);
-        for (let i = 0; i < hist.length; i++) { hist[i] = 0; }
-
-        for (const d of flights) {
-          const newActiveBucket = binActive(d[this.activeView.name]);
-
-          if (activeBucket !== newActiveBucket) {
-            activeBucket = newActiveBucket;
-            hist = hist.slice();
-            this.cache[view.name][activeBucket] = hist;
-          }
-
-          // filter by the other views
-          let filtered = false;
-          for (const otherView of nonActiveViews) {
-            if (otherView.name !== view.name && is1DView(otherView) && otherView.brush) {
-              if (d[otherView.name] < otherView.brush[0] || otherView.brush[1] < d[otherView.name]) {
-                filtered = true;
-                break;
-              }
-            }
-          }
-
-          if (!filtered) {
-            hist[bin(d[view.name])]++;
-          }
-        }
-      } else {
-        // TODO
-      }
-    }
   }
 }

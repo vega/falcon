@@ -15,8 +15,8 @@ export default class API {
     this.connection.send(request);
   }
 
-  public onResult(callback: (result: Result) => void) {
-    this.connection.onResult((r: Result) => {
+  public onResult(callback: (result: ApiResult) => void) {
+    this.connection.onResult((r: ApiResult) => {
       if (debugging.logApi) {
         console.info(`API: received result`, r);
       }

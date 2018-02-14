@@ -220,9 +220,13 @@
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.0.tgz#5a7306e367c539b9f6543499de8dd519fac37a8b"
 
-"@types/node@*", "@types/node@^9.4.5":
+"@types/node@*":
   version "9.4.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.4.5.tgz#d2a90c634208173d1b1a0a6ba9f1df3de62edcf5"
+
+"@types/node@^9.4.6":
+  version "9.4.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.4.6.tgz#d8176d864ee48753d053783e4e463aec86b8d82e"
 
 "@types/pg-types@*":
   version "1.11.4"
@@ -230,9 +234,9 @@
   dependencies:
     moment ">=2.14.0"
 
-"@types/pg@^7.4.2":
-  version "7.4.2"
-  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.4.2.tgz#f39f184e5eed76c80a32c6229198903dfc2c8260"
+"@types/pg@^7.4.3":
+  version "7.4.3"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.4.3.tgz#bb20d030d24b16fd5d24a7d5fc72eeec0678d849"
   dependencies:
     "@types/events" "*"
     "@types/node" "*"

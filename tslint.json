@@ -8,14 +8,15 @@
       "tslint:recommended"
   ],
   "rules": {
-    "quotemark": [true, "single"],
     "arrow-parens": [true, "ban-single-arg-parens"],
-    "no-console": [true, "log"],
+    "interface-name": false,
+    "max-classes-per-file": false,
     "max-line-length": false,
     "no-bitwise": false,
-    "interface-name": false,
+    "no-console": [true, "log"],
     "object-literal-sort-keys": false,
-    "max-classes-per-file": false,
+    "quotemark": [true, "single"],
+    "semicolon": [true, "always"],
     "variable-name": false
   }
 }

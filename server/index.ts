@@ -11,22 +11,13 @@ const app = express();
 import Flights from './flight-backend';
 const backend = new Flights();
 
-// import Postgres from './pg-backend';
-// const backend = new Postgres({connectionString: 'postgresql:///postgres'});
-
-// import Random from './random-backend';
-// const backend = new Random();
-
 let session = new Session(backend);
 
 app.use(express.static(__dirname + '/../public'));
 
 wss.on('connection', ws => {
-  session.onQuery((query, results) => {
-    ws.send(JSON.stringify({
-      query,
-      data: results,
-    }), err => {
+  session.onQuery((response: ApiResult) => {
+    ws.send(JSON.stringify(response), err => {
       if (err) {
         console.warn(err);
       }
@@ -51,12 +42,6 @@ wss.on('connection', ws => {
         break;
       case 'load':
         session.load(request);
-        break;
-      case 'preload':
-        session.preload(request);
-        break;
-      case 'profile':
-        session.profile(request);
         break;
     }
   });

@@ -1,93 +1,44 @@
 
 /**
- * Requests
- */
-
-/**
  * Load data with maximum priority and cannot be cancelled.
  */
 interface Load {
   type: 'load'
   activeView: View
-  /** In the active dimension, get the data until here. In data domain. */
-  index: Point
-  /**
-   * Views for which we want data including their extents.
-   * Usually this will be all views except for the active view but it may be only one if we are zooming in or out and need new data.
-   **/
   views: View[]
 }
-
-/**
- * Load data around this query.
- */
-interface AbstractPreload<T extends Point>{
-  /** Identifier for this request. */
-  requestId: number,
-  type: 'preload',
-  /** Like index value in load but can be multiple values. */
-  indexes: T[]
-  /** Velocity in pixels per ms. */
-  velocity: T,
-  /** Acceleration in pixel domain. */
-  acceleration: T;
-  /**
-   * Views for which we want data including their extents.
-   **/
-  views: View[]
-}
-
-interface Preload1D extends AbstractPreload<Point1D> {
-  activeView: View1D
-}
-
-interface Preload2D extends AbstractPreload<Point2D> {
-  activeView: View2D
-}
-
-type Preload = Preload1D | Preload2D
 
 type Sizes = {[view: string]: Point}
-
-type Stats = {[view: string]: {
-  mean: number,
-  median: number
-}}
 
 /**
  * Initialize the app.
  */
 interface Init {
-  type: 'init',
+  type: 'init'
   sizes: Sizes
+  views: View[]
 }
 
-interface Profile {
-  type: 'profile',
-  /** Timing stats for each view. */
-  stats: Stats
+declare type ApiRequest = Init | Load
+
+type ApiResult = {
+  request: Init
+  stepSize: number
+  // view -> hist
+  data: ResultSlice
+} | {
+  request: Load
+  // view -> index -> hist
+  data: ResultCube
 }
 
-declare type ApiRequest = Init | Preload | Load | Profile
-
-/**
- * Responses
- */
-
-interface Result {
-  query: QueryConfig
-  /** The data for each view. */
-  data: ResultData
-}
-
-type ResultRow = number[] | number[][];
-
-declare type ResultData = {[view: string]: ResultRow}
+type Histogram = number[]; // | number[][];
+type ResultSlice = {[key: string]: Histogram}
+type ResultCube = {[view: string]: Histogram[]};
 
 /**
  * Views
  */
-
 interface AbstractView {
   /** The name of the view. Can be used as an identifier. */
   name: string
@@ -96,7 +47,7 @@ interface AbstractView {
 }
 
 interface View1D extends AbstractView {
-  type: '1D';
+  type: '1D'
   /** The dimensions for this view. */
   dimension: string
   /** Range for the dimensions. */
@@ -107,7 +58,7 @@ interface View1D extends AbstractView {
 }
 
 interface View2D extends AbstractView {
-  type: '2D';
+  type: '2D'
   /** The dimensions for this view. */
   dimensions: [string, string]
   /** Initial range for the dimensions. */
@@ -117,4 +68,4 @@ interface View2D extends AbstractView {
   bins: [number, number]
 }
 
-type View = View1D | View2D;
+type View = View1D; // | View2D;
