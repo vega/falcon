@@ -13,7 +13,7 @@ export function getIndexValueKey(indexValue: Point | undefined): string {
 }
 
 export class SimpleIndex {
-  private index: {[indexValue: string]: ResultRow};
+  private index: {[indexValue: string]: Histogram};
 
   constructor() {
     this.index = {};
@@ -23,7 +23,7 @@ export class SimpleIndex {
     return this.index[getIndexValueKey(indexValue)];
   }
 
-  public set(indexValue: Point | undefined, data: ResultRow) {
+  public set(indexValue: Point | undefined, data: Histogram) {
     this.index[getIndexValueKey(indexValue)] = data;
   }
 }
@@ -35,7 +35,7 @@ export class SimpleCache {
     this.cache = {};
   }
 
-  public get(key: string | undefined, indexValue: Point | undefined): ResultRow | undefined {
+  public get(key: string | undefined, indexValue: Point | undefined): Histogram | undefined {
     if (key === undefined) {
       throw new Error('Key cannot be undefined');
     }
@@ -55,7 +55,7 @@ export class SimpleCache {
     return this.cache[key];
   }
 
-  public set(key: string | undefined, indexValue: Point | undefined, data: ResultRow) {
+  public set(key: string | undefined, indexValue: Point | undefined, data: Histogram) {
     if (key === undefined) {
       throw new Error('Key cannot be undefined');
     }
