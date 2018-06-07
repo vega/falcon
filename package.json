@@ -23,29 +23,29 @@
   },
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
-    "d3": "^4.13.0",
-    "express": "^4.16.2",
-    "pg": "^7.4.1",
-    "vega": "^3.0.10",
-    "ws": "^4.0.0"
+    "d3": "^5.4.0",
+    "express": "^4.16.3",
+    "pg": "^7.4.3",
+    "vega": "^4.0.0-rc.2",
+    "ws": "^5.2.0"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
-    "@types/express": "^4.11.1",
-    "@types/node": "^9.4.6",
-    "@types/pg": "^7.4.3",
-    "@types/ws": "^4.0.1",
-    "nodemon": "^1.14.12",
-    "rollup": "^0.55.5",
-    "rollup-plugin-json": "^2.3.0",
-    "rollup-plugin-node-resolve": "^3.0.2",
-    "rollup-plugin-typescript2": "^0.11.1",
-    "ts-node": "^4.1.0",
-    "tslint": "^5.9.1",
-    "typescript": "^2.7.1"
+    "@types/express": "^4.16.0",
+    "@types/node": "^10.3.1",
+    "@types/pg": "^7.4.9",
+    "@types/ws": "^5.1.1",
+    "nodemon": "^1.17.5",
+    "rollup": "^0.60.1",
+    "rollup-plugin-json": "^3.0.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-typescript2": "^0.14.0",
+    "ts-node": "^6.1.0",
+    "tslint": "^5.10.0",
+    "typescript": "^2.9.1"
   },
   "optionalDependencies": {
-    "bufferutil": "^3.0.3",
-    "utf-8-validate": "^4.0.0"
+    "bufferutil": "^3.0.5",
+    "utf-8-validate": "^4.0.2"
   }
 }

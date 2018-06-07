@@ -52,4 +52,4 @@ wss.on('connection', ws => {
 });
 
 server.on('request', app);
-server.listen(config.port, () => { console.info('Go to http://localhost:' + server.address().port); });
+server.listen(config.port, () => { console.info('Go to http://localhost:' + config.port); });
