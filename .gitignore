@@ -4,3 +4,5 @@ public/*.js
 public/*.js.map
 .vscode/tags
 monet
+.cache
+dist
