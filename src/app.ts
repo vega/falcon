@@ -29,7 +29,7 @@ const VIEWS: View[] = [
   }
 ];
 
-export function app(data) {
+export function app(data: { [name: string]: any[] }) {
   const app = select("#app");
 
   // add for now to clear the view
