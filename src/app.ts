@@ -63,10 +63,8 @@ export function app(data) {
 
       const hist = histogram()
         .domain(view.range)
-        .thresholds(bins)(data.map(d => d[view.name]))
+        .thresholds(bins)(data[view.name])
         .map(d => d.length);
-
-      console.log(hist);
 
       vegaView
         .insert(
