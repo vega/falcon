@@ -5,8 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "parcel index.html",
-    "lint": "tslint --project ."
+    "start": "parcel index.html"
   },
   "repository": {
     "type": "git",
@@ -20,13 +19,14 @@
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
     "d3": "^5.4.0",
-    "vega": "^4.0.0-rc.2"
+    "vega-lib": "^4.0.0-rc.2",
+    "vega-typings": "^0.3.8"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
+    "node-sass": "^4.9.0",
     "parcel-bundler": "^1.8.1",
     "prettier": "^1.13.4",
-    "tslint": "^5.10.0",
     "typescript": "^2.9.1"
   }
 }
