@@ -1,13 +1,13 @@
-import { range, select } from "d3";
-import vega from "vega";
-import { stepSize } from "./util";
+import * as vega from "vega-lib";
 
 const CHART_WIDTH = 600;
 
-export function createView(el, view): vega.View {
-  const step = stepSize(view.range, view.bins);
-  const bins = range(view.range[0], view.range[1] + step, step);
-
+export function createView(
+  el: Element,
+  title: string | undefined,
+  step: number,
+  bins: number[]
+): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
@@ -15,7 +15,9 @@ export function createView(el, view): vega.View {
     width: CHART_WIDTH,
     height: 180,
     data: [
-      { name: "table" },
+      {
+        name: "table"
+      },
       {
         name: "sum",
         source: "table",
@@ -35,7 +37,7 @@ export function createView(el, view): vega.View {
         value: 0,
         on: [{ events: "window:mousemove", update: "x()" }]
       },
-      { name: "extent", value: view.range },
+      { name: "extent", value: [bins[0], bins[bins.length - 1]] },
       {
         name: "range",
         update: "extent",
@@ -141,12 +143,12 @@ export function createView(el, view): vega.View {
             from: { data: "table" },
             encode: {
               update: {
-                x2: {
+                x: {
                   scale: "x",
                   field: "value",
                   offset: 1
                 },
-                x: { scale: "x", field: "value_end" },
+                x2: { scale: "x", signal: `datum.value + ${step}` },
                 y: { scale: "y", field: "count" },
                 y2: { scale: "y", value: 0 },
                 fill: { value: "#4c78a8" } // darker blue
@@ -189,10 +191,9 @@ export function createView(el, view): vega.View {
     scales: [
       {
         name: "x",
-        type: "linear",
-        domain: view.range,
-        range: "width",
-        zero: false
+        type: "bin-linear",
+        domain: bins,
+        range: "width"
       },
       {
         name: "y",
@@ -209,8 +210,7 @@ export function createView(el, view): vega.View {
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: view.title,
-        values: bins
+        title: title
       },
       {
         scale: "y",

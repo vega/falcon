@@ -1,28 +1,18 @@
 {
   "compilerOptions": {
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    "module": "commonjs",
+    "module": "es2015",
     "target": "es6",
-    "outDir": "build",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "typeRoots": [
-      "typings", "node_modules/@types"
-    ]
+    "sourceMap": true
   },
-  "include": [
-    "typings/*.d.ts",
-    "shared/**/*.ts",
-    "server/**/*.ts",
-    "client/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "public"
-  ]
+  "files": ["src/index.ts"],
+  "include": ["typings/*.d.ts", "node_modules/**/*.d.ts"]
 }
