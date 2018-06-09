@@ -22,7 +22,7 @@
     "d3": "^5.4.0",
     "vega": "^4.0.0-rc.2",
     "vega-lib": "^4.0.0-rc.2",
-    "vega-typings": "^0.3.10"
+    "vega-typings": "^0.3.11"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",

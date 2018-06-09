@@ -6,3 +6,4 @@ public/*.js.map
 monet
 .cache
 dist
+data/.ipynb_checkpoints
