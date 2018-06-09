@@ -12,3 +12,25 @@ export function binningFunc(range: [number, number], bins: number) {
   const step = stepSize(range, bins);
   return (v: number) => Math.floor((v - range[0]) / step + EPSILON);
 }
+
+export function throttle<A extends (...args: any[]) => any>(
+  func: A,
+  timeout: number
+): A {
+  let inThrottle;
+
+  return function(this: any, ...args: any[]) {
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => {
+        return (inThrottle = false);
+      }, timeout);
+    }
+  } as any;
+}
+
+export function duplicate<T>(o: T): T {
+  return JSON.parse(JSON.stringify(o));
+}
