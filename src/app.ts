@@ -83,7 +83,9 @@ export class App {
         .remove(() => true)
         .insert(data);
 
-      this.vegaViews[view.name].change("table", changeSet).run();
+      this.vegaViews[view.name].runAfter(() => {
+        this.vegaViews[view.name].change("table", changeSet).run();
+      });
     }
   }
 }
