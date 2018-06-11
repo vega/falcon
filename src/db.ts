@@ -1,78 +1,40 @@
 import { histogram } from "d3";
+import * as crossfilter from "crossfilter2";
+import { flatten, binningFunc } from "./util";
 
 export class DataBase {
-  public constructor(private data: { [name: string]: any[] }) {
+  private cross: crossfilter.Crossfilter<any>;
+  public dims: { [key: string]: crossfilter.Dimension<any, any> } = {};
+  public groups: { [key: string]: crossfilter.Group<any, any, any> } = {};
+
+  public constructor(private data: { [name: string]: any[] }, views: View[]) {
     console.info(data);
+
+    this.initCrossfilter(views);
+  }
+
+  private initCrossfilter(views: View[]) {
+    this.cross = (crossfilter as any).default(flatten(this.data));
+    for (const view of views) {
+      this.dims[view.name] = this.cross.dimension(d => d[view.name]);
+      this.groups[view.name] = this.dims[view.name].group(
+        binningFunc(view.range, view.bins)
+      );
+    }
   }
 
   public histogram(name: string, bins: number, range: [number, number]) {
-    return histogram()
-      .domain(range)
-      .thresholds(bins)(this.data[name])
-      .map(d => d.length);
+    return this.groups[name]
+      .all()
+      .filter(d => d.key >= 0 && d.key < bins)
+      .map(d => ({
+        // map from keys to bin start
+        bin_start: (d.key * (range[1] - range[0])) / bins + range[0],
+        count: d.value
+      }));
   }
 
   public length() {
     return this.data[Object.keys(this.data)[0]].length;
-  }
-
-  public filteredHistograms(
-    query: {
-      name: string;
-      bins: number;
-      range: [number, number];
-      brush?: [number, number];
-    }[]
-  ) {
-    const allFilterMasks = {};
-
-    for (const v of query) {
-      if (v.brush) {
-        // TODO: could make this a bitmap
-        let ok: boolean[] = new Array(this.length());
-        for (let i = 0; i < ok.length; i++) {
-          ok[i] = true;
-        }
-
-        const col = this.data[v.name];
-        for (let i = 0; i < this.length(); i++) {
-          const val = col[i];
-          if (val < v.brush[0] || v.brush[1] < val) {
-            ok[i] = false;
-          }
-        }
-
-        allFilterMasks[v.name] = ok;
-      }
-    }
-
-    const out = {};
-
-    for (const q of query) {
-      const name = q.name;
-
-      // filter data with respect to the other views
-      const filterMasks = query
-        .filter(v => v.name !== name && v.brush)
-        .map(v => allFilterMasks[v.name]);
-
-      const filtered = this.data[name].filter((_, i) => {
-        for (let j = 0; j < filterMasks.length; j++) {
-          if (!filterMasks[j][i]) {
-            return false;
-          }
-        }
-        return true;
-      });
-
-      const hist = histogram()
-        .domain(q.range)
-        .thresholds(q.bins)(filtered)
-        .map(d => d.length);
-
-      out[name] = hist;
-    }
-
-    return out;
   }
 }

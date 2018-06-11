@@ -145,10 +145,10 @@ export function createView(
               update: {
                 x: {
                   scale: "x",
-                  field: "value",
+                  field: "bin_start",
                   offset: 1
                 },
-                x2: { scale: "x", signal: `datum.value + ${step}` },
+                x2: { scale: "x", signal: `datum.bin_start + ${step}` },
                 y: { scale: "y", field: "count" },
                 y2: { scale: "y", value: 0 },
                 fill: { value: "#4c78a8" } // darker blue

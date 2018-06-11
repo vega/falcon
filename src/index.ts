@@ -11,8 +11,6 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       data[field.name] = table.getColumn(field.name)!.toArray();
     }
 
-    const db = new DataBase(data);
-
     const VIEWS: View[] = [
       {
         bins: 25,
@@ -39,6 +37,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         type: "1D"
       }
     ];
+
+    const db = new DataBase(data, VIEWS);
 
     const el = select("#app");
 

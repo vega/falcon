@@ -19,6 +19,7 @@
   "homepage": "https://github.com/uwdata/big-crossfilter#readme",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
+    "crossfilter2": "^1.4.6",
     "d3": "^5.4.0",
     "vega": "^4.0.0-rc.2",
     "vega-lib": "^4.0.0-rc.2",
@@ -28,7 +29,7 @@
     "@types/d3": "^5.0.0",
     "node-sass": "^4.9.0",
     "parcel-bundler": "^1.8.1",
-    "prettier": "^1.13.4",
+    "prettier": "^1.13.5",
     "typescript": "^2.9.1"
   }
 }

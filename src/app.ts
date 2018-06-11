@@ -7,6 +7,7 @@ import { View as VgView, changeset } from "vega";
 export class App {
   private activeView: string;
   private vegaViews: { [name: string]: VgView } = {};
+  private viewIndex = {};
 
   public constructor(
     private el: Selection<BaseType, {}, HTMLElement, any>,
@@ -14,6 +15,10 @@ export class App {
     private db: DataBase
   ) {
     this.activeView = views[0].name;
+
+    views.forEach((view, idx) => {
+      this.viewIndex[view.name] = idx;
+    });
 
     this.initialize();
   }
@@ -36,18 +41,13 @@ export class App {
           bins
         );
 
-        const data = self.db
-          .histogram(view.name, view.bins, view.range)
-          .map((d, i) => ({
-            value: bins[i],
-            count: d
-          }));
+        const data = self.db.histogram(view.name, view.bins, view.range);
 
         vegaView.insert("table", data).run();
 
         // attach listener for brush changes
-        vegaView.addSignalListener("pixelRange", (name, value) => {
-          self.brushMovePixel(view.name, value);
+        vegaView.addSignalListener("range", (name, value) => {
+          self.brushMove(view.name, value);
         });
 
         self.vegaViews[view.name] = vegaView;
@@ -61,37 +61,23 @@ export class App {
     this.activeView = name;
   }
 
-  private brushMovePixel(name: string, value: [number, number]) {
+  private brushMove(name: string, value: [number, number]) {
     if (this.activeView !== name) {
       this.switchActiveView(name);
     }
 
-    // console.log(name, value);
+    // set brush
+    this.views[this.viewIndex[name]].brush = value;
 
-    this.throttledUpdate();
+    // set filter in crossfilter lib
+    this.db.dims[name].filterRange(value);
+
+    this.update();
   }
-
-  private throttledUpdate = throttle(this.update, 100);
 
   private update() {
     for (const view of this.views) {
-      const brush = this.vegaViews[view.name].signal("range");
-      if (brush) {
-        view.brush = brush;
-      }
-    }
-
-    const newHists = this.db.filteredHistograms(this.views);
-
-    for (const view of this.views) {
-      const step = stepSize(view.range, view.bins);
-      const bins = range(view.range[0], view.range[1] + step, step);
-
-      const data = bins.map((bin, i) => ({
-        value: bin,
-        value_end: bin + step,
-        count: newHists[view.name][i] || 0
-      }));
+      const data = this.db.histogram(view.name, view.bins, view.range);
 
       const changeSet = changeset()
         .remove(() => true)

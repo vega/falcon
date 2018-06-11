@@ -34,3 +34,16 @@ export function throttle<A extends (...args: any[]) => any>(
 export function duplicate<T>(o: T): T {
   return JSON.parse(JSON.stringify(o));
 }
+
+export function flatten(data) {
+  const keys = Object.keys(data);
+  const out: any[] = [];
+  for (let i = 0; i < data[keys[0]].length; i++) {
+    const d = {};
+    for (const k of keys) {
+      d[k] = data[k][i];
+    }
+    out.push(d);
+  }
+  return out;
+}
