@@ -58,13 +58,13 @@ export function createView(
           },
           {
             events:
-              "[@brush_start:mousedown, window:mouseup] > window:mousemove!",
+              "[@brush_start:mousedown, window:mouseup] > window:mousemove!, [@brush_start_grabber:mousedown, window:mouseup] > window:mousemove!",
             update:
               '[range[0] + invert("x", x()) - invert("x", xmove), range[1]]'
           },
           {
             events:
-              "[@brush_end:mousedown, window:mouseup] > window:mousemove!",
+              "[@brush_end:mousedown, window:mouseup] > window:mousemove!, [@brush_end_grabber:mousedown, window:mouseup] > window:mousemove!",
             update:
               '[range[0], range[1] + invert("x", x()) - invert("x", xmove)]'
           },
@@ -170,6 +170,46 @@ export function createView(
             }
           },
           {
+            type: "path",
+            name: "brush_start_grabber",
+            encode: {
+              enter: {
+                y: { field: { group: "height" }, mult: 0.5, offset: -50 },
+                path: {
+                  value:
+                    "M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667"
+                },
+                fill: { value: "#eee" },
+                stroke: { value: "#666" },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: { signal: 'max(1, scale("x", range[0]))' }
+              }
+            }
+          },
+          {
+            type: "path",
+            name: "brush_end_grabber",
+            encode: {
+              enter: {
+                y: { field: { group: "height" }, mult: 0.5, offset: -50 },
+                path: {
+                  value:
+                    "M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667"
+                },
+                fill: { value: "#eee" },
+                stroke: { value: "#666" },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: {
+                  signal: 'min(width - 1, scale("x", range[1]))'
+                }
+              }
+            }
+          },
+          {
             type: "rect",
             encode: {
               enter: {
@@ -178,7 +218,21 @@ export function createView(
                 fill: { value: "firebrick" }
               },
               update: {
-                x: { signal: 'max(1, scale("x", range[0]))' },
+                x: { signal: 'max(1, scale("x", range[0]))', offset: -1 },
+                width: { value: 1 }
+              }
+            }
+          },
+          {
+            type: "rect",
+            encode: {
+              enter: {
+                y: { value: 0 },
+                height: { field: { group: "height" } },
+                fill: { value: "firebrick" }
+              },
+              update: {
+                x: { signal: 'min(width - 1, scale("x", range[1]))' },
                 width: { value: 1 }
               }
             }
@@ -196,20 +250,6 @@ export function createView(
               },
               update: {
                 x: { signal: 'max(1, scale("x", range[0]))', offset: -3 }
-              }
-            }
-          },
-          {
-            type: "rect",
-            encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "firebrick" }
-              },
-              update: {
-                x: { signal: 'min(width - 1, scale("x", range[1]))' },
-                width: { value: 1 }
               }
             }
           },
