@@ -57,6 +57,18 @@ export function createView(
               '[range[0] + invert("x", x()) - invert("x", xmove), range[1] + invert("x", x()) - invert("x", xmove)]'
           },
           {
+            events:
+              "[@brush_start:mousedown, window:mouseup] > window:mousemove!",
+            update:
+              '[range[0] + invert("x", x()) - invert("x", xmove), range[1]]'
+          },
+          {
+            events:
+              "[@brush_end:mousedown, window:mouseup] > window:mousemove!",
+            update:
+              '[range[0], range[1] + invert("x", x()) - invert("x", xmove)]'
+          },
+          {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
             update:
               '[min(anchor, invert("x", x())), max(anchor, invert("x", x()))]'
@@ -116,7 +128,8 @@ export function createView(
             height: { signal: "height" },
             width: { signal: "width" },
             clip: { value: true },
-            fill: { value: "transparent" }
+            fill: { value: "transparent" },
+            cursor: { value: "crosshair" }
           }
         },
         marks: [
@@ -128,7 +141,8 @@ export function createView(
                 y: { value: 0 },
                 height: { field: { group: "height" } },
                 fill: { value: "#000" },
-                opacity: { value: 0.07 }
+                opacity: { value: 0.05 },
+                cursor: { value: "move" }
               },
               update: {
                 x: { signal: 'scale("x", range[0])' },
@@ -157,7 +171,6 @@ export function createView(
           },
           {
             type: "rect",
-            interactive: false,
             encode: {
               enter: {
                 y: { value: 0 },
@@ -172,7 +185,22 @@ export function createView(
           },
           {
             type: "rect",
-            interactive: false,
+            name: "brush_start",
+            encode: {
+              enter: {
+                y: { value: 0 },
+                height: { field: { group: "height" } },
+                fill: { value: "transparent" },
+                width: { value: 7 },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: { signal: 'max(1, scale("x", range[0]))', offset: -3 }
+              }
+            }
+          },
+          {
+            type: "rect",
             encode: {
               enter: {
                 y: { value: 0 },
@@ -182,6 +210,25 @@ export function createView(
               update: {
                 x: { signal: 'min(width - 1, scale("x", range[1]))' },
                 width: { value: 1 }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "brush_end",
+            encode: {
+              enter: {
+                y: { value: 0 },
+                height: { field: { group: "height" } },
+                fill: { value: "transparent" },
+                width: { value: 7 },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: {
+                  signal: 'min(width - 1, scale("x", range[1]))',
+                  offset: -3
+                }
               }
             }
           }
