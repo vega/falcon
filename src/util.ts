@@ -47,3 +47,15 @@ export function flatten(data) {
   }
   return out;
 }
+
+export function isPoint1D(point: Point1D | Point2D): point is Point1D {
+  return typeof point === "number";
+}
+
+export function isPoint2D(point: Point1D | Point2D): point is Point2D {
+  return typeof point !== "number";
+}
+
+export function is1DView(view: View1D | View2D): view is View1D {
+  return "range" in view;
+}

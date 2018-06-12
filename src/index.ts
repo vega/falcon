@@ -8,7 +8,10 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     const table = Table.from(new Uint8Array(buffer));
     const data = {};
     for (const field of table.schema.fields) {
-      data[field.name] = table.getColumn(field.name)!.toArray();
+      data[field.name] = table
+        .getColumn(field.name)!
+        // .slice(0, 100)
+        .toArray();
     }
 
     const VIEWS: View[] = [
@@ -35,6 +38,14 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         range: [-10, 100],
         title: "Departure Delay",
         type: "1D"
+      },
+      {
+        bins: [30, 25],
+        dimensions: ["DEP_DELAY", "ARR_DELAY"],
+        name: "DEP_DELAY_ARR_DELAY",
+        ranges: [[-10, 30], [-10, 30]],
+        title: "Delay Matrix",
+        type: "2D"
       }
     ];
 

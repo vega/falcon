@@ -2,7 +2,7 @@ import * as vega from "vega-lib";
 
 const CHART_WIDTH = 600;
 
-export function createView(
+export function createHistogramView(
   el: Element,
   title: string | undefined,
   step: number,
@@ -316,6 +316,215 @@ export function createView(
       }
     ],
     config: { axisY: { minExtent: 30 } }
+  };
+
+  const runtime = vega.parse(vgSpec);
+
+  return new vega.View(runtime)
+    .logLevel(vega.Warn)
+    .initialize(el)
+    .renderer("svg");
+}
+
+export function createHeatmapView(
+  el: Element,
+  title: [string, string],
+  step: [number, number],
+  bins: [number[], number[]]
+): vega.View {
+  const vgSpec: vega.Spec = {
+    $schema: "https://vega.github.io/schema/vega/v4.0.json",
+    autosize: "none",
+    padding: { top: 5, left: 60, right: 70, bottom: 40 },
+    width: CHART_WIDTH,
+    height: CHART_WIDTH,
+    data: [
+      {
+        name: "table"
+      }
+    ],
+    signals: [
+      // {
+      //   name: "brush",
+      //   value: null,
+      //   on: [
+      //     {
+      //       events: "@chart:mousedown",
+      //       update: "[brushX, brushY]"
+      //     },
+      //     {
+      //       events: "[@chart:mousedown, window:mouseup] > window:mousemove",
+      //       update: "[brushX, brushY]"
+      //     },
+      //     {
+      //       events: { signal: "delta" },
+      //       update: "[brushX, brushY]"
+      //     }
+      //   ]
+      // },
+      {
+        name: "brushX",
+        value: 0,
+        on: [
+          {
+            events: "@chart:mousedown",
+            update: "[x(), x()]"
+          },
+          {
+            events: "[@chart:mousedown, window:mouseup] > window:mousemove",
+            update: "[brushX[0], clamp(x(), 0, width)]"
+          },
+          {
+            events: { signal: "delta" },
+            update:
+              "clampRange([anchorX[0] + delta[0], anchorX[1] + delta[0]], 0, width)"
+          }
+        ]
+      },
+      {
+        name: "brushY",
+        value: 0,
+        on: [
+          {
+            events: "@chart:mousedown",
+            update: "[y(), y()]"
+          },
+          {
+            events: "[@chart:mousedown, window:mouseup] > window:mousemove",
+            update: "[brushY[0], clamp(y(), 0, height)]"
+          },
+          {
+            events: { signal: "delta" },
+            update:
+              "clampRange([anchorY[0] + delta[1], anchorY[1] + delta[1]], 0, height)"
+          }
+        ]
+      },
+      {
+        name: "down",
+        value: [0, 0],
+        on: [{ events: "@brush:mousedown", update: "[x(), y()]" }]
+      },
+      {
+        name: "anchorX",
+        value: null,
+        on: [{ events: "@brush:mousedown", update: "slice(brushX)" }]
+      },
+      {
+        name: "anchorY",
+        value: null,
+        on: [{ events: "@brush:mousedown", update: "slice(brushY)" }]
+      },
+      {
+        name: "delta",
+        value: [0, 0],
+        on: [
+          {
+            events: "[@brush:mousedown, window:mouseup] > window:mousemove",
+            update: "[x() - down[0], y() - down[1]]"
+          }
+        ]
+      }
+    ],
+    marks: [
+      {
+        type: "group",
+        name: "chart",
+        encode: {
+          enter: {
+            height: { signal: "height" },
+            width: { signal: "width" },
+            clip: { value: true },
+            fill: { value: "transparent" },
+            cursor: { value: "crosshair" }
+          }
+        },
+        marks: [
+          {
+            type: "rect",
+            from: { data: "table" },
+            encode: {
+              enter: {
+                x: { scale: "x", field: "binx" },
+                x2: { scale: "x", signal: `datum.binx + ${step[0]}` },
+                y: { scale: "y", field: "biny" },
+                y2: { scale: "y", signal: `datum.biny + ${step[1]}` }
+              },
+              update: {
+                fill: { scale: "color", field: "count" }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "brush",
+            encode: {
+              enter: {
+                y: { value: 0 },
+                height: { field: { group: "height" } },
+                fill: { value: "rgba(0,0,0,0.05)" },
+                stroke: { value: "firebrick" },
+                opacity: { value: 1 },
+                cursor: { value: "move" }
+              },
+              update: {
+                x: { signal: "brushX[0]" },
+                x2: { signal: "brushX[1]" },
+                y: { signal: "brushY[0]" },
+                y2: { signal: "brushY[1]" }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    scales: [
+      {
+        name: "x",
+        type: "bin-linear",
+        domain: bins[0],
+        range: "width"
+      },
+      {
+        name: "y",
+        type: "bin-linear",
+        domain: bins[1],
+        range: "width",
+        reverse: true
+      },
+      {
+        name: "color",
+        type: "sequential",
+        range: { scheme: "viridis" },
+        domain: { data: "table", field: "count" },
+        zero: false,
+        nice: true
+      }
+    ],
+    axes: [
+      {
+        scale: "x",
+        orient: "bottom",
+        labelOverlap: true,
+        tickCount: { signal: "ceil(width/20)" },
+        title: title[0]
+      },
+      {
+        scale: "y",
+        orient: "left",
+        labelOverlap: true,
+        tickCount: { signal: "ceil(width/20)" },
+        title: title[1]
+      }
+    ],
+    legends: [
+      {
+        fill: "color",
+        type: "gradient",
+        title: "Count",
+        gradientLength: { signal: "height - 16" }
+      }
+    ]
   };
 
   const runtime = vega.parse(vgSpec);
