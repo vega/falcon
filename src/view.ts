@@ -4,9 +4,10 @@ const CHART_WIDTH = 600;
 
 export function createHistogramView(
   el: Element,
-  title: string | undefined,
+  dimension: string,
   step: number,
-  bins: number[]
+  bins: number[],
+  range: [number, number]
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -278,9 +279,10 @@ export function createHistogramView(
     scales: [
       {
         name: "x",
-        type: "bin-linear",
-        domain: bins,
-        range: "width"
+        type: "linear",
+        domain: range,
+        range: "width",
+        zero: false
       },
       {
         name: "y",
@@ -297,7 +299,8 @@ export function createHistogramView(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: title
+        title: dimension,
+        values: bins
       },
       {
         scale: "y",
@@ -328,9 +331,10 @@ export function createHistogramView(
 
 export function createHeatmapView(
   el: Element,
-  title: [string, string],
+  dimensions: [string, string],
   step: [number, number],
-  bins: [number[], number[]]
+  bins: [number[], number[]],
+  ranges: [[number, number], [number, number]]
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -362,6 +366,28 @@ export function createHeatmapView(
       //     }
       //   ]
       // },
+      { name: "extentX", value: [bins[0][0], bins[0][bins[0].length - 1]] },
+      { name: "extentY", value: [bins[1][0], bins[1][bins[1].length - 1]] },
+      {
+        name: "rangeX",
+        value: 0,
+        on: [
+          {
+            events: { signal: "brushX" },
+            update: "[invert('x', brushX[0]), invert('x', brushX[1])]"
+          }
+        ]
+      },
+      {
+        name: "rangeY",
+        value: 0,
+        on: [
+          {
+            events: { signal: "brushY" },
+            update: "[invert('y', brushY[0]), invert('y', brushY[1])]"
+          }
+        ]
+      },
       {
         name: "brushX",
         value: 0,
@@ -451,7 +477,8 @@ export function createHeatmapView(
                 y2: { scale: "y", signal: `datum.biny + ${step[1]}` }
               },
               update: {
-                fill: { scale: "color", field: "count" }
+                fill: { scale: "color", field: "count" },
+                tooltip: { signal: "datum" }
               }
             }
           },
@@ -481,23 +508,24 @@ export function createHeatmapView(
     scales: [
       {
         name: "x",
-        type: "bin-linear",
-        domain: bins[0],
-        range: "width"
+        type: "linear",
+        domain: ranges[0],
+        range: "width",
+        zero: false
       },
       {
         name: "y",
-        type: "bin-linear",
-        domain: bins[1],
+        type: "linear",
+        domain: ranges[1],
         range: "width",
-        reverse: true
+        reverse: true,
+        zero: false
       },
       {
         name: "color",
         type: "sequential",
-        range: { scheme: "viridis" },
+        range: { scheme: "greenblue" },
         domain: { data: "table", field: "count" },
-        zero: false,
         nice: true
       }
     ],
@@ -507,14 +535,16 @@ export function createHeatmapView(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: title[0]
+        title: dimensions[0],
+        values: bins[0]
       },
       {
         scale: "y",
         orient: "left",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: title[1]
+        title: dimensions[1],
+        values: bins[1]
       }
     ],
     legends: [

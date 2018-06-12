@@ -42,9 +42,10 @@ export class App {
           const bins = range(view.range[0], view.range[1] + step, step);
           const vegaView = createHistogramView(
             select(this).node() as Element,
-            view.title,
+            view.dimension,
             step,
-            bins
+            bins,
+            view.range
           );
 
           const data = self.db.histogram(view.name, view.bins, view.range);
@@ -59,7 +60,7 @@ export class App {
           self.vegaViews[view.name] = vegaView;
         } else {
           const stepX = stepSize(view.ranges[0], view.bins[0]);
-          const stepY = stepSize(view.ranges[0], view.bins[1]);
+          const stepY = stepSize(view.ranges[1], view.bins[1]);
           const binsX = range(
             view.ranges[0][0],
             view.ranges[0][1] + stepX,
@@ -75,17 +76,21 @@ export class App {
             select(this).node() as Element,
             view.dimensions,
             [stepX, stepY],
-            [binsX, binsY]
+            [binsX, binsY],
+            view.ranges
           );
 
           const data = self.db.heatmap(view.name, view.bins, view.ranges);
 
           vegaView.insert("table", data).run();
 
-          vegaView.addSignalListener("brushX", (name, value) =>
+          // vegaView.addSignalListener("rangeX", console.log);
+          // vegaView.addSignalListener("rangeY", console.log);
+
+          vegaView.addSignalListener("rangeX", (name, value) =>
             self.brushMove(view.name, view.dimensions[0], value)
           );
-          vegaView.addSignalListener("brushY", (name, value) =>
+          vegaView.addSignalListener("rangeY", (name, value) =>
             self.brushMove(view.name, view.dimensions[1], value)
           );
 
@@ -110,7 +115,7 @@ export class App {
     // this.views1D[this.viewIndex[name]].brush = value;
 
     // set filter in crossfilter lib
-    this.db.dims[dimension].filterRange(value);
+    this.db.dims[`${name};${dimension}`].filterRange(value);
 
     this.update();
   }

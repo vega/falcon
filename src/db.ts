@@ -1,6 +1,8 @@
-import { histogram } from "d3";
+import { histogram, format, nest } from "d3";
 import * as crossfilter from "crossfilter2";
-import { flatten, binningFunc, is1DView } from "./util";
+import { flatten, binningFunc, is1DView, binningPixelFunc } from "./util";
+
+const paddedFormat = format("06.1f");
 
 export class DataBase {
   private cross: crossfilter.Crossfilter<any>;
@@ -17,30 +19,34 @@ export class DataBase {
     this.cross = (crossfilter as any).default(flatten(this.data));
     for (const view of views) {
       if (is1DView(view)) {
-        this.dims[view.dimension] = this.cross.dimension(
+        this.dims[`${view.name};${view.dimension}`] = this.cross.dimension(
           d => d[view.dimension]
         );
-        this.groups[view.name] = this.dims[view.dimension].group(
-          binningFunc(view.range, view.bins)
-        );
+        this.groups[view.name] = this.dims[
+          `${view.name};${view.dimension}`
+        ].group(binningPixelFunc(view.range, view.bins));
       } else {
-        this.dims[view.dimensions[0]] = this.cross.dimension(
+        this.dims[`${view.name};${view.dimensions[0]}`] = this.cross.dimension(
           d => d[view.dimensions[0]]
         );
-        this.dims[view.dimensions[1]] = this.cross.dimension(
+        this.dims[`${view.name};${view.dimensions[1]}`] = this.cross.dimension(
           d => d[view.dimensions[1]]
         );
 
         this.dims[view.name] = this.cross.dimension(d => {
-          return [d[view.dimensions[0]], d[view.dimensions[1]]] as any;
+          return [d[view.dimensions[0]], d[view.dimensions[1]]]
+            .map(paddedFormat)
+            .join(";");
         });
 
-        this.groups[view.name] = this.dims[view.name].group(d => {
-          return [
-            binningFunc(view.ranges[0], view.bins[0])(d[0]),
-            binningFunc(view.ranges[1], view.bins[1])(d[1])
-          ] as any;
-        });
+        const binX = binningPixelFunc(view.ranges[0], view.bins[0]);
+        const binY = binningPixelFunc(view.ranges[1], view.bins[1]);
+
+        this.groups[view.name] = this.dims[view.name].group();
+        // .group(d => {
+        //   d = d.split(";").map(d => +d);
+        //   return [binX(d[0]), binY(d[1])].map(paddedFormat).join(";");
+        // });
       }
     }
   }
@@ -56,9 +62,34 @@ export class DataBase {
       }));
   }
 
-  public heatmap(name: string, bins: number[], ranges: [number, number][]) {
-    return this.groups[name]
-      .all()
+  public heatmap(
+    name: string,
+    bins: [number, number],
+    ranges: [number, number][]
+  ) {
+    const binX = binningPixelFunc(ranges[0], bins[0]);
+    const binY = binningPixelFunc(ranges[1], bins[1]);
+
+    const data = nest<any, any>()
+      .key(d => {
+        const key = d.key.split(";").map(d => +d);
+        return [binX(key[0]), binY(key[1])].map(paddedFormat).join(";");
+      })
+      .rollup(v => {
+        let s = 0;
+        for (const e of v) {
+          s += e.value;
+        }
+        return s;
+      })
+      .entries(this.groups[name].all());
+
+    return data
+      .map(d => ({
+        key: d.key.split(";").map(d => +d),
+        value: d.value
+      }))
+      .filter(d => d.value > 0)
       .filter(
         d =>
           d.key[0] >= 0 &&

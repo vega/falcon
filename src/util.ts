@@ -10,6 +10,12 @@ export function clamp(i: number, range: [number, number]) {
 
 export function binningFunc(range: [number, number], bins: number) {
   const step = stepSize(range, bins);
+  return (v: number) =>
+    Math.floor((v - range[0]) / step + EPSILON) * step + range[0];
+}
+
+export function binningPixelFunc(range: [number, number], bins: number) {
+  const step = stepSize(range, bins);
   return (v: number) => Math.floor((v - range[0]) / step + EPSILON);
 }
 

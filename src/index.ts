@@ -40,10 +40,10 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         type: "1D"
       },
       {
-        bins: [30, 25],
+        bins: [25, 25],
         dimensions: ["DEP_DELAY", "ARR_DELAY"],
         name: "DEP_DELAY_ARR_DELAY",
-        ranges: [[-10, 30], [-10, 30]],
+        ranges: [[-10, 100], [-10, 100]],
         title: "Delay Matrix",
         type: "2D"
       }
