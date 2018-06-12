@@ -22,7 +22,7 @@
     "crossfilter2": "^1.4.6",
     "d3": "^5.4.0",
     "vega-lib": "^4.0.0-rc.2",
-    "vega-typings": "^0.3.11"
+    "vega-typings": "^0.3.12"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
