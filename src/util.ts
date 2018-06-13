@@ -8,6 +8,10 @@ export function clamp(i: number, range: [number, number]) {
   return Math.max(range[0], Math.min(range[1], i));
 }
 
+export function binFunc(start: number, step: number) {
+  return (v: number) => start + step * Math.floor((v - start) / step);
+}
+
 export function binningFunc(range: [number, number], bins: number) {
   const step = stepSize(range, bins);
   return (v: number) =>

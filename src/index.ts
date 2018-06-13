@@ -1,7 +1,12 @@
 import { App } from "./app";
-import { select } from "d3";
+import { select, range } from "d3";
 import { DataBase } from "./db";
 import { Table } from "@apache-arrow/es2015-esm";
+import { bin } from "vega-statistics";
+
+const b = bin({ maxbins: 25, extent: [-11, 100] });
+console.log(b);
+console.log(range(b.start, b.stop, b.step));
 
 fetch(require("../data/flights-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {

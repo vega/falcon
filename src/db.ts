@@ -1,6 +1,13 @@
 import { histogram, format, nest } from "d3";
 import * as crossfilter from "crossfilter2";
-import { flatten, binningFunc, is1DView, binningPixelFunc } from "./util";
+import {
+  flatten,
+  binningFunc,
+  is1DView,
+  binningPixelFunc,
+  binFunc
+} from "./util";
+import { bin } from "vega-statistics";
 
 const paddedFormat = format("06.1f");
 
@@ -19,12 +26,13 @@ export class DataBase {
     this.cross = (crossfilter as any).default(flatten(this.data));
     for (const view of views) {
       if (is1DView(view)) {
+        const bins = bin({ maxbins: view.bins, extent: view.domain });
         this.dims[`${view.name};${view.dimension}`] = this.cross.dimension(
           d => d[view.dimension]
         );
         this.groups[view.name] = this.dims[
           `${view.name};${view.dimension}`
-        ].group(binningPixelFunc(view.domain, view.bins));
+        ].group(binFunc(bins.start, bins.step));
       } else {
         this.dims[`${view.name};${view.dimensions[0]}`] = this.cross.dimension(
           d => d[view.dimensions[0]]
@@ -51,15 +59,11 @@ export class DataBase {
     }
   }
 
-  public histogram(name: string, bins: number, domain: [number, number]) {
-    return this.groups[name]
-      .all()
-      .filter(d => d.key >= 0 && d.key < bins)
-      .map(d => ({
-        // map from keys to bin start
-        bin_start: (d.key * (domain[1] - domain[0])) / bins + domain[0],
-        count: d.value
-      }));
+  public histogram(name: string) {
+    return this.groups[name].all().map(d => ({
+      bin_start: d.key,
+      count: d.value
+    }));
   }
 
   public heatmap(

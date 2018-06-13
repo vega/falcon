@@ -3,6 +3,7 @@ import { createHistogramView, createHeatmapView } from "./view";
 import { stepSize, duplicate, throttle, is1DView } from "./util";
 import { DataBase } from "./db";
 import { View as VgView, changeset } from "vega";
+import { bin } from "vega-statistics";
 
 export class App {
   private activeView: string;
@@ -29,17 +30,14 @@ export class App {
       .attr("class", "view")
       .each(function(view: View) {
         if (is1DView(view)) {
-          const step = stepSize(view.domain, view.bins);
-          const bins = range(view.domain[0], view.domain[1] + step, step);
+          const bins = bin({ maxbins: view.bins, extent: view.domain });
           const vegaView = createHistogramView(
             select(this).node() as Element,
             view.dimension,
-            step,
-            bins,
-            view.domain
+            bins
           );
 
-          const data = self.db.histogram(view.name, view.bins, view.domain);
+          const data = self.db.histogram(view.name);
 
           vegaView.insert("table", data).run();
 
@@ -114,7 +112,7 @@ export class App {
   private update() {
     for (const view of this.views) {
       if (is1DView(view)) {
-        const data = this.db.histogram(view.name, view.bins, view.domain);
+        const data = this.db.histogram(view.name);
 
         const changeSet = changeset()
           .remove(() => true)

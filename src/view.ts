@@ -1,13 +1,12 @@
 import * as vega from "vega-lib";
+import { range } from "d3";
 
 const CHART_WIDTH = 600;
 
 export function createHistogramView(
   el: Element,
   dimension: string,
-  step: number,
-  bins: number[],
-  domain: [number, number]
+  bin: { start: number; stop: number; step: number }
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -38,7 +37,7 @@ export function createHistogramView(
         value: 0,
         on: [{ events: "window:mousemove", update: "x()" }]
       },
-      { name: "extent", value: domain },
+      { name: "extent", value: [bin.start, bin.stop] },
       {
         name: "range",
         update: "extent",
@@ -163,7 +162,7 @@ export function createHistogramView(
                   field: "bin_start",
                   offset: 1
                 },
-                x2: { scale: "x", signal: `datum.bin_start + ${step}` },
+                x2: { scale: "x", signal: `datum.bin_start + ${bin.step}` },
                 y: { scale: "y", field: "count" },
                 y2: { scale: "y", value: 0 },
                 fill: { value: "#4c78a8" } // darker blue
@@ -279,10 +278,9 @@ export function createHistogramView(
     scales: [
       {
         name: "x",
-        type: "linear",
-        domain: domain,
-        range: "width",
-        zero: false
+        type: "bin-linear",
+        domain: range(bin.start, bin.stop, bin.step),
+        range: "width"
       },
       {
         name: "y",
@@ -299,8 +297,7 @@ export function createHistogramView(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimension,
-        values: bins
+        title: dimension
       },
       {
         scale: "y",
