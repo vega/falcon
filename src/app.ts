@@ -18,6 +18,7 @@ export class App {
   private brushes = new Map<string, Interval<number>>();
   private viewIndex = new Map<string, number>();
   private data: ResultCube;
+  private needsUpdate = false;
 
   public constructor(
     private el: Selection<BaseType, {}, HTMLElement, any>,
@@ -92,7 +93,10 @@ export class App {
     // set brush
     this.brushes.set(dimension, value);
 
-    this.update();
+    this.needsUpdate = true;
+    window.requestAnimationFrame(() => {
+      this.update();
+    });
   }
 
   private getActiveView(): View1D {
@@ -111,6 +115,13 @@ export class App {
   }
 
   private update() {
+    if (!this.needsUpdate) {
+      console.info("Skipped update");
+      return;
+    }
+
+    this.needsUpdate = false;
+
     const activeView = this.getActiveView();
     const activeBinF = binNumberFunction(
       activeView.extent[0],
@@ -125,8 +136,6 @@ export class App {
 
     for (const view of this.views.filter(v => v.name !== this.activeView)) {
       if (is1DView(view)) {
-        const dimensionEntry = this.data.get(view.name)!;
-
         const binConfig = bin({ maxbins: view.bins, extent: view.extent });
         const b = binToData(binConfig.start, binConfig.step);
         const data = diff(

@@ -1,10 +1,10 @@
 import { predicate, Table } from "@apache-arrow/es2015-esm";
 import { histogram, range } from "d3";
 import { binToData, is1DView, bin, binNumberFunction, stepSize } from "./util";
-import { BitSet } from "./bitset";
+import { BitSet, union } from "./bitset";
 
 export class DataBase {
-  private sortIndex = new Map<string, number[]>();
+  private sortIndex = new Map<string, Uint16Array>();
 
   public constructor(
     private data: Map<string, any>,
@@ -12,15 +12,25 @@ export class DataBase {
     views: View[]
   ) {
     // precompute the sort indexes because we can reuse them
-    console.time("Building sort indexes");
+    console.time("Build sort indexes");
     for (const view of views) {
       if (is1DView(view)) {
         this.sortIndex.set(view.dimension, this.getSortIndex(view.dimension));
       } else {
       }
     }
-    console.timeEnd("Building sort indexes");
+    console.timeEnd("Build sort indexes");
     console.timeStamp("Finished initialization");
+  }
+
+  /**
+   * Compute the sort index. Used in initialization.
+   */
+  private getSortIndex(dimension: string) {
+    const column = this.data[dimension];
+    const index = new Uint16Array(range(column.length));
+    index.sort((a, b) => column[a] - column[b]);
+    return index;
   }
 
   public filteredTable(extents: Map<string, Interval<number>>) {
@@ -40,31 +50,31 @@ export class DataBase {
     return this.table.filter(pred!);
   }
 
-  private createFilterMask(extents: Map<string, Interval<number>>) {
-    const size = this.length();
-    const mask = new BitSet(size);
+  private getFilterMask(dimension: string, extent: Interval<number>) {
+    const column = this.data[dimension];
+    const mask = new BitSet(column.length);
 
-    for (let i = 0; i < size; i++) {
-      for (const [col, extent] of extents) {
-        const val = this.data[col][i];
-        if (val < extent[0] || val > extent[1]) {
-          mask.set(i, true);
-          break;
-        }
+    for (let i = 0; i < column.length; i++) {
+      const val = column[i];
+      if (val < extent[0] || val > extent[1]) {
+        mask.set(i, true);
       }
     }
 
     return mask;
   }
 
-  /**
-   * Compute the sort index. Used in initialization.
-   */
-  private getSortIndex(dimension: string) {
-    const index = range(this.length());
-    const column = this.data[dimension];
-    index.sort((a, b) => column[a] - column[b]);
-    return index;
+  private getFilterMasks(brushes: Map<string, Interval<number>>) {
+    console.time("Build filter masks");
+
+    const filters = new Map<string, BitSet>();
+    for (const [dimension, extent] of brushes) {
+      filters.set(dimension, this.getFilterMask(dimension, extent));
+    }
+
+    console.timeEnd("Build filter masks");
+
+    return filters;
   }
 
   public histogram(dimension: string, binConfig: BinConfig) {
@@ -86,9 +96,9 @@ export class DataBase {
     views: View[],
     brushes: Map<string, Interval<number>>
   ) {
-    console.time("Building result cube");
+    console.time("Build result cube");
 
-    const filterMask = this.createFilterMask(brushes);
+    const filterMasks = this.getFilterMasks(brushes);
     const result: ResultCube = new Map();
 
     const activeBinF = binNumberFunction(
@@ -102,6 +112,11 @@ export class DataBase {
       const hists: Histogram[] = [];
 
       if (is1DView(view)) {
+        // get union of all filter masks that don't contain the dimension for the current view
+        const relevantMasks = new Map(filterMasks);
+        relevantMasks.delete(view.dimension);
+        const filterMask = union(...relevantMasks.values());
+
         const binConfig = bin({ maxbins: view.bins, extent: view.extent });
         const binF = binNumberFunction(binConfig.start, binConfig.step);
 
@@ -115,7 +130,7 @@ export class DataBase {
           const idx = activeSortIndex[i];
 
           // ignore filtered entries
-          if (filterMask.check(idx)) {
+          if (filterMask && filterMask.check(idx)) {
             continue;
           }
 
@@ -141,12 +156,12 @@ export class DataBase {
       result.set(view.name, hists);
     }
 
-    console.timeEnd("Building result cube");
+    console.timeEnd("Build result cube");
 
     return result;
   }
 
-  public length() {
+  public get length() {
     return this.data[Object.keys(this.data)[0]].length;
   }
 }
