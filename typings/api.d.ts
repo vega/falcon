@@ -1,41 +1,6 @@
-/**
- * Load data with maximum priority and cannot be cancelled.
- */
-interface Load {
-  type: "load";
-  activeView: View;
-  views: View[];
-}
-
-type Sizes = { [view: string]: Point };
-
-/**
- * Initialize the app.
- */
-interface Init {
-  type: "init";
-  sizes: Sizes;
-  views: View[];
-}
-
-declare type ApiRequest = Init | Load;
-
-type ApiResult =
-  | {
-      request: Init;
-      stepSize: number;
-      // view -> hist
-      data: ResultSlice;
-    }
-  | {
-      request: Load;
-      // view -> index -> hist
-      data: ResultCube;
-    };
-
-type Histogram = number[]; // | number[][];
-type ResultSlice = { [key: string]: Histogram };
-type ResultCube = { [view: string]: Histogram[] };
+type Histogram = Uint32Array; // | number[][];
+type ResultSlice = Map<string, Histogram>;
+type ResultCube = Map<string, Histogram[]>;
 
 /**
  * Views
@@ -52,7 +17,7 @@ interface View1D extends AbstractView {
   /** The dimensions for this view. */
   dimension: string;
   /** Initial domain for the dimension. */
-  domain: Interval<number>;
+  extent: Interval<number>;
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
 }
@@ -68,3 +33,9 @@ interface View2D extends AbstractView {
 }
 
 type View = View1D | View2D;
+
+interface BinConfig {
+  start: number;
+  stop: number;
+  step: number;
+}

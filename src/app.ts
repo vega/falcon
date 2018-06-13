@@ -1,22 +1,34 @@
-import { select, range, histogram, Selection, BaseType } from "d3";
-import { createHistogramView, createHeatmapView } from "./view";
-import { stepSize, duplicate, throttle, is1DView } from "./util";
-import { DataBase } from "./db";
+import { BaseType, select, Selection } from "d3";
 import { View as VgView, changeset } from "vega";
-import { bin } from "vega-statistics";
+import { DataBase } from "./db";
+import {
+  bin,
+  is1DView,
+  diff,
+  binNumberFunction,
+  stepSize,
+  clamp,
+  binToData
+} from "./util";
+import { CHART_WIDTH, createHistogramView } from "./view";
 
 export class App {
   private activeView: string;
   private vegaViews = new Map<string, VgView>();
   private brushes = new Map<string, Interval<number>>();
+  private viewIndex = new Map<string, number>();
+  private data: ResultCube;
 
   public constructor(
     private el: Selection<BaseType, {}, HTMLElement, any>,
     private views: View[],
     private db: DataBase
   ) {
-    this.activeView = views[0].name;
+    views.forEach((view, idx) => {
+      this.viewIndex.set(view.name, idx);
+    });
 
+    // this.activeView = views[0].name;
     this.initialize();
   }
 
@@ -30,14 +42,14 @@ export class App {
       .attr("class", "view")
       .each(function(view: View) {
         if (is1DView(view)) {
-          const bins = bin({ maxbins: view.bins, extent: view.domain });
+          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
           const vegaView = createHistogramView(
             select(this).node() as Element,
             view.dimension,
-            bins
+            binConfig
           );
 
-          const data = self.db.histogram(view.name);
+          const data = self.db.histogram(view.name, binConfig);
 
           vegaView.insert("table", data).run();
 
@@ -48,51 +60,28 @@ export class App {
 
           self.vegaViews.set(view.name, vegaView);
         } else {
-          const stepX = stepSize(view.domains[0], view.bins[0]);
-          const stepY = stepSize(view.domains[1], view.bins[1]);
-          const binsX = range(
-            view.domains[0][0],
-            view.domains[0][1] + stepX,
-            stepX
-          );
-          const binsY = range(
-            view.domains[1][0],
-            view.domains[1][1] + stepY,
-            stepY
-          );
-
-          const vegaView = createHeatmapView(
-            select(this).node() as Element,
-            view.dimensions,
-            [stepX, stepY],
-            [binsX, binsY],
-            view.domains
-          );
-
-          const data = self.db.heatmap(view.name, view.bins, view.domains);
-
-          vegaView.insert("table", data).run();
-
-          vegaView.addSignalListener("rangeX", console.log);
-          vegaView.addSignalListener("rangeY", console.log);
-
-          // vegaView.addSignalListener("rangeX", (name, value) =>
-          //   self.brushMove(view.name, view.dimensions[0], value)
-          // );
-          // vegaView.addSignalListener("rangeY", (name, value) =>
-          //   self.brushMove(view.name, view.dimensions[1], value)
-          // );
-
-          self.vegaViews.set(view.name, vegaView);
+          // TODO
         }
       });
-
-    // this.update();
   }
 
   private switchActiveView(name: string) {
     console.log(`Active view ${this.activeView} => ${name}`);
     this.activeView = name;
+
+    const activeView = this.getActiveView();
+
+    const brushes = new Map(this.brushes);
+    if (is1DView(activeView)) {
+      brushes.delete(activeView.dimension);
+    }
+
+    this.data = this.db.loadData(
+      activeView as View1D,
+      CHART_WIDTH,
+      this.views.filter(v => v.name !== name),
+      brushes
+    );
   }
 
   private brushMove(name: string, dimension: string, value: [number, number]) {
@@ -103,36 +92,60 @@ export class App {
     // set brush
     this.brushes.set(dimension, value);
 
-    // set filter in crossfilter lib
-    this.db.dims[`${name};${dimension}`].filterRange(value);
-
     this.update();
   }
 
+  private getActiveView(): View1D {
+    return this.views[this.viewIndex.get(this.activeView)!] as View1D;
+  }
+
+  private getResult(name: string, index: number) {
+    const dimensionEntry = this.data.get(name)!;
+    for (let i = index; i >= 0; i--) {
+      const result = dimensionEntry[i];
+      if (result) {
+        return result;
+      }
+    }
+    throw Error("Could not find any data");
+  }
+
   private update() {
-    for (const view of this.views) {
+    const activeView = this.getActiveView();
+    const activeBinF = binNumberFunction(
+      activeView.extent[0],
+      stepSize(activeView.extent, CHART_WIDTH)
+    );
+
+    const brush = this.brushes.get(activeView.dimension)!;
+    // active brush in pixel domain
+    const activeBrush = brush.map(b =>
+      clamp(activeBinF(b), [0, CHART_WIDTH - 1])
+    );
+
+    for (const view of this.views.filter(v => v.name !== this.activeView)) {
       if (is1DView(view)) {
-        const data = this.db.histogram(view.name);
+        const dimensionEntry = this.data.get(view.name)!;
+
+        const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+        const b = binToData(binConfig.start, binConfig.step);
+        const data = diff(
+          this.getResult(view.name, activeBrush[0]),
+          this.getResult(view.name, activeBrush[1])
+        ).map((d, i, _) => ({
+          key: b(i),
+          value: d
+        }));
 
         const changeSet = changeset()
           .remove(() => true)
           .insert(data);
-
         const vgView = this.vegaViews.get(view.name)!;
         vgView.runAfter(() => {
           vgView.change("table", changeSet).run();
         });
       } else {
-        const data = this.db.heatmap(view.name, view.bins, view.domains);
-
-        const changeSet = changeset()
-          .remove(() => true)
-          .insert(data);
-
-        const vgView = this.vegaViews.get(view.name)!;
-        vgView.runAfter(() => {
-          vgView.change("table", changeSet).run();
-        });
+        // TODO
       }
     }
   }

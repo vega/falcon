@@ -1,12 +1,12 @@
 import * as vega from "vega-lib";
 import { range } from "d3";
 
-const CHART_WIDTH = 600;
+export const CHART_WIDTH = 600;
 
 export function createHistogramView(
   el: Element,
   dimension: string,
-  bin: { start: number; stop: number; step: number }
+  binConfig: BinConfig
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -25,7 +25,7 @@ export function createHistogramView(
           {
             type: "aggregate",
             ops: ["sum"],
-            fields: ["count"],
+            fields: ["value"],
             as: ["sum"]
           }
         ]
@@ -37,7 +37,7 @@ export function createHistogramView(
         value: 0,
         on: [{ events: "window:mousemove", update: "x()" }]
       },
-      { name: "extent", value: [bin.start, bin.stop] },
+      { name: "extent", value: [binConfig.start, binConfig.stop] },
       {
         name: "range",
         update: "extent",
@@ -159,11 +159,14 @@ export function createHistogramView(
               update: {
                 x: {
                   scale: "x",
-                  field: "bin_start",
+                  field: "key",
                   offset: 1
                 },
-                x2: { scale: "x", signal: `datum.bin_start + ${bin.step}` },
-                y: { scale: "y", field: "count" },
+                x2: {
+                  scale: "x",
+                  signal: `datum.key + ${binConfig.step}`
+                },
+                y: { scale: "y", field: "value" },
                 y2: { scale: "y", value: 0 },
                 fill: { value: "#4c78a8" } // darker blue
               }
@@ -279,13 +282,13 @@ export function createHistogramView(
       {
         name: "x",
         type: "bin-linear",
-        domain: range(bin.start, bin.stop, bin.step),
+        domain: range(binConfig.start, binConfig.stop, binConfig.step),
         range: "width"
       },
       {
         name: "y",
         type: "linear",
-        domain: { data: "table", field: "count" },
+        domain: { data: "table", field: "value" },
         range: "height",
         nice: true,
         zero: true

@@ -1,26 +1,35 @@
+import { bin as bin_ } from "vega-statistics";
+
 export const EPSILON = 1e-15;
+
+export const bin: (
+  opt: { maxbins: number; extent: Interval<number> }
+) => BinConfig = bin_;
+
+export function clamp(i: number, range: Interval<number>) {
+  return Math.max(range[0], Math.min(range[1], i));
+}
+
+/**
+ * Returns a funciton that discretizes a value.
+ */
+export function binFunction(start: number, step: number) {
+  return (v: number) => start + step * Math.floor((v - start) / step);
+}
+
+export function binToData(start: number, step: number) {
+  return (v: number) => start + v * step;
+}
 
 export function stepSize(range: [number, number], bins: number) {
   return (range[1] - range[0]) / bins;
 }
 
-export function clamp(i: number, range: [number, number]) {
-  return Math.max(range[0], Math.min(range[1], i));
-}
-
-export function binFunc(start: number, step: number) {
-  return (v: number) => start + step * Math.floor((v - start) / step);
-}
-
-export function binningFunc(range: [number, number], bins: number) {
-  const step = stepSize(range, bins);
-  return (v: number) =>
-    Math.floor((v - range[0]) / step + EPSILON) * step + range[0];
-}
-
-export function binningPixelFunc(range: [number, number], bins: number) {
-  const step = stepSize(range, bins);
-  return (v: number) => Math.floor((v - range[0]) / step + EPSILON);
+/**
+ * Returns a function that returns the bin for a value.
+ */
+export function binNumberFunction(start: number, step: number) {
+  return (v: number) => Math.floor((v - start) / step);
 }
 
 export function throttle<A extends (...args: any[]) => any>(
@@ -54,6 +63,17 @@ export function flatten(data) {
       d[k] = data[k][i];
     }
     out.push(d);
+  }
+  return out;
+}
+
+/**
+ * Calculate the diff between two uint 32 arrays.
+ */
+export function diff(a: Uint32Array, b: Uint32Array) {
+  const out = new Array(a.length);
+  for (let i = 0; i < a.length; i++) {
+    out[i] = b[i] - a[i];
   }
   return out;
 }
