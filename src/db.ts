@@ -24,7 +24,7 @@ export class DataBase {
         );
         this.groups[view.name] = this.dims[
           `${view.name};${view.dimension}`
-        ].group(binningPixelFunc(view.range, view.bins));
+        ].group(binningPixelFunc(view.domain, view.bins));
       } else {
         this.dims[`${view.name};${view.dimensions[0]}`] = this.cross.dimension(
           d => d[view.dimensions[0]]
@@ -39,8 +39,8 @@ export class DataBase {
             .join(";");
         });
 
-        const binX = binningPixelFunc(view.ranges[0], view.bins[0]);
-        const binY = binningPixelFunc(view.ranges[1], view.bins[1]);
+        const binX = binningPixelFunc(view.domains[0], view.bins[0]);
+        const binY = binningPixelFunc(view.domains[1], view.bins[1]);
 
         this.groups[view.name] = this.dims[view.name].group();
         // .group(d => {
@@ -51,13 +51,13 @@ export class DataBase {
     }
   }
 
-  public histogram(name: string, bins: number, range: [number, number]) {
+  public histogram(name: string, bins: number, domain: [number, number]) {
     return this.groups[name]
       .all()
       .filter(d => d.key >= 0 && d.key < bins)
       .map(d => ({
         // map from keys to bin start
-        bin_start: (d.key * (range[1] - range[0])) / bins + range[0],
+        bin_start: (d.key * (domain[1] - domain[0])) / bins + domain[0],
         count: d.value
       }));
   }
@@ -65,10 +65,10 @@ export class DataBase {
   public heatmap(
     name: string,
     bins: [number, number],
-    ranges: [number, number][]
+    domains: [number, number][]
   ) {
-    const binX = binningPixelFunc(ranges[0], bins[0]);
-    const binY = binningPixelFunc(ranges[1], bins[1]);
+    const binX = binningPixelFunc(domains[0], bins[0]);
+    const binY = binningPixelFunc(domains[1], bins[1]);
 
     const data = nest<any, any>()
       .key(d => {
@@ -99,9 +99,11 @@ export class DataBase {
       )
       .map(d => ({
         binx:
-          (d.key[0] * (ranges[0][1] - ranges[0][0])) / bins[0] + ranges[0][0],
+          (d.key[0] * (domains[0][1] - domains[0][0])) / bins[0] +
+          domains[0][0],
         biny:
-          (d.key[1] * (ranges[1][1] - ranges[1][0])) / bins[1] + ranges[1][0],
+          (d.key[1] * (domains[1][1] - domains[1][0])) / bins[1] +
+          domains[1][0],
         count: d.value
       }));
   }

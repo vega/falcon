@@ -7,7 +7,7 @@ export function createHistogramView(
   dimension: string,
   step: number,
   bins: number[],
-  range: [number, number]
+  domain: [number, number]
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -38,7 +38,7 @@ export function createHistogramView(
         value: 0,
         on: [{ events: "window:mousemove", update: "x()" }]
       },
-      { name: "extent", value: [bins[0], bins[bins.length - 1]] },
+      { name: "extent", value: domain },
       {
         name: "range",
         update: "extent",
@@ -280,7 +280,7 @@ export function createHistogramView(
       {
         name: "x",
         type: "linear",
-        domain: range,
+        domain: domain,
         range: "width",
         zero: false
       },
@@ -334,7 +334,7 @@ export function createHeatmapView(
   dimensions: [string, string],
   step: [number, number],
   bins: [number[], number[]],
-  ranges: [[number, number], [number, number]]
+  domains: [[number, number], [number, number]]
 ): vega.View {
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -366,8 +366,8 @@ export function createHeatmapView(
       //     }
       //   ]
       // },
-      { name: "extentX", value: [bins[0][0], bins[0][bins[0].length - 1]] },
-      { name: "extentY", value: [bins[1][0], bins[1][bins[1].length - 1]] },
+      { name: "extentX", value: domains[0] },
+      { name: "extentY", value: domains[1] },
       {
         name: "rangeX",
         value: 0,
@@ -517,14 +517,14 @@ export function createHeatmapView(
       {
         name: "x",
         type: "linear",
-        domain: ranges[0],
+        domain: domains[0],
         range: "width",
         zero: false
       },
       {
         name: "y",
         type: "linear",
-        domain: ranges[1],
+        domain: domains[1],
         range: "width",
         reverse: true,
         zero: false

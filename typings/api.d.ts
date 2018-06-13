@@ -51,9 +51,8 @@ interface View1D extends AbstractView {
   type: "1D";
   /** The dimensions for this view. */
   dimension: string;
-  /** Range for the dimensions. */
-  range: Interval<number>;
-  brush?: Interval<number>;
+  /** Initial domain for the dimension. */
+  domain: Interval<number>;
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
 }
@@ -62,9 +61,8 @@ interface View2D extends AbstractView {
   type: "2D";
   /** The dimensions for this view. */
   dimensions: [string, string];
-  /** Initial range for the dimensions. */
-  ranges: [Interval<number>, Interval<number>];
-  brushes?: [Interval<number>, Interval<number>];
+  /** Initial domains for the dimensions. */
+  domains: [Interval<number>, Interval<number>];
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: [number, number];
 }

@@ -63,5 +63,5 @@ export function isPoint2D(point: Point1D | Point2D): point is Point2D {
 }
 
 export function is1DView(view: View1D | View2D): view is View1D {
-  return "range" in view;
+  return view.type === "1D";
 }

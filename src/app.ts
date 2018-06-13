@@ -6,10 +6,8 @@ import { View as VgView, changeset } from "vega";
 
 export class App {
   private activeView: string;
-  private vegaViews: { [name: string]: VgView } = {};
-  private viewIndex = {};
-  private views1D: View1D[];
-  private views2D: View2D[];
+  private vegaViews = new Map<string, VgView>();
+  private brushes = new Map<string, Interval<number>>();
 
   public constructor(
     private el: Selection<BaseType, {}, HTMLElement, any>,
@@ -17,13 +15,6 @@ export class App {
     private db: DataBase
   ) {
     this.activeView = views[0].name;
-
-    views.forEach((view, idx) => {
-      this.viewIndex[view.name] = idx;
-    });
-
-    this.views1D = views.filter(v => is1DView(v)) as View1D[];
-    this.views2D = views.filter(v => !is1DView(v)) as View2D[];
 
     this.initialize();
   }
@@ -38,17 +29,17 @@ export class App {
       .attr("class", "view")
       .each(function(view: View) {
         if (is1DView(view)) {
-          const step = stepSize(view.range, view.bins);
-          const bins = range(view.range[0], view.range[1] + step, step);
+          const step = stepSize(view.domain, view.bins);
+          const bins = range(view.domain[0], view.domain[1] + step, step);
           const vegaView = createHistogramView(
             select(this).node() as Element,
             view.dimension,
             step,
             bins,
-            view.range
+            view.domain
           );
 
-          const data = self.db.histogram(view.name, view.bins, view.range);
+          const data = self.db.histogram(view.name, view.bins, view.domain);
 
           vegaView.insert("table", data).run();
 
@@ -57,18 +48,18 @@ export class App {
             self.brushMove(view.name, view.dimension, value);
           });
 
-          self.vegaViews[view.name] = vegaView;
+          self.vegaViews.set(view.name, vegaView);
         } else {
-          const stepX = stepSize(view.ranges[0], view.bins[0]);
-          const stepY = stepSize(view.ranges[1], view.bins[1]);
+          const stepX = stepSize(view.domains[0], view.bins[0]);
+          const stepY = stepSize(view.domains[1], view.bins[1]);
           const binsX = range(
-            view.ranges[0][0],
-            view.ranges[0][1] + stepX,
+            view.domains[0][0],
+            view.domains[0][1] + stepX,
             stepX
           );
           const binsY = range(
-            view.ranges[1][0],
-            view.ranges[1][1] + stepY,
+            view.domains[1][0],
+            view.domains[1][1] + stepY,
             stepY
           );
 
@@ -77,10 +68,10 @@ export class App {
             view.dimensions,
             [stepX, stepY],
             [binsX, binsY],
-            view.ranges
+            view.domains
           );
 
-          const data = self.db.heatmap(view.name, view.bins, view.ranges);
+          const data = self.db.heatmap(view.name, view.bins, view.domains);
 
           vegaView.insert("table", data).run();
 
@@ -94,7 +85,7 @@ export class App {
           //   self.brushMove(view.name, view.dimensions[1], value)
           // );
 
-          self.vegaViews[view.name] = vegaView;
+          self.vegaViews.set(view.name, vegaView);
         }
       });
 
@@ -112,7 +103,7 @@ export class App {
     }
 
     // set brush
-    // this.views1D[this.viewIndex[name]].brush = value;
+    this.brushes.set(dimension, value);
 
     // set filter in crossfilter lib
     this.db.dims[`${name};${dimension}`].filterRange(value);
@@ -123,24 +114,26 @@ export class App {
   private update() {
     for (const view of this.views) {
       if (is1DView(view)) {
-        const data = this.db.histogram(view.name, view.bins, view.range);
+        const data = this.db.histogram(view.name, view.bins, view.domain);
 
         const changeSet = changeset()
           .remove(() => true)
           .insert(data);
 
-        this.vegaViews[view.name].runAfter(() => {
-          this.vegaViews[view.name].change("table", changeSet).run();
+        const vgView = this.vegaViews.get(view.name)!;
+        vgView.runAfter(() => {
+          vgView.change("table", changeSet).run();
         });
       } else {
-        const data = this.db.heatmap(view.name, view.bins, view.ranges);
+        const data = this.db.heatmap(view.name, view.bins, view.domains);
 
         const changeSet = changeset()
           .remove(() => true)
           .insert(data);
 
-        this.vegaViews[view.name].runAfter(() => {
-          this.vegaViews[view.name].change("table", changeSet).run();
+        const vgView = this.vegaViews.get(view.name)!;
+        vgView.runAfter(() => {
+          vgView.change("table", changeSet).run();
         });
       }
     }

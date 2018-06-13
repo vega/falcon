@@ -3,4 +3,4 @@ declare type Point2D = [number, number];
 
 declare type Interval<T> = [T, T];
 
-declare type Point = Point1D; // | Point2D;
+declare type Point = Point1D | Point2D;
