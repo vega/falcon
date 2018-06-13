@@ -84,15 +84,15 @@ export class App {
 
           vegaView.insert("table", data).run();
 
-          // vegaView.addSignalListener("rangeX", console.log);
-          // vegaView.addSignalListener("rangeY", console.log);
+          vegaView.addSignalListener("rangeX", console.log);
+          vegaView.addSignalListener("rangeY", console.log);
 
-          vegaView.addSignalListener("rangeX", (name, value) =>
-            self.brushMove(view.name, view.dimensions[0], value)
-          );
-          vegaView.addSignalListener("rangeY", (name, value) =>
-            self.brushMove(view.name, view.dimensions[1], value)
-          );
+          // vegaView.addSignalListener("rangeX", (name, value) =>
+          //   self.brushMove(view.name, view.dimensions[0], value)
+          // );
+          // vegaView.addSignalListener("rangeY", (name, value) =>
+          //   self.brushMove(view.name, view.dimensions[1], value)
+          // );
 
           self.vegaViews[view.name] = vegaView;
         }

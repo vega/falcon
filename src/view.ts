@@ -96,18 +96,18 @@ export function createHistogramView(
             update: 'invert("x", x())'
           }
         ]
-      },
-      {
-        name: "pixelRange",
-        value: [0, { signal: "width" }],
-        on: [
-          {
-            events: { signal: "range" },
-            update:
-              '[max(0, scale("x", range[0])), min(scale("x", range[1]), width - 1)]'
-          }
-        ]
       }
+      // {
+      //   name: "pixelRange",
+      //   value: [0, { signal: "width" }],
+      //   on: [
+      //     {
+      //       events: { signal: "range" },
+      //       update:
+      //         '[max(0, scale("x", range[0])), min(scale("x", range[1]), width - 1)]'
+      //     }
+      //   ]
+      // }
     ],
     marks: [
       {
@@ -404,6 +404,10 @@ export function createHeatmapView(
             events: { signal: "delta" },
             update:
               "clampRange([anchorX[0] + delta[0], anchorX[1] + delta[0]], 0, width)"
+          },
+          {
+            events: "@chart:dblclick!, @brush:dblclick!",
+            update: "0"
           }
         ]
       },
@@ -423,6 +427,10 @@ export function createHeatmapView(
             events: { signal: "delta" },
             update:
               "clampRange([anchorY[0] + delta[1], anchorY[1] + delta[1]], 0, height)"
+          },
+          {
+            events: "@chart:dblclick!, @brush:dblclick!",
+            update: "0"
           }
         ]
       },
