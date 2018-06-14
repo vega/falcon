@@ -109,7 +109,8 @@ export class DataBase {
     const activeSortIndex = this.sortIndex.get(activeView.dimension)!;
 
     for (const view of views) {
-      const hists: Histogram[] = [];
+      // array for histograms with last histogram being the complete histogram
+      const hists = new Array<Histogram>(pixels + 1);
 
       if (is1DView(view)) {
         // get union of all filter masks that don't contain the dimension for the current view
@@ -136,11 +137,10 @@ export class DataBase {
 
           const newActiveBucket = activeBinF(activeCol[idx]);
 
-          if (
-            newActiveBucket >= 0 &&
-            newActiveBucket < pixels &&
-            activeBucket !== newActiveBucket
-          ) {
+          if (newActiveBucket >= pixels) {
+            // fill last array
+            hists[pixels] = hist;
+          } else if (newActiveBucket >= 0 && activeBucket !== newActiveBucket) {
             activeBucket = newActiveBucket;
             hist = hist.slice();
             hists[activeBucket] = hist;

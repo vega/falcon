@@ -1,5 +1,4 @@
 import * as vega from "vega-lib";
-import { range } from "d3";
 
 export const CHART_WIDTH = 600;
 
@@ -32,81 +31,102 @@ export function createHistogramView(
       }
     ],
     signals: [
+      { name: "bin", update: JSON.stringify(binConfig) },
       {
-        name: "xmove",
+        name: "brush",
         value: 0,
-        on: [{ events: "window:mousemove", update: "x()" }]
-      },
-      { name: "extent", value: [binConfig.start, binConfig.stop] },
-      {
-        name: "range",
-        update: "extent",
         on: [
           {
             events: { signal: "zoom" },
             update:
-              "[clamp((range[0]+range[1])/2 - zoom, extent[0], extent[1]), clamp((range[0]+range[1])/2 + zoom, extent[0], extent[1])]"
+              "clampRange(zoomLinear(brush, xdown, zoom), bin.start, bin.stop)"
           },
           {
             events: "@chart:dblclick!, @brush:dblclick!",
-            update: "[extent[0], extent[1]]"
+            update: "0"
           },
           {
-            events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[range[0] + invert("x", x()) - invert("x", xmove), range[1] + invert("x", x()) - invert("x", xmove)]'
-          },
-          {
-            events:
-              "[@brush_start:mousedown, window:mouseup] > window:mousemove!, [@brush_start_grabber:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[range[0] + invert("x", x()) - invert("x", xmove), range[1]]'
-          },
-          {
-            events:
-              "[@brush_end:mousedown, window:mouseup] > window:mousemove!, [@brush_end_grabber:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[range[0], range[1] + invert("x", x()) - invert("x", xmove)]'
+            events: { signal: "pan" },
+            update: "panLinear(anchor, pan / span(anchor))"
           },
           {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[min(anchor, invert("x", x())), max(anchor, invert("x", x()))]'
+            update: '[xdown, invert("x", x())]'
+          },
+          {
+            events:
+              "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
+            update: '[invert("x", x()), brush[1]]'
+          },
+          {
+            events:
+              "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
+            update: '[brush[0], invert("x", x())]'
           }
         ]
       },
       {
-        name: "zoom",
+        name: "xdown", // in data space
         value: 0,
         on: [
           {
-            events: "@chart:wheel!, @brush:wheel!",
-            update:
-              "0.5 * abs(span(range)) * pow(1.0005, event.deltaY * pow(16, event.deltaMode))"
-          }
-        ]
-      },
-      {
-        name: "anchor",
-        value: 0,
-        on: [
-          {
-            events: "@chart:mousedown!",
+            events: "mousedown!, wheel!",
             update: 'invert("x", x())'
           }
         ]
+      },
+      {
+        name: "anchor", // in data space
+        value: 0,
+        on: [
+          {
+            events: "@brush:mousedown!",
+            update: "slice(brush)" // copy the brush
+          }
+        ]
+      },
+      {
+        name: "zoom", // in pixel space
+        value: 0,
+        on: [
+          {
+            events: "@brush:wheel!",
+            update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+          }
+        ]
+      },
+      {
+        name: "pan", // in data space
+        value: 0,
+        on: [
+          {
+            events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
+            update: 'xdown - invert("x", x())'
+          }
+        ]
+      },
+      {
+        name: "range",
+        update: "brush",
+        on: [
+          {
+            events: { signal: "brush" },
+            update:
+              "span(brush) ? (brush[0] < brush[1] ? brush : [brush[1], brush[0]]) : 0"
+          }
+        ]
+      },
+      {
+        name: "pixelRange",
+        value: [-10, -10],
+        on: [
+          {
+            events: { signal: "range" },
+            update:
+              'span(brush) ? [scale("x", range[0]), scale("x", range[1])] : [-10, -10]'
+          }
+        ]
       }
-      // {
-      //   name: "pixelRange",
-      //   value: [0, { signal: "width" }],
-      //   on: [
-      //     {
-      //       events: { signal: "range" },
-      //       update:
-      //         '[max(0, scale("x", range[0])), min(scale("x", range[1]), width - 1)]'
-      //     }
-      //   ]
-      // }
     ],
     marks: [
       {
@@ -145,8 +165,8 @@ export function createHistogramView(
                 cursor: { value: "move" }
               },
               update: {
-                x: { signal: 'scale("x", range[0])' },
-                x2: { signal: 'scale("x", range[1])' }
+                x: { signal: "pixelRange[0]" },
+                x2: { signal: "pixelRange[1]" }
               }
             }
           },
@@ -164,7 +184,7 @@ export function createHistogramView(
                 },
                 x2: {
                   scale: "x",
-                  signal: `datum.key + ${binConfig.step}`
+                  signal: `datum.key + bin.step`
                 },
                 y: { scale: "y", field: "value" },
                 y2: { scale: "y", value: 0 },
@@ -173,107 +193,113 @@ export function createHistogramView(
             }
           },
           {
-            type: "path",
-            name: "brush_start_grabber",
+            type: "group",
             encode: {
               enter: {
-                y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                path: {
-                  value:
-                    "M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667"
-                },
-                fill: { value: "#eee" },
-                stroke: { value: "#666" },
-                cursor: { value: "ew-resize" }
+                height: { signal: "height" }
               },
               update: {
-                x: { signal: 'max(1, scale("x", range[0]))' }
+                x: { signal: "pixelRange[0]" }
               }
-            }
-          },
-          {
-            type: "path",
-            name: "brush_end_grabber",
-            encode: {
-              enter: {
-                y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                path: {
-                  value:
-                    "M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667"
-                },
-                fill: { value: "#eee" },
-                stroke: { value: "#666" },
-                cursor: { value: "ew-resize" }
+            },
+            marks: [
+              {
+                type: "path",
+                name: "left_grabber",
+                encode: {
+                  enter: {
+                    y: { field: { group: "height" }, mult: 0.5, offset: -50 },
+                    path: {
+                      value:
+                        "M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667"
+                    },
+                    fill: { value: "#eee" },
+                    stroke: { value: "#666" },
+                    cursor: { value: "ew-resize" }
+                  }
+                }
               },
-              update: {
-                x: {
-                  signal: 'min(width - 1, scale("x", range[1]))'
+              {
+                type: "rect",
+                encode: {
+                  enter: {
+                    y: { value: 0 },
+                    height: { field: { group: "height" } },
+                    fill: { value: "firebrick" },
+                    x: { value: -1 },
+                    width: { value: 1 }
+                  }
+                }
+              },
+              {
+                type: "rect",
+                name: "left",
+                encode: {
+                  enter: {
+                    y: { value: 0 },
+                    height: { field: { group: "height" } },
+                    fill: { value: "transparent" },
+                    width: { value: 7 },
+                    cursor: { value: "ew-resize" },
+                    x: { value: -3 }
+                  }
                 }
               }
-            }
+            ]
           },
           {
-            type: "rect",
+            type: "group",
             encode: {
               enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "firebrick" }
+                height: { signal: "height" }
               },
               update: {
-                x: { signal: 'max(1, scale("x", range[0]))', offset: -1 },
-                width: { value: 1 }
+                x: { signal: "pixelRange[1]" }
               }
-            }
-          },
-          {
-            type: "rect",
-            encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "firebrick" }
+            },
+            marks: [
+              {
+                type: "path",
+                name: "right_grabber",
+                encode: {
+                  enter: {
+                    y: { field: { group: "height" }, mult: 0.5, offset: -50 },
+                    path: {
+                      value:
+                        "M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667"
+                    },
+                    fill: { value: "#eee" },
+                    stroke: { value: "#666" },
+                    cursor: { value: "ew-resize" }
+                  }
+                }
               },
-              update: {
-                x: { signal: 'min(width - 1, scale("x", range[1]))' },
-                width: { value: 1 }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "brush_start",
-            encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "transparent" },
-                width: { value: 7 },
-                cursor: { value: "ew-resize" }
+              {
+                type: "rect",
+                encode: {
+                  enter: {
+                    y: { value: 0 },
+                    height: { field: { group: "height" } },
+                    fill: { value: "firebrick" },
+                    width: { value: 1 }
+                  }
+                }
               },
-              update: {
-                x: { signal: 'max(1, scale("x", range[0]))', offset: -3 }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "brush_end",
-            encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "transparent" },
-                width: { value: 7 },
-                cursor: { value: "ew-resize" }
-              },
-              update: {
-                x: {
-                  signal: 'min(width - 1, scale("x", range[1]))',
-                  offset: -3
+              {
+                type: "rect",
+                name: "right",
+                encode: {
+                  enter: {
+                    y: { value: 0 },
+                    height: { field: { group: "height" } },
+                    fill: { value: "transparent" },
+                    width: { value: 7 },
+                    cursor: { value: "ew-resize" },
+                    x: { value: -3 }
+                  }
                 }
               }
-            }
+            ]
           }
         ]
       }
@@ -282,7 +308,7 @@ export function createHistogramView(
       {
         name: "x",
         type: "bin-linear",
-        domain: range(binConfig.start, binConfig.stop, binConfig.step),
+        domain: { signal: "sequence(bin.start, bin.stop, bin.step)" },
         range: "width"
       },
       {

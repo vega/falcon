@@ -55,7 +55,7 @@ export class App {
           vegaView.insert("table", data).run();
 
           // attach listener for brush changes
-          vegaView.addSignalListener("range", (name, value) => {
+          vegaView.addSignalListener("range", (_name, value) => {
             self.brushMove(view.name, view.dimension, value);
           });
 
@@ -90,8 +90,12 @@ export class App {
       this.switchActiveView(name);
     }
 
-    // set brush
-    this.brushes.set(dimension, value);
+    // delete or set brush
+    if (!value) {
+      this.brushes.delete(dimension);
+    } else {
+      this.brushes.set(dimension, value);
+    }
 
     this.needsUpdate = true;
     window.requestAnimationFrame(() => {
@@ -128,33 +132,63 @@ export class App {
       stepSize(activeView.extent, CHART_WIDTH)
     );
 
-    const brush = this.brushes.get(activeView.dimension)!;
-    // active brush in pixel domain
-    const activeBrush = brush.map(b =>
-      clamp(activeBinF(b), [0, CHART_WIDTH - 1])
-    );
+    const brush = this.brushes.get(activeView.dimension);
 
-    for (const view of this.views.filter(v => v.name !== this.activeView)) {
-      if (is1DView(view)) {
-        const binConfig = bin({ maxbins: view.bins, extent: view.extent });
-        const b = binToData(binConfig.start, binConfig.step);
-        const data = diff(
-          this.getResult(view.name, activeBrush[0]),
-          this.getResult(view.name, activeBrush[1])
-        ).map((d, i, _) => ({
-          key: b(i),
-          value: d
-        }));
+    if (brush) {
+      // active brush in pixel domain
+      const activeBrush = brush.map(b =>
+        clamp(activeBinF(b), [0, CHART_WIDTH - 1])
+      );
 
-        const changeSet = changeset()
-          .remove(() => true)
-          .insert(data);
-        const vgView = this.vegaViews.get(view.name)!;
-        vgView.runAfter(() => {
-          vgView.change("table", changeSet).run();
-        });
-      } else {
-        // TODO
+      for (const view of this.views.filter(v => v.name !== this.activeView)) {
+        if (is1DView(view)) {
+          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+          const b = binToData(binConfig.start, binConfig.step);
+          const data = diff(
+            this.getResult(view.name, activeBrush[0]),
+            this.getResult(view.name, activeBrush[1])
+          ).map((d, i, _) => ({
+            key: b(i),
+            value: d
+          }));
+
+          const changeSet = changeset()
+            .remove(() => true)
+            .insert(data);
+          const vgView = this.vegaViews.get(view.name)!;
+          vgView.runAfter(() => {
+            vgView.change("table", changeSet).run();
+          });
+        } else {
+          // TODO
+        }
+      }
+    } else {
+      // brush cleared
+      for (const view of this.views.filter(v => v.name !== this.activeView)) {
+        if (is1DView(view)) {
+          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+          const b = binToData(binConfig.start, binConfig.step);
+          const dimensionEntry = this.data.get(view.name)!;
+          const array = Array.prototype.slice.call(
+            // get last histogram, which is a complete histogram
+            dimensionEntry[dimensionEntry.length - 1]
+          );
+          const data = array.map((d, i, _) => ({
+            key: b(i),
+            value: d
+          }));
+
+          const changeSet = changeset()
+            .remove(() => true)
+            .insert(data);
+          const vgView = this.vegaViews.get(view.name)!;
+          vgView.runAfter(() => {
+            vgView.change("table", changeSet).run();
+          });
+        } else {
+          // TODO
+        }
       }
     }
   }
