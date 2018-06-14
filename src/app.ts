@@ -1,5 +1,5 @@
 import { BaseType, select, Selection } from "d3";
-import { View as VgView, changeset } from "vega";
+import { View as VgView, changeset } from "vega-lib";
 import { DataBase } from "./db";
 import {
   bin,

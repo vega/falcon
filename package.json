@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "parcel index.html",
-    "prebuild": "trash dist",
+    "prebuild": "rm -rf dist",
     "build": "parcel build index.html",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
