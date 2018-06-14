@@ -10,7 +10,7 @@ export function createHistogramView(
   const vgSpec: vega.Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
-    padding: { top: 5, left: 60, right: 60, bottom: 40 },
+    padding: { top: 5, left: 70, right: 60, bottom: 40 },
     width: CHART_WIDTH,
     height: 180,
     data: [
@@ -344,7 +344,7 @@ export function createHistogramView(
         }
       }
     ],
-    config: { axisY: { minExtent: 30 } }
+    config: { axisY: { minExtent: 50 } }
   };
 
   const runtime = vega.parse(vgSpec);
