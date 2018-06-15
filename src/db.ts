@@ -95,18 +95,18 @@ export class DataBase<V extends string, D extends string> {
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
-    const [xDim, yDim] = dimensions;
-    const xBin = binFunction(xDim.binConfig!.start, xDim.binConfig!.step);
-    const yBin = binFunction(yDim.binConfig!.start, yDim.binConfig!.step);
+    const [dimX, dimY] = dimensions;
+    const binX = binFunction(dimX.binConfig!.start, dimX.binConfig!.step);
+    const biny = binFunction(dimY.binConfig!.start, dimY.binConfig!.step);
 
-    const xColumn = this.data.get(xDim.name)!;
-    const yColumn = this.data.get(yDim.name)!;
+    const columnX = this.data.get(dimX.name)!;
+    const columnY = this.data.get(dimY.name)!;
 
     const agg = new Map<string, number>();
 
     for (let i = 0; i < this.length; i++) {
-      const x = xBin(xColumn[i]);
-      const y = yBin(yColumn[i]);
+      const x = binX(columnX[i]);
+      const y = biny(columnY[i]);
 
       const key = x + "\0" + y;
       const val = agg.get(key);

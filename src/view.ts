@@ -360,7 +360,7 @@ export function createHeatmapView<D extends string>(
   el: Element,
   view: View2D<D>
 ): View {
-  const [xDimension, yDimension] = view.dimensions;
+  const [dimensionX, dimensionY] = view.dimensions;
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -374,6 +374,8 @@ export function createHeatmapView<D extends string>(
       }
     ],
     signals: [
+      { name: "binX", update: JSON.stringify(dimensionX.binConfig) },
+      { name: "binY", update: JSON.stringify(dimensionY.binConfig) },
       // {
       //   name: "brush",
       //   value: null,
@@ -392,8 +394,8 @@ export function createHeatmapView<D extends string>(
       //     }
       //   ]
       // },
-      { name: "extentX", value: xDimension.extent },
-      { name: "extentY", value: yDimension.extent },
+      { name: "extentX", value: dimensionX.extent },
+      { name: "extentY", value: dimensionY.extent },
       {
         name: "rangeX",
         value: 0,
@@ -508,12 +510,12 @@ export function createHeatmapView<D extends string>(
                 x: { scale: "x", field: "keyX" },
                 x2: {
                   scale: "x",
-                  signal: `datum.keyX + ${xDimension.binConfig!.step}`
+                  signal: `datum.keyX + ${dimensionX.binConfig!.step}`
                 },
                 y: { scale: "y", field: "keyY" },
                 y2: {
                   scale: "y",
-                  signal: `datum.keyY + ${yDimension.binConfig!.step}`
+                  signal: `datum.keyY + ${dimensionY.binConfig!.step}`
                 }
               },
               update: {
@@ -548,18 +550,16 @@ export function createHeatmapView<D extends string>(
     scales: [
       {
         name: "x",
-        type: "linear",
-        domain: xDimension.extent,
-        range: "width",
-        zero: false
+        type: "bin-linear",
+        domain: { signal: "sequence(binX.start, binX.stop, binX.step)" },
+        range: "width"
       },
       {
         name: "y",
-        type: "linear",
-        domain: yDimension.extent,
-        range: "width",
-        reverse: true,
-        zero: false
+        type: "bin-linear",
+        domain: { signal: "sequence(binY.start, binY.stop, binY.step)" },
+        range: "height",
+        reverse: true
       },
       {
         name: "color",
@@ -575,14 +575,16 @@ export function createHeatmapView<D extends string>(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: xDimension.name
+        title: dimensionX.name,
+        zindex: 1
       },
       {
         scale: "y",
         orient: "left",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: yDimension.name
+        title: dimensionY.name,
+        zindex: 1
       }
     ],
     legends: [
