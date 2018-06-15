@@ -1,5 +1,3 @@
-import { isEmptyStatement } from "typescript/lib/tsserverlibrary";
-
 // from https://github.com/rmnoon/ts-bitset with modifications
 
 export class BitSet {
@@ -79,7 +77,6 @@ export class BitSet {
   union(other: BitSet) {
     const size = this._size;
     const numElems = numElemsNeeded(size);
-    const numOverhang = size % PER_ELEM_BITS;
     for (let i = 0; i < numElems; i++) {
       this._buffer[i] = this._buffer[i] | other.buffer[i];
     }
