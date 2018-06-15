@@ -57,7 +57,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_DELAY_ARR_DELAY", {
       bins: [25, 25],
       dimensions: ["DEP_DELAY", "ARR_DELAY"],
-      domains: [[-10, 100], [-10, 100]],
+      extents: [[-10, 100], [-10, 100]],
       title: "Delay Matrix",
       type: "2D"
     });

@@ -17,6 +17,8 @@ interface View1D<D> extends AbstractView {
   extent: Interval<number>;
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
+  /** Current configuration of bins. */
+  binConfig?: BinConfig;
 }
 
 interface View2D<D> extends AbstractView {
@@ -24,9 +26,11 @@ interface View2D<D> extends AbstractView {
   /** The dimensions for this view. */
   dimensions: [D, D];
   /** Initial domains for the dimensions. */
-  domains: [Interval<number>, Interval<number>];
+  extents: [Interval<number>, Interval<number>];
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: [number, number];
+  /** Current configuration of bins. */
+  binConfigs?: [BinConfig, BinConfig];
 }
 
 type View<D> = View1D<D> | View2D<D>;

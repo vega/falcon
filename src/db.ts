@@ -91,7 +91,6 @@ export class DataBase<V extends string, D extends string> {
     activeView: View1D<D>,
     pixels: number,
     views: Views<V, D>,
-    binConfigs: Map<V, Map<D, BinConfig>>,
     brushes: Map<D, Interval<number>>
   ) {
     console.time("Build result cube");
@@ -116,8 +115,10 @@ export class DataBase<V extends string, D extends string> {
         relevantMasks.delete(view.dimension);
         const filterMask = union(...relevantMasks.values());
 
-        const binConfig = binConfigs.get(name)!.get(view.dimension)!;
-        const binF = binNumberFunction(binConfig.start, binConfig.step);
+        const binF = binNumberFunction(
+          view.binConfig!.start,
+          view.binConfig!.step
+        );
 
         let activeBucket; // what bucket in the active dimension are we at
         let hist = new Uint32Array(view.bins);
