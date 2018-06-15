@@ -7,6 +7,7 @@ export function createHistogramView<D extends string>(
   view: View1D<D>
 ): View {
   const dimension = view.dimension;
+
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
@@ -355,13 +356,12 @@ export function createHistogramView<D extends string>(
     .renderer("svg");
 }
 
-export function createHeatmapView(
+export function createHeatmapView<D extends string>(
   el: Element,
-  dimensions: [string, string],
-  step: [number, number],
-  bins: [number[], number[]],
-  domains: [[number, number], [number, number]]
+  view: View2D<D>
 ): View {
+  const [xDimension, yDimension] = view.dimensions;
+
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
@@ -392,8 +392,8 @@ export function createHeatmapView(
       //     }
       //   ]
       // },
-      { name: "extentX", value: domains[0] },
-      { name: "extentY", value: domains[1] },
+      { name: "extentX", value: xDimension.extent },
+      { name: "extentY", value: yDimension.extent },
       {
         name: "rangeX",
         value: 0,
@@ -505,13 +505,19 @@ export function createHeatmapView(
             from: { data: "table" },
             encode: {
               enter: {
-                x: { scale: "x", field: "binx" },
-                x2: { scale: "x", signal: `datum.binx + ${step[0]}` },
-                y: { scale: "y", field: "biny" },
-                y2: { scale: "y", signal: `datum.biny + ${step[1]}` }
+                x: { scale: "x", field: "keyX" },
+                x2: {
+                  scale: "x",
+                  signal: `datum.keyX + ${xDimension.binConfig!.step}`
+                },
+                y: { scale: "y", field: "keyY" },
+                y2: {
+                  scale: "y",
+                  signal: `datum.keyY + ${yDimension.binConfig!.step}`
+                }
               },
               update: {
-                fill: { scale: "color", field: "count" },
+                fill: { scale: "color", field: "value" },
                 tooltip: { signal: "datum" }
               }
             }
@@ -543,14 +549,14 @@ export function createHeatmapView(
       {
         name: "x",
         type: "linear",
-        domain: domains[0],
+        domain: xDimension.extent,
         range: "width",
         zero: false
       },
       {
         name: "y",
         type: "linear",
-        domain: domains[1],
+        domain: yDimension.extent,
         range: "width",
         reverse: true,
         zero: false
@@ -559,7 +565,7 @@ export function createHeatmapView(
         name: "color",
         type: "sequential",
         range: { scheme: "greenblue" },
-        domain: { data: "table", field: "count" },
+        domain: { data: "table", field: "value" },
         nice: true
       }
     ],
@@ -569,16 +575,14 @@ export function createHeatmapView(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimensions[0],
-        values: bins[0]
+        title: xDimension.name
       },
       {
         scale: "y",
         orient: "left",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimensions[1],
-        values: bins[1]
+        title: yDimension.name
       }
     ],
     legends: [

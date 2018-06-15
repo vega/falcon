@@ -1,7 +1,13 @@
 import { predicate, Table } from "@apache-arrow/es2015-esm";
 import { histogram, range } from "d3";
 import { BitSet, union } from "./bitset";
-import { binNumberFunction, binToData, is1DView, stepSize } from "./util";
+import {
+  binNumberFunction,
+  binToData,
+  is1DView,
+  stepSize,
+  binFunction
+} from "./util";
 
 export class DataBase<V extends string, D extends string> {
   private sortIndex = new Map<D, Uint16Array>();
@@ -88,6 +94,42 @@ export class DataBase<V extends string, D extends string> {
       }));
   }
 
+  public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
+    const [xDim, yDim] = dimensions;
+    const xBin = binFunction(xDim.binConfig!.start, xDim.binConfig!.step);
+    const yBin = binFunction(yDim.binConfig!.start, yDim.binConfig!.step);
+
+    const xColumn = this.data.get(xDim.name)!;
+    const yColumn = this.data.get(yDim.name)!;
+
+    const agg = new Map<string, number>();
+
+    for (let i = 0; i < this.length; i++) {
+      const x = xBin(xColumn[i]);
+      const y = yBin(yColumn[i]);
+
+      const key = x + "\0" + y;
+      const val = agg.get(key);
+      if (val !== undefined) {
+        agg.set(key, val + 1);
+      } else {
+        agg.set(key, 1);
+      }
+    }
+
+    const out: { keyX: number; keyY: number; value: number }[] = [];
+    for (const [key, value] of agg) {
+      const [keyX, keyY] = key.split("\0").map(d => +d);
+      out.push({
+        keyX,
+        keyY,
+        value
+      });
+    }
+
+    return out;
+  }
+
   public loadData(
     activeView: View1D<D>,
     pixels: number,
@@ -164,6 +206,6 @@ export class DataBase<V extends string, D extends string> {
   }
 
   public get length() {
-    return this.data[Object.keys(this.data)[0]].length;
+    return this.data.values().next().value.length;
   }
 }

@@ -11,7 +11,7 @@ import {
   omit,
   stepSize
 } from "./util";
-import { CHART_WIDTH, createHistogramView } from "./view";
+import { CHART_WIDTH, createHistogramView, createHeatmapView } from "./view";
 
 export class App<V extends string, D extends string> {
   private activeView: V;
@@ -40,6 +40,7 @@ export class App<V extends string, D extends string> {
       .attr("class", "view")
       .each(function(name: V) {
         const view = self.views.get(name)!;
+        const el = select(this).node() as Element;
         if (is1DView(view)) {
           const binConfig = bin({
             maxbins: view.dimension.bins,
@@ -47,10 +48,7 @@ export class App<V extends string, D extends string> {
           });
           view.dimension.binConfig = binConfig;
 
-          const vegaView = createHistogramView(
-            select(this).node() as Element,
-            view
-          );
+          const vegaView = createHistogramView(el, view);
 
           const data = self.db.histogram(view.dimension);
 
@@ -70,6 +68,14 @@ export class App<V extends string, D extends string> {
             });
             dimension.binConfig = binConfig;
           }
+
+          const vegaView = createHeatmapView(el, view);
+
+          const data = self.db.heatmap(view.dimensions);
+
+          vegaView.insert("table", data).run();
+
+          self.vegaViews.set(name, vegaView);
         }
       });
   }
