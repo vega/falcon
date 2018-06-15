@@ -40,39 +40,36 @@ export class App<V extends string, D extends string> {
       .attr("class", "view")
       .each(function(name: V) {
         const view = self.views.get(name)!;
-
         if (is1DView(view)) {
-          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
-          view.binConfig = binConfig;
+          const binConfig = bin({
+            maxbins: view.dimension.bins,
+            extent: view.dimension.extent
+          });
+          view.dimension.binConfig = binConfig;
+
           const vegaView = createHistogramView(
             select(this).node() as Element,
-            view.dimension,
-            binConfig
+            view
           );
 
-          const data = self.db.histogram(view.dimension, binConfig);
+          const data = self.db.histogram(view.dimension);
 
           vegaView.insert("table", data).run();
 
           // attach listener for brush changes
           vegaView.addSignalListener("range", (_name, value) => {
-            self.brushMove(name, view.dimension, value);
+            self.brushMove(name, view.dimension.name, value);
           });
 
           self.vegaViews.set(name, vegaView);
         } else {
-          view.binConfigs = [
-            bin({
-              maxbins: view.bins[0],
-              extent: view.extents[0]
-            }),
-            bin({
-              maxbins: view.bins[1],
-              extent: view.extents[1]
-            })
-          ];
-
-          // TODO
+          for (const dimension of view.dimensions) {
+            const binConfig = bin({
+              maxbins: dimension.bins,
+              extent: dimension.extent
+            });
+            dimension.binConfig = binConfig;
+          }
         }
       });
   }
@@ -85,7 +82,7 @@ export class App<V extends string, D extends string> {
 
     const brushes = new Map(this.brushes);
     if (is1DView(activeView)) {
-      brushes.delete(activeView.dimension);
+      brushes.delete(activeView.dimension.name);
     }
 
     this.data = this.db.loadData(
@@ -139,11 +136,11 @@ export class App<V extends string, D extends string> {
 
     const activeView = this.getActiveView();
     const activeBinF = binNumberFunction(
-      activeView.extent[0],
-      stepSize(activeView.extent, CHART_WIDTH)
+      activeView.dimension.extent[0],
+      stepSize(activeView.dimension.extent, CHART_WIDTH)
     );
 
-    const brush = this.brushes.get(activeView.dimension);
+    const brush = this.brushes.get(activeView.dimension.name);
 
     if (brush) {
       // active brush in pixel domain
@@ -157,7 +154,8 @@ export class App<V extends string, D extends string> {
         }
 
         if (is1DView(view)) {
-          const b = binToData(view.binConfig!.start, view.binConfig!.step);
+          const dim = view.dimension;
+          const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
           const data = diff(
             this.getResult(name, activeBrush[0]),
             this.getResult(name, activeBrush[1])
@@ -184,7 +182,8 @@ export class App<V extends string, D extends string> {
           continue;
         }
         if (is1DView(view)) {
-          const b = binToData(view.binConfig!.start, view.binConfig!.step);
+          const dim = view.dimension;
+          const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
           const dimensionEntry = this.data.get(name)!;
           const array = Array.prototype.slice.call(
             // get last histogram, which is a complete histogram

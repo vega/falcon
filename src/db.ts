@@ -74,12 +74,13 @@ export class DataBase<V extends string, D extends string> {
     return filters;
   }
 
-  public histogram(dimension: D, binConfig: BinConfig) {
+  public histogram(dimension: Dimension<D>) {
+    const binConfig = dimension.binConfig!;
     const b = binToData(binConfig.start, binConfig.step);
     return histogram()
       .domain([binConfig.start, binConfig.stop])
       .thresholds(range(binConfig.start, binConfig.stop, binConfig.step))(
-        this.data.get(dimension)!
+        this.data.get(dimension.name)!
       )
       .map((d, i) => ({
         key: b(i),
@@ -98,32 +99,34 @@ export class DataBase<V extends string, D extends string> {
     const filterMasks = this.getFilterMasks(brushes);
     const result: ResultCube<V> = new Map();
 
+    const activeDim = activeView.dimension;
     const activeBinF = binNumberFunction(
-      activeView.extent[0],
-      stepSize(activeView.extent, pixels)
+      activeDim.extent[0],
+      stepSize(activeDim.extent, pixels)
     );
-    const activeCol = this.data.get(activeView.dimension)!;
-    const activeSortIndex = this.sortIndex.get(activeView.dimension)!;
+    const activeCol = this.data.get(activeDim.name)!;
+    const activeSortIndex = this.sortIndex.get(activeDim.name)!;
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
       const hists = new Array<Histogram>(pixels + 1);
 
       if (is1DView(view)) {
+        const dim = view.dimension;
         // get union of all filter masks that don't contain the dimension for the current view
         const relevantMasks = new Map(filterMasks);
-        relevantMasks.delete(view.dimension);
+        relevantMasks.delete(dim.name);
         const filterMask = union(...relevantMasks.values());
 
         const binF = binNumberFunction(
-          view.binConfig!.start,
-          view.binConfig!.step
+          dim.binConfig!.start,
+          dim.binConfig!.step
         );
 
         let activeBucket; // what bucket in the active dimension are we at
-        let hist = new Uint32Array(view.bins);
+        let hist = new Uint32Array(dim.bins);
 
-        const column = this.data.get(view.dimension)!;
+        const column = this.data.get(dim.name)!;
 
         // go through data in order of the active dimension
         for (let i = 0; i < activeSortIndex.length; i++) {
@@ -146,7 +149,7 @@ export class DataBase<V extends string, D extends string> {
           }
 
           const key = binF(column[idx]);
-          if (key >= 0 && key < view.bins) {
+          if (key >= 0 && key < dim.bins) {
             hist[key]++;
           }
         }

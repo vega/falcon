@@ -2,11 +2,11 @@ import { parse, Spec, View, Warn } from "vega-lib";
 
 export const CHART_WIDTH = 600;
 
-export function createHistogramView(
+export function createHistogramView<D extends string>(
   el: Element,
-  dimension: string,
-  binConfig: BinConfig
+  view: View1D<D>
 ): View {
+  const dimension = view.dimension;
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
@@ -31,7 +31,7 @@ export function createHistogramView(
       }
     ],
     signals: [
-      { name: "bin", update: JSON.stringify(binConfig) },
+      { name: "bin", update: JSON.stringify(dimension.binConfig) },
       {
         name: "brush",
         value: 0,
@@ -326,7 +326,7 @@ export function createHistogramView(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimension
+        title: dimension.name
       },
       {
         scale: "y",

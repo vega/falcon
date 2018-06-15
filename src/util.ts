@@ -95,6 +95,8 @@ export function isPoint2D(point: Point1D | Point2D): point is Point2D {
   return typeof point !== "number";
 }
 
-export function is1DView<D>(view: View1D<D> | View2D<D>): view is View1D<D> {
+export function is1DView<D extends string>(
+  view: View1D<D> | View2D<D>
+): view is View1D<D> {
   return view.type === "1D";
 }

@@ -34,41 +34,55 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
 
     const views: Views<ViewName, DimensionName> = new Map();
     views.set("ARR_DELAY", {
-      bins: 25,
-      dimension: "ARR_DELAY",
-      extent: [-10, 100],
       title: "Arrival Delay",
-      type: "1D"
+      type: "1D",
+      dimension: {
+        name: "ARR_DELAY",
+        bins: 25,
+        extent: [-10, 100]
+      }
     });
     views.set("DISTANCE", {
-      bins: 25,
-      dimension: "DISTANCE",
-      extent: [50, 2000],
       title: "Distance",
-      type: "1D"
+      type: "1D",
+      dimension: {
+        name: "DISTANCE",
+        bins: 25,
+        extent: [50, 2000]
+      }
     });
     views.set("DEP_DELAY", {
-      bins: 25,
-      dimension: "DEP_DELAY",
-      extent: [-10, 100],
       title: "Departure Delay",
-      type: "1D"
+      type: "1D",
+      dimension: {
+        name: "DEP_DELAY",
+        bins: 25,
+        extent: [-10, 100]
+      }
     });
     views.set("DEP_DELAY_ARR_DELAY", {
-      bins: [25, 25],
-      dimensions: ["DEP_DELAY", "ARR_DELAY"],
-      extents: [[-10, 100], [-10, 100]],
       title: "Delay Matrix",
-      type: "2D"
+      type: "2D",
+      dimensions: [
+        {
+          name: "DEP_DELAY",
+          bins: 25,
+          extent: [-10, 100]
+        },
+        {
+          name: "ARR_DELAY",
+          bins: 25,
+          extent: [-10, 100]
+        }
+      ]
     });
 
     const dimensions = new Set<DimensionName>();
     for (const v of views.values()) {
       if (is1DView(v)) {
-        dimensions.add(v.dimension);
+        dimensions.add(v.dimension.name);
       } else {
-        dimensions.add(v.dimensions[0]);
-        dimensions.add(v.dimensions[1]);
+        v.dimensions.forEach(d => dimensions.add(d.name));
       }
     }
 
