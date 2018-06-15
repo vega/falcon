@@ -1,23 +1,20 @@
 import { predicate, Table } from "@apache-arrow/es2015-esm";
 import { histogram, range } from "d3";
-import { binToData, is1DView, bin, binNumberFunction, stepSize } from "./util";
 import { BitSet, union } from "./bitset";
+import { binNumberFunction, binToData, is1DView, stepSize } from "./util";
 
 export class DataBase<V extends string, D extends string> {
   private sortIndex = new Map<D, Uint16Array>();
 
   public constructor(
-    private data: Map<D, DataArray>,
-    private table: Table,
-    views: Views<V, D>
+    private readonly data: Map<D, DataArray>,
+    private readonly table: Table,
+    dimensions: Set<D>
   ) {
     // precompute the sort indexes because we can reuse them
     console.time("Build sort indexes");
-    for (const view of views.values()) {
-      if (is1DView(view)) {
-        this.sortIndex.set(view.dimension, this.getSortIndex(view.dimension));
-      } else {
-      }
+    for (const dim of dimensions) {
+      this.sortIndex.set(dim, this.getSortIndex(dim));
     }
     console.timeEnd("Build sort indexes");
     console.timeStamp("Finished initialization");
@@ -94,6 +91,7 @@ export class DataBase<V extends string, D extends string> {
     activeView: View1D<D>,
     pixels: number,
     views: Views<V, D>,
+    binConfigs: Map<V, Map<D, BinConfig>>,
     brushes: Map<D, Interval<number>>
   ) {
     console.time("Build result cube");
@@ -118,7 +116,7 @@ export class DataBase<V extends string, D extends string> {
         relevantMasks.delete(view.dimension);
         const filterMask = union(...relevantMasks.values());
 
-        const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+        const binConfig = binConfigs.get(name)!.get(view.dimension)!;
         const binF = binNumberFunction(binConfig.start, binConfig.step);
 
         let activeBucket; // what bucket in the active dimension are we at

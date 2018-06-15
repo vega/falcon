@@ -1,15 +1,15 @@
 import { BaseType, select, Selection } from "d3";
-import { View as VgView, changeset } from "vega-lib";
+import { changeset, View as VgView } from "vega-lib";
 import { DataBase } from "./db";
 import {
   bin,
-  is1DView,
-  diff,
   binNumberFunction,
-  stepSize,
-  clamp,
   binToData,
-  omit
+  clamp,
+  diff,
+  is1DView,
+  omit,
+  stepSize
 } from "./util";
 import { CHART_WIDTH, createHistogramView } from "./view";
 
@@ -17,12 +17,13 @@ export class App<V extends string, D extends string> {
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
+  private binConfigs = new Map<V, Map<D, BinConfig>>();
   private data: ResultCube<V>;
   private needsUpdate = false;
 
   public constructor(
-    private el: Selection<BaseType, {}, HTMLElement, any>,
-    private views: Views<V, D>,
+    private readonly el: Selection<BaseType, {}, HTMLElement, any>,
+    private readonly views: Views<V, D>,
     order: V[],
     private db: DataBase<V, D>
   ) {
@@ -43,6 +44,7 @@ export class App<V extends string, D extends string> {
 
         if (is1DView(view)) {
           const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+          self.binConfigs.set(name, new Map([[view.dimension, binConfig]]));
           const vegaView = createHistogramView(
             select(this).node() as Element,
             view.dimension,
@@ -80,6 +82,7 @@ export class App<V extends string, D extends string> {
       activeView,
       CHART_WIDTH,
       omit(this.views, name),
+      this.binConfigs,
       brushes
     );
   }
@@ -102,7 +105,7 @@ export class App<V extends string, D extends string> {
     });
   }
 
-  private getActiveView(): View1D<D> {
+  private getActiveView() {
     return this.views.get(this.activeView)! as View1D<D>;
   }
 
@@ -145,7 +148,7 @@ export class App<V extends string, D extends string> {
         }
 
         if (is1DView(view)) {
-          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+          const binConfig = this.binConfigs.get(name)!.get(view.dimension)!;
           const b = binToData(binConfig.start, binConfig.step);
           const data = diff(
             this.getResult(name, activeBrush[0]),
@@ -173,7 +176,7 @@ export class App<V extends string, D extends string> {
           continue;
         }
         if (is1DView(view)) {
-          const binConfig = bin({ maxbins: view.bins, extent: view.extent });
+          const binConfig = this.binConfigs.get(name)!.get(view.dimension)!;
           const b = binToData(binConfig.start, binConfig.step);
           const dimensionEntry = this.data.get(name)!;
           const array = Array.prototype.slice.call(

@@ -1,4 +1,4 @@
-import * as vega from "vega-lib";
+import { parse, Spec, View, Warn } from "vega-lib";
 
 export const CHART_WIDTH = 600;
 
@@ -6,8 +6,8 @@ export function createHistogramView(
   el: Element,
   dimension: string,
   binConfig: BinConfig
-): vega.View {
-  const vgSpec: vega.Spec = {
+): View {
+  const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
     padding: { top: 5, left: 70, right: 60, bottom: 40 },
@@ -347,10 +347,10 @@ export function createHistogramView(
     config: { axisY: { minExtent: 50 } }
   };
 
-  const runtime = vega.parse(vgSpec);
+  const runtime = parse(vgSpec);
 
-  return new vega.View(runtime)
-    .logLevel(vega.Warn)
+  return new View(runtime)
+    .logLevel(Warn)
     .initialize(el)
     .renderer("svg");
 }
@@ -361,8 +361,8 @@ export function createHeatmapView(
   step: [number, number],
   bins: [number[], number[]],
   domains: [[number, number], [number, number]]
-): vega.View {
-  const vgSpec: vega.Spec = {
+): View {
+  const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
     padding: { top: 5, left: 60, right: 70, bottom: 40 },
@@ -591,10 +591,10 @@ export function createHeatmapView(
     ]
   };
 
-  const runtime = vega.parse(vgSpec);
+  const runtime = parse(vgSpec);
 
-  return new vega.View(runtime)
-    .logLevel(vega.Warn)
+  return new View(runtime)
+    .logLevel(Warn)
     .initialize(el)
     .renderer("svg");
 }

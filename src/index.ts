@@ -2,6 +2,7 @@ import { Table } from "@apache-arrow/es2015-esm";
 import { select } from "d3";
 import { App } from "./app";
 import { DataBase } from "./db";
+import { is1DView } from "./util";
 
 fetch(require("../data/flights-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
@@ -61,7 +62,17 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       type: "2D"
     });
 
-    const db = new DataBase(data, table, views);
+    const dimensions = new Set<DimensionName>();
+    for (const v of views.values()) {
+      if (is1DView(v)) {
+        dimensions.add(v.dimension);
+      } else {
+        dimensions.add(v.dimensions[0]);
+        dimensions.add(v.dimensions[1]);
+      }
+    }
+
+    const db = new DataBase(data, table, dimensions);
 
     const el = select("#app");
 
