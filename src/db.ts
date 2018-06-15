@@ -33,7 +33,7 @@ export class DataBase<V extends string, D extends string> {
     return index;
   }
 
-  public filteredTable(extents: Map<string, Interval<number>>) {
+  public filteredTable(extents: Map<D, Interval<number>>) {
     let pred: predicate.Predicate | null = null;
     for (const [col, extent] of extents) {
       const newPred = predicate

@@ -17,14 +17,14 @@ export class App<V extends string, D extends string> {
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
-  private data: ResultCube;
+  private data: ResultCube<V>;
   private needsUpdate = false;
 
   public constructor(
     private el: Selection<BaseType, {}, HTMLElement, any>,
     private views: Views<V, D>,
     order: V[],
-    private db: DataBase
+    private db: DataBase<V, D>
   ) {
     // this.activeView = views[0].name;
     this.initialize(order);
@@ -49,7 +49,7 @@ export class App<V extends string, D extends string> {
             binConfig
           );
 
-          const data = self.db.histogram(name, binConfig);
+          const data = self.db.histogram(view.dimension, binConfig);
 
           vegaView.insert("table", data).run();
 
@@ -106,7 +106,7 @@ export class App<V extends string, D extends string> {
     return this.views.get(this.activeView)! as View1D<D>;
   }
 
-  private getResult(name: string, index: number) {
+  private getResult(name: V, index: number) {
     const dimensionEntry = this.data.get(name)!;
     for (let i = index; i >= 0; i--) {
       const result = dimensionEntry[i];
