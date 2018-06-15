@@ -3,17 +3,17 @@ import { histogram, range } from "d3";
 import { binToData, is1DView, bin, binNumberFunction, stepSize } from "./util";
 import { BitSet, union } from "./bitset";
 
-export class DataBase {
-  private sortIndex = new Map<string, Uint16Array>();
+export class DataBase<V extends string, D extends string> {
+  private sortIndex = new Map<D, Uint16Array>();
 
   public constructor(
-    private data: Map<string, any>,
+    private data: Map<D, DataArray>,
     private table: Table,
-    views: View[]
+    views: Views<V, D>
   ) {
     // precompute the sort indexes because we can reuse them
     console.time("Build sort indexes");
-    for (const view of views) {
+    for (const view of views.values()) {
       if (is1DView(view)) {
         this.sortIndex.set(view.dimension, this.getSortIndex(view.dimension));
       } else {
@@ -26,8 +26,8 @@ export class DataBase {
   /**
    * Compute the sort index. Used in initialization.
    */
-  private getSortIndex(dimension: string) {
-    const column = this.data[dimension];
+  private getSortIndex(dimension: D) {
+    const column = this.data.get(dimension)!;
     const index = new Uint16Array(range(column.length));
     index.sort((a, b) => column[a] - column[b]);
     return index;
@@ -50,8 +50,8 @@ export class DataBase {
     return this.table.filter(pred!);
   }
 
-  private getFilterMask(dimension: string, extent: Interval<number>) {
-    const column = this.data[dimension];
+  private getFilterMask(dimension: D, extent: Interval<number>) {
+    const column = this.data.get(dimension)!;
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
@@ -64,10 +64,10 @@ export class DataBase {
     return mask;
   }
 
-  private getFilterMasks(brushes: Map<string, Interval<number>>) {
+  private getFilterMasks(brushes: Map<D, Interval<number>>) {
     console.time("Build filter masks");
 
-    const filters = new Map<string, BitSet>();
+    const filters = new Map<D, BitSet>();
     for (const [dimension, extent] of brushes) {
       filters.set(dimension, this.getFilterMask(dimension, extent));
     }
@@ -77,12 +77,12 @@ export class DataBase {
     return filters;
   }
 
-  public histogram(dimension: string, binConfig: BinConfig) {
+  public histogram(dimension: D, binConfig: BinConfig) {
     const b = binToData(binConfig.start, binConfig.step);
     return histogram()
       .domain([binConfig.start, binConfig.stop])
       .thresholds(range(binConfig.start, binConfig.stop, binConfig.step))(
-        this.data[dimension]
+        this.data.get(dimension)!
       )
       .map((d, i) => ({
         key: b(i),
@@ -91,24 +91,24 @@ export class DataBase {
   }
 
   public loadData(
-    activeView: View1D,
+    activeView: View1D<D>,
     pixels: number,
-    views: View[],
-    brushes: Map<string, Interval<number>>
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
   ) {
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result: ResultCube = new Map();
+    const result: ResultCube<V> = new Map();
 
     const activeBinF = binNumberFunction(
       activeView.extent[0],
       stepSize(activeView.extent, pixels)
     );
-    const activeCol = this.data[activeView.dimension];
+    const activeCol = this.data.get(activeView.dimension)!;
     const activeSortIndex = this.sortIndex.get(activeView.dimension)!;
 
-    for (const view of views) {
+    for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
       const hists = new Array<Histogram>(pixels + 1);
 
@@ -124,7 +124,7 @@ export class DataBase {
         let activeBucket; // what bucket in the active dimension are we at
         let hist = new Uint32Array(view.bins);
 
-        const column = this.data[view.name];
+        const column = this.data.get(view.dimension)!;
 
         // go through data in order of the active dimension
         for (let i = 0; i < activeSortIndex.length; i++) {
@@ -153,7 +153,7 @@ export class DataBase {
         }
       }
 
-      result.set(view.name, hists);
+      result.set(name, hists);
     }
 
     console.timeEnd("Build result cube");

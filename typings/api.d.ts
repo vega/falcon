@@ -1,41 +1,44 @@
 type Histogram = Uint32Array; // | number[][];
-type ResultSlice = Map<string, Histogram>;
-type ResultCube = Map<string, Histogram[]>;
+type ResultCube<V> = Map<V, Histogram[]>;
 
 /**
  * Views
  */
 interface AbstractView {
-  /** The name of the view. Can be used as an identifier. */
-  name: string;
   /** Title for axis. Should not be used as an identifier. */
   title?: string;
 }
 
-interface View1D extends AbstractView {
+interface View1D<D> extends AbstractView {
   type: "1D";
   /** The dimensions for this view. */
-  dimension: string;
+  dimension: D;
   /** Initial domain for the dimension. */
   extent: Interval<number>;
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
 }
 
-interface View2D extends AbstractView {
+interface View2D<D> extends AbstractView {
   type: "2D";
   /** The dimensions for this view. */
-  dimensions: [string, string];
+  dimensions: [D, D];
   /** Initial domains for the dimensions. */
   domains: [Interval<number>, Interval<number>];
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: [number, number];
 }
 
-type View = View1D | View2D;
+type View<D> = View1D<D> | View2D<D>;
 
+/**
+ * Map from view name to view. The name can be used as an identifier.
+ */
+type Views<T, D> = Map<T, View<D>>;
 interface BinConfig {
   start: number;
   stop: number;
   step: number;
 }
+
+type DataArray = Array<number> | Uint32Array | Uint16Array | Uint8Array;

@@ -78,6 +78,15 @@ export function diff(a: Uint32Array, b: Uint32Array) {
   return out;
 }
 
+/**
+ * Return a map without a particular key.
+ */
+export function omit<K, V>(map: Map<K, V>, omit: K) {
+  const copy = new Map(map);
+  copy.delete(omit);
+  return copy;
+}
+
 export function isPoint1D(point: Point1D | Point2D): point is Point1D {
   return typeof point === "number";
 }
@@ -86,6 +95,6 @@ export function isPoint2D(point: Point1D | Point2D): point is Point2D {
   return typeof point !== "number";
 }
 
-export function is1DView(view: View1D | View2D): view is View1D {
+export function is1DView<D>(view: View1D<D> | View2D<D>): view is View1D<D> {
   return view.type === "1D";
 }
