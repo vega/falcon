@@ -97,7 +97,7 @@ export class DataBase<V extends string, D extends string> {
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
     const [dimX, dimY] = dimensions;
     const binX = binFunction(dimX.binConfig!.start, dimX.binConfig!.step);
-    const biny = binFunction(dimY.binConfig!.start, dimY.binConfig!.step);
+    const binY = binFunction(dimY.binConfig!.start, dimY.binConfig!.step);
 
     const columnX = this.data.get(dimX.name)!;
     const columnY = this.data.get(dimY.name)!;
@@ -106,7 +106,7 @@ export class DataBase<V extends string, D extends string> {
 
     for (let i = 0; i < this.length; i++) {
       const x = binX(columnX[i]);
-      const y = biny(columnY[i]);
+      const y = binY(columnY[i]);
 
       const key = x + "\0" + y;
       const val = agg.get(key);
@@ -142,7 +142,7 @@ export class DataBase<V extends string, D extends string> {
     const result: ResultCube<V> = new Map();
 
     const activeDim = activeView.dimension;
-    const activeBinF = binNumberFunction(
+    const binActive = binNumberFunction(
       activeDim.extent[0],
       stepSize(activeDim.extent, pixels)
     );
@@ -155,12 +155,13 @@ export class DataBase<V extends string, D extends string> {
 
       if (is1DView(view)) {
         const dim = view.dimension;
+
         // get union of all filter masks that don't contain the dimension for the current view
         const relevantMasks = new Map(filterMasks);
         relevantMasks.delete(dim.name);
         const filterMask = union(...relevantMasks.values());
 
-        const binF = binNumberFunction(
+        const bin = binNumberFunction(
           dim.binConfig!.start,
           dim.binConfig!.step
         );
@@ -179,7 +180,7 @@ export class DataBase<V extends string, D extends string> {
             continue;
           }
 
-          const newActiveBucket = activeBinF(activeCol[idx]);
+          const newActiveBucket = binActive(activeCol[idx]);
 
           if (newActiveBucket >= pixels) {
             // fill last array
@@ -190,9 +191,59 @@ export class DataBase<V extends string, D extends string> {
             hists[activeBucket] = hist;
           }
 
-          const key = binF(column[idx]);
+          const key = bin(column[idx]);
           if (key >= 0 && key < dim.bins) {
             hist[key]++;
+          }
+        }
+      } else {
+        const [dimX, dimY] = view.dimensions;
+
+        // get union of all filter masks that don't contain the dimension for the current view
+        const relevantMasks = new Map(filterMasks);
+        relevantMasks.delete(dimX.name);
+        relevantMasks.delete(dimY.name);
+        const filterMask = union(...relevantMasks.values());
+
+        const binX = binNumberFunction(
+          dimX.binConfig!.start,
+          dimX.binConfig!.step
+        );
+        const binY = binNumberFunction(
+          dimY.binConfig!.start,
+          dimY.binConfig!.step
+        );
+
+        let activeBucket; // what bucket in the active dimension are we at
+        let hist = new Uint32Array(dimX.bins * dimY.bins);
+
+        const columnX = this.data.get(dimX.name)!;
+        const columnY = this.data.get(dimY.name)!;
+
+        // go through data in order of the active dimension
+        for (let i = 0; i < activeSortIndex.length; i++) {
+          const idx = activeSortIndex[i];
+
+          // ignore filtered entries
+          if (filterMask && filterMask.check(idx)) {
+            continue;
+          }
+
+          const newActiveBucket = binActive(activeCol[idx]);
+
+          if (newActiveBucket >= pixels) {
+            // fill last array
+            hists[pixels] = hist;
+          } else if (newActiveBucket >= 0 && activeBucket !== newActiveBucket) {
+            activeBucket = newActiveBucket;
+            hist = hist.slice();
+            hists[activeBucket] = hist;
+          }
+
+          const keyX = binX(columnX[idx]);
+          const keyY = binY(columnY[idx]);
+          if (keyX >= 0 && keyX < dimX.bins && keyY >= 0 && keyY < dimY.bins) {
+            hist[keyX + dimX.bins * keyY]++;
           }
         }
       }

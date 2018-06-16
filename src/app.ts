@@ -178,7 +178,25 @@ export class App<V extends string, D extends string> {
             vgView.change("table", changeSet).run();
           });
         } else {
-          // TODO
+          const [dimX, dimY] = view.dimensions;
+          const bX = binToData(dimX.binConfig!.start, dimX.binConfig!.step);
+          const bY = binToData(dimY.binConfig!.start, dimY.binConfig!.step);
+          const data = diff(
+            this.getResult(name, activeBrush[0]),
+            this.getResult(name, activeBrush[1])
+          ).map((d, i, _) => ({
+            keyX: bX(i % dimX.bins),
+            keyY: bY(Math.floor(i / dimY.bins)),
+            value: d
+          }));
+
+          const changeSet = changeset()
+            .remove(() => true)
+            .insert(data);
+          const vgView = this.vegaViews.get(name)!;
+          vgView.runAfter(() => {
+            vgView.change("table", changeSet).run();
+          });
         }
       }
     } else {
