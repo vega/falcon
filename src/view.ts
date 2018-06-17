@@ -49,7 +49,8 @@ export function createHistogramView<D extends string>(
           },
           {
             events: { signal: "pan" },
-            update: "panLinear(anchor, pan / span(anchor))"
+            update:
+              "clampRange(panLinear(anchor, pan / span(anchor)), bin.start, bin.stop)"
           },
           {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
@@ -325,7 +326,9 @@ export function createHistogramView<D extends string>(
       {
         name: "x",
         type: "bin-linear",
-        domain: { signal: "sequence(bin.start, bin.stop, bin.step)" },
+        domain: {
+          signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
+        },
         range: "width"
       },
       {
@@ -567,13 +570,17 @@ export function createHeatmapView<D extends string>(
       {
         name: "x",
         type: "bin-linear",
-        domain: { signal: "sequence(binX.start, binX.stop, binX.step)" },
+        domain: {
+          signal: "sequence(binX.start, binX.stop + binX.step, binX.step)"
+        },
         range: "width"
       },
       {
         name: "y",
         type: "bin-linear",
-        domain: { signal: "sequence(binY.start, binY.stop, binY.step)" },
+        domain: {
+          signal: "sequence(binY.start, binY.stop + binY.step, binY.step)"
+        },
         range: "height",
         reverse: true
       },

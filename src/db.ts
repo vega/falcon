@@ -182,10 +182,11 @@ export class DataBase<V extends string, D extends string> {
 
           const newActiveBucket = binActive(activeCol[idx]);
 
-          if (newActiveBucket >= pixels) {
-            // fill last array
-            hists[pixels] = hist;
-          } else if (newActiveBucket >= 0 && activeBucket !== newActiveBucket) {
+          if (
+            newActiveBucket < pixels &&
+            newActiveBucket >= 0 &&
+            activeBucket !== newActiveBucket
+          ) {
             activeBucket = newActiveBucket;
             hist = hist.slice();
             hists[activeBucket] = hist;
@@ -196,6 +197,8 @@ export class DataBase<V extends string, D extends string> {
             hist[key]++;
           }
         }
+
+        hists[pixels] = hist;
       } else {
         const [dimX, dimY] = view.dimensions;
 
@@ -231,10 +234,11 @@ export class DataBase<V extends string, D extends string> {
 
           const newActiveBucket = binActive(activeCol[idx]);
 
-          if (newActiveBucket >= pixels) {
-            // fill last array
-            hists[pixels] = hist;
-          } else if (newActiveBucket >= 0 && activeBucket !== newActiveBucket) {
+          if (
+            newActiveBucket < pixels &&
+            newActiveBucket >= 0 &&
+            activeBucket !== newActiveBucket
+          ) {
             activeBucket = newActiveBucket;
             hist = hist.slice();
             hists[activeBucket] = hist;
@@ -246,6 +250,8 @@ export class DataBase<V extends string, D extends string> {
             hist[keyX + dimX.bins * keyY]++;
           }
         }
+
+        hists[pixels] = hist;
       }
 
       result.set(name, hists);
