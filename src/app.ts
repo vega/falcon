@@ -216,28 +216,39 @@ export class App<V extends string, D extends string> {
         if (name === this.activeView) {
           continue;
         }
+
+        let data;
+
+        const dimensionEntry = this.data.get(name)!;
+        const array = Array.prototype.slice.call(
+          // get last histogram, which is a complete histogram
+          dimensionEntry[dimensionEntry.length - 1]
+        );
+
         if (is1DView(view)) {
           const dim = view.dimension;
           const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
-          const dimensionEntry = this.data.get(name)!;
-          const array = Array.prototype.slice.call(
-            // get last histogram, which is a complete histogram
-            dimensionEntry[dimensionEntry.length - 1]
-          );
-          const data = array.map((d, i, _) => ({
+          data = array.map((d, i, _) => ({
             key: b(i),
             value: d
           }));
-
-          const changeSet = changeset()
-            .remove(truthy)
-            .insert(data);
-          this.vegaViews.get(name)!.runAfter(vgView => {
-            vgView.change("table", changeSet).run();
-          });
         } else {
-          // TODO
+          const [dimX, dimY] = view.dimensions;
+          const bX = binToData(dimX.binConfig!.start, dimX.binConfig!.step);
+          const bY = binToData(dimY.binConfig!.start, dimY.binConfig!.step);
+
+          data = array.map((d, i, _) => ({
+            keyX: bX(i % dimX.bins),
+            keyY: bY(Math.floor(i / dimY.bins)),
+            value: d
+          }));
         }
+        const changeSet = changeset()
+          .remove(truthy)
+          .insert(data);
+        this.vegaViews.get(name)!.runAfter(vgView => {
+          vgView.change("table", changeSet).run();
+        });
       }
     }
   }
