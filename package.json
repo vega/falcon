@@ -24,10 +24,12 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "crossfilter2": "^1.4.6",
-    "d3": "^5.4.0",
-    "vega": "^4.0.0-rc.2",
+    "d3": "^5.5.0",
+    "mapd-connector": "git://github.com/mapd/mapd-connector.git",
     "vega-lib": "^4.0.0-rc.2",
-    "vega-typings": "^0.3.15"
+    "vega-statistics": "^1.2.1",
+    "vega-typings": "^0.3.16",
+    "vega": "^4.0.0-rc.2"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",

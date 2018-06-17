@@ -32,6 +32,7 @@ export function createHistogramView<D extends string>(
       }
     ],
     signals: [
+      { name: "interactive", update: false },
       { name: "bin", update: JSON.stringify(dimension.binConfig) },
       {
         name: "brush",
@@ -136,8 +137,23 @@ export function createHistogramView<D extends string>(
         encode: {
           update: {
             x: { signal: "width", offset: 5 },
-            y: { value: 10 },
+            y: { value: 30 },
             text: { field: "sum" }
+          }
+        }
+      },
+      {
+        type: "symbol",
+        encode: {
+          enter: {
+            shape: { value: "circle" },
+            stroke: { value: "black" }
+          },
+          update: {
+            fill: { signal: 'interactive ? "black" : "transparent"' },
+            x: { signal: "width", offset: 10 },
+            y: { value: 10 },
+            tooltip: { signal: '"Currently active: " + interactive' }
           }
         }
       },

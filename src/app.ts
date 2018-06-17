@@ -1,5 +1,5 @@
 import { BaseType, select, Selection } from "d3";
-import { changeset, View as VgView } from "vega-lib";
+import { changeset, View as VgView, truthy } from "vega-lib";
 import { DataBase } from "./db";
 import {
   bin,
@@ -59,6 +59,12 @@ export class App<V extends string, D extends string> {
             self.brushMove(name, view.dimension.name, value);
           });
 
+          vegaView.addEventListener("mouseover", () => {
+            if (self.activeView !== name) {
+              self.switchActiveView(name);
+            }
+          });
+
           self.vegaViews.set(name, vegaView);
         } else {
           for (const dimension of view.dimensions) {
@@ -82,6 +88,13 @@ export class App<V extends string, D extends string> {
 
   private switchActiveView(name: V) {
     console.log(`Active view ${this.activeView} => ${name}`);
+
+    if (this.activeView) {
+      this.vegaViews.get(this.activeView)!.runAfter(view => {
+        view.signal("interactive", false).run();
+      });
+    }
+
     this.activeView = name;
 
     const activeView = this.getActiveView();
@@ -97,6 +110,10 @@ export class App<V extends string, D extends string> {
       omit(this.views, name),
       brushes
     );
+
+    this.vegaViews.get(name)!.runAfter(view => {
+      view.signal("interactive", true).run();
+    });
   }
 
   private brushMove(name: V, dimension: D, value: [number, number]) {
@@ -159,29 +176,23 @@ export class App<V extends string, D extends string> {
           continue;
         }
 
+        let data; // the data for Vega
+
         if (is1DView(view)) {
           const dim = view.dimension;
           const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
-          const data = diff(
+          data = diff(
             this.getResult(name, activeBrush[0]),
             this.getResult(name, activeBrush[1])
           ).map((d, i, _) => ({
             key: b(i),
             value: d
           }));
-
-          const changeSet = changeset()
-            .remove(() => true)
-            .insert(data);
-          const vgView = this.vegaViews.get(name)!;
-          vgView.runAfter(() => {
-            vgView.change("table", changeSet).run();
-          });
         } else {
           const [dimX, dimY] = view.dimensions;
           const bX = binToData(dimX.binConfig!.start, dimX.binConfig!.step);
           const bY = binToData(dimY.binConfig!.start, dimY.binConfig!.step);
-          const data = diff(
+          data = diff(
             this.getResult(name, activeBrush[0]),
             this.getResult(name, activeBrush[1])
           ).map((d, i, _) => ({
@@ -189,15 +200,15 @@ export class App<V extends string, D extends string> {
             keyY: bY(Math.floor(i / dimY.bins)),
             value: d
           }));
-
-          const changeSet = changeset()
-            .remove(() => true)
-            .insert(data);
-          const vgView = this.vegaViews.get(name)!;
-          vgView.runAfter(() => {
-            vgView.change("table", changeSet).run();
-          });
         }
+
+        const changeSet = changeset()
+          .remove(truthy)
+          .insert(data);
+        const vgView = this.vegaViews.get(name)!;
+        vgView.runAfter(() => {
+          vgView.change("table", changeSet).run();
+        });
       }
     } else {
       // brush cleared
@@ -219,10 +230,9 @@ export class App<V extends string, D extends string> {
           }));
 
           const changeSet = changeset()
-            .remove(() => true)
+            .remove(truthy)
             .insert(data);
-          const vgView = this.vegaViews.get(name)!;
-          vgView.runAfter(() => {
+          this.vegaViews.get(name)!.runAfter(vgView => {
             vgView.change("table", changeSet).run();
           });
         } else {
