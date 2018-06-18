@@ -81,9 +81,11 @@ export class DataBase<V extends string, D extends string> {
   }
 
   public histogram(dimension: Dimension<D>) {
+    console.time("Histogram");
+
     const binConfig = dimension.binConfig!;
     const b = binToData(binConfig.start, binConfig.step);
-    return histogram()
+    const hist = histogram()
       .domain([binConfig.start, binConfig.stop])
       .thresholds(range(binConfig.start, binConfig.stop, binConfig.step))(
         this.data.get(dimension.name)!
@@ -92,9 +94,15 @@ export class DataBase<V extends string, D extends string> {
         key: b(i),
         value: d.length
       }));
+
+    console.timeEnd("Histogram");
+
+    return hist;
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
+    console.time("Heatmap");
+
     const [dimX, dimY] = dimensions;
     const binX = binFunction(dimX.binConfig!.start, dimX.binConfig!.step);
     const binY = binFunction(dimY.binConfig!.start, dimY.binConfig!.step);
@@ -126,6 +134,8 @@ export class DataBase<V extends string, D extends string> {
         value
       });
     }
+
+    console.timeEnd("Heatmap");
 
     return out;
   }
