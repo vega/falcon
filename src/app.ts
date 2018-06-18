@@ -11,7 +11,11 @@ import {
   omit,
   stepSize
 } from "./util";
-import { CHART_WIDTH, createHistogramView, createHeatmapView } from "./view";
+import {
+  HISTOGRAM_WIDTH,
+  createHistogramView,
+  createHeatmapView
+} from "./view";
 
 export class App<V extends string, D extends string> {
   private activeView: V;
@@ -107,7 +111,7 @@ export class App<V extends string, D extends string> {
 
     this.data = this.db.loadData(
       activeView,
-      CHART_WIDTH,
+      HISTOGRAM_WIDTH,
       omit(this.views, name),
       brushes
     );
@@ -161,7 +165,7 @@ export class App<V extends string, D extends string> {
     const activeView = this.getActiveView();
     const activeBinF = binNumberFunction(
       activeView.dimension.extent[0],
-      stepSize(activeView.dimension.extent, CHART_WIDTH)
+      stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
     );
 
     const brush = this.brushes.get(activeView.dimension.name);
@@ -169,7 +173,7 @@ export class App<V extends string, D extends string> {
     if (brush) {
       // active brush in pixel domain
       const activeBrush = brush.map(b =>
-        clamp(activeBinF(b), [0, CHART_WIDTH - 1])
+        clamp(activeBinF(b), [0, HISTOGRAM_WIDTH - 1])
       );
 
       for (const [name, view] of this.views) {

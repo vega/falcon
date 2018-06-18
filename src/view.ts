@@ -1,6 +1,7 @@
 import { parse, Spec, View, Warn } from "vega-lib";
 
-export const CHART_WIDTH = 600;
+export const HISTOGRAM_WIDTH = 600;
+export const HEATMAP_WIDTH = 450;
 
 export function createHistogramView<D extends string>(
   el: Element,
@@ -12,8 +13,8 @@ export function createHistogramView<D extends string>(
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
     padding: { top: 5, left: 70, right: 60, bottom: 40 },
-    width: CHART_WIDTH,
-    height: 180,
+    width: HISTOGRAM_WIDTH,
+    height: HISTOGRAM_WIDTH / 3.5,
     data: [
       {
         name: "table"
@@ -385,8 +386,8 @@ export function createHeatmapView<D extends string>(
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
     padding: { top: 5, left: 70, right: 70, bottom: 40 },
-    width: CHART_WIDTH,
-    height: CHART_WIDTH,
+    width: HEATMAP_WIDTH,
+    height: HEATMAP_WIDTH,
     data: [
       {
         name: "table"
