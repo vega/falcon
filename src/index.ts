@@ -96,12 +96,12 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         {
           name: "DEP_DELAY",
           bins: 25,
-          extent: [-10, 100]
+          extent: [-20, 60]
         },
         {
           name: "ARR_DELAY",
           bins: 25,
-          extent: [-10, 100]
+          extent: [-20, 60]
         }
       ]
     });

@@ -2231,7 +2231,7 @@ find-up@^1.0.0:
     path-exists "^2.0.0"
     pinkie-promise "^2.0.0"
 
-"flatbuffers@github:trxcllnt/flatbuffers-esm":
+flatbuffers@trxcllnt/flatbuffers-esm:
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -3614,9 +3614,9 @@ pako@~1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
 
-parcel-bundler@~1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.0.tgz#be0fe5937c8cf423c06bbddfe64830ac77cd4687"
+parcel-bundler@~1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.1.tgz#5557e41bb695890f01db144ec7d777c818598ef8"
   dependencies:
     ansi-to-html "^0.6.4"
     babel-code-frame "^6.26.0"

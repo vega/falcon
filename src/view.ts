@@ -384,7 +384,7 @@ export function createHeatmapView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
-    padding: { top: 5, left: 60, right: 70, bottom: 40 },
+    padding: { top: 5, left: 70, right: 70, bottom: 40 },
     width: CHART_WIDTH,
     height: CHART_WIDTH,
     data: [
@@ -617,7 +617,8 @@ export function createHeatmapView<D extends string>(
         title: "Count",
         gradientLength: { signal: "height - 16" }
       }
-    ]
+    ],
+    config: { axisY: { minExtent: 50 } }
   };
 
   const runtime = parse(vgSpec);
@@ -625,5 +626,5 @@ export function createHeatmapView<D extends string>(
   return new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer("svg");
+    .renderer("canvas");
 }

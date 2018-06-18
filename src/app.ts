@@ -33,6 +33,7 @@ export class App<V extends string, D extends string> {
   private initialize(order: V[]) {
     const self = this;
     this.el
+      .attr("class", "app")
       .selectAll(".view")
       .data(order)
       .enter()
