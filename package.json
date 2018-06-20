@@ -26,16 +26,15 @@
     "crossfilter2": "^1.4.6",
     "d3": "^5.5.0",
     "mapd-connector": "git://github.com/mapd/mapd-connector.git",
-    "vega-lib": "^4.0.0-rc.2",
+    "vega-lib": "^4.0.0-rc.3",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.16",
-    "vega": "^4.0.0-rc.2"
+    "vega-typings": "^0.3.16"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
     "gh-pages": "^1.2.0",
     "node-sass": "^4.9.0",
-    "parcel-bundler": "1.9.1",
+    "parcel-bundler": "1.9.2",
     "prettier": "^1.13.5",
     "typescript": "^2.9.2"
   }
