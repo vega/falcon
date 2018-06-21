@@ -1,4 +1,4 @@
-import { BaseType, select, Selection } from "d3";
+import { BaseType, select, Selection, extent } from "d3";
 import { changeset, View as VgView, truthy } from "vega-lib";
 import { DataBase } from "./db";
 import {
@@ -60,7 +60,7 @@ export class App<V extends string, D extends string> {
           vegaView.insert("table", data).run();
 
           // attach listener for brush changes
-          vegaView.addSignalListener("range", (_name, value) => {
+          vegaView.addSignalListener("brush", (_name, value) => {
             self.brushMove(name, view.dimension.name, value);
           });
 
@@ -130,7 +130,7 @@ export class App<V extends string, D extends string> {
     if (!value) {
       this.brushes.delete(dimension);
     } else {
-      this.brushes.set(dimension, value);
+      this.brushes.set(dimension, extent(value) as [number, number]);
     }
 
     this.needsUpdate = true;

@@ -42,7 +42,7 @@ export function createHistogramView<D extends string>(
           {
             events: { signal: "zoom" },
             update:
-              "clampRange(zoomLinear(brush, xdown, zoom), bin.start, bin.stop)"
+              "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
           },
           {
             events: "@chart:dblclick!, @brush:dblclick!",
@@ -55,22 +55,22 @@ export function createHistogramView<D extends string>(
           },
           {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-            update: '[xdown, invert("x", x())]'
+            update: '[down, clamp(invert("x", x()), bin.start, bin.stop)]'
           },
           {
             events:
               "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-            update: '[invert("x", x()), brush[1]]'
+            update: '[clamp(invert("x", x()), bin.start, bin.stop), brush[1]]'
           },
           {
             events:
               "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-            update: '[brush[0], invert("x", x())]'
+            update: '[brush[0], clamp(invert("x", x()), bin.start, bin.stop)]'
           }
         ]
       },
       {
-        name: "xdown", // in data space
+        name: "down", // in data space
         value: 0,
         on: [
           {
@@ -105,29 +105,18 @@ export function createHistogramView<D extends string>(
         on: [
           {
             events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-            update: 'xdown - invert("x", x())'
+            update: 'down - invert("x", x())'
           }
         ]
       },
       {
-        name: "range",
-        update: "brush",
+        name: "pixelBrush",
+        value: [-10, -10],
         on: [
           {
             events: { signal: "brush" },
             update:
-              "span(brush) ? (brush[0] < brush[1] ? brush : [brush[1], brush[0]]) : 0"
-          }
-        ]
-      },
-      {
-        name: "pixelRange",
-        value: [-10, -10],
-        on: [
-          {
-            events: { signal: "range" },
-            update:
-              'span(brush) ? [scale("x", range[0]), scale("x", range[1])] : [-10, -10]'
+              'span(brush) ? [scale("x", brush[0]), scale("x", brush[1])] : [-10, -10]'
           }
         ]
       }
@@ -184,8 +173,8 @@ export function createHistogramView<D extends string>(
                 cursor: { value: "move" }
               },
               update: {
-                x: { signal: "pixelRange[0]" },
-                x2: { signal: "pixelRange[1]" }
+                x: { signal: "pixelBrush[0]" },
+                x2: { signal: "pixelBrush[1]" }
               }
             }
           },
@@ -218,7 +207,7 @@ export function createHistogramView<D extends string>(
                 height: { signal: "height" }
               },
               update: {
-                x: { signal: "pixelRange[0]" }
+                x: { signal: "pixelBrush[0]" }
               }
             },
             marks: [
@@ -228,13 +217,15 @@ export function createHistogramView<D extends string>(
                 encode: {
                   enter: {
                     y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                    path: {
-                      value:
-                        "M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667"
-                    },
                     fill: { value: "#eee" },
                     stroke: { value: "#666" },
                     cursor: { value: "ew-resize" }
+                  },
+                  update: {
+                    path: {
+                      signal:
+                        "pixelBrush[0] <= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                    }
                   }
                 }
               },
@@ -273,7 +264,7 @@ export function createHistogramView<D extends string>(
                 height: { signal: "height" }
               },
               update: {
-                x: { signal: "pixelRange[1]" }
+                x: { signal: "pixelBrush[1]" }
               }
             },
             marks: [
@@ -283,13 +274,15 @@ export function createHistogramView<D extends string>(
                 encode: {
                   enter: {
                     y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                    path: {
-                      value:
-                        "M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667"
-                    },
                     fill: { value: "#eee" },
                     stroke: { value: "#666" },
                     cursor: { value: "ew-resize" }
+                  },
+                  update: {
+                    path: {
+                      signal:
+                        "pixelBrush[0] >= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                    }
                   }
                 }
               },
@@ -382,6 +375,8 @@ export function createHeatmapView<D extends string>(
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
 
+  console.log(dimensionY);
+
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
@@ -396,66 +391,34 @@ export function createHeatmapView<D extends string>(
     signals: [
       { name: "binX", update: JSON.stringify(dimensionX.binConfig) },
       { name: "binY", update: JSON.stringify(dimensionY.binConfig) },
-      // {
-      //   name: "brush",
-      //   value: null,
-      //   on: [
-      //     {
-      //       events: "@chart:mousedown",
-      //       update: "[brushX, brushY]"
-      //     },
-      //     {
-      //       events: "[@chart:mousedown, window:mouseup] > window:mousemove",
-      //       update: "[brushX, brushY]"
-      //     },
-      //     {
-      //       events: { signal: "delta" },
-      //       update: "[brushX, brushY]"
-      //     }
-      //   ]
-      // },
       { name: "extentX", value: dimensionX.extent },
       { name: "extentY", value: dimensionY.extent },
-      {
-        name: "rangeX",
-        value: 0,
-        on: [
-          {
-            events: { signal: "brushX" },
-            update: "[invert('x', brushX[0]), invert('x', brushX[1])]"
-          }
-        ]
-      },
-      {
-        name: "rangeY",
-        value: 0,
-        on: [
-          {
-            events: { signal: "brushY" },
-            update: "[invert('y', brushY[0]), invert('y', brushY[1])]"
-          }
-        ]
-      },
       {
         name: "brushX",
         value: 0,
         on: [
           {
-            events: "@chart:mousedown",
-            update: "[x(), x()]"
-          },
-          {
-            events: "[@chart:mousedown, window:mouseup] > window:mousemove",
-            update: "[brushX[0], clamp(x(), 0, width)]"
-          },
-          {
-            events: { signal: "delta" },
-            update:
-              "clampRange([anchorX[0] + delta[0], anchorX[1] + delta[0]], 0, width)"
-          },
-          {
             events: "@chart:dblclick!, @brush:dblclick!",
             update: "0"
+          },
+          {
+            events: { signal: "pan" },
+            update:
+              "clampRange(panLinear(anchor[0], pan[0] / span(anchor[0])), binX.start, binX.stop)"
+          },
+          {
+            events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+            update: '[down[0], clamp(invert("x", x()), binX.start, binX.stop)]'
+          },
+          {
+            events: "[@left:mousedown, window:mouseup] > window:mousemove!",
+            update:
+              '[clamp(invert("x", x()), binX.start, binX.stop), brushX[1]]'
+          },
+          {
+            events: "[@right:mousedown, window:mouseup] > window:mousemove!",
+            update:
+              '[brushX[0], clamp(invert("x", x()), binX.start, binX.stop)]'
           }
         ]
       },
@@ -464,46 +427,80 @@ export function createHeatmapView<D extends string>(
         value: 0,
         on: [
           {
-            events: "@chart:mousedown",
-            update: "[y(), y()]"
-          },
-          {
-            events: "[@chart:mousedown, window:mouseup] > window:mousemove",
-            update: "[brushY[0], clamp(y(), 0, height)]"
-          },
-          {
-            events: { signal: "delta" },
-            update:
-              "clampRange([anchorY[0] + delta[1], anchorY[1] + delta[1]], 0, height)"
-          },
-          {
             events: "@chart:dblclick!, @brush:dblclick!",
             update: "0"
+          },
+          {
+            events: { signal: "pan" },
+            update:
+              "clampRange(panLinear(anchor[1], pan[1] / span(anchor[1])), binY.start, binY.stop)"
+          },
+          {
+            events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+            update: '[down[1], clamp(invert("y", y()), binY.start, binY.stop)]'
+          },
+          {
+            events: "[@top:mousedown, window:mouseup] > window:mousemove!",
+            update:
+            '[brushY[0], clamp(invert("y", y()), binY.start, binY.stop)]'
+              
+          },
+          {
+            events: "[@bottom:mousedown, window:mouseup] > window:mousemove!",
+            update:'[clamp(invert("y", y()), binY.start, binY.stop), brushY[1]]'
+              
           }
         ]
       },
       {
         name: "down",
         value: [0, 0],
-        on: [{ events: "@brush:mousedown", update: "[x(), y()]" }]
+        on: [
+          {
+            events: "mousedown!",
+            update: '[invert("x", x()), invert("y", y())]'
+          }
+        ]
       },
       {
-        name: "anchorX",
-        value: null,
-        on: [{ events: "@brush:mousedown", update: "slice(brushX)" }]
-      },
-      {
-        name: "anchorY",
-        value: null,
-        on: [{ events: "@brush:mousedown", update: "slice(brushY)" }]
-      },
-      {
-        name: "delta",
+        name: "anchor", // in data space
         value: [0, 0],
         on: [
           {
-            events: "[@brush:mousedown, window:mouseup] > window:mousemove",
-            update: "[x() - down[0], y() - down[1]]"
+            events: "@brush:mousedown!",
+            update: "[slice(brushX), slice(brushY)]"
+          }
+        ]
+      },
+      {
+        name: "pan", // in data space
+        value: [0, 0],
+        on: [
+          {
+            events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
+            update: '[down[0] - invert("x", x()), down[1] - invert("y", y())]'
+          }
+        ]
+      },
+      {
+        name: "pixelBrushX", // in pixel space
+        value: [-10, -10],
+        on: [
+          {
+            events: { signal: "brushX" },
+            update:
+              'span(brushX) ? [scale("x", brushX[0]), scale("x", brushX[1])] : [-10, -10]'
+          }
+        ]
+      },
+      {
+        name: "pixelBrushY", // in pixel space
+        value: [-10, -10],
+        on: [
+          {
+            events: { signal: "brushY" },
+            update:
+              'span(brushY) ? [scale("y", brushY[0]), scale("y", brushY[1])] : [-10, -10]'
           }
         ]
       }
@@ -525,8 +522,9 @@ export function createHeatmapView<D extends string>(
           {
             type: "rect",
             from: { data: "table" },
+            interactive: false,
             encode: {
-              enter: {
+              update: {
                 x: { scale: "x", field: "keyX" },
                 x2: {
                   scale: "x",
@@ -536,11 +534,8 @@ export function createHeatmapView<D extends string>(
                 y2: {
                   scale: "y",
                   signal: `datum.keyY + ${dimensionY.binConfig!.step}`
-                }
-              },
-              update: {
-                fill: { scale: "color", field: "value" },
-                tooltip: { signal: "datum" }
+                },
+                fill: { scale: "color", field: "value" }
               }
             }
           },
@@ -557,10 +552,74 @@ export function createHeatmapView<D extends string>(
                 cursor: { value: "move" }
               },
               update: {
-                x: { signal: "brushX[0]" },
-                x2: { signal: "brushX[1]" },
-                y: { signal: "brushY[0]" },
-                y2: { signal: "brushY[1]" }
+                x: { signal: "pixelBrushX[0]" },
+                x2: { signal: "pixelBrushX[1]" },
+                y: { signal: "pixelBrushY[0]" },
+                y2: { signal: "pixelBrushY[1]" }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "left",
+            encode: {
+              enter: {
+                fill: { value: "transparent" },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: { signal: "pixelBrushX[0]", offset: -3 },
+                x2: { signal: "pixelBrushX[0]", offset: 3 },
+                y: { signal: "pixelBrushY[0]" },
+                y2: { signal: "pixelBrushY[1]" }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "right",
+            encode: {
+              enter: {
+                fill: { value: "transparent" },
+                cursor: { value: "ew-resize" }
+              },
+              update: {
+                x: { signal: "pixelBrushX[1]", offset: -3 },
+                x2: { signal: "pixelBrushX[1]", offset: 3 },
+                y: { signal: "pixelBrushY[0]" },
+                y2: { signal: "pixelBrushY[1]" }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "bottom",
+            encode: {
+              enter: {
+                fill: { value: "transparent" },
+                cursor: { value: "ns-resize" }
+              },
+              update: {
+                x: { signal: "pixelBrushX[0]" },
+                x2: { signal: "pixelBrushX[1]" },
+                y: { signal: "pixelBrushY[0]", offset: -3 },
+                y2: { signal: "pixelBrushY[0]", offset: 3 }
+              }
+            }
+          },
+          {
+            type: "rect",
+            name: "top",
+            encode: {
+              enter: {
+                fill: { value: "transparent" },
+                cursor: { value: "ns-resize" }
+              },
+              update: {
+                x: { signal: "pixelBrushX[0]" },
+                x2: { signal: "pixelBrushX[1]" },
+                y: { signal: "pixelBrushY[1]", offset: -3 },
+                y2: { signal: "pixelBrushY[1]", offset: 3 }
               }
             }
           }
