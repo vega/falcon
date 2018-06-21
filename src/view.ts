@@ -12,7 +12,7 @@ export function createHistogramView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
-    padding: { top: 5, left: 70, right: 60, bottom: 40 },
+    padding: { top: 5, left: 70, right: 60, bottom: 90 },
     width: HISTOGRAM_WIDTH,
     height: HISTOGRAM_WIDTH / 3.5,
     data: [
@@ -30,10 +30,13 @@ export function createHistogramView<D extends string>(
             as: ["sum"]
           }
         ]
+      },
+      {
+        name: "interesting"
       }
     ],
     signals: [
-      { name: "interactive", update: false },
+      { name: "active", update: false },
       { name: "bin", update: JSON.stringify(dimension.binConfig) },
       {
         name: "brush",
@@ -121,201 +124,242 @@ export function createHistogramView<D extends string>(
         ]
       }
     ],
+    layout: {
+      padding: { row: 10, column: 10 },
+      offset: 10,
+      columns: 1,
+      bounds: "full",
+      align: "each"
+    },
     marks: [
       {
-        type: "text",
-        from: { data: "sum" },
-        encode: {
-          update: {
-            x: { signal: "width", offset: 5 },
-            y: { value: 30 },
-            text: { field: "sum" }
-          }
-        }
-      },
-      {
-        type: "symbol",
-        encode: {
-          enter: {
-            shape: { value: "circle" },
-            stroke: { value: "black" }
-          },
-          update: {
-            fill: { signal: 'interactive ? "black" : "transparent"' },
-            x: { signal: "width", offset: 10 },
-            y: { value: 10 },
-            tooltip: { signal: '"Currently active: " + interactive' }
-          }
-        }
-      },
-      {
         type: "group",
-        name: "chart",
-        encode: {
-          enter: {
-            height: { signal: "height" },
-            width: { signal: "width" },
-            clip: { value: true },
-            fill: { value: "transparent" },
-            cursor: { value: "crosshair" }
-          }
-        },
         marks: [
           {
-            type: "rect",
-            name: "brush",
+            type: "text",
+            from: { data: "sum" },
             encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "#000" },
-                opacity: { value: 0.05 },
-                cursor: { value: "move" }
-              },
               update: {
-                x: { signal: "pixelBrush[0]" },
-                x2: { signal: "pixelBrush[1]" }
+                x: { signal: "width", offset: 5 },
+                y: { value: 30 },
+                text: { field: "sum" }
               }
             }
           },
           {
-            name: "marks",
-            type: "rect",
-            interactive: false,
-            from: { data: "table" },
+            type: "symbol",
             encode: {
+              enter: {
+                shape: { value: "circle" },
+                stroke: { value: "black" }
+              },
               update: {
-                x: {
-                  scale: "x",
-                  field: "key",
-                  offset: 1
-                },
-                x2: {
-                  scale: "x",
-                  signal: `datum.key + bin.step`
-                },
-                y: { scale: "y", field: "value" },
-                y2: { scale: "y", value: 0 },
-                fill: { value: "#4c78a8" } // darker blue
+                fill: { signal: 'active ? "black" : "transparent"' },
+                x: { signal: "width", offset: 10 },
+                y: { value: 10 },
+                tooltip: { signal: '"Currently active: " + active' }
               }
             }
           },
           {
             type: "group",
+            name: "chart",
             encode: {
               enter: {
-                height: { signal: "height" }
-              },
-              update: {
-                x: { signal: "pixelBrush[0]" }
+                height: { signal: "height" },
+                width: { signal: "width" },
+                clip: { value: true },
+                fill: { value: "transparent" },
+                cursor: { value: "crosshair" }
               }
             },
             marks: [
               {
-                type: "path",
-                name: "left_grabber",
+                type: "rect",
+                name: "brush",
                 encode: {
                   enter: {
-                    y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                    fill: { value: "#eee" },
-                    stroke: { value: "#666" },
-                    cursor: { value: "ew-resize" }
+                    y: { value: 0 },
+                    height: { field: { group: "height" } },
+                    fill: { value: "#000" },
+                    opacity: { value: 0.05 },
+                    cursor: { value: "move" }
                   },
                   update: {
-                    path: {
-                      signal:
-                        "pixelBrush[0] <= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
-                    }
+                    x: { signal: "pixelBrush[0]" },
+                    x2: { signal: "pixelBrush[1]" }
                   }
                 }
               },
               {
+                name: "marks",
                 type: "rect",
+                interactive: false,
+                from: { data: "table" },
                 encode: {
-                  enter: {
-                    y: { value: 0 },
-                    height: { field: { group: "height" } },
-                    fill: { value: "firebrick" },
-                    x: { value: -1 },
-                    width: { value: 1 }
+                  update: {
+                    x: {
+                      scale: "x",
+                      field: "key",
+                      offset: 1
+                    },
+                    x2: {
+                      scale: "x",
+                      signal: `datum.key + bin.step`
+                    },
+                    y: { scale: "y", field: "value" },
+                    y2: { scale: "y", value: 0 },
+                    fill: { value: "#4c78a8" } // darker blue
                   }
                 }
               },
               {
-                type: "rect",
-                name: "left",
+                type: "group",
                 encode: {
                   enter: {
-                    y: { value: 0 },
-                    height: { field: { group: "height" } },
-                    fill: { value: "transparent" },
-                    width: { value: 7 },
-                    cursor: { value: "ew-resize" },
-                    x: { value: -3 }
-                  }
-                }
-              }
-            ]
-          },
-          {
-            type: "group",
-            encode: {
-              enter: {
-                height: { signal: "height" }
-              },
-              update: {
-                x: { signal: "pixelBrush[1]" }
-              }
-            },
-            marks: [
-              {
-                type: "path",
-                name: "right_grabber",
-                encode: {
-                  enter: {
-                    y: { field: { group: "height" }, mult: 0.5, offset: -50 },
-                    fill: { value: "#eee" },
-                    stroke: { value: "#666" },
-                    cursor: { value: "ew-resize" }
+                    height: { signal: "height" }
                   },
                   update: {
-                    path: {
-                      signal:
-                        "pixelBrush[0] >= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                    x: { signal: "pixelBrush[0]" }
+                  }
+                },
+                marks: [
+                  {
+                    type: "path",
+                    name: "left_grabber",
+                    encode: {
+                      enter: {
+                        y: {
+                          field: { group: "height" },
+                          mult: 0.5,
+                          offset: -50
+                        },
+                        fill: { value: "#eee" },
+                        stroke: { value: "#666" },
+                        cursor: { value: "ew-resize" }
+                      },
+                      update: {
+                        path: {
+                          signal:
+                            "pixelBrush[0] <= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    type: "rect",
+                    encode: {
+                      enter: {
+                        y: { value: 0 },
+                        height: { field: { group: "height" } },
+                        fill: { value: "firebrick" },
+                        x: { value: -1 },
+                        width: { value: 1 }
+                      }
+                    }
+                  },
+                  {
+                    type: "rect",
+                    name: "left",
+                    encode: {
+                      enter: {
+                        y: { value: 0 },
+                        height: { field: { group: "height" } },
+                        fill: { value: "transparent" },
+                        width: { value: 7 },
+                        cursor: { value: "ew-resize" },
+                        x: { value: -3 }
+                      }
                     }
                   }
-                }
+                ]
               },
               {
-                type: "rect",
+                type: "group",
                 encode: {
                   enter: {
-                    y: { value: 0 },
-                    height: { field: { group: "height" } },
-                    fill: { value: "firebrick" },
-                    width: { value: 1 }
+                    height: { signal: "height" }
+                  },
+                  update: {
+                    x: { signal: "pixelBrush[1]" }
                   }
-                }
-              },
-              {
-                type: "rect",
-                name: "right",
-                encode: {
-                  enter: {
-                    y: { value: 0 },
-                    height: { field: { group: "height" } },
-                    fill: { value: "transparent" },
-                    width: { value: 7 },
-                    cursor: { value: "ew-resize" },
-                    x: { value: -3 }
+                },
+                marks: [
+                  {
+                    type: "path",
+                    name: "right_grabber",
+                    encode: {
+                      enter: {
+                        y: {
+                          field: { group: "height" },
+                          mult: 0.5,
+                          offset: -50
+                        },
+                        fill: { value: "#eee" },
+                        stroke: { value: "#666" },
+                        cursor: { value: "ew-resize" }
+                      },
+                      update: {
+                        path: {
+                          signal:
+                            "pixelBrush[0] >= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    type: "rect",
+                    encode: {
+                      enter: {
+                        y: { value: 0 },
+                        height: { field: { group: "height" } },
+                        fill: { value: "firebrick" },
+                        width: { value: 1 }
+                      }
+                    }
+                  },
+                  {
+                    type: "rect",
+                    name: "right",
+                    encode: {
+                      enter: {
+                        y: { value: 0 },
+                        height: { field: { group: "height" } },
+                        fill: { value: "transparent" },
+                        width: { value: 7 },
+                        cursor: { value: "ew-resize" },
+                        x: { value: -3 }
+                      }
+                    }
                   }
-                }
+                ]
               }
             ]
           }
         ]
+      },
+      {
+        type: "group",
+        marks: [
+          {
+            type: "rect",
+            from: { data: "interesting" },
+            encode: {
+              enter: {
+                x: { field: "x" },
+                width: { value: 1 },
+                y: { value: 30 },
+                height: { value: 10 }
+              },
+              update: {
+                fill: { field: "value", scale: "color" }
+              }
+            }
+          }
+        ]
       }
     ],
+
     scales: [
       {
         name: "x",
@@ -332,6 +376,12 @@ export function createHistogramView<D extends string>(
         range: "height",
         nice: true,
         zero: true
+      },
+      {
+        name: "color",
+        type: "sequential",
+        range: { scheme: "inferno" },
+        domain: { data: "interesting", field: "value" }
       }
     ],
     axes: [
@@ -442,13 +492,12 @@ export function createHeatmapView<D extends string>(
           {
             events: "[@top:mousedown, window:mouseup] > window:mousemove!",
             update:
-            '[brushY[0], clamp(invert("y", y()), binY.start, binY.stop)]'
-              
+              '[brushY[0], clamp(invert("y", y()), binY.start, binY.stop)]'
           },
           {
             events: "[@bottom:mousedown, window:mouseup] > window:mousemove!",
-            update:'[clamp(invert("y", y()), binY.start, binY.stop), brushY[1]]'
-              
+            update:
+              '[clamp(invert("y", y()), binY.start, binY.stop), brushY[1]]'
           }
         ]
       },

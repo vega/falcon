@@ -1,4 +1,4 @@
-import { BaseType, select, Selection, extent } from "d3";
+import { BaseType, select, Selection, extent, range } from "d3";
 import { changeset, View as VgView, truthy } from "vega-lib";
 import { DataBase } from "./db";
 import {
@@ -16,6 +16,7 @@ import {
   createHistogramView,
   createHeatmapView
 } from "./view";
+import { Logger } from "./logger";
 
 export class App<V extends string, D extends string> {
   private activeView: V;
@@ -28,7 +29,8 @@ export class App<V extends string, D extends string> {
     private readonly el: Selection<BaseType, {}, HTMLElement, any>,
     private readonly views: Views<V, D>,
     order: V[],
-    private db: DataBase<V, D>
+    private db: DataBase<V, D>,
+    private logger?: Logger
   ) {
     // this.activeView = views[0].name;
     this.initialize(order);
@@ -64,6 +66,10 @@ export class App<V extends string, D extends string> {
             self.brushMove(name, view.dimension.name, value);
           });
 
+          if (self.logger) {
+            self.logger.attach(vegaView);
+          }
+
           vegaView.addEventListener("mouseover", () => {
             if (self.activeView !== name) {
               self.switchActiveView(name);
@@ -96,7 +102,7 @@ export class App<V extends string, D extends string> {
 
     if (this.activeView) {
       this.vegaViews.get(this.activeView)!.runAfter(view => {
-        view.signal("interactive", false).run();
+        view.signal("active", false).run();
       });
     }
 
@@ -116,8 +122,29 @@ export class App<V extends string, D extends string> {
       brushes
     );
 
-    this.vegaViews.get(name)!.runAfter(view => {
-      view.signal("interactive", true).run();
+    const activeVgView = this.vegaViews.get(name)!;
+    activeVgView.runAfter(view => {
+      view.signal("active", true).run();
+    });
+
+    activeVgView.change(
+      "interesting",
+      changeset()
+        .remove(truthy)
+        .insert(this.calculateInterestingness())
+    );
+  }
+
+  private calculateInterestingness() {
+    return range(HISTOGRAM_WIDTH - 1).map((d, i) => {
+      const distance = diff(
+        this.getResult("AIR_TIME" as any, i),
+        this.getResult("AIR_TIME" as any, i + 1)
+      ).reduce((acc, val) => acc + Math.abs(val), 0);
+      return {
+        x: i,
+        value: distance
+      };
     });
   }
 
@@ -151,7 +178,7 @@ export class App<V extends string, D extends string> {
         return result;
       }
     }
-    throw Error("Could not find any data");
+    throw Error(`Could not find any data ${name} at ${index}.`);
   }
 
   private update() {

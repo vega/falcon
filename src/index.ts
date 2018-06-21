@@ -3,6 +3,7 @@ import { select } from "d3";
 import { App } from "./app";
 import { DataBase } from "./db";
 import { is1DView } from "./util";
+import { Logger } from "./logger";
 
 // import "./mapd";
 
@@ -117,6 +118,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     }
 
+    const logger = undefined; //new Logger();
+
     const db = new DataBase(data, table, dimensions);
 
     const el = select("#app");
@@ -124,7 +127,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     // add for now to clear the view
     (el.node() as any).innerHTML = "";
 
-    new App(el, views, order, db);
+    new App(el, views, order, db, logger);
   });
 });
 
