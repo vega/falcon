@@ -118,8 +118,6 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     }
 
-    const logger = undefined; //new Logger();
-
     const db = new DataBase(data, table, dimensions);
 
     const el = select("#app");
@@ -127,7 +125,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     // add for now to clear the view
     (el.node() as any).innerHTML = "";
 
-    new App(el, views, order, db, logger);
+    // const logger = new Logger();
+    new App(el, views, order, db);
   });
 });
 

@@ -6,6 +6,9 @@ export class Logger {
    */
   constructor() {}
 
+  /**
+   * Attach loggin to the vega view.
+   */
   public attach(view: View) {
     view.addSignalListener("brush", console.log);
   }
