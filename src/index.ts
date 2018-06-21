@@ -4,6 +4,8 @@ import { App } from "./app";
 import { DataBase } from "./db";
 import { is1DView } from "./util";
 
+// import "./mapd";
+
 fetch(require("../data/flights-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
