@@ -11,8 +11,8 @@ export function createHistogramView<D extends string>(
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    autosize: "none",
-    padding: { top: 5, left: 70, right: 60, bottom: 90 },
+    autosize: "fit-y",
+    padding: { top: 5, left: 70, right: 60, bottom: 10 },
     width: HISTOGRAM_WIDTH,
     height: HISTOGRAM_WIDTH / 3.5,
     data: [
@@ -125,8 +125,7 @@ export function createHistogramView<D extends string>(
       }
     ],
     layout: {
-      padding: { row: 10, column: 10 },
-      offset: 10,
+      padding: { row: 40 },
       columns: 1,
       bounds: "full",
       align: "each"
@@ -348,13 +347,35 @@ export function createHistogramView<D extends string>(
               enter: {
                 x: { field: "x" },
                 width: { value: 1 },
-                y: { value: 30 },
-                height: { value: 10 }
+                y: { field: "view", scale: "y" },
+                height: { scale: "y", band: true }
               },
               update: {
                 fill: { field: "value", scale: "color" }
               }
             }
+          }
+        ],
+        scales: [
+          {
+            name: "y",
+            type: "band",
+            domain: { data: "interesting", field: "view" },
+            range: [0, { signal: "length(data('interesting')) ? 40 : 0" }],
+            paddingInner: 0.1,
+            paddingOuter: 0
+          },
+          {
+            name: "color",
+            type: "sequential",
+            range: { scheme: "inferno" },
+            domain: { data: "interesting", field: "value" }
+          }
+        ],
+        axes: [
+          {
+            scale: "y",
+            orient: "left"
           }
         ]
       }
@@ -376,12 +397,6 @@ export function createHistogramView<D extends string>(
         range: "height",
         nice: true,
         zero: true
-      },
-      {
-        name: "color",
-        type: "sequential",
-        range: { scheme: "inferno" },
-        domain: { data: "interesting", field: "value" }
       }
     ],
     axes: [

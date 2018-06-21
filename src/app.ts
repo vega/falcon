@@ -127,25 +127,41 @@ export class App<V extends string, D extends string> {
       view.signal("active", true).run();
     });
 
-    activeVgView.change(
-      "interesting",
-      changeset()
-        .remove(truthy)
-        .insert(this.calculateInterestingness())
-    );
+    // activeVgView.change(
+    //   "interesting",
+    //   changeset()
+    //     .remove(truthy)
+    //     .insert(this.calculateInterestingness())
+    // );
   }
 
   private calculateInterestingness() {
-    return range(HISTOGRAM_WIDTH - 1).map((d, i) => {
-      const distance = diff(
-        this.getResult("AIR_TIME" as any, i),
-        this.getResult("AIR_TIME" as any, i + 1)
-      ).reduce((acc, val) => acc + Math.abs(val), 0);
-      return {
-        x: i,
-        value: distance
-      };
-    });
+    let out: {
+      view: V;
+      x: number;
+      value: any;
+    }[] = [];
+
+    for (const [name, view] of omit(this.views, this.activeView)) {
+      if (is1DView(view)) {
+        const data = range(HISTOGRAM_WIDTH - 1).map(pixel => {
+          const distance = diff(
+            this.getResult(name, pixel),
+            this.getResult(name, pixel + 1)
+          ).reduce((acc, val) => acc + Math.abs(val), 0);
+          return {
+            view: name,
+            x: pixel,
+            value: distance
+          };
+        });
+        out = out.concat(data);
+      } else {
+        // TODO
+      }
+    }
+
+    return out;
   }
 
   private brushMove(name: V, dimension: D, value: [number, number]) {
@@ -178,7 +194,16 @@ export class App<V extends string, D extends string> {
         return result;
       }
     }
-    throw Error(`Could not find any data ${name} at ${index}.`);
+    console.warn(`Could not find any data ${name} at ${index}.`);
+
+    const view = this.views.get(name)!;
+    if (is1DView(view)) {
+      const binCfg = view.dimension.binConfig!;
+      return new Uint32Array((binCfg.stop - binCfg.start) / binCfg.step);
+    } else {
+      // TODO
+      throw new Error("Not supported");
+    }
   }
 
   private update() {
