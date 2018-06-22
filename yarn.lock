@@ -1604,9 +1604,9 @@ d3-color@1, d3-color@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/d3-color/-/d3-color-1.2.0.tgz#d1ea19db5859c86854586276ec892cf93148459a"
 
-d3-contour@1, d3-contour@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/d3-contour/-/d3-contour-1.2.0.tgz#de3ea7991bbb652155ee2a803aeafd084be03b63"
+d3-contour@1, d3-contour@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/d3-contour/-/d3-contour-1.3.0.tgz#cfb99098c48c46edd77e15ce123162f9e333e846"
   dependencies:
     d3-array "^1.1.1"
 
@@ -1967,8 +1967,8 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
 
 electron-to-chromium@^1.2.7, electron-to-chromium@^1.3.47:
-  version "1.3.48"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.48.tgz#d3b0d8593814044e092ece2108fc3ac9aea4b900"
+  version "1.3.50"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.50.tgz#7438b76f92b41b919f3fbdd350fbd0757dacddf7"
 
 elliptic@^6.0.0:
   version "6.4.0"
@@ -2188,7 +2188,7 @@ find-up@^1.0.0:
     path-exists "^2.0.0"
     pinkie-promise "^2.0.0"
 
-flatbuffers@trxcllnt/flatbuffers-esm:
+"flatbuffers@github:trxcllnt/flatbuffers-esm":
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -3084,7 +3084,7 @@ map-visit@^1.0.0:
 
 "mapd-connector@git://github.com/mapd/mapd-connector.git":
   version "1.0.0"
-  resolved "git://github.com/mapd/mapd-connector.git#1b940b4ef6be1dc78bc34e9cc3d6db50ce33b537"
+  resolved "git://github.com/mapd/mapd-connector.git#a084cf1c32a581f8dc146c468fb8f8b70bf13ffa"
   dependencies:
     codecov "^2.2.0"
     script-loader "^0.7.0"
@@ -3547,9 +3547,9 @@ pako@~1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
 
-parcel-bundler@1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.0.tgz#be0fe5937c8cf423c06bbddfe64830ac77cd4687"
+parcel-bundler@1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.2.tgz#6b697cd58d9b4c155bb054029394b75a3d4d0831"
   dependencies:
     ansi-to-html "^0.6.4"
     babel-code-frame "^6.26.0"
@@ -3909,8 +3909,8 @@ postcss@^5.0.10, postcss@^5.0.11, postcss@^5.0.12, postcss@^5.0.13, postcss@^5.0
     supports-color "^3.2.3"
 
 postcss@^6.0.19:
-  version "6.0.22"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-6.0.22.tgz#e23b78314905c3b90cbd61702121e7a78848f2a3"
+  version "6.0.23"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-6.0.23.tgz#61c82cc328ac60e677645f979054eb98bc0e3324"
   dependencies:
     chalk "^2.4.1"
     source-map "^0.6.1"
@@ -5099,14 +5099,14 @@ vega-force@^3.0.0:
     vega-util "^1.7.0"
 
 vega-geo@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/vega-geo/-/vega-geo-3.0.0.tgz#3bec776588d0ee3e0a6a8b33d97153b3510d8f69"
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/vega-geo/-/vega-geo-3.1.0.tgz#2022f0dc612199585b10d2274967fee94d7505b4"
   dependencies:
     d3-array "^1.2.1"
-    d3-contour "^1.2.0"
+    d3-contour "^1.3.0"
     d3-geo "^1.10.0"
-    vega-dataflow "^4.0.0"
-    vega-projection "^1.1.0"
+    vega-dataflow "^4.0.3"
+    vega-projection "^1.2.0"
     vega-util "^1.7.0"
 
 vega-hierarchy@^3.0.1:
@@ -5156,8 +5156,8 @@ vega-loader@^3.0.1:
     vega-util "^1.7.0"
 
 vega-parser@^3.2.0, vega-parser@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/vega-parser/-/vega-parser-3.4.0.tgz#c6b632efaf7051124fac4ce1580aae9cdb467ccb"
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/vega-parser/-/vega-parser-3.5.0.tgz#eeb1e323e1535479cd40587352e08dbbccd24eed"
   dependencies:
     d3-array "^1.2.1"
     d3-color "^1.2.0"
@@ -5172,7 +5172,7 @@ vega-parser@^3.2.0, vega-parser@^3.4.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-projection@^1.1.0, vega-projection@^1.2.0:
+vega-projection@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/vega-projection/-/vega-projection-1.2.0.tgz#812c955251dab495fda83d9406ba72d9833a2014"
   dependencies:
