@@ -440,8 +440,6 @@ export function createHeatmapView<D extends string>(
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
 
-  console.log(dimensionY);
-
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "none",
