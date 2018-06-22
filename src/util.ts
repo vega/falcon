@@ -20,7 +20,7 @@ export function clamp(i: number, range: Interval<number>) {
 }
 
 /**
- * Returns a funciton that discretizes a value.
+ * Returns a function that discretizes a value.
  */
 export function binFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => start + step * Math.floor((v - start) / step);
@@ -33,6 +33,9 @@ export function binToData({ start, step }: StartStepBinConfig) {
   return (v: number) => start + v * step;
 }
 
+/**
+ * Get the number of bins for a bin configuration.
+ */
 export function numBins({ start, step, stop }: BinConfig) {
   return (stop - start) / step;
 }
