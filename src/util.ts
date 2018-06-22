@@ -6,6 +6,15 @@ export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
 ) => BinConfig = bin_;
 
+/**
+ * BinConfig that does not need to have a stop.
+ */
+interface StartStepBinConfig {
+  start: number;
+  stop?: number;
+  step: number;
+}
+
 export function clamp(i: number, range: Interval<number>) {
   return Math.max(range[0], Math.min(range[1], i));
 }
@@ -13,12 +22,19 @@ export function clamp(i: number, range: Interval<number>) {
 /**
  * Returns a funciton that discretizes a value.
  */
-export function binFunction(start: number, step: number) {
+export function binFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => start + step * Math.floor((v - start) / step);
 }
 
-export function binToData(start: number, step: number) {
+/**
+ * Convert from bin number to start of the bin in data space.
+ */
+export function binToData({ start, step }: StartStepBinConfig) {
   return (v: number) => start + v * step;
+}
+
+export function numBins({ start, step, stop }: BinConfig) {
+  return (stop - start) / step;
 }
 
 export function stepSize(range: [number, number], bins: number) {
@@ -28,7 +44,7 @@ export function stepSize(range: [number, number], bins: number) {
 /**
  * Returns a function that returns the bin for a value.
  */
-export function binNumberFunction(start: number, step: number) {
+export function binNumberFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => Math.floor((v - start) / step);
 }
 

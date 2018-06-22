@@ -6,7 +6,8 @@ import {
   binToData,
   is1DView,
   stepSize,
-  binFunction
+  binFunction,
+  numBins
 } from "./util";
 
 export class DataBase<V extends string, D extends string> {
@@ -84,56 +85,52 @@ export class DataBase<V extends string, D extends string> {
     console.time("Histogram");
 
     const binConfig = dimension.binConfig!;
-    const b = binToData(binConfig.start, binConfig.step);
-    const hist = histogram()
-      .domain([binConfig.start, binConfig.stop])
-      .thresholds(range(binConfig.start, binConfig.stop, binConfig.step))(
-        this.data.get(dimension.name)!
-      )
-      .map((d, i) => ({
-        key: b(i),
-        value: d.length
-      }));
+    const bin = binNumberFunction(binConfig);
+    const unbin = binToData(binConfig);
+
+    const hist = new Uint32Array(numBins(binConfig));
+    for (const value of this.data.get(dimension.name)!) {
+      const key = bin(value);
+      if (key >= 0 && key < hist.length) {
+        hist[key]++;
+      }
+    }
+
+    const out = Array.from(hist, (value, i) => ({
+      key: unbin(i),
+      value
+    }));
 
     console.timeEnd("Histogram");
 
-    return hist;
+    return out;
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
     console.time("Heatmap");
 
-    const [dimX, dimY] = dimensions;
-    const binX = binFunction(dimX.binConfig!.start, dimX.binConfig!.step);
-    const binY = binFunction(dimY.binConfig!.start, dimY.binConfig!.step);
+    const binConfigs = dimensions.map(d => d.binConfig!);
+    const [numBinsX, numBinsY] = binConfigs.map(numBins);
+    const [binX, binY] = binConfigs.map(binNumberFunction);
+    const [binToDataX, binToDataY] = binConfigs.map(binToData);
+    const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
 
-    const columnX = this.data.get(dimX.name)!;
-    const columnY = this.data.get(dimY.name)!;
-
-    const agg = new Map<string, number>();
+    const hist = new Uint32Array(numBinsX * numBinsY);
 
     for (let i = 0; i < this.length; i++) {
-      const x = binX(columnX[i]);
-      const y = binY(columnY[i]);
+      const keyX = binX(columnX[i]);
+      const keyY = binY(columnY[i]);
 
-      const key = x + "\0" + y;
-      const val = agg.get(key);
-      if (val !== undefined) {
-        agg.set(key, val + 1);
-      } else {
-        agg.set(key, 1);
+      if (keyX >= 0 && keyX < numBinsX && keyY >= 0 && keyY < numBinsY) {
+        hist[keyX + numBinsX * keyY]++;
       }
     }
 
-    const out: { keyX: number; keyY: number; value: number }[] = [];
-    for (const [key, value] of agg) {
-      const [keyX, keyY] = key.split("\0").map(d => +d);
-      out.push({
-        keyX,
-        keyY,
-        value
-      });
-    }
+    const out = Array.from(hist, (value, i) => ({
+      keyX: binToDataX(i % numBinsX),
+      keyY: binToDataY(Math.floor(i / numBinsY)),
+      value
+    }));
 
     console.timeEnd("Heatmap");
 
@@ -152,10 +149,10 @@ export class DataBase<V extends string, D extends string> {
     const result: ResultCube<V> = new Map();
 
     const activeDim = activeView.dimension;
-    const binActive = binNumberFunction(
-      activeDim.extent[0],
-      stepSize(activeDim.extent, pixels)
-    );
+    const binActive = binNumberFunction({
+      start: activeDim.extent[0],
+      step: stepSize(activeDim.extent, pixels)
+    });
     const activeCol = this.data.get(activeDim.name)!;
     const activeSortIndex = this.sortIndex.get(activeDim.name)!;
 
@@ -171,10 +168,7 @@ export class DataBase<V extends string, D extends string> {
         relevantMasks.delete(dim.name);
         const filterMask = union(...relevantMasks.values());
 
-        const bin = binNumberFunction(
-          dim.binConfig!.start,
-          dim.binConfig!.step
-        );
+        const bin = binNumberFunction(dim.binConfig!);
 
         let activeBucket; // what bucket in the active dimension are we at
         let hist = new Uint32Array(dim.bins);
@@ -210,7 +204,12 @@ export class DataBase<V extends string, D extends string> {
 
         hists[pixels] = hist;
       } else {
-        const [dimX, dimY] = view.dimensions;
+        const dimensions = view.dimensions;
+        const [dimX, dimY] = dimensions;
+        const binConfigs = dimensions.map(d => d.binConfig!);
+        const [numBinsX, numBinsY] = binConfigs.map(numBins);
+        const [binX, binY] = binConfigs.map(binNumberFunction);
+        const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
 
         // get union of all filter masks that don't contain the dimension for the current view
         const relevantMasks = new Map(filterMasks);
@@ -218,20 +217,8 @@ export class DataBase<V extends string, D extends string> {
         relevantMasks.delete(dimY.name);
         const filterMask = union(...relevantMasks.values());
 
-        const binX = binNumberFunction(
-          dimX.binConfig!.start,
-          dimX.binConfig!.step
-        );
-        const binY = binNumberFunction(
-          dimY.binConfig!.start,
-          dimY.binConfig!.step
-        );
-
         let activeBucket; // what bucket in the active dimension are we at
-        let hist = new Uint32Array(dimX.bins * dimY.bins);
-
-        const columnX = this.data.get(dimX.name)!;
-        const columnY = this.data.get(dimY.name)!;
+        let hist = new Uint32Array(numBinsX * numBinsY);
 
         // go through data in order of the active dimension
         for (let i = 0; i < activeSortIndex.length; i++) {
@@ -256,8 +243,8 @@ export class DataBase<V extends string, D extends string> {
 
           const keyX = binX(columnX[idx]);
           const keyY = binY(columnY[idx]);
-          if (keyX >= 0 && keyX < dimX.bins && keyY >= 0 && keyY < dimY.bins) {
-            hist[keyX + dimX.bins * keyY]++;
+          if (keyX >= 0 && keyX < numBinsX && keyY >= 0 && keyY < numBinsY) {
+            hist[keyX + numBinsX * keyY]++;
           }
         }
 

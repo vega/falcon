@@ -9,7 +9,8 @@ import {
   diff,
   is1DView,
   omit,
-  stepSize
+  stepSize,
+  numBins
 } from "./util";
 import {
   HISTOGRAM_WIDTH,
@@ -206,8 +207,8 @@ export class App<V extends string, D extends string> {
 
     const view = this.views.get(name)!;
     if (is1DView(view)) {
-      const binCfg = view.dimension.binConfig!;
-      return new Uint32Array((binCfg.stop - binCfg.start) / binCfg.step);
+      const binConfig = view.dimension.binConfig!;
+      return new Uint32Array(numBins(binConfig));
     } else {
       // TODO
       throw new Error("Not supported");
@@ -223,10 +224,10 @@ export class App<V extends string, D extends string> {
     this.needsUpdate = false;
 
     const activeView = this.getActiveView();
-    const activeBinF = binNumberFunction(
-      activeView.dimension.extent[0],
-      stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
-    );
+    const activeBinF = binNumberFunction({
+      start: activeView.dimension.extent[0],
+      step: stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
+    });
 
     const brush = this.brushes.get(activeView.dimension.name);
 
@@ -245,7 +246,7 @@ export class App<V extends string, D extends string> {
 
         if (is1DView(view)) {
           const dim = view.dimension;
-          const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
+          const b = binToData(dim.binConfig!);
           data = diff(
             this.getResult(name, activeBrush[0]),
             this.getResult(name, activeBrush[1])
@@ -254,16 +255,16 @@ export class App<V extends string, D extends string> {
             value: d
           }));
         } else {
-          const [dimX, dimY] = view.dimensions;
-          const bX = binToData(dimX.binConfig!.start, dimX.binConfig!.step);
-          const bY = binToData(dimY.binConfig!.start, dimY.binConfig!.step);
+          const binConfigs = view.dimensions.map(d => d.binConfig!);
+          const [numBinsX, numBinsY] = binConfigs.map(numBins);
+          const [binToDataX, binToDataY] = binConfigs.map(binToData);
           data = diff(
             this.getResult(name, activeBrush[0]),
             this.getResult(name, activeBrush[1])
-          ).map((d, i, _) => ({
-            keyX: bX(i % dimX.bins),
-            keyY: bY(Math.floor(i / dimY.bins)),
-            value: d
+          ).map((value, i, _) => ({
+            keyX: binToDataX(i % numBinsX),
+            keyY: binToDataY(Math.floor(i / numBinsY)),
+            value
           }));
         }
 
@@ -285,27 +286,27 @@ export class App<V extends string, D extends string> {
         let data;
 
         const dimensionEntry = this.data.get(name)!;
-        const array = Array.prototype.slice.call(
+        const array = Array.from(
           // get last histogram, which is a complete histogram
           dimensionEntry[dimensionEntry.length - 1]
         );
 
         if (is1DView(view)) {
           const dim = view.dimension;
-          const b = binToData(dim.binConfig!.start, dim.binConfig!.step);
+          const b = binToData(dim.binConfig!);
           data = array.map((d, i, _) => ({
             key: b(i),
             value: d
           }));
         } else {
-          const [dimX, dimY] = view.dimensions;
-          const bX = binToData(dimX.binConfig!.start, dimX.binConfig!.step);
-          const bY = binToData(dimY.binConfig!.start, dimY.binConfig!.step);
+          const binConfigs = view.dimensions.map(d => d.binConfig!);
+          const [numBinsX, numBinsY] = binConfigs.map(numBins);
+          const [binToDataX, binToDataY] = binConfigs.map(binToData);
 
-          data = array.map((d, i, _) => ({
-            keyX: bX(i % dimX.bins),
-            keyY: bY(Math.floor(i / dimY.bins)),
-            value: d
+          data = array.map((value, i, _) => ({
+            keyX: binToDataX(i % numBinsX),
+            keyY: binToDataY(Math.floor(i / numBinsY)),
+            value
           }));
         }
         const changeSet = changeset()
