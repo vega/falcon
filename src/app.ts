@@ -25,6 +25,14 @@ export class App<V extends string, D extends string> {
   private data: ResultCube<V>;
   private needsUpdate = false;
 
+  /**
+   * Construct the app
+   * @param el The element.
+   * @param views The views.
+   * @param order The order of views.
+   * @param db The database to query.
+   * @param logger An optional logger to collect traces.
+   */
   public constructor(
     private readonly el: Selection<BaseType, {}, HTMLElement, any>,
     private readonly views: Views<V, D>,

@@ -3,7 +3,6 @@ import { select } from "d3";
 import { App } from "./app";
 import { DataBase } from "./db";
 import { is1DView } from "./util";
-import { Logger } from "./logger";
 
 // import "./mapd";
 
