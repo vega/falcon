@@ -1,6 +1,3 @@
-type Histogram = Uint32Array; // | number[][];
-type ResultCube<V> = Map<V, Histogram[]>;
-
 /**
  * Views
  */

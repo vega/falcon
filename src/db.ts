@@ -1,58 +1,10 @@
-import { predicate, Table } from "@apache-arrow/es2015-esm";
-import { histogram, range } from "d3";
+import ndarray from "ndarray";
+import prefixSum from "ndarray-prefix-sum";
 import { BitSet, union } from "./bitset";
-import {
-  binNumberFunction,
-  binToData,
-  is1DView,
-  stepSize,
-  binFunction,
-  numBins
-} from "./util";
+import { binNumberFunction, is1DView, numBins, stepSize } from "./util";
 
 export class DataBase<V extends string, D extends string> {
-  private sortIndex = new Map<D, Uint16Array>();
-
-  public constructor(
-    private readonly data: Map<D, DataArray>,
-    private readonly table: Table,
-    dimensions: Set<D>
-  ) {
-    // precompute the sort indexes because we can reuse them
-    console.time("Build sort indexes");
-    for (const dim of dimensions) {
-      this.sortIndex.set(dim, this.getSortIndex(dim));
-    }
-    console.timeEnd("Build sort indexes");
-    console.timeStamp("Finished initialization");
-  }
-
-  /**
-   * Compute the sort index. Used in initialization.
-   */
-  private getSortIndex(dimension: D) {
-    const column = this.data.get(dimension)!;
-    const index = new Uint16Array(range(column.length));
-    index.sort((a, b) => column[a] - column[b]);
-    return index;
-  }
-
-  public filteredTable(extents: Map<D, Interval<number>>) {
-    let pred: predicate.Predicate | null = null;
-    for (const [col, extent] of extents) {
-      const newPred = predicate
-        .col(col)
-        .ge(extent[0])
-        .and(predicate.col(col).le(extent[1]));
-      if (pred) {
-        pred = pred.and(newPred);
-      } else {
-        pred = newPred;
-      }
-    }
-
-    return this.table.filter(pred!);
-  }
+  public constructor(private readonly data: Map<D, DataArray>) {}
 
   private getFilterMask(dimension: D, extent: Interval<number>) {
     const column = this.data.get(dimension)!;
@@ -86,24 +38,19 @@ export class DataBase<V extends string, D extends string> {
 
     const binConfig = dimension.binConfig!;
     const bin = binNumberFunction(binConfig);
-    const unbin = binToData(binConfig);
+    const binCount = numBins(binConfig);
 
-    const hist = new Uint32Array(numBins(binConfig));
+    const hist = ndarray(new Uint32Array(binCount));
     for (const value of this.data.get(dimension.name)!) {
       const key = bin(value);
-      if (key >= 0 && key < hist.length) {
-        hist[key]++;
+      if (0 <= key && key < binCount) {
+        hist.data[hist.index(key)]++;
       }
     }
 
-    const out = Array.from(hist, (value, i) => ({
-      key: unbin(i),
-      value
-    }));
-
     console.timeEnd("Histogram");
 
-    return out;
+    return hist;
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
@@ -112,29 +59,25 @@ export class DataBase<V extends string, D extends string> {
     const binConfigs = dimensions.map(d => d.binConfig!);
     const [numBinsX, numBinsY] = binConfigs.map(numBins);
     const [binX, binY] = binConfigs.map(binNumberFunction);
-    const [binToDataX, binToDataY] = binConfigs.map(binToData);
     const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
 
-    const hist = new Uint32Array(numBinsX * numBinsY);
+    const heat = ndarray(new Uint32Array(numBinsX * numBinsY), [
+      numBinsX,
+      numBinsY
+    ]);
 
     for (let i = 0; i < this.length; i++) {
       const keyX = binX(columnX[i]);
       const keyY = binY(columnY[i]);
 
-      if (keyX >= 0 && keyX < numBinsX && keyY >= 0 && keyY < numBinsY) {
-        hist[keyX + numBinsX * keyY]++;
+      if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
+        heat.data[heat.index(keyX, keyY)]++;
       }
     }
 
-    const out = Array.from(hist, (value, i) => ({
-      keyX: binToDataX(i % numBinsX),
-      keyY: binToDataY(Math.floor(i / numBinsY)),
-      value
-    }));
-
     console.timeEnd("Heatmap");
 
-    return out;
+    return heat;
   }
 
   public loadData(
@@ -146,7 +89,7 @@ export class DataBase<V extends string, D extends string> {
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result: ResultCube<V> = new Map();
+    const result = new Map<V, ndarray>();
 
     const activeDim = activeView.dimension;
     const binActive = binNumberFunction({
@@ -154,102 +97,96 @@ export class DataBase<V extends string, D extends string> {
       step: stepSize(activeDim.extent, pixels)
     });
     const activeCol = this.data.get(activeDim.name)!;
-    const activeSortIndex = this.sortIndex.get(activeDim.name)!;
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
-      const hists = new Array<Histogram>(pixels + 1);
+      let hists: ndarray;
+
+      // get union of all filter masks that don't contain the dimension(s) for the current view
+      const relevantMasks = new Map(filterMasks);
+      if (is1DView(view)) {
+        relevantMasks.delete(view.dimension.name);
+      } else {
+        relevantMasks.delete(view.dimensions[0].name);
+        relevantMasks.delete(view.dimensions[1].name);
+      }
+      const filterMask = union(...relevantMasks.values());
 
       if (is1DView(view)) {
         const dim = view.dimension;
 
-        // get union of all filter masks that don't contain the dimension for the current view
-        const relevantMasks = new Map(filterMasks);
-        relevantMasks.delete(dim.name);
-        const filterMask = union(...relevantMasks.values());
+        const binConfig = dim.binConfig!;
+        const bin = binNumberFunction(binConfig);
+        const binCount = numBins(binConfig);
 
-        const bin = binNumberFunction(dim.binConfig!);
-        const binCount = numBins(dim.binConfig!);
-
-        let activeBucket; // what bucket in the active dimension are we at
-        let hist = new Uint32Array(binCount);
+        hists = ndarray(new Uint32Array((pixels + 1) * binCount), [
+          pixels + 1, // last histogram is cumulation of all others
+          binCount
+        ]);
 
         const column = this.data.get(dim.name)!;
 
-        // go through data in order of the active dimension
-        for (let i = 0; i < activeSortIndex.length; i++) {
-          const idx = activeSortIndex[i];
-
+        // add data to aggregation matrix
+        for (let i = 0; i < this.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(idx)) {
+          if (filterMask && filterMask.check(i)) {
             continue;
           }
 
-          const newActiveBucket = binActive(activeCol[idx]);
-
-          if (
-            newActiveBucket < pixels &&
-            newActiveBucket >= 0 &&
-            activeBucket !== newActiveBucket
-          ) {
-            activeBucket = newActiveBucket;
-            hist = hist.slice();
-            hists[activeBucket] = hist;
-          }
-
-          const key = bin(column[idx]);
-          if (key >= 0 && key < binCount) {
-            hist[key]++;
+          const key = bin(column[i]);
+          const keyActive = binActive(activeCol[i]);
+          if (0 <= key && key < binCount) {
+            if (0 <= keyActive && keyActive < pixels) {
+              hists.data[hists.index(keyActive, key)]++;
+            } else {
+              // add to cumulative hist
+              hists.data[hists.index(pixels, key)]++;
+            }
           }
         }
 
-        hists[pixels] = hist;
+        // compute cumulative sums
+        for (let x = 0; x < hists.shape[1]; x++) {
+          prefixSum(hists.pick(null, x));
+        }
       } else {
         const dimensions = view.dimensions;
-        const [dimX, dimY] = dimensions;
         const binConfigs = dimensions.map(d => d.binConfig!);
         const [numBinsX, numBinsY] = binConfigs.map(numBins);
         const [binX, binY] = binConfigs.map(binNumberFunction);
         const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
 
-        // get union of all filter masks that don't contain the dimension for the current view
-        const relevantMasks = new Map(filterMasks);
-        relevantMasks.delete(dimX.name);
-        relevantMasks.delete(dimY.name);
-        const filterMask = union(...relevantMasks.values());
+        hists = ndarray(new Uint32Array((pixels + 1) * numBinsX * numBinsY), [
+          pixels + 1, // last histogram is cumulation of all others
+          numBinsX,
+          numBinsY
+        ]);
 
-        let activeBucket; // what bucket in the active dimension are we at
-        let hist = new Uint32Array(numBinsX * numBinsY);
-
-        // go through data in order of the active dimension
-        for (let i = 0; i < activeSortIndex.length; i++) {
-          const idx = activeSortIndex[i];
-
+        for (let i = 0; i < this.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(idx)) {
+          if (filterMask && filterMask.check(i)) {
             continue;
           }
 
-          const newActiveBucket = binActive(activeCol[idx]);
-
-          if (
-            newActiveBucket < pixels &&
-            newActiveBucket >= 0 &&
-            activeBucket !== newActiveBucket
-          ) {
-            activeBucket = newActiveBucket;
-            hist = hist.slice();
-            hists[activeBucket] = hist;
-          }
-
-          const keyX = binX(columnX[idx]);
-          const keyY = binY(columnY[idx]);
-          if (keyX >= 0 && keyX < numBinsX && keyY >= 0 && keyY < numBinsY) {
-            hist[keyX + numBinsX * keyY]++;
+          const keyX = binX(columnX[i]);
+          const keyY = binY(columnY[i]);
+          const keyActive = binActive(activeCol[i]);
+          if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
+            if (0 <= keyActive && keyActive < pixels) {
+              hists.data[hists.index(keyActive, keyX, keyY)]++;
+            } else {
+              // add to cumulative hist
+              hists.data[hists.index(pixels, keyX, keyY)]++;
+            }
           }
         }
 
-        hists[pixels] = hist;
+        // compute cumulative sums
+        for (let x = 0; x < hists.shape[1]; x++) {
+          for (let y = 0; y < hists.shape[2]; y++) {
+            prefixSum(hists.pick(null, x, y));
+          }
+        }
       }
 
       result.set(name, hists);

@@ -12,9 +12,9 @@ export function createHistogramView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "fit-y",
-    padding: { top: 5, left: 70, right: 60, bottom: 10 },
+    padding: 5,
     width: HISTOGRAM_WIDTH,
-    height: HISTOGRAM_WIDTH / 3.5,
+    height: HISTOGRAM_WIDTH / 3,
     data: [
       {
         name: "table"

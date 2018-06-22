@@ -1,3 +1,5 @@
+import ndarray from "ndarray";
+import { sub } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 
 export const EPSILON = 1e-15;
@@ -86,14 +88,9 @@ export function flatten(data) {
   return out;
 }
 
-/**
- * Calculate the diff between two uint 32 arrays.
- */
-export function diff(a: Uint32Array, b: Uint32Array) {
-  const out = new Array(a.length);
-  for (let i = 0; i < a.length; i++) {
-    out[i] = b[i] - a[i];
-  }
+export function diff(a: ndarray, b: ndarray) {
+  const out = ndarray(new Array(a.size), a.shape);
+  sub(out, b, a);
   return out;
 }
 
