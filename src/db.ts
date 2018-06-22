@@ -169,9 +169,10 @@ export class DataBase<V extends string, D extends string> {
         const filterMask = union(...relevantMasks.values());
 
         const bin = binNumberFunction(dim.binConfig!);
+        const binCount = numBins(dim.binConfig!);
 
         let activeBucket; // what bucket in the active dimension are we at
-        let hist = new Uint32Array(dim.bins);
+        let hist = new Uint32Array(binCount);
 
         const column = this.data.get(dim.name)!;
 
@@ -197,7 +198,7 @@ export class DataBase<V extends string, D extends string> {
           }
 
           const key = bin(column[idx]);
-          if (key >= 0 && key < dim.bins) {
+          if (key >= 0 && key < binCount) {
             hist[key]++;
           }
         }
