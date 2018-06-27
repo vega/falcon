@@ -48,7 +48,7 @@ export function createHistogramView<D extends string>(
               "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
           },
           {
-            events: "@chart:dblclick!, @brush:dblclick!",
+            events: "@chart:dblclick!, @brush:dblclick!, @reset:click!",
             update: "0"
           },
           {
@@ -134,6 +134,35 @@ export function createHistogramView<D extends string>(
       {
         type: "group",
         marks: [
+          {
+            type: "text",
+            encode: {
+              enter: {
+                x: { value: 0 },
+                y: { value: -10 },
+                limit: { value: 200 },
+                fontSize: { value: 14 },
+                fontWeight: { value: "bold" },
+                text: { value: dimension.name }
+              }
+            }
+          },
+          {
+            type: "text",
+            name: "reset",
+            encode: {
+              enter: {
+                x: { signal: "width" },
+                y: { value: -10 },
+                align: { value: "right" },
+                cursor: { value: "pointer" },
+                fill: { value: "#666" }
+              },
+              update: {
+                text: { signal: "brush ? '[ Reset Brush ]' : ''" }
+              }
+            }
+          },
           {
             type: "text",
             from: { data: "sum" },
