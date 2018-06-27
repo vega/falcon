@@ -22,11 +22,15 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     // convert departure time to number
     data.set(
       "DEP_TIME",
-      (data.get("DEP_TIME") as any).map(d => Math.floor(d / 100)) // + (d % 100) / 60
+      (data.get("DEP_TIME") as any).map(
+        d => Math.floor(d / 100) + (d % 100) / 60
+      )
     );
     data.set(
       "ARR_TIME",
-      (data.get("ARR_TIME") as any).map(d => Math.floor(d / 100))
+      (data.get("ARR_TIME") as any).map(
+        d => Math.floor(d / 100) + (d % 100) / 60
+      )
     );
 
     type ViewName =
