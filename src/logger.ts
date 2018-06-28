@@ -25,6 +25,7 @@ export class Logger<V extends string> {
 
   private mouseLogContainer: MouseRecord[] = [];
   private stagingMouseContainer: MouseRecord[] = [];
+  private intervalHandler;
 
   /**
    * Constructs the logger
@@ -34,24 +35,21 @@ export class Logger<V extends string> {
     private taskid?: string,
     private logUrl?: string
   ) {
-    document.onmousemove = throttle(this.trackMouse(), 50);
+    document.onmousemove = throttle(this.trackMouse.bind(this), 50);
     // TODO: start a periodic ten second process to ship stuff
-    setInterval(this.writeToLog.bind(this), 10000);
+    this.intervalHandler = setInterval(this.writeToLog.bind(this), 10000);
   }
 
   /*
   * track global mouse position
   */
-  private trackMouse() {
-    const self = this;
-    return function(event) {
-      self.appendToMouseLog({
-        timestamp: Date.now(),
-        name: "mouse",
-        pageX: event.pageX,
-        pageY: event.pageY
-      });
-    };
+  private trackMouse(event) {
+    this.appendToMouseLog({
+      timestamp: Date.now(),
+      name: "mouse",
+      pageX: event.pageX,
+      pageY: event.pageY
+    });
   }
 
   /**
@@ -123,7 +121,11 @@ export class Logger<V extends string> {
               );
               doFetch();
             } else {
-              throw new Error(response.statusText);
+              clearInterval(this.intervalHandler);
+              alert(
+                "Reached maximum limit of resends. aborting logging process... response text: " +
+                  response.statusText
+              );
             }
           }
         })
