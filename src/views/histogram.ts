@@ -57,7 +57,7 @@ export function createHistogramView<D extends string>(
               limit: { value: 200 },
               fontSize: { value: 14 },
               fontWeight: { value: "bold" },
-              text: { value: dimension.name }
+              text: { value: view.title || "" }
             }
           }
         },
