@@ -56,10 +56,10 @@ fetch(require("../data/flights-200k.arrow")).then(response => {
 
     const order: ViewName[] = [
       "DEP_TIME",
-      "DISTANCE",
-      "AIR_TIME",
       "DEP_DELAY",
       "ARR_DELAY",
+      "DISTANCE",
+      "AIR_TIME",
       "COUNT"
     ];
 
@@ -115,7 +115,7 @@ fetch(require("../data/flights-200k.arrow")).then(response => {
       }
     });
     views.set("AIR_TIME", {
-      title: "Departure Delay",
+      title: "Airtime",
       type: "1D",
       dimension: {
         name: "AIR_TIME",
