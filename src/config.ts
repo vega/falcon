@@ -1,8 +1,8 @@
 export const FEATURES = {
   activeViewIndicator: false,
   chartCount: false,
-  zoomBrush: true,
-  showBase: true,
+  zoomBrush: false,
+  showBase: false,
   zeroDBar: false
 };
 

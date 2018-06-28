@@ -6,7 +6,8 @@ import {
   Spec,
   View,
   Warn,
-  EncodeEntry
+  EncodeEntry,
+  OnEvent
 } from "vega-lib";
 import { FEATURES, AXIS_Y_EXTENT } from "../config";
 
@@ -318,43 +319,47 @@ export function createHistogramView<D extends string>(
     }
   ];
 
+  const onBrush: OnEvent[] = [
+    {
+      events:
+        "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!",
+      update: "0"
+    },
+    {
+      events: { signal: "pan" },
+      update:
+        "clampRange(panLinear(anchor, pan / span(anchor)), bin.start, bin.stop)"
+    },
+    {
+      events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+      update: '[down, clamp(invert("x", x()), bin.start, bin.stop)]'
+    },
+    {
+      events:
+        "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
+      update: '[clamp(invert("x", x()), bin.start, bin.stop), brush[1]]'
+    },
+    {
+      events:
+        "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
+      update: '[brush[0], clamp(invert("x", x()), bin.start, bin.stop)]'
+    }
+  ];
+
+  if (FEATURES.zoomBrush) {
+    onBrush.push({
+      events: { signal: "zoom" },
+      update: "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
+    } as OnEvent);
+  }
+
   const signals: Signal[] = [
     { name: "active", update: false },
     { name: "bin", update: JSON.stringify(dimension.binConfig) },
     {
       name: "brush",
       value: 0,
-      on: [
-        {
-          events: { signal: "zoom" },
-          update:
-            "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
-        },
-        {
-          events:
-            "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!",
-          update: "0"
-        },
-        {
-          events: { signal: "pan" },
-          update:
-            "clampRange(panLinear(anchor, pan / span(anchor)), bin.start, bin.stop)"
-        },
-        {
-          events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-          update: '[down, clamp(invert("x", x()), bin.start, bin.stop)]'
-        },
-        {
-          events:
-            "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-          update: '[clamp(invert("x", x()), bin.start, bin.stop), brush[1]]'
-        },
-        {
-          events:
-            "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-          update: '[brush[0], clamp(invert("x", x()), bin.start, bin.stop)]'
-        }
-      ]
+      on: onBrush
     },
     {
       name: "down", // in data space

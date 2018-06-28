@@ -7,7 +7,7 @@ import { Logger } from "./logger";
 
 // import "./mapd";
 
-fetch(require("../data/flights-10k.arrow")).then(response => {
+fetch(require("../data/flights-200k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
     const data = new Map<DimensionName, DataArray>();
@@ -56,7 +56,6 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
 
     const order: ViewName[] = [
       "DEP_TIME",
-      "ARR_TIME",
       "DISTANCE",
       "AIR_TIME",
       "DEP_DELAY",
