@@ -16,7 +16,8 @@ import {
   createBarView,
   createHeatmapView,
   createHistogramView,
-  HISTOGRAM_WIDTH
+  HISTOGRAM_WIDTH,
+  createTextView
 } from "./views";
 import { FEATURES } from "./config";
 
@@ -60,7 +61,10 @@ export class App<V extends string, D extends string> {
         const el = select(this).node() as Element;
 
         if (view.type === "0D") {
-          const vegaView = createBarView(el, view);
+          const vegaView = (FEATURES.zeroDBar ? createBarView : createTextView)(
+            el,
+            view
+          );
           self.vegaViews.set(name, vegaView);
 
           self.update0DView(name, self.db.length, true);

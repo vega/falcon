@@ -3,6 +3,7 @@ import { select } from "d3";
 import { App } from "./app";
 import { DataBase } from "./db";
 import { Logger } from "./logger";
+import { LOGGING } from "./config";
 
 // import "./mapd";
 
@@ -120,7 +121,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       ]
     });
     views.set("COUNT", {
-      title: "Count",
+      title: "Flights selected",
       type: "0D"
     });
 
@@ -131,12 +132,15 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     // add for now to clear the view
     (el.node() as any).innerHTML = "";
 
-    //const logger = new Logger("u0", "t0", "http://localhost:5001/store-log");
-    const logger = new Logger(
-      "" + Math.floor(Math.random() * 10000),
-      "" + Math.floor(Math.random() * 10000),
-      "http://playfair.cs.washington.edu:5001/store-log"
-    );
+    let logger;
+    if (LOGGING) {
+      // logger = new Logger("u0", "t0", "http://localhost:5001/store-log");
+      logger = new Logger(
+        "" + Math.floor(Math.random() * 10000),
+        "" + Math.floor(Math.random() * 10000),
+        "http://playfair.cs.washington.edu:5001/store-log"
+      );
+    }
     new App(el, views, order, db, logger);
   });
 });
