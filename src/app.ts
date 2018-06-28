@@ -10,7 +10,8 @@ import {
   clamp,
   diff,
   omit,
-  stepSize
+  stepSize,
+  only
 } from "./util";
 import {
   createBarView,
@@ -22,6 +23,7 @@ import {
 import { FEATURES } from "./config";
 
 export class App<V extends string, D extends string> {
+  private readonly views: Views<V, D>;
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
@@ -38,11 +40,13 @@ export class App<V extends string, D extends string> {
    */
   public constructor(
     private readonly el: Selection<BaseType, {}, HTMLElement, any>,
-    private readonly views: Views<V, D>,
+    views: Views<V, D>,
     order: V[],
     private db: DataBase<V, D>,
     private logger?: Logger<V>
   ) {
+    this.views = only(views, order);
+
     // this.activeView = views[0].name;
     this.initialize(order);
   }

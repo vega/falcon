@@ -100,3 +100,11 @@ export function omit<K, V>(map: Map<K, V>, omit: K) {
   copy.delete(omit);
   return copy;
 }
+
+export function only<K, V>(map: Map<K, V>, only: K[]) {
+  const copy = new Map();
+  for (const k of only) {
+    copy.set(k, map.get(k));
+  }
+  return copy;
+}

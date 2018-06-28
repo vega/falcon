@@ -1,9 +1,9 @@
 import { Table } from "@apache-arrow/es2015-esm";
 import { select } from "d3";
 import { App } from "./app";
+import { LOGGING } from "./config";
 import { DataBase } from "./db";
 import { Logger } from "./logger";
-import { LOGGING } from "./config";
 
 // import "./mapd";
 
@@ -40,6 +40,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       | "DEP_TIME"
       | "ARR_TIME"
       | "AIR_TIME"
+      | "ARR_DELAY"
+      | "DEP_DELAY"
       | "DEP_DELAY_ARR_DELAY"
       | "COUNT";
     type DimensionName =
@@ -57,7 +59,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       "ARR_TIME",
       "DISTANCE",
       "AIR_TIME",
-      "DEP_DELAY_ARR_DELAY",
+      "DEP_DELAY",
+      "ARR_DELAY",
       "COUNT"
     ];
 
@@ -89,6 +92,26 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         name: "DEP_TIME",
         bins: 24,
         extent: [0, 24],
+        format: "d"
+      }
+    });
+    views.set("DEP_DELAY", {
+      title: "Departure Delay",
+      type: "1D",
+      dimension: {
+        name: "DEP_DELAY",
+        bins: 25,
+        extent: [-20, 60],
+        format: "d"
+      }
+    });
+    views.set("ARR_DELAY", {
+      title: "Arrival Delay",
+      type: "1D",
+      dimension: {
+        name: "ARR_DELAY",
+        bins: 25,
+        extent: [-20, 60],
         format: "d"
       }
     });
