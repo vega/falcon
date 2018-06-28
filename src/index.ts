@@ -65,7 +65,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       dimension: {
         name: "DISTANCE",
         bins: 25,
-        extent: [0, 4000]
+        extent: [0, 4000],
+        format: "d"
       }
     });
     views.set("ARR_TIME", {
@@ -74,7 +75,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       dimension: {
         name: "ARR_TIME",
         bins: 24,
-        extent: [0, 24]
+        extent: [0, 24],
+        format: "d"
       }
     });
     views.set("DEP_TIME", {
@@ -83,7 +85,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       dimension: {
         name: "DEP_TIME",
         bins: 24,
-        extent: [0, 24]
+        extent: [0, 24],
+        format: "d"
       }
     });
     views.set("AIR_TIME", {
@@ -92,7 +95,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       dimension: {
         name: "AIR_TIME",
         bins: 25,
-        extent: [0, 500]
+        extent: [0, 500],
+        format: "d"
       }
     });
     views.set("DEP_DELAY_ARR_DELAY", {
@@ -102,12 +106,14 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         {
           name: "DEP_DELAY",
           bins: 25,
-          extent: [-20, 60]
+          extent: [-20, 60],
+          format: "d"
         },
         {
           name: "ARR_DELAY",
           bins: 25,
-          extent: [-20, 60]
+          extent: [-20, 60],
+          format: "d"
         }
       ]
     });

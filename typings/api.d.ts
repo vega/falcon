@@ -16,6 +16,9 @@ interface Dimension<D> {
   /** Initial domain for the dimension. */
   extent: Interval<number>;
 
+  /** D3 Format specifier */
+  format: string;
+
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
 

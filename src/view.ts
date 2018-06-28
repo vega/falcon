@@ -48,7 +48,25 @@ export function createHistogramView<D extends string>(
               fill: { value: "#666" }
             },
             update: {
-              text: { signal: "brush ? '[ Reset Brush ]' : ''" }
+              text: { signal: "brush ? 'Reset Brush' : ''" }
+            }
+          }
+        },
+        {
+          type: "text",
+          encode: {
+            enter: {
+              x: { signal: "width", offset: -80 },
+              y: { value: -10 },
+              align: { value: "right" },
+              fill: { value: "#666" }
+            },
+            update: {
+              text: {
+                signal: `brush ? '[' + format(brush[0], '${
+                  dimension.format
+                }') + ',' + format(brush[1], '${dimension.format}') + ']' : ''`
+              }
             }
           }
         },
