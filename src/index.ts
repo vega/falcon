@@ -160,7 +160,7 @@ fetch(require("../data/flights-200k.arrow")).then(response => {
       logger = new Logger(
         "" + Math.floor(Math.random() * 10000),
         "" + Math.floor(Math.random() * 10000),
-        "http://playfair.cs.washington.edu:5001/store-log"
+        "//playfair.cs.washington.edu:5001/store-log"
       );
     }
     new App(el, views, order, db, logger);
