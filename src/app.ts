@@ -39,7 +39,7 @@ export class App<V extends string, D extends string> {
     private readonly views: Views<V, D>,
     order: V[],
     private db: DataBase<V, D>,
-    private logger?: Logger
+    private logger?: Logger<V>
   ) {
     // this.activeView = views[0].name;
     this.initialize(order);
@@ -81,7 +81,7 @@ export class App<V extends string, D extends string> {
           });
 
           if (self.logger) {
-            self.logger.attach(vegaView);
+            self.logger.attach(name, vegaView);
           }
         } else {
           for (const dimension of view.dimensions) {

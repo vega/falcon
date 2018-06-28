@@ -1,6 +1,7 @@
 import { View } from "vega-lib";
 
 interface Record {
+  view: string;
   name: string;
   timestamp: number;
   brushStart: number;
@@ -9,22 +10,20 @@ interface Record {
   pixBrushEnd: number;
 }
 
-export class Logger {
-  static maxtries = 3; // maximum # of tries to send things to server
-  logContainer: Array<any>;
-  stagingContainer: Array<any>;
-  userid: string;
-  taskid: string;
-  logUrl: string;
+export class Logger<V extends string> {
+  private static maxtries = 3; // maximum # of tries to send things to server
+  private logContainer: Array<any>;
+  private stagingContainer: Array<any>;
 
   /**
    * Constructs the logger
    */
-  constructor(userid: string, taskid: string, logUrl: string) {
+  constructor(
+    private userid?: string,
+    private taskid?: string,
+    private logUrl?: string
+  ) {
     this.logContainer = [];
-    this.userid = userid;
-    this.taskid = taskid;
-    this.logUrl = logUrl;
 
     // TODO: start a periodic ten second process to ship stuff
   }
@@ -32,12 +31,13 @@ export class Logger {
   /**
    * Attach loggin to the vega view.
    */
-  public attach(view: View) {
-    let self = this;
-    view.addSignalListener("brush", (name, brushRange) => {
-      let timestamp = Date.now();
-      let pixBrushRange = view.signal("pixelBrush");
+  public attach(name: V, view: View) {
+    const self = this;
+    view.addSignalListener("brush", (_, brushRange) => {
+      const timestamp = Date.now();
+      const pixBrushRange = view.signal("pixelBrush");
       self.appendToLog({
+        view: name,
         name: "brush",
         timestamp: timestamp,
         brushStart: brushRange[0],
@@ -63,9 +63,9 @@ export class Logger {
     }
 
     // send contents to server
-    var tries = 0;
-    let self = this;
-    let doFetch = function() {
+    let tries = 0;
+    const self = this;
+    const doFetch = function() {
       fetch(self.logUrl, {
         body: JSON.stringify(self.stagingContainer),
         method: "POST"
