@@ -1,5 +1,8 @@
 export const FEATURES = {
-  activeViewIndicator: true,
-  chartCount: true,
-  zoomBrush: true
+  activeViewIndicator: false,
+  chartCount: false,
+  zoomBrush: true,
+  showBase: true
 };
+
+export const AXIS_Y_EXTENT = 50;

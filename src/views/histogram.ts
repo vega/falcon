@@ -1,5 +1,14 @@
-import { Data, Mark, parse, Signal, Spec, View, Warn } from "vega-lib";
-import { FEATURES } from "../config";
+import {
+  Data,
+  Mark,
+  parse,
+  Signal,
+  Spec,
+  View,
+  Warn,
+  EncodeEntry
+} from "vega-lib";
+import { FEATURES, AXIS_Y_EXTENT } from "../config";
 
 export const HISTOGRAM_WIDTH = 600;
 
@@ -11,12 +20,29 @@ export function createHistogramView<D extends string>(
 
   const data = [
     {
+      name: "base"
+    },
+    {
       name: "table"
     },
     {
       name: "interesting"
     }
   ] as Data[];
+
+  const barEncodeBase: EncodeEntry = {
+    x: {
+      scale: "x",
+      field: "key",
+      offset: 1
+    },
+    x2: {
+      scale: "x",
+      signal: `datum.key + bin.step`
+    },
+    y: { scale: "y", field: "value" },
+    y2: { scale: "y", value: 0 }
+  };
 
   const marks: Mark[] = [
     {
@@ -44,7 +70,8 @@ export function createHistogramView<D extends string>(
               y: { value: -10 },
               align: { value: "right" },
               cursor: { value: "pointer" },
-              fill: { value: "#666" }
+              fontWeight: { value: "bold" },
+              fill: { value: "black" }
             },
             update: {
               text: { signal: "brush ? 'Reset Brush' : ''" }
@@ -100,23 +127,24 @@ export function createHistogramView<D extends string>(
               }
             },
             {
-              name: "marks",
+              type: "rect",
+              interactive: false,
+              from: { data: "base" },
+              encode: {
+                enter: {
+                  ...barEncodeBase,
+                  fill: { value: "#000" },
+                  opacity: { value: 0.07 }
+                }
+              }
+            },
+            {
               type: "rect",
               interactive: false,
               from: { data: "table" },
               encode: {
                 update: {
-                  x: {
-                    scale: "x",
-                    field: "key",
-                    offset: 1
-                  },
-                  x2: {
-                    scale: "x",
-                    signal: `datum.key + bin.step`
-                  },
-                  y: { scale: "y", field: "value" },
-                  y2: { scale: "y", value: 0 },
+                  ...barEncodeBase,
                   fill: { value: "#4c78a8" } // darker blue
                 }
               }
@@ -303,7 +331,8 @@ export function createHistogramView<D extends string>(
             "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
         },
         {
-          events: "@chart:dblclick!, @brush:dblclick!, @reset:click!",
+          events:
+            "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!",
           update: "0"
         },
         {
@@ -460,7 +489,12 @@ export function createHistogramView<D extends string>(
       {
         name: "y",
         type: "linear",
-        domain: { data: "table", field: "value" },
+        domain: {
+          fields: [
+            { data: "base", field: "value" },
+            { data: "table", field: "value" }
+          ]
+        },
         range: "height",
         nice: true,
         zero: true
@@ -490,7 +524,7 @@ export function createHistogramView<D extends string>(
         }
       }
     ],
-    config: { axisY: { minExtent: 50 } }
+    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
   const runtime = parse(vgSpec);

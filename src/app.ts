@@ -18,6 +18,7 @@ import {
   createHistogramView,
   HISTOGRAM_WIDTH
 } from "./views";
+import { FEATURES } from "./config";
 
 export class App<V extends string, D extends string> {
   private activeView: V;
@@ -62,7 +63,7 @@ export class App<V extends string, D extends string> {
           const vegaView = createBarView(el, view);
           self.vegaViews.set(name, vegaView);
 
-          self.update0DView(name, self.db.length);
+          self.update0DView(name, self.db.length, true);
         } else if (view.type === "1D") {
           const binConfig = bin({
             maxbins: view.dimension.bins,
@@ -74,7 +75,7 @@ export class App<V extends string, D extends string> {
           self.vegaViews.set(name, vegaView);
 
           const data = self.db.histogram(view.dimension);
-          self.update1DView(name, view, data);
+          self.update1DView(name, view, data, FEATURES.showBase);
 
           vegaView.addSignalListener("brush", (_name, value) => {
             self.brushMove(name, view.dimension.name, value);
@@ -196,15 +197,19 @@ export class App<V extends string, D extends string> {
     return this.views.get(this.activeView)! as View1D<D>;
   }
 
-  private update0DView(name: V, value: number) {
-    this.updateView(name, [
-      {
-        value: value
-      }
-    ]);
+  private update0DView(name: V, value: number, base: boolean) {
+    this.updateView(
+      name,
+      [
+        {
+          value: value
+        }
+      ],
+      base
+    );
   }
 
-  private update1DView(name: V, view: View1D<D>, hist: ndarray) {
+  private update1DView(name: V, view: View1D<D>, hist: ndarray, base: boolean) {
     const unbin = binToData(view.dimension.binConfig!);
 
     const data = new Array(hist.size);
@@ -216,7 +221,7 @@ export class App<V extends string, D extends string> {
       };
     }
 
-    this.updateView(name, data);
+    this.updateView(name, data, base);
   }
 
   private update2DView(name: V, view: View2D<D>, heat: ndarray) {
@@ -239,14 +244,18 @@ export class App<V extends string, D extends string> {
     this.updateView(name, data);
   }
 
-  private updateView<T>(name: V, data: T[]) {
+  private updateView<T>(name: V, data: T[], base: boolean = false) {
     const changeSet = changeset()
       .remove(truthy)
       .insert(data);
 
     const vgView = this.vegaViews.get(name)!;
     vgView.runAfter(() => {
-      vgView.change("table", changeSet).run();
+      vgView.change("table", changeSet);
+      if (base) {
+        vgView.change("base", changeSet);
+      }
+      vgView.run();
     });
   }
 
@@ -286,7 +295,7 @@ export class App<V extends string, D extends string> {
         const value = activeBrush
           ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
           : hists.get(HISTOGRAM_WIDTH);
-        this.update0DView(name, value);
+        this.update0DView(name, value, false);
       } else if (view.type === "1D") {
         const hist = activeBrush
           ? diff(
@@ -295,7 +304,7 @@ export class App<V extends string, D extends string> {
             )
           : hists.pick(HISTOGRAM_WIDTH, null);
 
-        this.update1DView(name, view, hist);
+        this.update1DView(name, view, hist, false);
       } else {
         const heat = activeBrush
           ? diff(

@@ -1,4 +1,5 @@
 import { parse, Spec, View, Warn } from "vega-lib";
+import { AXIS_Y_EXTENT } from "../config";
 
 export const HEATMAP_WIDTH = 450;
 
@@ -308,7 +309,7 @@ export function createHeatmapView<D extends string>(
         gradientLength: { signal: "height - 16" }
       }
     ],
-    config: { axisY: { minExtent: 50 } }
+    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
   const runtime = parse(vgSpec);

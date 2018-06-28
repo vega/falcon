@@ -1,13 +1,25 @@
-import { parse, Spec, View, Warn } from "vega-lib";
+import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
+import { AXIS_Y_EXTENT } from "../config";
 
 export const BAR_HEIGHT = 450;
 
 export function createBarView(el: Element, view: View0D) {
+  const barEncodeBase: EncodeEntry = {
+    x: { value: 4 },
+    x2: { signal: "width - 4" },
+    y: { scale: "y", field: "value" },
+    y2: { scale: "y", value: 0 }
+  };
+
   const vgSpec: Spec = {
     padding: 5,
     height: BAR_HEIGHT,
+    width: 28,
 
     data: [
+      {
+        name: "base"
+      },
       {
         name: "table"
       }
@@ -17,31 +29,46 @@ export function createBarView(el: Element, view: View0D) {
       {
         type: "linear",
         name: "y",
-        domain: { data: "table", field: "value" },
+        domain: {
+          fields: [
+            { data: "table", field: "value" },
+            { data: "base", field: "value" }
+          ]
+        },
         nice: true,
         range: "height",
         zero: true
       }
     ],
 
-    axes: [{ orient: "left", scale: "y", title: view.title }],
+    axes: [{ orient: "left", scale: "y", title: view.title, grid: true }],
 
     marks: [
+      {
+        type: "rect",
+        from: { data: "base" },
+        encode: {
+          enter: {
+            ...barEncodeBase,
+            fill: { value: "#000" },
+            opacity: { value: 0.07 }
+          }
+        }
+      },
       {
         type: "rect",
         from: { data: "table" },
         encode: {
           enter: {
-            x: { value: 20 },
-            width: { value: 24 },
-            y2: { scale: "y", value: 0 },
-            fill: { value: "steelblue" },
-            y: { scale: "y", field: "value" },
+            ...barEncodeBase,
+            fill: { value: "#4c78a8" },
             tooltip: { field: "value" }
           }
         }
       }
-    ]
+    ],
+
+    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
   const runtime = parse(vgSpec);
