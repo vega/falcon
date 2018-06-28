@@ -13,11 +13,11 @@ import {
   stepSize
 } from "./util";
 import {
+  createBarView,
   createHeatmapView,
   createHistogramView,
-  HISTOGRAM_WIDTH,
-  createBarView
-} from "./view";
+  HISTOGRAM_WIDTH
+} from "./views";
 
 export class App<V extends string, D extends string> {
   private activeView: V;
