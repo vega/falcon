@@ -122,14 +122,12 @@ export class Logger<V extends string> {
               doFetch();
             } else {
               clearInterval(this.intervalHandler);
-              alert(
-                "Reached maximum limit of resends. aborting logging process... response text: " +
-                  response.statusText
-              );
+              throw "Reached maximum limit of resends: " + response.statusText;
             }
           }
         })
         .catch(error => {
+          clearInterval(this.intervalHandler);
           throw error;
         });
     };
