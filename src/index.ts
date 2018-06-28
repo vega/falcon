@@ -2,6 +2,7 @@ import { Table } from "@apache-arrow/es2015-esm";
 import { select } from "d3";
 import { App } from "./app";
 import { DataBase } from "./db";
+import { Logger } from "./logger";
 
 // import "./mapd";
 
@@ -118,8 +119,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     // add for now to clear the view
     (el.node() as any).innerHTML = "";
 
-    // const logger = new Logger();
-    new App(el, views, order, db);
+    const logger = new Logger();
+    new App(el, views, order, db, logger);
   });
 });
 
