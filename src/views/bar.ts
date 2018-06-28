@@ -8,7 +8,8 @@ export function createBarView(el: Element, view: View0D) {
     x: { value: 4 },
     x2: { signal: "width - 4" },
     y: { scale: "y", field: "value" },
-    y2: { scale: "y", value: 0 }
+    y2: { scale: "y", value: 0 },
+    tooltip: { field: "value" }
   };
 
   const vgSpec: Spec = {
@@ -61,8 +62,7 @@ export function createBarView(el: Element, view: View0D) {
         encode: {
           enter: {
             ...barEncodeBase,
-            fill: { value: "#4c78a8" },
-            tooltip: { field: "value" }
+            fill: { value: "#4c78a8" }
           }
         }
       }
