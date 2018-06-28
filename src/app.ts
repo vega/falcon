@@ -9,14 +9,14 @@ import {
   binToData,
   clamp,
   diff,
-  is1DView,
   omit,
   stepSize
 } from "./util";
 import {
   createHeatmapView,
   createHistogramView,
-  HISTOGRAM_WIDTH
+  HISTOGRAM_WIDTH,
+  createBarView
 } from "./view";
 
 export class App<V extends string, D extends string> {
@@ -57,7 +57,13 @@ export class App<V extends string, D extends string> {
       .each(function(name: V) {
         const view = self.views.get(name)!;
         const el = select(this).node() as Element;
-        if (is1DView(view)) {
+
+        if (view.type === "0D") {
+          const vegaView = createBarView(el, view);
+          self.vegaViews.set(name, vegaView);
+
+          self.update0DView(name, self.db.length);
+        } else if (view.type === "1D") {
           const binConfig = bin({
             maxbins: view.dimension.bins,
             extent: view.dimension.extent
@@ -115,7 +121,7 @@ export class App<V extends string, D extends string> {
     const activeView = this.getActiveView();
 
     const brushes = new Map(this.brushes);
-    if (is1DView(activeView)) {
+    if (activeView.type == "1D") {
       brushes.delete(activeView.dimension.name);
     }
 
@@ -147,7 +153,7 @@ export class App<V extends string, D extends string> {
   //   }[] = [];
 
   //   for (const [name, view] of omit(this.views, this.activeView)) {
-  //     if (is1DView(view)) {
+  //     if (view.type === '1D') {
   //       const data = range(HISTOGRAM_WIDTH - 1).map(pixel => {
   //         const distance = diff(
   //           this.getResult(name, pixel),
@@ -190,6 +196,14 @@ export class App<V extends string, D extends string> {
     return this.views.get(this.activeView)! as View1D<D>;
   }
 
+  private update0DView(name: V, value: number) {
+    this.updateView(name, [
+      {
+        value: value
+      }
+    ]);
+  }
+
   private update1DView(name: V, view: View1D<D>, hist: ndarray) {
     const unbin = binToData(view.dimension.binConfig!);
 
@@ -229,6 +243,7 @@ export class App<V extends string, D extends string> {
     const changeSet = changeset()
       .remove(truthy)
       .insert(data);
+
     const vgView = this.vegaViews.get(name)!;
     vgView.runAfter(() => {
       vgView.change("table", changeSet).run();
@@ -267,7 +282,12 @@ export class App<V extends string, D extends string> {
 
       const hists = this.data.get(name)!;
 
-      if (is1DView(view)) {
+      if (view.type === "0D") {
+        const value = activeBrush
+          ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
+          : hists.get(HISTOGRAM_WIDTH);
+        this.update0DView(name, value);
+      } else if (view.type === "1D") {
         const hist = activeBrush
           ? diff(
               hists.pick(activeBrush[0], null),

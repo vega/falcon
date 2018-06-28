@@ -122,7 +122,7 @@ export function union(...sets: BitSet[]): BitSet | null {
   return out;
 }
 
-export function numOn(buf: Uint32Array, size: number): number {
+export function numOn(buf: Uint32Array | ArrayBuffer, size: number): number {
   let sum = 0;
   const numElems = numElemsNeeded(size);
   const numOverhang = size % PER_ELEM_BITS;

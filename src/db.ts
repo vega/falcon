@@ -1,7 +1,7 @@
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { BitSet, union } from "./bitset";
-import { binNumberFunction, is1DView, numBins, stepSize } from "./util";
+import { binNumberFunction, numBins, stepSize } from "./util";
 
 export class DataBase<V extends string, D extends string> {
   public constructor(private readonly data: Map<D, DataArray>) {}
@@ -104,7 +104,9 @@ export class DataBase<V extends string, D extends string> {
 
       // get union of all filter masks that don't contain the dimension(s) for the current view
       const relevantMasks = new Map(filterMasks);
-      if (is1DView(view)) {
+      if (view.type === "0D") {
+        // use all filters
+      } else if (view.type === "1D") {
         relevantMasks.delete(view.dimension.name);
       } else {
         relevantMasks.delete(view.dimensions[0].name);
@@ -112,7 +114,27 @@ export class DataBase<V extends string, D extends string> {
       }
       const filterMask = union(...relevantMasks.values());
 
-      if (is1DView(view)) {
+      if (view.type === "0D") {
+        hists = ndarray(new Int32Array(pixels + 1));
+
+        // add data to aggregation matrix
+        for (let i = 0; i < this.length; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.check(i)) {
+            continue;
+          }
+
+          const keyActive = binActive(activeCol[i]);
+          if (0 <= keyActive && keyActive < pixels) {
+            hists.data[hists.index(keyActive)]++;
+          } else {
+            // add to cumulative hist
+            hists.data[hists.index(pixels)]++;
+          }
+        }
+
+        prefixSum(hists);
+      } else if (view.type === "1D") {
         const dim = view.dimension;
 
         const binConfig = dim.binConfig!;

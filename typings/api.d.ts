@@ -26,6 +26,10 @@ interface Dimension<D> {
   binConfig?: BinConfig;
 }
 
+interface View0D extends AbstractView {
+  type: "0D";
+}
+
 interface View1D<D extends string> extends AbstractView {
   type: "1D";
 
@@ -40,7 +44,7 @@ interface View2D<D extends string> extends AbstractView {
   dimensions: [Dimension<D>, Dimension<D>];
 }
 
-type View<D extends string> = View1D<D> | View2D<D>;
+type View<D extends string> = View0D | View1D<D> | View2D<D>;
 
 /**
  * Map from view name to view. The name can be used as an identifier.

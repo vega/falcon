@@ -2,8 +2,6 @@ import ndarray from "ndarray";
 import { sub } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 
-export const EPSILON = 1e-15;
-
 export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
 ) => BinConfig = bin_;
@@ -101,18 +99,4 @@ export function omit<K, V>(map: Map<K, V>, omit: K) {
   const copy = new Map(map);
   copy.delete(omit);
   return copy;
-}
-
-export function isPoint1D(point: Point1D | Point2D): point is Point1D {
-  return typeof point === "number";
-}
-
-export function isPoint2D(point: Point1D | Point2D): point is Point2D {
-  return typeof point !== "number";
-}
-
-export function is1DView<D extends string>(
-  view: View1D<D> | View2D<D>
-): view is View1D<D> {
-  return view.type === "1D";
 }

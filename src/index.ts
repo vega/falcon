@@ -39,7 +39,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       | "DEP_TIME"
       | "ARR_TIME"
       | "AIR_TIME"
-      | "DEP_DELAY_ARR_DELAY";
+      | "DEP_DELAY_ARR_DELAY"
+      | "COUNT";
     type DimensionName =
       | "ARR_DELAY"
       | "ARR_TIME"
@@ -55,7 +56,8 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       "ARR_TIME",
       "DISTANCE",
       "AIR_TIME",
-      "DEP_DELAY_ARR_DELAY"
+      "DEP_DELAY_ARR_DELAY",
+      "COUNT"
     ];
 
     const views: Views<ViewName, DimensionName> = new Map();
@@ -116,6 +118,10 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
           format: "d"
         }
       ]
+    });
+    views.set("COUNT", {
+      title: "Count",
+      type: "0D"
     });
 
     const db = new DataBase(data);
