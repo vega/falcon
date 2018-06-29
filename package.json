@@ -31,15 +31,15 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.0.0-rc.3",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.16"
+    "vega-typings": "^0.3.17"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
     "@types/ndarray": "1.0.6",
     "gh-pages": "^1.2.0",
     "node-sass": "^4.9.0",
-    "parcel-bundler": "1.9.2",
-    "prettier": "^1.13.5",
+    "parcel-bundler": "1.9.3",
+    "prettier": "^1.13.7",
     "typescript": "^2.9.2"
   }
 }

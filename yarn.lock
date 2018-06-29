@@ -2198,7 +2198,7 @@ find-up@^1.0.0:
     path-exists "^2.0.0"
     pinkie-promise "^2.0.0"
 
-"flatbuffers@github:trxcllnt/flatbuffers-esm":
+flatbuffers@trxcllnt/flatbuffers-esm:
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -3578,9 +3578,9 @@ pako@~1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
 
-parcel-bundler@1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.2.tgz#6b697cd58d9b4c155bb054029394b75a3d4d0831"
+parcel-bundler@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.9.3.tgz#48ec2eed5806b969fc5e56ce697d21aded7f80fe"
   dependencies:
     ansi-to-html "^0.6.4"
     babel-code-frame "^6.26.0"
@@ -3982,9 +3982,9 @@ prepend-http@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
 
-prettier@^1.13.5:
-  version "1.13.5"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.13.5.tgz#7ae2076998c8edce79d63834e9b7b09fead6bfd0"
+prettier@^1.13.7:
+  version "1.13.7"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.13.7.tgz#850f3b8af784a49a6ea2d2eaa7ed1428a34b7281"
 
 private@^0.1.6, private@^0.1.8:
   version "0.1.8"
@@ -5252,9 +5252,15 @@ vega-transforms@^2.0.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.16:
+vega-typings@*:
   version "0.3.16"
   resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.16.tgz#d35d9e50fe0aed80ecfd8f4e1bbc2260c4196f72"
+  dependencies:
+    vega-util "^1.7.0"
+
+vega-typings@^0.3.17:
+  version "0.3.17"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.17.tgz#7c0074371634761017aeed76df5355c927da3b21"
   dependencies:
     vega-util "^1.7.0"
 
