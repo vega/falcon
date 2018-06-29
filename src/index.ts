@@ -150,9 +150,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     const db = new DataBase(data);
 
     const el = select("#app");
-
-    // add for now to clear the view
-    (el.node() as any).innerHTML = "";
+    el.html("");
 
     let logger;
     if (LOGGING) {
