@@ -7,33 +7,9 @@ import { Logger } from "./logger";
 
 // import "./mapd";
 
-fetch(require("../data/flights-10k.arrow")).then(response => {
+fetch(require("../data/flights-3m.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
-    const data = new Map<DimensionName, DataArray>();
-    for (const field of table.schema.fields) {
-      data.set(
-        field.name as DimensionName,
-        table
-          .getColumn(field.name)!
-          // .slice(0, 100)
-          .toArray() as DataArray
-      );
-    }
-
-    // convert departure time to number
-    data.set(
-      "DEP_TIME",
-      (data.get("DEP_TIME") as any).map(
-        d => Math.floor(d / 100) + (d % 100) / 60
-      )
-    );
-    data.set(
-      "ARR_TIME",
-      (data.get("ARR_TIME") as any).map(
-        d => Math.floor(d / 100) + (d % 100) / 60
-      )
-    );
 
     type ViewName =
       | "DISTANCE"
@@ -49,7 +25,6 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       | "ARR_TIME"
       | "DISTANCE"
       | "DEP_DELAY"
-      | "DEP_TIME"
       | "AIR_TIME"
       | "DEPARTURE"
       | "DEP_TIME";
@@ -147,7 +122,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       type: "0D"
     });
 
-    const db = new DataBase(data);
+    const db = new DataBase(table);
 
     const el = select("#app");
     el.html("");

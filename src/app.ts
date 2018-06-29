@@ -1,6 +1,7 @@
 import { BaseType, extent, select, Selection } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
+import { FEATURES } from "./config";
 import { DataBase } from "./db";
 import { Logger } from "./logger";
 import {
@@ -10,17 +11,16 @@ import {
   clamp,
   diff,
   omit,
-  stepSize,
-  only
+  only,
+  stepSize
 } from "./util";
 import {
   createBarView,
   createHeatmapView,
   createHistogramView,
-  HISTOGRAM_WIDTH,
-  createTextView
+  createTextView,
+  HISTOGRAM_WIDTH
 } from "./views";
-import { FEATURES } from "./config";
 
 export class App<V extends string, D extends string> {
   private readonly views: Views<V, D>;

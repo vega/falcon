@@ -2,16 +2,17 @@ import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { BitSet, union } from "./bitset";
 import { binNumberFunction, numBins, stepSize } from "./util";
+import { Table } from "@apache-arrow/es2015-esm";
 
 export class DataBase<V extends string, D extends string> {
-  public constructor(private readonly data: Map<D, DataArray>) {}
+  public constructor(private readonly data: Table) {}
 
   private getFilterMask(dimension: D, extent: Interval<number>) {
-    const column = this.data.get(dimension)!;
+    const column = this.data.getColumn(dimension)!;
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
-      const val = column[i];
+      const val: number = column.get(i);
       if (val < extent[0] || val > extent[1]) {
         mask.set(i, true);
       }
@@ -41,7 +42,7 @@ export class DataBase<V extends string, D extends string> {
     const binCount = numBins(binConfig);
 
     const hist = ndarray(new Uint32Array(binCount));
-    for (const value of this.data.get(dimension.name)!) {
+    for (const value of this.data.getColumn(dimension.name)!) {
       const key = bin(value);
       if (0 <= key && key < binCount) {
         hist.data[hist.index(key)]++;
@@ -59,7 +60,9 @@ export class DataBase<V extends string, D extends string> {
     const binConfigs = dimensions.map(d => d.binConfig!);
     const [numBinsX, numBinsY] = binConfigs.map(numBins);
     const [binX, binY] = binConfigs.map(binNumberFunction);
-    const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
+    const [columnX, columnY] = dimensions.map(
+      d => this.data.getColumn(d.name)!
+    );
 
     const heat = ndarray(new Uint32Array(numBinsX * numBinsY), [
       numBinsX,
@@ -67,8 +70,8 @@ export class DataBase<V extends string, D extends string> {
     ]);
 
     for (let i = 0; i < this.length; i++) {
-      const keyX = binX(columnX[i]);
-      const keyY = binY(columnY[i]);
+      const keyX = binX(columnX.get(i));
+      const keyY = binY(columnY.get(i));
 
       if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
         heat.data[heat.index(keyX, keyY)]++;
@@ -96,7 +99,7 @@ export class DataBase<V extends string, D extends string> {
       start: activeDim.extent[0],
       step: stepSize(activeDim.extent, pixels)
     });
-    const activeCol = this.data.get(activeDim.name)!;
+    const activeCol = this.data.getColumn(activeDim.name)!;
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
@@ -124,7 +127,7 @@ export class DataBase<V extends string, D extends string> {
             continue;
           }
 
-          const keyActive = binActive(activeCol[i]);
+          const keyActive = binActive(activeCol.get(i));
           if (0 <= keyActive && keyActive < pixels) {
             hists.data[hists.index(keyActive)]++;
           } else {
@@ -146,7 +149,7 @@ export class DataBase<V extends string, D extends string> {
           binCount
         ]);
 
-        const column = this.data.get(dim.name)!;
+        const column = this.data.getColumn(dim.name)!;
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -155,8 +158,8 @@ export class DataBase<V extends string, D extends string> {
             continue;
           }
 
-          const key = bin(column[i]);
-          const keyActive = binActive(activeCol[i]);
+          const key = bin(column.get(i));
+          const keyActive = binActive(activeCol.get(i));
           if (0 <= key && key < binCount) {
             if (0 <= keyActive && keyActive < pixels) {
               hists.data[hists.index(keyActive, key)]++;
@@ -176,7 +179,9 @@ export class DataBase<V extends string, D extends string> {
         const binConfigs = dimensions.map(d => d.binConfig!);
         const [numBinsX, numBinsY] = binConfigs.map(numBins);
         const [binX, binY] = binConfigs.map(binNumberFunction);
-        const [columnX, columnY] = dimensions.map(d => this.data.get(d.name)!);
+        const [columnX, columnY] = dimensions.map(
+          d => this.data.getColumn(d.name)!
+        );
 
         hists = ndarray(new Uint32Array((pixels + 1) * numBinsX * numBinsY), [
           pixels + 1, // last histogram is cumulation of all others
@@ -190,9 +195,9 @@ export class DataBase<V extends string, D extends string> {
             continue;
           }
 
-          const keyX = binX(columnX[i]);
-          const keyY = binY(columnY[i]);
-          const keyActive = binActive(activeCol[i]);
+          const keyX = binX(columnX.get(i));
+          const keyY = binY(columnY.get(i));
+          const keyActive = binActive(activeCol.get(i));
           if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
             if (0 <= keyActive && keyActive < pixels) {
               hists.data[hists.index(keyActive, keyX, keyY)]++;
@@ -220,6 +225,6 @@ export class DataBase<V extends string, D extends string> {
   }
 
   public get length() {
-    return this.data.values().next().value.length;
+    return this.data.length;
   }
 }
