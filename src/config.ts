@@ -8,4 +8,4 @@ export const FEATURES = {
 
 export const AXIS_Y_EXTENT = 50;
 
-export const LOGGING = true;
+export const LOGGING = false;

@@ -11,8 +11,7 @@ export function createHeatmapView<D extends string>(
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    autosize: "none",
-    padding: { top: 5, left: 70, right: 70, bottom: 40 },
+    padding: 10,
     width: HEATMAP_WIDTH,
     height: HEATMAP_WIDTH,
     data: [

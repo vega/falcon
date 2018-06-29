@@ -51,24 +51,11 @@ export function createHistogramView<D extends string>(
       marks: [
         {
           type: "text",
-          encode: {
-            enter: {
-              x: { value: 0 },
-              y: { value: -10 },
-              limit: { value: 200 },
-              fontSize: { value: 14 },
-              fontWeight: { value: "bold" },
-              text: { value: view.title || "" }
-            }
-          }
-        },
-        {
-          type: "text",
           name: "reset",
           encode: {
             enter: {
               x: { signal: "width" },
-              y: { value: -10 },
+              y: { value: -8 },
               align: { value: "right" },
               cursor: { value: "pointer" },
               fontWeight: { value: "bold" },
@@ -84,7 +71,7 @@ export function createHistogramView<D extends string>(
           encode: {
             enter: {
               x: { signal: "width", offset: -80 },
-              y: { value: -10 },
+              y: { value: -8 },
               align: { value: "right" },
               fill: { value: "#666" }
             },
@@ -469,17 +456,27 @@ export function createHistogramView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "fit-y",
-    padding: 5,
+    padding: 10,
     width: HISTOGRAM_WIDTH,
     height: HISTOGRAM_WIDTH / 3,
     data: data,
     signals: signals,
+
+    title: {
+      text: view.title || "",
+      anchor: "start",
+      frame: "group",
+      fontSize: 14,
+      offset: -12
+    },
+
     layout: {
       padding: { row: 40 },
       columns: 1,
       bounds: "full",
       align: "each"
     },
+
     marks: marks,
 
     scales: [
@@ -507,26 +504,18 @@ export function createHistogramView<D extends string>(
     ],
     axes: [
       {
-        scale: "x",
-        orient: "bottom",
-        labelOverlap: true,
-        tickCount: { signal: "ceil(width/20)" },
-        title: dimension.name
-      },
-      {
         scale: "y",
         orient: "left",
         labelOverlap: true,
         tickCount: { signal: "ceil(height/40)" },
         title: "Count",
-        grid: true,
-        encode: {
-          grid: {
-            update: {
-              stroke: { value: "#ddd" }
-            }
-          }
-        }
+        grid: true
+      },
+      {
+        scale: "x",
+        orient: "bottom",
+        labelOverlap: true,
+        tickCount: { signal: "ceil(width/20)" }
       }
     ],
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }

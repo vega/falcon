@@ -2,9 +2,8 @@ import { parse, Spec, View, Warn } from "vega-lib";
 
 export function createTextView(el: Element, view: View0D) {
   const vgSpec: Spec = {
-    padding: 5,
+    padding: 10,
     height: 20,
-    width: 28,
 
     data: [
       {

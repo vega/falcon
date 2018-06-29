@@ -13,7 +13,7 @@ export function createBarView(el: Element, view: View0D) {
   };
 
   const vgSpec: Spec = {
-    padding: 5,
+    padding: 10,
     height: BAR_HEIGHT,
     width: 28,
 
