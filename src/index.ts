@@ -7,7 +7,7 @@ import { Logger } from "./logger";
 
 // import "./mapd";
 
-fetch(require("../data/flights-3m.arrow")).then(response => {
+fetch(require("../data/flights-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
 
