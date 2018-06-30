@@ -180,7 +180,7 @@ export function createHistogramView<D extends string>(
                       y: { value: 0 },
                       height: { field: { group: "height" } },
                       fill: { value: "firebrick" },
-                      x: { value: -1 },
+                      x: { value: 0 },
                       width: { value: 1 }
                     }
                   }
