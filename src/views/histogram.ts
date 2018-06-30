@@ -91,9 +91,12 @@ export function createHistogramView<D extends string>(
             enter: {
               height: { signal: "height" },
               width: { signal: "width" },
-              clip: { value: true },
               fill: { value: "transparent" },
               cursor: { value: "crosshair" }
+            },
+            update: {
+              // hack: clip brush when it is inactive
+              clip: { signal: "pixelBrush[0] === -10" }
             }
           },
           marks: [
