@@ -40,7 +40,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
 
     const views: Views<ViewName, DimensionName> = new Map();
     views.set("DISTANCE", {
-      title: "Distance",
+      title: "Distance in Miles",
       type: "1D",
       dimension: {
         name: "DISTANCE",
@@ -70,7 +70,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     });
     views.set("DEP_DELAY", {
-      title: "Departure Delay",
+      title: "Departure Delay in Minutes",
       type: "1D",
       dimension: {
         name: "DEP_DELAY",
@@ -80,7 +80,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     });
     views.set("ARR_DELAY", {
-      title: "Arrival Delay",
+      title: "Arrival Delay in Minutes",
       type: "1D",
       dimension: {
         name: "ARR_DELAY",
@@ -90,7 +90,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     });
     views.set("AIR_TIME", {
-      title: "Airtime",
+      title: "Airtime in Minutes",
       type: "1D",
       dimension: {
         name: "AIR_TIME",
