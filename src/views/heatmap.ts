@@ -158,12 +158,12 @@ export function createHeatmapView<D extends string>(
                 x: { scale: "x", field: "keyX" },
                 x2: {
                   scale: "x",
-                  signal: `datum.keyX + ${dimensionX.binConfig!.step}`
+                  signal: `datum.keyX + binX.step`
                 },
                 y: { scale: "y", field: "keyY" },
                 y2: {
                   scale: "y",
-                  signal: `datum.keyY + ${dimensionY.binConfig!.step}`
+                  signal: `datum.keyY + binY.step`
                 },
                 fill: { scale: "color", field: "value" }
               }
