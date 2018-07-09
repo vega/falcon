@@ -55,7 +55,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         name: "ARR_TIME",
         bins: 24,
         extent: [0, 24],
-        format: "d"
+        format: ".1f"
       }
     });
     views.set("DEP_TIME", {
@@ -66,7 +66,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         name: "DEP_TIME",
         bins: 24,
         extent: [0, 24],
-        format: "d"
+        format: ".1f"
       }
     });
     views.set("DEP_DELAY", {
@@ -77,7 +77,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         name: "DEP_DELAY",
         bins: 25,
         extent: [-20, 60],
-        format: "d"
+        format: ".1f"
       }
     });
     views.set("ARR_DELAY", {
@@ -88,7 +88,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         name: "ARR_DELAY",
         bins: 25,
         extent: [-20, 60],
-        format: "d"
+        format: ".1f"
       }
     });
     views.set("AIR_TIME", {
