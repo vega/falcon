@@ -21,7 +21,13 @@ export function createHistogramView<D extends string>(
 
   const data = [
     {
-      name: "base"
+      name: "base",
+      transform: [
+        {
+          type: "filter",
+          expr: "showBase"
+        }
+      ]
     },
     {
       name: "table"
@@ -54,9 +60,9 @@ export function createHistogramView<D extends string>(
           name: "reset",
           encode: {
             enter: {
-              x: { signal: "width" },
+              x: { signal: "width", mult: 0.5, offset: 5 },
               y: { value: -8 },
-              align: { value: "right" },
+              align: { value: "left" },
               cursor: { value: "pointer" },
               fontWeight: { value: "bold" },
               fill: { value: "black" }
@@ -70,7 +76,7 @@ export function createHistogramView<D extends string>(
           type: "text",
           encode: {
             enter: {
-              x: { signal: "width", offset: -80 },
+              x: { signal: "width", mult: 0.5, offset: -5 },
               y: { value: -8 },
               align: { value: "right" },
               fill: { value: "#666" }
@@ -391,6 +397,11 @@ export function createHistogramView<D extends string>(
             'span(brush) ? [scale("x", brush[0]), scale("x", brush[1])] : [-10, -10]'
         }
       ]
+    },
+    {
+      name: "showBase",
+      value: true,
+      on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
     }
   ];
 
@@ -409,6 +420,26 @@ export function createHistogramView<D extends string>(
         }
       ]
     });
+  }
+
+  if (FEATURES.showBase) {
+    marks.push({
+      type: "text",
+      name: "toggleShowBase",
+      encode: {
+        enter: {
+          x: { signal: "width" },
+          y: { value: -8 },
+          align: { value: "right" },
+          cursor: { value: "pointer" },
+          fontWeight: { value: "bold" },
+          fill: { value: "black" }
+        },
+        update: {
+          text: { signal: "showBase ? 'Hide Base' : 'Show Base'" }
+        }
+      }
+    } as Mark);
   }
 
   if (FEATURES.activeViewIndicator) {
