@@ -36,7 +36,6 @@ export class Logger<V extends string> {
     private logUrl?: string
   ) {
     document.onmousemove = throttle(this.trackMouse.bind(this), 50);
-    // TODO: start a periodic ten second process to ship stuff
     this.intervalHandler = setInterval(this.writeToLog.bind(this), 10000);
   }
 
@@ -81,22 +80,30 @@ export class Logger<V extends string> {
   }
 
   public writeToLog() {
-    //move from log container to staging container
-    this.stagingContainer.push(
-      ...this.logContainer.splice(0, this.logContainer.length)
-    );
-
-    this.stagingMouseContainer.push(
-      ...this.mouseLogContainer.splice(0, this.mouseLogContainer.length)
-    );
-
+    // abort if the we are sending stuff right now
     if (
-      this.stagingContainer.length === 0 &&
-      this.stagingMouseContainer.length === 0
+      this.stagingContainer.length + this.stagingMouseContainer.length !==
+      0
     ) {
+      console.log(
+        "Cannot send new logs because we are in the process of sending some data."
+      );
       return;
     }
-    console.log("writing to server...");
+
+    //move from log container to staging container
+    this.stagingContainer = this.logContainer;
+    this.stagingMouseContainer = this.mouseLogContainer;
+
+    if (
+      this.stagingContainer.length + this.stagingMouseContainer.length ===
+      0
+    ) {
+      // no need to send anything
+      return;
+    }
+
+    console.log("Sending logs.");
     // send contents to server
     let tries = 0;
     const doFetch = () => {
@@ -113,11 +120,14 @@ export class Logger<V extends string> {
         .then(response => {
           if (response.ok) {
             this.stagingContainer = [];
+            this.stagingMouseContainer = [];
           } else {
             tries++;
             if (tries < Logger.maxtries) {
               console.log(
-                `Writing failed. Trying again (${tries}/${Logger.maxtries}).`
+                `Sending logs failed. Trying again (${tries}/${
+                  Logger.maxtries
+                }).`
               );
               doFetch();
             } else {
