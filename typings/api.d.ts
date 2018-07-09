@@ -13,6 +13,9 @@ interface Dimension<D> {
   /** The name of the dimension. */
   name: D;
 
+  /** A title for the dimension */
+  title?: string,
+
   /** Initial domain for the dimension. */
   extent: Interval<number>;
 

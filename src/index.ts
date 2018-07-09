@@ -100,16 +100,18 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       }
     });
     views.set("DEP_DELAY_ARR_DELAY", {
-      title: "Delay Matrix",
+      title: "Arrival and Departure Delay in Minutes",
       type: "2D",
       dimensions: [
         {
+          title: "Departure Delay",
           name: "DEP_DELAY",
           bins: 25,
           extent: [-20, 60],
           format: "d"
         },
         {
+          title: "Arrival Delay",
           name: "ARR_DELAY",
           bins: 25,
           extent: [-20, 60],

@@ -288,7 +288,7 @@ export function createHeatmapView<D extends string>(
         orient: "bottom",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimensionX.name,
+        title: dimensionX.title || dimensionX.name,
         zindex: 1
       },
       {
@@ -296,7 +296,7 @@ export function createHeatmapView<D extends string>(
         orient: "left",
         labelOverlap: true,
         tickCount: { signal: "ceil(width/20)" },
-        title: dimensionY.name,
+        title: dimensionY.title || dimensionY.name,
         zindex: 1
       }
     ],
