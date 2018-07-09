@@ -1,4 +1,4 @@
-import { BaseType, extent, select, Selection } from "d3";
+import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
 import { FEATURES } from "./config";
@@ -11,7 +11,6 @@ import {
   clamp,
   diff,
   omit,
-  only,
   stepSize
 } from "./util";
 import {
@@ -23,7 +22,7 @@ import {
 } from "./views";
 
 export class App<V extends string, D extends string> {
-  private readonly views: Views<V, D>;
+  private readonly views: Views<V, D> = new Map();
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
@@ -32,88 +31,77 @@ export class App<V extends string, D extends string> {
 
   /**
    * Construct the app
-   * @param el The element.
    * @param views The views.
-   * @param order The order of views.
    * @param db The database to query.
    * @param logger An optional logger to collect traces.
    */
   public constructor(
-    private readonly el: Selection<BaseType, {}, HTMLElement, any>,
     views: Views<V, D>,
-    order: V[],
     private db: DataBase<V, D>,
     private logger?: Logger<V>
   ) {
-    this.views = only(views, order);
+    for (const [name, view] of views) {
+      if (view.el) {
+        this.views.set(name, view);
+      }
+    }
 
-    // this.activeView = views[0].name;
-    this.initialize(order);
+    this.initialize();
   }
 
-  private initialize(order: V[]) {
-    const self = this;
-    this.el
-      .attr("class", "app")
-      .selectAll(".view")
-      .data(order)
-      .enter()
-      .append("div")
-      .attr("class", "view")
-      .each(function(name: V) {
-        const view = self.views.get(name)!;
-        const el = select(this).node() as Element;
+  private initialize() {
+    for (const [name, view] of this.views) {
+      const el = view.el!;
+      if (view.type === "0D") {
+        const vegaView = (FEATURES.zeroDBar ? createBarView : createTextView)(
+          el,
+          view
+        );
+        this.vegaViews.set(name, vegaView);
 
-        if (view.type === "0D") {
-          const vegaView = (FEATURES.zeroDBar ? createBarView : createTextView)(
-            el,
-            view
-          );
-          self.vegaViews.set(name, vegaView);
+        this.update0DView(name, this.db.length, true);
+      } else if (view.type === "1D") {
+        const binConfig = bin({
+          maxbins: view.dimension.bins,
+          extent: view.dimension.extent
+        });
+        view.dimension.binConfig = binConfig;
 
-          self.update0DView(name, self.db.length, true);
-        } else if (view.type === "1D") {
-          const binConfig = bin({
-            maxbins: view.dimension.bins,
-            extent: view.dimension.extent
-          });
-          view.dimension.binConfig = binConfig;
+        const vegaView = createHistogramView(el, view);
+        this.vegaViews.set(name, vegaView);
 
-          const vegaView = createHistogramView(el, view);
-          self.vegaViews.set(name, vegaView);
+        const data = this.db.histogram(view.dimension);
+        this.update1DView(name, view, data, FEATURES.showBase);
 
-          const data = self.db.histogram(view.dimension);
-          self.update1DView(name, view, data, FEATURES.showBase);
+        vegaView.addSignalListener("brush", (_name, value) => {
+          this.brushMove(name, view.dimension.name, value);
+        });
 
-          vegaView.addSignalListener("brush", (_name, value) => {
-            self.brushMove(name, view.dimension.name, value);
-          });
-
-          vegaView.addEventListener("mouseover", () => {
-            if (self.activeView !== name) {
-              self.switchActiveView(name);
-            }
-          });
-
-          if (self.logger) {
-            self.logger.attach(name, vegaView);
+        vegaView.addEventListener("mouseover", () => {
+          if (this.activeView !== name) {
+            this.switchActiveView(name);
           }
-        } else {
-          for (const dimension of view.dimensions) {
-            const binConfig = bin({
-              maxbins: dimension.bins,
-              extent: dimension.extent
-            });
-            dimension.binConfig = binConfig;
-          }
+        });
 
-          const vegaView = createHeatmapView(el, view);
-          self.vegaViews.set(name, vegaView);
-
-          const data = self.db.heatmap(view.dimensions);
-          self.update2DView(name, view, data);
+        if (this.logger) {
+          this.logger.attach(name, vegaView);
         }
-      });
+      } else {
+        for (const dimension of view.dimensions) {
+          const binConfig = bin({
+            maxbins: dimension.bins,
+            extent: dimension.extent
+          });
+          dimension.binConfig = binConfig;
+        }
+
+        const vegaView = createHeatmapView(el, view);
+        this.vegaViews.set(name, vegaView);
+
+        const data = this.db.heatmap(view.dimensions);
+        this.update2DView(name, view, data);
+      }
+    }
   }
 
   private switchActiveView(name: V) {

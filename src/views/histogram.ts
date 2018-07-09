@@ -476,7 +476,6 @@ export function createHistogramView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "fit-y",
-    padding: 10,
     width: HISTOGRAM_WIDTH,
     height: HISTOGRAM_WIDTH / 3,
     data: data,

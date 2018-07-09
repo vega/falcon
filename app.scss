@@ -2,8 +2,35 @@ body {
   font-family: sans-serif;
 }
 
-.app {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+  grid-auto-rows: minmax(100px, auto);
+  justify-content: start;
+
+  #count {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  #arrival {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #departure {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #distance {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  #airtime {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  #delay {
+    grid-column: 1;
+    grid-row: 5/6;
+  }
 }

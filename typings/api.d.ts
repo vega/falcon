@@ -4,6 +4,9 @@
 interface AbstractView {
   /** Title for axis. Should not be used as an identifier. */
   title?: string;
+
+  /** The html element to attach the view to. If null, the view will be ignored. */
+  el?: HTMLElement | null;
 }
 
 /**
@@ -14,7 +17,7 @@ interface Dimension<D> {
   name: D;
 
   /** A title for the dimension */
-  title?: string,
+  title?: string;
 
   /** Initial domain for the dimension. */
   extent: Interval<number>;

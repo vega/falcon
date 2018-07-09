@@ -1,5 +1,4 @@
 import { Table } from "@apache-arrow/es2015-esm";
-import { select } from "d3";
 import { App } from "./app";
 import { LOGGING } from "./config";
 import { DataBase } from "./db";
@@ -30,19 +29,17 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       | "DEPARTURE"
       | "DEP_TIME";
 
-    const order: ViewName[] = [
-      "ARR_TIME",
-      "DEP_TIME",
-      "DISTANCE",
-      "AIR_TIME",
-      "DEP_DELAY_ARR_DELAY",
-      "COUNT"
-    ];
-
     const views: Views<ViewName, DimensionName> = new Map();
+
+    views.set("COUNT", {
+      title: "Flights selected",
+      type: "0D",
+      el: document.getElementById("count")
+    });
     views.set("DISTANCE", {
       title: "Distance in Miles",
       type: "1D",
+      el: document.getElementById("distance"),
       dimension: {
         name: "DISTANCE",
         bins: 25,
@@ -53,6 +50,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("ARR_TIME", {
       title: "Arrival Time",
       type: "1D",
+      el: document.getElementById("arrival"),
       dimension: {
         name: "ARR_TIME",
         bins: 24,
@@ -63,6 +61,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_TIME", {
       title: "Departure Time",
       type: "1D",
+      el: document.getElementById("departure"),
       dimension: {
         name: "DEP_TIME",
         bins: 24,
@@ -73,6 +72,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_DELAY", {
       title: "Departure Delay in Minutes",
       type: "1D",
+      el: document.getElementById("dep_delay"),
       dimension: {
         name: "DEP_DELAY",
         bins: 25,
@@ -83,6 +83,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("ARR_DELAY", {
       title: "Arrival Delay in Minutes",
       type: "1D",
+      el: document.getElementById("arr_delay"),
       dimension: {
         name: "ARR_DELAY",
         bins: 25,
@@ -93,6 +94,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("AIR_TIME", {
       title: "Airtime in Minutes",
       type: "1D",
+      el: document.getElementById("airtime"),
       dimension: {
         name: "AIR_TIME",
         bins: 25,
@@ -103,6 +105,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_DELAY_ARR_DELAY", {
       title: "Arrival and Departure Delay in Minutes",
       type: "2D",
+      el: document.getElementById("delay"),
       dimensions: [
         {
           title: "Departure Delay",
@@ -120,15 +123,10 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         }
       ]
     });
-    views.set("COUNT", {
-      title: "Flights selected",
-      type: "0D"
-    });
 
     const db = new DataBase(table);
 
-    const el = select("#app");
-    el.html("");
+    document.getElementById("loading")!.innerText = "";
 
     let logger;
     if (LOGGING) {
@@ -139,7 +137,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         "//playfair.cs.washington.edu:5001/store-log"
       );
     }
-    new App(el, views, order, db, logger);
+    new App(views, db, logger);
   });
 });
 

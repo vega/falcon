@@ -1,7 +1,7 @@
 import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 import { AXIS_Y_EXTENT } from "../config";
 
-export const BAR_HEIGHT = 450;
+export const BAR_HEIGHT = 200;
 
 export function createBarView(el: Element, view: View0D) {
   const barEncodeBase: EncodeEntry = {
@@ -13,7 +13,6 @@ export function createBarView(el: Element, view: View0D) {
   };
 
   const vgSpec: Spec = {
-    padding: 10,
     height: BAR_HEIGHT,
     width: 28,
 
@@ -42,7 +41,15 @@ export function createBarView(el: Element, view: View0D) {
       }
     ],
 
-    axes: [{ orient: "left", scale: "y", title: view.title, grid: true }],
+    axes: [
+      {
+        orient: "left",
+        scale: "y",
+        title: view.title,
+        grid: true,
+        tickCount: { signal: "ceil(height/40)" }
+      }
+    ],
 
     marks: [
       {
