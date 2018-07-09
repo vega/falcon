@@ -4,9 +4,9 @@ body {
 
 .wrapper {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: min-content;
   grid-gap: 20px;
-  grid-auto-rows: minmax(100px, auto);
+  grid-auto-rows: min-content;
   justify-content: start;
 
   #count {
