@@ -25,7 +25,11 @@ export function createTextView(el: Element, view: View0D) {
             fontSize: { value: 16 },
             fontWeight: { value: "bold" },
             fill: { value: "#000" },
-            text: { signal: `'${view.title}: ' + format(datum.value, 'd')` }
+            text: {
+              signal: `'${
+                view.title
+              }: ' + format(datum.value, 'd') + '/' + format(data('base')[0].value, 'd') + ' (' + format(datum.value / data('base')[0].value, '.0%') + ')'`
+            }
           }
         }
       }
