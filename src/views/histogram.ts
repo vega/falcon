@@ -9,7 +9,7 @@ import {
   EncodeEntry,
   OnEvent
 } from "vega-lib";
-import { FEATURES, AXIS_Y_EXTENT } from "../config";
+import { FEATURES, AXIS_Y_EXTENT, LOGGING } from "../config";
 
 export const HISTOGRAM_WIDTH = 600;
 
@@ -393,6 +393,23 @@ export function createHistogramView<D extends string>(
       ]
     }
   ];
+
+  if (LOGGING) {
+    signals.push({
+      name: "brushMouse",
+      value: 0,
+      on: [
+        {
+          events: "@chart:mousedown",
+          update: "2"
+        },
+        {
+          events: "window:mouseup",
+          update: "brushMouse === 2 ? 1 : 0"
+        }
+      ]
+    });
+  }
 
   if (FEATURES.activeViewIndicator) {
     marks.push({

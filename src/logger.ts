@@ -4,11 +4,11 @@ import { throttle } from "./util";
 interface Record {
   view: string;
   name: string;
-  timestamp: number;
-  brushStart: number;
-  brushEnd: number;
-  pixBrushStart: number;
-  pixBrushEnd: number;
+  timestamp?: number;
+  brushStart?: number;
+  brushEnd?: number;
+  pixBrushStart?: number;
+  pixBrushEnd?: number;
 }
 
 interface MouseRecord {
@@ -52,17 +52,44 @@ export class Logger<V extends string> {
   }
 
   /**
-   * Attach loggin to the vega view.
+   * Attach logging to the Vega view.
    */
   public attach(name: V, view: View) {
-    const self = this;
+    view.addEventListener("mouseenter", _ => {
+      this.appendToLog({
+        view: name,
+        name: "mouseenter"
+      });
+    });
+
+    view.addEventListener("mouseleave", _ => {
+      this.appendToLog({
+        view: name,
+        name: "mouseleave"
+      });
+    });
+
+    view.addSignalListener("brushMouse", (_, value) => {
+      if (value > 0) {
+        // filter events that are in the wrong chart
+        const brushRange = view.signal("brush");
+        const pixBrushRange = view.signal("pixelBrush");
+        this.appendToLog({
+          view: name,
+          name: value === 2 ? "brushStart" : "brushEnd",
+          brushStart: brushRange[0],
+          brushEnd: brushRange[1],
+          pixBrushStart: pixBrushRange[0],
+          pixBrushEnd: pixBrushRange[1]
+        });
+      }
+    });
+
     view.addSignalListener("brush", (_, brushRange) => {
-      const timestamp = Date.now();
       const pixBrushRange = view.signal("pixelBrush");
-      self.appendToLog({
+      this.appendToLog({
         view: name,
         name: "brush",
-        timestamp: timestamp,
         brushStart: brushRange[0],
         brushEnd: brushRange[1],
         pixBrushStart: pixBrushRange[0],
@@ -71,15 +98,17 @@ export class Logger<V extends string> {
     });
   }
 
-  public appendToLog(record: Record) {
+  private appendToLog(record: Record) {
+    record.timestamp = Date.now();
     this.logContainer.push(record);
   }
 
-  public appendToMouseLog(record: MouseRecord) {
+  private appendToMouseLog(record: MouseRecord) {
+    record.timestamp = Date.now();
     this.mouseLogContainer.push(record);
   }
 
-  public writeToLog() {
+  private writeToLog() {
     // abort if the we are sending stuff right now
     if (
       this.stagingContainer.length + this.stagingMouseContainer.length !==
@@ -95,15 +124,14 @@ export class Logger<V extends string> {
     this.stagingContainer = this.logContainer;
     this.stagingMouseContainer = this.mouseLogContainer;
 
-    if (
-      this.stagingContainer.length + this.stagingMouseContainer.length ===
-      0
-    ) {
+    const logLength =
+      this.stagingContainer.length + this.stagingMouseContainer.length;
+    if (logLength === 0) {
       // no need to send anything
       return;
     }
 
-    console.log("Sending logs.");
+    console.log(`Sending ${logLength} log entries.`);
     // send contents to server
     let tries = 0;
     const doFetch = () => {

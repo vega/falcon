@@ -20,6 +20,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
       | "DEP_DELAY"
       | "DEP_DELAY_ARR_DELAY"
       | "COUNT";
+
     type DimensionName =
       | "ARR_DELAY"
       | "ARR_TIME"
