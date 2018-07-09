@@ -134,7 +134,7 @@ export class Logger<V extends string> {
     console.log(`Sending ${logLength} log entries.`);
     // send contents to server
     let tries = 0;
-    const doFetch = () => {
+    const doSend = () => {
       fetch(this.logUrl, {
         body: JSON.stringify({
           userid: this.userid,
@@ -157,7 +157,7 @@ export class Logger<V extends string> {
                   Logger.maxtries
                 }).`
               );
-              doFetch();
+              doSend();
             } else {
               clearInterval(this.intervalHandler);
               throw "Reached maximum limit of resends: " + response.statusText;
@@ -169,6 +169,6 @@ export class Logger<V extends string> {
           throw error;
         });
     };
-    doFetch();
+    doSend();
   }
 }
