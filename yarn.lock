@@ -5313,9 +5313,9 @@ vega-transforms@^2.1.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.27:
-  version "0.3.27"
-  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.27.tgz#fdb6abc385aa0febcaa3753a5afbe0d6b0da78c7"
+vega-typings@*, vega-typings@^0.3.28:
+  version "0.3.28"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.28.tgz#3bca962eefb337003260e262f0c841046e671919"
   dependencies:
     vega-util "^1.7.0"
 
