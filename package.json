@@ -29,16 +29,16 @@
     "ndarray": "^1.0.18",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega-lib": "^4.0.0-rc.3",
+    "vega-lib": "^4.0.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.17"
+    "vega-typings": "^0.3.27"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
     "@types/ndarray": "1.0.6",
     "gh-pages": "^1.2.0",
-    "node-sass": "^4.9.0",
-    "parcel-bundler": "1.9.3",
+    "node-sass": "^4.9.2",
+    "parcel-bundler": "1.9.4",
     "prettier": "^1.13.7",
     "typescript": "^2.9.2"
   }
