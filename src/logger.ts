@@ -36,7 +36,7 @@ export class Logger<V extends string> {
     private logUrl?: string
   ) {
     document.onmousemove = throttle(this.trackMouse.bind(this), 50);
-    this.intervalHandler = setInterval(this.writeToLog.bind(this), 10000);
+    this.intervalHandler = setInterval(this.flush.bind(this), 10000);
   }
 
   /*
@@ -98,6 +98,20 @@ export class Logger<V extends string> {
     });
   }
 
+  /**
+   * returns whether the logger has not flushed all logs yet.
+   */
+  public hasUnsentData(): boolean {
+    this.flush(); // try flushing
+    return (
+      this.logContainer.length +
+        this.mouseLogContainer.length +
+        this.stagingContainer.length +
+        this.stagingMouseContainer.length >
+      0
+    );
+  }
+
   private appendToLog(record: Record) {
     record.timestamp = Date.now();
     this.logContainer.push(record);
@@ -108,7 +122,7 @@ export class Logger<V extends string> {
     this.mouseLogContainer.push(record);
   }
 
-  private writeToLog() {
+  public flush() {
     // abort if the we are sending stuff right now
     if (
       this.stagingContainer.length + this.stagingMouseContainer.length !==

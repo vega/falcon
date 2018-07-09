@@ -137,6 +137,12 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         "//playfair.cs.washington.edu:5001/store-log"
       );
     }
+
+    window.onbeforeunload = () =>
+      logger.hasUnsentData()
+        ? "We still need to send logs. Try again in a few seconds."
+        : null;
+
     new App(views, db, logger);
   });
 });
