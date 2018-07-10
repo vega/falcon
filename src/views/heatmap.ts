@@ -312,8 +312,8 @@ export function createHeatmapView<D extends string>(
 
   const runtime = parse(vgSpec);
 
-  return new View(runtime)
-    .logLevel(Warn)
-    .initialize(el)
-    .renderer("canvas");
+  const vgView = new View(runtime).initialize(el).renderer("canvas");
+
+  vgView["_spec"] = vgSpec;
+  return vgView;
 }

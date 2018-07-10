@@ -55,6 +55,8 @@ export class Logger<V extends string> {
    * Attach logging to the Vega view.
    */
   public attach(name: V, view: View) {
+    console.log(view["_spec"]);
+
     view.addEventListener("mouseenter", _ => {
       this.appendToLog({
         view: name,

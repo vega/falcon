@@ -80,8 +80,8 @@ export function createBarView(el: Element, view: View0D) {
 
   const runtime = parse(vgSpec);
 
-  return new View(runtime)
-    .logLevel(Warn)
-    .initialize(el)
-    .renderer("svg");
+  const vgView = new View(runtime).initialize(el).renderer("svg");
+
+  vgView["_spec"] = vgSpec;
+  return vgView;
 }
