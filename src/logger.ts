@@ -138,7 +138,7 @@ export class Logger<V extends string> {
     this.mouseLogContainer.push(record);
   }
 
-  public flush() {
+  private flush() {
     // abort if the we are sending stuff right now
     if (
       this.stagingContainer.length + this.stagingMouseContainer.length !==

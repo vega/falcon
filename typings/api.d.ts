@@ -1,3 +1,5 @@
+import { View as VgView } from "vega";
+
 /**
  * Views
  */
@@ -66,3 +68,15 @@ interface BinConfig {
   step: number;
 }
 type DataArray = Array<number> | Uint32Array | Uint16Array | Uint8Array;
+
+interface Logger<V extends string> {
+  /**
+   * Attach logging to the Vega view.
+   */
+  attach(name: V, view: VgView): void;
+
+  /**
+   * Returns whether the logger has not flushed all logs yet.
+   */
+  hasUnsentData(): boolean;
+}
