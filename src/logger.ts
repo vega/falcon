@@ -1,4 +1,5 @@
 import { View } from "vega-lib";
+import { Logger } from "./api";
 import { throttle } from "./util";
 
 interface Record {
@@ -18,7 +19,7 @@ interface MouseRecord {
   pageY: number;
 }
 
-export class Logger<V extends string> {
+export class StudyLogger<V extends string> implements Logger<V> {
   private static maxtries = 3; // maximum # of tries to send things to server
   private logContainer: Record[] = [];
   private stagingContainer: Record[] = [];
@@ -183,10 +184,10 @@ export class Logger<V extends string> {
             this.stagingMouseContainer = [];
           } else {
             tries++;
-            if (tries < Logger.maxtries) {
+            if (tries < StudyLogger.maxtries) {
               console.log(
                 `Sending logs failed. Trying again (${tries}/${
-                  Logger.maxtries
+                  StudyLogger.maxtries
                 }).`
               );
               doSend();

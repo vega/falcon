@@ -1,8 +1,10 @@
+import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
+import { Dimension, View1D, Views } from "./api";
+import { Interval } from "./basic.d";
 import { BitSet, union } from "./bitset";
 import { binNumberFunction, numBins, stepSize } from "./util";
-import { Table } from "@apache-arrow/es2015-esm";
 
 export class DataBase<V extends string, D extends string> {
   public constructor(private readonly data: Table) {}

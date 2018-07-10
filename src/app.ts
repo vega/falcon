@@ -1,3 +1,4 @@
+import { Logger } from "./api";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
@@ -5,7 +6,6 @@ import { View1D, View2D, Views } from "./api";
 import { Interval } from "./basic.d";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
-import { Logger } from "./logger";
 import {
   bin,
   binNumberFunction,
