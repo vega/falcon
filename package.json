@@ -1,14 +1,17 @@
 {
-  "name": "crossfilter",
+  "name": "big-crossfilter",
   "version": "1.0.0",
   "description": "Big data crossfilter",
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "parcel index.html",
-    "prebuild": "rm -rf dist",
-    "build": "parcel build --public-url '.' index.html",
-    "predeploy": "npm run build",
+    "start:flights": "parcel flights/index.html",
+    "start:weather": "parcel weather/index.html",
+    "start": "npm run start:flights",
+    "clean": "rm -rf dist && rm -rf .cache",
+    "build:flights": "parcel build --public-url '.' flights/index.html",
+    "build:weather": "parcel build --public-url '.' weather/index.html",
+    "predeploy": "npm run clean && npm run build:flights",
     "deploy": "gh-pages -d dist"
   },
   "repository": {

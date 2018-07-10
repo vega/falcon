@@ -1,0 +1,36 @@
+body {
+  font-family: sans-serif;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: min-content;
+  grid-gap: 20px;
+  grid-auto-rows: min-content;
+  justify-content: start;
+
+  #count {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  #elevation {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  #tempmin {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #tempmax {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #precipitation {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  #wind {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}

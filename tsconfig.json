@@ -15,6 +15,6 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   },
-  "files": ["src/index.ts"],
+  "files": ["src/index.ts", "flights/index.ts", "weather/index.ts"],
   "include": ["typings/*.d.ts", "node_modules/**/*.d.ts"]
 }
