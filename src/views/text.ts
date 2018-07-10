@@ -1,4 +1,5 @@
-import { parse, Spec, View, Warn } from "vega-lib";
+import { View0D } from "./../api";
+import { parse, Spec, View } from "vega-lib";
 
 export function createTextView(el: Element, view: View0D) {
   const vgSpec: Spec = {

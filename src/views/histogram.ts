@@ -1,21 +1,24 @@
+import { AXIS_Y_EXTENT } from "./bar";
 import {
   Data,
+  EncodeEntry,
   Mark,
+  OnEvent,
   parse,
   Signal,
   Spec,
-  View,
-  Warn,
-  EncodeEntry,
-  OnEvent
+  View
 } from "vega-lib";
-import { FEATURES, AXIS_Y_EXTENT, LOGGING } from "../config";
+import { View1D } from "./../api";
+import { Config } from "../config";
 
 export const HISTOGRAM_WIDTH = 600;
 
 export function createHistogramView<D extends string>(
   el: Element,
-  view: View1D<D>
+  view: View1D<D>,
+  config: Config,
+  logging: boolean
 ): View {
   const dimension = view.dimension;
 
@@ -342,7 +345,7 @@ export function createHistogramView<D extends string>(
     }
   ];
 
-  if (FEATURES.zoomBrush) {
+  if (config.zoomBrush) {
     onBrush.push({
       events: { signal: "zoom" },
       update: "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
@@ -405,7 +408,7 @@ export function createHistogramView<D extends string>(
     }
   ];
 
-  if (LOGGING) {
+  if (logging) {
     signals.push({
       name: "brushMouse",
       value: 0,
@@ -422,7 +425,7 @@ export function createHistogramView<D extends string>(
     });
   }
 
-  if (FEATURES.showBase) {
+  if (config.showBase) {
     marks.push({
       type: "text",
       name: "toggleShowBase",
@@ -442,7 +445,7 @@ export function createHistogramView<D extends string>(
     } as Mark);
   }
 
-  if (FEATURES.activeViewIndicator) {
+  if (config.activeViewIndicator) {
     marks.push({
       type: "symbol",
       encode: {
@@ -464,7 +467,7 @@ export function createHistogramView<D extends string>(
     } as Mark);
   }
 
-  if (FEATURES.chartCount) {
+  if (config.chartCount) {
     marks.push({
       type: "text",
       from: { data: "sum" },
@@ -491,7 +494,7 @@ export function createHistogramView<D extends string>(
     } as Data);
   }
 
-  if (FEATURES.zoomBrush) {
+  if (config.zoomBrush) {
     signals.push({
       name: "zoom", // in pixel space
       value: 0,

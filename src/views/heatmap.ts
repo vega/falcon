@@ -1,5 +1,6 @@
-import { parse, Spec, View, Warn } from "vega-lib";
-import { AXIS_Y_EXTENT } from "../config";
+import { parse, Spec, View } from "vega-lib";
+import { View2D } from "./../api";
+import { AXIS_Y_EXTENT } from "./bar";
 
 export const HEATMAP_WIDTH = 450;
 

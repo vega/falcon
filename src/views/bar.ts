@@ -1,7 +1,9 @@
+import { View0D } from "./../api";
 import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
-import { AXIS_Y_EXTENT } from "../config";
 
 export const BAR_HEIGHT = 200;
+
+export const AXIS_Y_EXTENT = 50;
 
 export function createBarView(el: Element, view: View0D) {
   const barEncodeBase: EncodeEntry = {

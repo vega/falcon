@@ -1,6 +1,6 @@
+import { Views } from "./../src/api";
 import { Table } from "@apache-arrow/es2015-esm";
 import { App } from "../src/app";
-import { LOGGING } from "../src/config";
 import { DataBase } from "../src/db";
 import { Logger } from "../src/logger";
 
@@ -135,21 +135,17 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
 
     document.getElementById("loading")!.innerText = "";
 
-    let logger;
-    if (LOGGING) {
-      // logger = new Logger("u0", "t0", "http://localhost:5001/store-log");
-      logger = new Logger(
-        "" + Math.floor(Math.random() * 10000),
-        "" + Math.floor(Math.random() * 10000),
-        "//playfair.cs.washington.edu:5001/store-log"
-      );
-    }
+    const logger = new Logger<ViewName>(
+      "" + Math.floor(Math.random() * 10000),
+      "" + Math.floor(Math.random() * 10000),
+      "//playfair.cs.washington.edu:5001/store-log"
+    );
 
     window.onbeforeunload = () =>
       logger.hasUnsentData()
         ? "We still need to send logs. Try again in a few seconds."
         : null;
 
-    new App(views, db, logger);
+    new App(views, db, {}, logger);
   });
 });

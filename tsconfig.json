@@ -20,6 +20,5 @@
     "flights/index.ts",
     "weather/index.ts",
     "movies/index.ts"
-  ],
-  "include": ["typings/*.d.ts", "node_modules/**/*.d.ts"]
+  ]
 }

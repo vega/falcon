@@ -1,9 +1,10 @@
-import { View as VgView } from "vega";
+import { View as VgView } from "vega-typings";
+import { Interval } from "./basic";
 
 /**
  * Views
  */
-interface AbstractView {
+export interface AbstractView {
   /** Title for axis. Should not be used as an identifier. */
   title?: string;
 
@@ -14,7 +15,7 @@ interface AbstractView {
 /**
  * A sigle dimension of a view.
  */
-interface Dimension<D> {
+export interface Dimension<D> {
   /** The name of the dimension. */
   name: D;
 
@@ -34,42 +35,42 @@ interface Dimension<D> {
   binConfig?: BinConfig;
 }
 
-interface View0D extends AbstractView {
+export interface View0D extends AbstractView {
   type: "0D";
 }
 
-interface View1D<D extends string> extends AbstractView {
+export interface View1D<D extends string> extends AbstractView {
   type: "1D";
 
   /** The dimension for this view. */
   dimension: Dimension<D>;
 }
 
-interface View2D<D extends string> extends AbstractView {
+export interface View2D<D extends string> extends AbstractView {
   type: "2D";
 
   /** The dimensions for this view. */
   dimensions: [Dimension<D>, Dimension<D>];
 }
 
-type View<D extends string> = View0D | View1D<D> | View2D<D>;
+export type View<D extends string> = View0D | View1D<D> | View2D<D>;
 
 /**
  * Map from view name to view. The name can be used as an identifier.
  */
-type Views<V extends string, D extends string> = Map<V, View<D>>;
+export type Views<V extends string, D extends string> = Map<V, View<D>>;
 
 /**
  * Binning configuration.
  */
-interface BinConfig {
+export interface BinConfig {
   start: number;
   stop: number;
   step: number;
 }
-type DataArray = Array<number> | Uint32Array | Uint16Array | Uint8Array;
+export type DataArray = Array<number> | Uint32Array | Uint16Array | Uint8Array;
 
-interface Logger<V extends string> {
+export interface Logger<V extends string> {
   /**
    * Attach logging to the Vega view.
    */

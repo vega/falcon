@@ -1,4 +1,5 @@
-export const FEATURES = {
+export const DEFAULT_CONFIG = {
+  // features
   activeViewIndicator: false,
   chartCount: false,
   zoomBrush: true,
@@ -6,6 +7,4 @@ export const FEATURES = {
   zeroDBar: true
 };
 
-export const AXIS_Y_EXTENT = 50;
-
-export const LOGGING = false;
+export type Config = typeof DEFAULT_CONFIG;

@@ -1,7 +1,10 @@
+import { View1D, View2D } from "./api";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
-import { FEATURES } from "./config";
+import { Views } from "./api";
+import { Interval } from "./basic.d";
+import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
 import { Logger } from "./logger";
 import {
@@ -28,6 +31,7 @@ export class App<V extends string, D extends string> {
   private brushes = new Map<D, Interval<number>>();
   private data: Map<V, ndarray>;
   private needsUpdate = false;
+  private readonly config: Config;
 
   /**
    * Construct the app
@@ -38,8 +42,11 @@ export class App<V extends string, D extends string> {
   public constructor(
     views: Views<V, D>,
     private db: DataBase<V, D>,
+    config?: Partial<Config>,
     private logger?: Logger<V>
   ) {
+    this.config = { ...DEFAULT_CONFIG, ...(config || {}) };
+
     for (const [name, view] of views) {
       if (view.el) {
         this.views.set(name, view);
@@ -53,10 +60,9 @@ export class App<V extends string, D extends string> {
     for (const [name, view] of this.views) {
       const el = view.el!;
       if (view.type === "0D") {
-        const vegaView = (FEATURES.zeroDBar ? createBarView : createTextView)(
-          el,
-          view
-        );
+        const vegaView = (this.config.zeroDBar
+          ? createBarView
+          : createTextView)(el, view);
         this.vegaViews.set(name, vegaView);
 
         this.update0DView(name, this.db.length, true);
@@ -67,11 +73,16 @@ export class App<V extends string, D extends string> {
         });
         view.dimension.binConfig = binConfig;
 
-        const vegaView = createHistogramView(el, view);
+        const vegaView = createHistogramView(
+          el,
+          view,
+          this.config,
+          !!this.logger
+        );
         this.vegaViews.set(name, vegaView);
 
         const data = this.db.histogram(view.dimension);
-        this.update1DView(name, view, data, FEATURES.showBase);
+        this.update1DView(name, view, data, this.config.showBase);
 
         vegaView.addSignalListener("brush", (_name, value) => {
           this.brushMove(name, view.dimension.name, value);
