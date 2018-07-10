@@ -33,10 +33,23 @@ export class Logger<V extends string> {
   constructor(
     private userid?: string,
     private taskid?: string,
-    private logUrl?: string
+    private logUrl?: string,
+    private logFields?: string[],
+    private mouseLogFields?: string[]
   ) {
     document.onmousemove = throttle(this.trackMouse.bind(this), 50);
     this.intervalHandler = setInterval(this.flush.bind(this), 10000);
+
+    this.logFields = [
+      "view",
+      "name",
+      "timestamp",
+      "brushStart",
+      "brushEnd",
+      "pixBrushStart",
+      "pixBrushEnd"
+    ];
+    this.mouseLogFields = ["name", "timestamp", "pageX", "pageY"];
   }
 
   /*
@@ -157,7 +170,9 @@ export class Logger<V extends string> {
           userid: this.userid,
           taskid: this.taskid,
           log: this.stagingContainer,
-          mouseLog: this.stagingMouseContainer
+          logFields: this.logFields,
+          mouseLog: this.stagingMouseContainer,
+          mouseLogFields: this.mouseLogFields
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST"
