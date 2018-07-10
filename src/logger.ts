@@ -56,6 +56,7 @@ export class Logger<V extends string> {
    */
   public attach(name: V, view: View) {
     console.log(view["_spec"]);
+    console.log(view.origin(), view.width(), view.height(), view.container());
 
     view.addEventListener("mouseenter", _ => {
       this.appendToLog({
