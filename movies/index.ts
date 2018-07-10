@@ -4,6 +4,15 @@ import { LOGGING } from "../src/config";
 import { DataBase } from "../src/db";
 import { Logger } from "../src/logger";
 
+document.getElementById("app")!.innerText = "";
+
+function createElement(id: string) {
+  const el = document.createElement("div");
+  el.setAttribute("id", id);
+  document.getElementById("app")!.appendChild(el);
+  return el;
+}
+
 fetch(require("../data/movies.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
@@ -36,12 +45,12 @@ fetch(require("../data/movies.arrow")).then(response => {
     views.set("COUNT", {
       title: "Movies selected",
       type: "0D",
-      el: document.getElementById("count")
+      el: createElement("count")
     });
     views.set("IMDB_Rating", {
       title: "IMDB Rating",
       type: "1D",
-      el: document.getElementById("imdb"),
+      el: createElement("imdb"),
       dimension: {
         name: "IMDB_Rating",
         bins: 25,
@@ -52,11 +61,66 @@ fetch(require("../data/movies.arrow")).then(response => {
     views.set("Rotten_Tomatoes_Rating", {
       title: "Rotten Tomatoes Rating",
       type: "1D",
-      el: document.getElementById("tomatoes"),
+      el: createElement("tomatoes"),
       dimension: {
         name: "Rotten_Tomatoes_Rating",
         bins: 25,
         extent: [0, 100],
+        format: "d"
+      }
+    });
+    views.set("Production_Budget", {
+      title: "Production Budget",
+      type: "1D",
+      el: createElement("budget"),
+      dimension: {
+        name: "Production_Budget",
+        bins: 25,
+        extent: [0, 300000000],
+        format: "d"
+      }
+    });
+    views.set("Running_Time_min", {
+      title: "Running Time in Minutes",
+      type: "1D",
+      el: createElement("runningtime"),
+      dimension: {
+        name: "Running_Time_min",
+        bins: 25,
+        extent: [0, 260],
+        format: "d"
+      }
+    });
+    views.set("US_DVD_Sales", {
+      title: "DVD Sales",
+      type: "1D",
+      el: createElement("dvdsales"),
+      dimension: {
+        name: "US_DVD_Sales",
+        bins: 25,
+        extent: [0, 400000000],
+        format: "d"
+      }
+    });
+    views.set("US_Gross", {
+      title: "US Gross",
+      type: "1D",
+      el: createElement("usgross"),
+      dimension: {
+        name: "US_Gross",
+        bins: 25,
+        extent: [0, 600000000],
+        format: "d"
+      }
+    });
+    views.set("Worldwide_Gross", {
+      title: "Worldwide Gross",
+      type: "1D",
+      el: createElement("gross"),
+      dimension: {
+        name: "Worldwide_Gross",
+        bins: 25,
+        extent: [0, 1200000000],
         format: "d"
       }
     });

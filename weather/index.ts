@@ -4,6 +4,15 @@ import { LOGGING } from "../src/config";
 import { DataBase } from "../src/db";
 import { Logger } from "../src/logger";
 
+document.getElementById("app")!.innerText = "";
+
+function createElement(id: string) {
+  const el = document.createElement("div");
+  el.setAttribute("id", id);
+  document.getElementById("app")!.appendChild(el);
+  return el;
+}
+
 fetch(require("../data/weather-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
     const table = Table.from(new Uint8Array(buffer));
@@ -32,12 +41,12 @@ fetch(require("../data/weather-10k.arrow")).then(response => {
     views.set("COUNT", {
       title: "Days selected",
       type: "0D",
-      el: document.getElementById("count")
+      el: createElement("count")
     });
     views.set("ELEVATION", {
       title: "Elevation",
       type: "1D",
-      el: document.getElementById("elevation"),
+      el: createElement("elevation"),
       dimension: {
         name: "ELEVATION",
         bins: 25,
@@ -48,7 +57,7 @@ fetch(require("../data/weather-10k.arrow")).then(response => {
     views.set("TEMP_MIN", {
       title: "Minimum Temperature",
       type: "1D",
-      el: document.getElementById("tempmin"),
+      el: createElement("tempmin"),
       dimension: {
         name: "TEMP_MIN",
         bins: 25,
@@ -59,7 +68,7 @@ fetch(require("../data/weather-10k.arrow")).then(response => {
     views.set("TEMP_MAX", {
       title: "Maximum Temperature",
       type: "1D",
-      el: document.getElementById("tempmax"),
+      el: createElement("tempmax"),
       dimension: {
         name: "TEMP_MAX",
         bins: 25,
@@ -70,7 +79,7 @@ fetch(require("../data/weather-10k.arrow")).then(response => {
     views.set("PRECIPITATION", {
       title: "Precipitation in Millimeter",
       type: "1D",
-      el: document.getElementById("precipitation"),
+      el: createElement("precipitation"),
       dimension: {
         name: "PRECIPITATION",
         bins: 25,
@@ -81,7 +90,7 @@ fetch(require("../data/weather-10k.arrow")).then(response => {
     views.set("WIND", {
       title: "Wind Speed in Meters per Second",
       type: "1D",
-      el: document.getElementById("wind"),
+      el: createElement("wind"),
       dimension: {
         name: "WIND",
         bins: 25,

@@ -4,7 +4,14 @@ import { LOGGING } from "../src/config";
 import { DataBase } from "../src/db";
 import { Logger } from "../src/logger";
 
-// import "./mapd";
+document.getElementById("app")!.innerText = "";
+
+function createElement(id: string) {
+  const el = document.createElement("div");
+  el.setAttribute("id", id);
+  document.getElementById("app")!.appendChild(el);
+  return el;
+}
 
 fetch(require("../data/flights-10k.arrow")).then(response => {
   response.arrayBuffer().then(buffer => {
@@ -34,12 +41,12 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("COUNT", {
       title: "Flights selected",
       type: "0D",
-      el: document.getElementById("count")
+      el: createElement("count")
     });
     views.set("DISTANCE", {
       title: "Distance in Miles",
       type: "1D",
-      el: document.getElementById("distance"),
+      el: createElement("distance"),
       dimension: {
         name: "DISTANCE",
         bins: 25,
@@ -50,7 +57,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("ARR_TIME", {
       title: "Arrival Time",
       type: "1D",
-      el: document.getElementById("arrival"),
+      el: createElement("arrival"),
       dimension: {
         name: "ARR_TIME",
         bins: 24,
@@ -61,7 +68,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_TIME", {
       title: "Departure Time",
       type: "1D",
-      el: document.getElementById("departure"),
+      el: createElement("departure"),
       dimension: {
         name: "DEP_TIME",
         bins: 24,
@@ -72,7 +79,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_DELAY", {
       title: "Departure Delay in Minutes",
       type: "1D",
-      el: document.getElementById("dep_delay"),
+      el: createElement("dep_delay"),
       dimension: {
         name: "DEP_DELAY",
         bins: 25,
@@ -83,7 +90,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("ARR_DELAY", {
       title: "Arrival Delay in Minutes",
       type: "1D",
-      el: document.getElementById("arr_delay"),
+      el: createElement("arr_delay"),
       dimension: {
         name: "ARR_DELAY",
         bins: 25,
@@ -94,7 +101,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("AIR_TIME", {
       title: "Airtime in Minutes",
       type: "1D",
-      el: document.getElementById("airtime"),
+      el: createElement("airtime"),
       dimension: {
         name: "AIR_TIME",
         bins: 25,
@@ -105,7 +112,7 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     views.set("DEP_DELAY_ARR_DELAY", {
       title: "Arrival and Departure Delay in Minutes",
       type: "2D",
-      el: document.getElementById("delay"),
+      el: createElement("delay"),
       dimensions: [
         {
           title: "Departure Delay",
