@@ -1,5 +1,5 @@
+import { EncodeEntry, parse, Spec, View } from "vega-lib";
 import { View0D } from "./../api";
-import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 
 export const BAR_HEIGHT = 200;
 

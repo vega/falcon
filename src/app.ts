@@ -1,8 +1,7 @@
-import { View1D, View2D } from "./api";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
-import { Views } from "./api";
+import { View1D, View2D, Views } from "./api";
 import { Interval } from "./basic.d";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
