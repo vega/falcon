@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "Big data crossfilter",
   "main": "index.js",
-  "private": true,
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "start:weather": "parcel weather/index.html",
