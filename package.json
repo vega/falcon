@@ -2,7 +2,9 @@
   "name": "big-crossfilter",
   "version": "0.1.0",
   "description": "Big data crossfilter",
-  "main": "index.js",
+  "main": "build/src/big-crossfilter.js",
+  "module": "build/src/index",
+  "types": "build/src/index.d.ts",
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "start:weather": "parcel weather/index.html",
