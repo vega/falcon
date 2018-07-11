@@ -135,13 +135,13 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
 
     document.getElementById("loading")!.innerText = "";
 
-    const logger = new SimpleLogger<ViewName>();
+    // const logger = new SimpleLogger<ViewName>();
 
-    window.onbeforeunload = () =>
-      logger.hasUnsentData()
-        ? "We still need to send logs. Try again in a few seconds."
-        : null;
+    // window.onbeforeunload = () =>
+    //   logger.hasUnsentData()
+    //     ? "We still need to send logs. Try again in a few seconds."
+    //     : null;
 
-    new App(views, db, {}, logger);
+    new App(views, db, {});
   });
 });
