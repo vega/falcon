@@ -2,6 +2,6 @@
 .rpt2_cache*
 .vscode/tags
 build
-data/.ipynb_checkpoints
+data
 dist
 node_modules
