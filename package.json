@@ -12,6 +12,7 @@
     "start": "npm run start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
     "build": "tsc && rollup -c",
+    "prepublishOnly": "npm run build",
     "build:flights": "parcel build --public-url '.' flights/index.html",
     "build:weather": "parcel build --public-url '.' weather/index.html",
     "build:movies": "parcel build --public-url '.' movies/index.html",
