@@ -7,8 +7,8 @@ build
 cross.gif
 data
 dist
-flight
-movie
+flights
+movies
 node_modules
 rollup.config.js
 src
