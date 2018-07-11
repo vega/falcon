@@ -7,7 +7,10 @@ build
 cross.gif
 data
 dist
+flight
+movie
 node_modules
 rollup.config.js
 src
+weather
 yarn-error.log
