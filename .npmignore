@@ -1,8 +1,12 @@
 .cache
+.editorconfig
+.prettierrc
 .rpt2_cache*
-.vscode/tags
+.vscode
 build
+cross.gif
 data
 dist
 node_modules
+rollup.config.js
 yarn-error.log
