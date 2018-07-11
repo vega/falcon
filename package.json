@@ -11,7 +11,7 @@
     "start:movies": "parcel movies/index.html",
     "start": "npm run start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
-    "build": "npm run tsc && rollup -c",
+    "build": "tsc && rollup -c",
     "build:flights": "parcel build --public-url '.' flights/index.html",
     "build:weather": "parcel build --public-url '.' weather/index.html",
     "build:movies": "parcel build --public-url '.' movies/index.html",
