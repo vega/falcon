@@ -45,7 +45,7 @@
     "@types/ndarray": "1.0.6",
     "gh-pages": "^1.2.0",
     "node-sass": "^4.9.2",
-    "parcel-bundler": "1.9.4",
+    "parcel-bundler": "1.9.6",
     "prettier": "^1.13.7",
     "rollup": "^0.62.0",
     "rollup-plugin-commonjs": "^9.1.3",
