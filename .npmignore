@@ -9,4 +9,5 @@ data
 dist
 node_modules
 rollup.config.js
+src
 yarn-error.log
