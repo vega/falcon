@@ -1,6 +1,8 @@
 import ndarray from "ndarray";
 import { sub } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
+import { BinConfig } from "./api";
+import { Interval } from "./basic";
 
 export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
