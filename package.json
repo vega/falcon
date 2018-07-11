@@ -1,6 +1,6 @@
 {
   "name": "big-crossfilter",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Big data crossfilter",
   "main": "build/src/big-crossfilter.js",
   "module": "build/src/index",
