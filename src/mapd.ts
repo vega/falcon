@@ -30,7 +30,7 @@ connection
       .then(console.log)
       .catch(console.error);
 
-    session.getFields("flights_donotmodify", (err, res) => console.log(res));
+    session.getFields("flights_donotmodify", (_, res) => console.log(res));
 
     session.queryAsync(`SELECT count(*) as n FROM flights`).then(console.log);
   })
