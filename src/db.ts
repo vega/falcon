@@ -97,9 +97,10 @@ export class DataBase<V extends string, D extends string> {
     const result = new Map<V, ndarray>();
 
     const activeDim = activeView.dimension;
+    const activeStepSize = stepSize(activeDim.extent, pixels);
     const binActive = binNumberFunction({
-      start: activeDim.extent[0],
-      step: stepSize(activeDim.extent, pixels)
+      start: activeDim.extent[0] - activeStepSize,
+      step: activeStepSize
     });
     const activeCol = this.data.getColumn(activeDim.name)!;
 
@@ -120,7 +121,7 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Int32Array(pixels + 1));
+        hists = ndarray(new Int32Array(pixels + 2));
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -130,7 +131,7 @@ export class DataBase<V extends string, D extends string> {
           }
 
           const keyActive = binActive(activeCol.get(i));
-          if (0 <= keyActive && keyActive < pixels) {
+          if (0 <= keyActive && keyActive < pixels + 1) {
             hists.data[hists.index(keyActive)]++;
           } else {
             // add to cumulative hist
@@ -146,8 +147,8 @@ export class DataBase<V extends string, D extends string> {
         const bin = binNumberFunction(binConfig);
         const binCount = numBins(binConfig);
 
-        hists = ndarray(new Uint32Array((pixels + 1) * binCount), [
-          pixels + 1, // last histogram is cumulation of all others
+        hists = ndarray(new Uint32Array((pixels + 2) * binCount), [
+          pixels + 2, // last histogram is cumulation of all others
           binCount
         ]);
 
@@ -163,7 +164,7 @@ export class DataBase<V extends string, D extends string> {
           const key = bin(column.get(i));
           const keyActive = binActive(activeCol.get(i));
           if (0 <= key && key < binCount) {
-            if (0 <= keyActive && keyActive < pixels) {
+            if (0 <= keyActive && keyActive < pixels + 1) {
               hists.data[hists.index(keyActive, key)]++;
             } else {
               // add to cumulative hist
@@ -185,8 +186,8 @@ export class DataBase<V extends string, D extends string> {
           d => this.data.getColumn(d.name)!
         );
 
-        hists = ndarray(new Uint32Array((pixels + 1) * numBinsX * numBinsY), [
-          pixels + 1, // last histogram is cumulation of all others
+        hists = ndarray(new Uint32Array((pixels + 2) * numBinsX * numBinsY), [
+          pixels + 2, // last histogram is cumulation of all others
           numBinsX,
           numBinsY
         ]);
@@ -201,7 +202,7 @@ export class DataBase<V extends string, D extends string> {
           const keyY = binY(columnY.get(i));
           const keyActive = binActive(activeCol.get(i));
           if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
-            if (0 <= keyActive && keyActive < pixels) {
+            if (0 <= keyActive && keyActive < pixels + 1) {
               hists.data[hists.index(keyActive, keyX, keyY)]++;
             } else {
               // add to cumulative hist

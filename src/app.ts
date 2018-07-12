@@ -29,7 +29,6 @@ export class App<V extends string, D extends string> {
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
   private data: Map<V, ndarray>;
-  private needsUpdate = false;
   private readonly config: Config;
 
   /**
@@ -193,10 +192,7 @@ export class App<V extends string, D extends string> {
       this.brushes.set(dimension, extent(value) as [number, number]);
     }
 
-    this.needsUpdate = true;
-    window.requestAnimationFrame(() => {
-      this.update();
-    });
+    this.update();
   }
 
   private getActiveView() {
@@ -266,13 +262,6 @@ export class App<V extends string, D extends string> {
   }
 
   private update() {
-    if (!this.needsUpdate) {
-      console.info("Skipped update");
-      return;
-    }
-
-    this.needsUpdate = false;
-
     const activeView = this.getActiveView();
     const activeBinF = binNumberFunction({
       start: activeView.dimension.extent[0],
@@ -285,9 +274,7 @@ export class App<V extends string, D extends string> {
 
     if (brush) {
       // active brush in pixel domain
-      activeBrush = brush.map(b =>
-        clamp(activeBinF(b), [0, HISTOGRAM_WIDTH - 1])
-      );
+      activeBrush = brush.map(b => clamp(activeBinF(b), [0, HISTOGRAM_WIDTH]));
     }
 
     for (const [name, view] of this.views) {
@@ -300,7 +287,7 @@ export class App<V extends string, D extends string> {
       if (view.type === "0D") {
         const value = activeBrush
           ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
-          : hists.get(HISTOGRAM_WIDTH);
+          : hists.get(HISTOGRAM_WIDTH) + 1;
         this.update0DView(name, value, false);
       } else if (view.type === "1D") {
         const hist = activeBrush
@@ -308,7 +295,7 @@ export class App<V extends string, D extends string> {
               hists.pick(activeBrush[0], null),
               hists.pick(activeBrush[1], null)
             )
-          : hists.pick(HISTOGRAM_WIDTH, null);
+          : hists.pick(HISTOGRAM_WIDTH + 1, null);
 
         this.update1DView(name, view, hist, false);
       } else {
@@ -317,7 +304,7 @@ export class App<V extends string, D extends string> {
               hists.pick(activeBrush[0], null, null),
               hists.pick(activeBrush[1], null, null)
             )
-          : hists.pick(HISTOGRAM_WIDTH, null, null);
+          : hists.pick(HISTOGRAM_WIDTH + 1, null, null);
 
         this.update2DView(name, view, heat);
       }
