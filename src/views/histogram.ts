@@ -134,7 +134,8 @@ export function createHistogramView<D extends string>(
                 enter: {
                   ...barEncodeBase,
                   fill: { value: "#000" },
-                  opacity: { value: 0.07 }
+                  opacity: { value: 0.07 },
+                  key: { field: "key" }
                 }
               }
             },

@@ -165,7 +165,8 @@ export function createHeatmapView<D extends string>(
                   scale: "y",
                   signal: `datum.keyY + binY.step`
                 },
-                fill: { scale: "color", field: "value" }
+                fill: { scale: "color", field: "value" },
+                key: { field: "keyX" }
               }
             }
           },
