@@ -20,8 +20,8 @@ export function createHeatmapView<D extends string>(
       }
     ],
     signals: [
-      { name: "binX", update: JSON.stringify(dimensionX.binConfig) },
-      { name: "binY", update: JSON.stringify(dimensionY.binConfig) },
+      { name: "binX", value: dimensionX.binConfig },
+      { name: "binY", value: dimensionY.binConfig },
       { name: "extentX", value: dimensionX.extent },
       { name: "extentY", value: dimensionY.extent },
       {
@@ -133,6 +133,16 @@ export function createHeatmapView<D extends string>(
               'span(brushY) ? [scale("y", brushY[0]), scale("y", brushY[1])] : [-10, -10]'
           }
         ]
+      },
+      {
+        name: "brush", // in data space
+        value: 0,
+        on: [
+          {
+            events: [{ signal: "brushX" }, { signal: "brushY" }],
+            update: "[brushX, brushY]"
+          }
+        ]
       }
     ],
     marks: [
@@ -165,7 +175,10 @@ export function createHeatmapView<D extends string>(
                   scale: "y",
                   signal: `datum.keyY + binY.step`
                 },
-                fill: { scale: "color", field: "value" },
+                fill: {
+                  signal:
+                    "datum.value === 0 ? 'white' : scale('color', datum.value)"
+                },
                 key: { field: "keyX" }
               }
             }

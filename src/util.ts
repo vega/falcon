@@ -1,8 +1,9 @@
 import ndarray from "ndarray";
-import { sub } from "ndarray-ops";
+import { sub as subop, add as addop } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
+import cwise from "cwise";
 
 export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
@@ -88,9 +89,48 @@ export function flatten(data) {
   return out;
 }
 
-export function diff(a: ndarray, b: ndarray) {
+export function sub(a: ndarray, b: ndarray) {
   const out = ndarray(new Array(a.size), a.shape);
-  sub(out, b, a);
+  subop(out, b, a);
+  return out;
+}
+
+export function add(a: ndarray, b: ndarray) {
+  const out = ndarray(new Array(a.size), a.shape);
+  addop(out, b, a);
+  return out;
+}
+
+const satl = cwise({
+  args: ["array", "array", "array", "array", "array"],
+  body: function(_, a, b, c, d) {
+    _ = a - b - c + d;
+  },
+  funcName: "satl"
+});
+
+/**
+ * Assume that the four arrays are the corners ins a 2D summed area table.
+ *
+ * Origin in bottom left.
+ *
+ *   b----a
+ *   |    |
+ *   d----c
+ *
+ * 0
+ *
+ */
+export function summedAreaTableLookup(
+  a: ndarray,
+  b: ndarray,
+  c: ndarray,
+  d: ndarray
+) {
+  const out = ndarray(new Array(a.size), a.shape);
+
+  satl(out, a, b, c, d);
+
   return out;
 }
 

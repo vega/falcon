@@ -24,17 +24,15 @@ export class SimpleLogger<V extends string> implements Logger<V> {
     });
 
     view.addSignalListener("brushMouse", (_, value) => {
-      if (value > 0) {
-        // filter events that are in the wrong chart
-        const brushRange = view.signal("brush");
-        const pixBrushRange = view.signal("pixelBrush");
-        console.log({
-          view: name,
-          name: value === 2 ? "brushStart" : "brushEnd",
-          brush: brushRange[0],
-          pixBrush: pixBrushRange[0]
-        });
-      }
+      // filter events that are in the wrong chart
+      const brushRange = view.signal("brush");
+      const pixBrushRange = view.signal("pixelBrush");
+      console.log({
+        view: name,
+        name: value === 1 ? "brushStart" : "brushEnd",
+        brush: brushRange[0],
+        pixBrush: pixBrushRange[0]
+      });
     });
 
     view.addSignalListener("brush", (_, brushRange) => {

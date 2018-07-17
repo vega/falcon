@@ -14,7 +14,7 @@ export default {
     resolve(),
     commonjs({
       namedExports: {
-        "node_modules/ndarray-ops/ndarray-ops.js": ["sub"]
+        "node_modules/ndarray-ops/ndarray-ops.js": ["sub", "add"]
       }
     }),
     json()

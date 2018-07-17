@@ -1,8 +1,7 @@
-import { Logger } from "./api";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
-import { View1D, View2D, Views } from "./api";
+import { Logger, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic.d";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
@@ -10,10 +9,10 @@ import {
   bin,
   binNumberFunction,
   binToData,
-  clamp,
-  diff,
   omit,
-  stepSize
+  stepSize,
+  sub,
+  summedAreaTableLookup
 } from "./util";
 import {
   createBarView,
@@ -22,13 +21,14 @@ import {
   createTextView,
   HISTOGRAM_WIDTH
 } from "./views";
+import { HEATMAP_WIDTH } from "./views/heatmap";
 
 export class App<V extends string, D extends string> {
   private readonly views: Views<V, D> = new Map();
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
-  private data: Map<V, ndarray>;
+  private data: Map<V, { hists: ndarray; noBrush: ndarray }>;
   private readonly config: Config;
 
   /**
@@ -83,7 +83,7 @@ export class App<V extends string, D extends string> {
         this.update1DView(name, view, data, this.config.showBase);
 
         vegaView.addSignalListener("brush", (_name, value) => {
-          this.brushMove(name, view.dimension.name, value);
+          this.brushMove1D(name, view.dimension.name, value);
         });
 
         vegaView.addEventListener("mouseover", () => {
@@ -109,6 +109,21 @@ export class App<V extends string, D extends string> {
 
         const data = this.db.heatmap(view.dimensions);
         this.update2DView(name, view, data);
+
+        vegaView.addSignalListener("brush", (_name, value) => {
+          this.brushMove2D(
+            name,
+            view.dimensions[0].name,
+            view.dimensions[1].name,
+            value
+          );
+        });
+
+        vegaView.addEventListener("mouseover", () => {
+          if (this.activeView !== name) {
+            this.switchActiveView(name);
+          }
+        });
       }
     }
   }
@@ -129,14 +144,24 @@ export class App<V extends string, D extends string> {
     const brushes = new Map(this.brushes);
     if (activeView.type == "1D") {
       brushes.delete(activeView.dimension.name);
-    }
 
-    this.data = this.db.loadData(
-      activeView,
-      HISTOGRAM_WIDTH,
-      omit(this.views, name),
-      brushes
-    );
+      this.data = this.db.loadData1D(
+        activeView,
+        HISTOGRAM_WIDTH,
+        omit(this.views, name),
+        brushes
+      );
+    } else {
+      brushes.delete(activeView.dimensions[0].name);
+      brushes.delete(activeView.dimensions[1].name);
+
+      this.data = this.db.loadData2D(
+        activeView,
+        [HEATMAP_WIDTH, HEATMAP_WIDTH],
+        omit(this.views, name),
+        brushes
+      );
+    }
 
     const activeVgView = this.vegaViews.get(name)!;
     activeVgView.runAfter(view => {
@@ -180,7 +205,7 @@ export class App<V extends string, D extends string> {
   //   return out;
   // }
 
-  private brushMove(name: V, dimension: D, value: [number, number]) {
+  private brushMove1D(name: V, dimension: D, value: [number, number]) {
     if (this.activeView !== name) {
       this.switchActiveView(name);
     }
@@ -195,8 +220,30 @@ export class App<V extends string, D extends string> {
     this.update();
   }
 
+  private brushMove2D(
+    name: V,
+    dim1: D,
+    dim2: D,
+    value: Interval<[number, number]>
+  ) {
+    if (this.activeView !== name) {
+      this.switchActiveView(name);
+    }
+
+    // delete or set brush
+    if (!value) {
+      this.brushes.delete(dim1);
+      this.brushes.delete(dim2);
+    } else {
+      this.brushes.set(dim1, extent(value[0]) as [number, number]);
+      this.brushes.set(dim2, extent(value[1]) as [number, number]);
+    }
+
+    this.update();
+  }
+
   private getActiveView() {
-    return this.views.get(this.activeView)! as View1D<D>;
+    return this.views.get(this.activeView)! as View1D<D> | View2D<D>;
   }
 
   private update0DView(name: V, value: number, base: boolean) {
@@ -263,50 +310,109 @@ export class App<V extends string, D extends string> {
 
   private update() {
     const activeView = this.getActiveView();
-    const activeBinF = binNumberFunction({
-      start: activeView.dimension.extent[0],
-      step: stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
-    });
 
-    const brush = this.brushes.get(activeView.dimension.name);
+    if (activeView.type === "1D") {
+      const activeBinF = binNumberFunction({
+        start: activeView.dimension.extent[0],
+        step: stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
+      });
 
-    let activeBrush: number[] | null = null;
+      const brush = this.brushes.get(activeView.dimension.name);
 
-    if (brush) {
-      // active brush in pixel domain
-      activeBrush = brush.map(b => clamp(activeBinF(b), [0, HISTOGRAM_WIDTH]));
-    }
+      let activeBrush: number[] | null = null;
 
-    for (const [name, view] of this.views) {
-      if (name === this.activeView) {
-        continue;
+      if (brush) {
+        // active brush in pixel domain
+        activeBrush = brush.map(activeBinF);
       }
 
-      const hists = this.data.get(name)!;
+      for (const [name, view] of this.views) {
+        if (name === this.activeView) {
+          continue;
+        }
 
-      if (view.type === "0D") {
-        const value = activeBrush
-          ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
-          : hists.get(HISTOGRAM_WIDTH) + 1;
-        this.update0DView(name, value, false);
-      } else if (view.type === "1D") {
-        const hist = activeBrush
-          ? diff(
-              hists.pick(activeBrush[0], null),
-              hists.pick(activeBrush[1], null)
-            )
-          : hists.pick(HISTOGRAM_WIDTH + 1, null);
+        const data = this.data.get(name)!;
+        const hists = data.hists;
 
-        this.update1DView(name, view, hist, false);
-      } else {
-        const heat = activeBrush
-          ? diff(
-              hists.pick(activeBrush[0], null, null),
-              hists.pick(activeBrush[1], null, null)
-            )
-          : hists.pick(HISTOGRAM_WIDTH + 1, null, null);
+        if (view.type === "0D") {
+          const value = activeBrush
+            ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
+            : data.noBrush.data[0];
+          this.update0DView(name, value, false);
+        } else if (view.type === "1D") {
+          const hist = activeBrush
+            ? sub(
+                hists.pick(activeBrush[0], null),
+                hists.pick(activeBrush[1], null)
+              )
+            : data.noBrush;
 
-        this.update2DView(name, view, heat);
+          this.update1DView(name, view, hist, false);
+        } else {
+          const heat = activeBrush
+            ? sub(
+                hists.pick(activeBrush[0], null, null),
+                hists.pick(activeBrush[1], null, null)
+              )
+            : data.noBrush;
+
+          this.update2DView(name, view, heat);
+        }
+      }
+    } else {
+      const activeBinF = [0, 1].map(i =>
+        binNumberFunction({
+          start: activeView.dimensions[i].extent[0],
+          step: stepSize(activeView.dimensions[i].extent, HEATMAP_WIDTH)
+        })
+      );
+
+      const brush = [0, 1].map(i =>
+        this.brushes.get(activeView.dimensions[i].name)
+      );
+
+      let activeBrush: Interval<number[]> | null = null;
+
+      if (brush[0] && brush[1]) {
+        // active brush in pixel domain
+        activeBrush = [
+          brush[0]!.map(activeBinF[0]),
+          brush[1]!.map(activeBinF[1])
+        ];
+      }
+
+      for (const [name, view] of this.views) {
+        if (name === this.activeView) {
+          continue;
+        }
+
+        const data = this.data.get(name)!;
+        const hists = data.hists;
+
+        if (view.type === "0D") {
+          const value = activeBrush
+            ? hists.get(activeBrush[0][1], activeBrush[1][1]) -
+              hists.get(activeBrush[0][1], activeBrush[1][0]) -
+              hists.get(activeBrush[0][0], activeBrush[1][1]) +
+              hists.get(activeBrush[0][0], activeBrush[1][0])
+            : data.noBrush.data[0];
+
+          this.update0DView(name, value, false);
+        } else if (view.type === "1D") {
+          const hist = activeBrush
+            ? summedAreaTableLookup(
+                hists.pick(activeBrush[0][1], activeBrush[1][1], null),
+                hists.pick(activeBrush[0][1], activeBrush[1][0], null),
+                hists.pick(activeBrush[0][0], activeBrush[1][1], null),
+                hists.pick(activeBrush[0][0], activeBrush[1][0], null)
+              )
+            : data.noBrush;
+
+          this.update1DView(name, view, hist, false);
+        } else {
+          // not yet implemented
+          console.warn("not yet implemented");
+        }
       }
     }
   }

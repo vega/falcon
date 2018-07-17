@@ -76,28 +76,28 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
         format: ".1f"
       }
     });
-    views.set("DEP_DELAY", {
-      title: "Departure Delay in Minutes",
-      type: "1D",
-      el: createElement("dep_delay"),
-      dimension: {
-        name: "DEP_DELAY",
-        bins: 25,
-        extent: [-20, 60],
-        format: ".1f"
-      }
-    });
-    views.set("ARR_DELAY", {
-      title: "Arrival Delay in Minutes",
-      type: "1D",
-      el: createElement("arr_delay"),
-      dimension: {
-        name: "ARR_DELAY",
-        bins: 25,
-        extent: [-20, 60],
-        format: ".1f"
-      }
-    });
+    // views.set("DEP_DELAY", {
+    //   title: "Departure Delay in Minutes",
+    //   type: "1D",
+    //   el: createElement("dep_delay"),
+    //   dimension: {
+    //     name: "DEP_DELAY",
+    //     bins: 25,
+    //     extent: [-20, 60],
+    //     format: ".1f"
+    //   }
+    // });
+    // views.set("ARR_DELAY", {
+    //   title: "Arrival Delay in Minutes",
+    //   type: "1D",
+    //   el: createElement("arr_delay"),
+    //   dimension: {
+    //     name: "ARR_DELAY",
+    //     bins: 25,
+    //     extent: [-20, 60],
+    //     format: ".1f"
+    //   }
+    // });
     views.set("AIR_TIME", {
       title: "Airtime in Minutes",
       type: "1D",
@@ -142,6 +142,6 @@ fetch(require("../data/flights-10k.arrow")).then(response => {
     //     ? "We still need to send logs. Try again in a few seconds."
     //     : null;
 
-    new App(views, db, {});
+    new App(views, db);
   });
 });

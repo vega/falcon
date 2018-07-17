@@ -354,8 +354,8 @@ export function createHistogramView<D extends string>(
   }
 
   const signals: Signal[] = [
-    { name: "active", update: false },
-    { name: "bin", update: JSON.stringify(dimension.binConfig) },
+    { name: "active", value: false },
+    { name: "bin", value: dimension.binConfig },
     {
       name: "brush",
       value: 0,
@@ -416,11 +416,11 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "@chart:mousedown",
-          update: "2"
+          update: "1"
         },
         {
           events: "window:mouseup",
-          update: "brushMouse === 2 ? 1 : 0"
+          update: "0"
         }
       ]
     });

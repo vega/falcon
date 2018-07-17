@@ -1,7 +1,7 @@
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
-import { Dimension, View1D, Views } from "./api";
+import { Dimension, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic.d";
 import { BitSet, union } from "./bitset";
 import { binNumberFunction, numBins, stepSize } from "./util";
@@ -85,7 +85,7 @@ export class DataBase<V extends string, D extends string> {
     return heat;
   }
 
-  public loadData(
+  public loadData1D(
     activeView: View1D<D>,
     pixels: number,
     views: Views<V, D>,
@@ -94,7 +94,13 @@ export class DataBase<V extends string, D extends string> {
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result = new Map<V, ndarray>();
+    const result = new Map<
+      V,
+      {
+        hists: ndarray;
+        noBrush: ndarray;
+      }
+    >();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -103,10 +109,12 @@ export class DataBase<V extends string, D extends string> {
       step: activeStepSize
     });
     const activeCol = this.data.getColumn(activeDim.name)!;
+    const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
       let hists: ndarray;
+      let noBrush: ndarray;
 
       // get union of all filter masks that don't contain the dimension(s) for the current view
       const relevantMasks = new Map(filterMasks);
@@ -121,7 +129,8 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Int32Array(pixels + 2));
+        hists = ndarray(new Int32Array(numPixels));
+        noBrush = ndarray(new Int32Array(1));
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -131,12 +140,10 @@ export class DataBase<V extends string, D extends string> {
           }
 
           const keyActive = binActive(activeCol.get(i));
-          if (0 <= keyActive && keyActive < pixels + 1) {
+          if (0 <= keyActive && keyActive < numPixels) {
             hists.data[hists.index(keyActive)]++;
-          } else {
-            // add to cumulative hist
-            hists.data[hists.index(pixels)]++;
           }
+          noBrush.data[0]++;
         }
 
         prefixSum(hists);
@@ -147,10 +154,11 @@ export class DataBase<V extends string, D extends string> {
         const bin = binNumberFunction(binConfig);
         const binCount = numBins(binConfig);
 
-        hists = ndarray(new Uint32Array((pixels + 2) * binCount), [
-          pixels + 2, // last histogram is cumulation of all others
+        hists = ndarray(new Uint32Array(numPixels * binCount), [
+          numPixels,
           binCount
         ]);
+        noBrush = ndarray(new Int32Array(binCount));
 
         const column = this.data.getColumn(dim.name)!;
 
@@ -164,12 +172,10 @@ export class DataBase<V extends string, D extends string> {
           const key = bin(column.get(i));
           const keyActive = binActive(activeCol.get(i));
           if (0 <= key && key < binCount) {
-            if (0 <= keyActive && keyActive < pixels + 1) {
+            if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, key)]++;
-            } else {
-              // add to cumulative hist
-              hists.data[hists.index(pixels, key)]++;
             }
+            noBrush.data[key]++;
           }
         }
 
@@ -186,11 +192,12 @@ export class DataBase<V extends string, D extends string> {
           d => this.data.getColumn(d.name)!
         );
 
-        hists = ndarray(new Uint32Array((pixels + 2) * numBinsX * numBinsY), [
-          pixels + 2, // last histogram is cumulation of all others
+        hists = ndarray(new Uint32Array(numPixels * numBinsX * numBinsY), [
+          numPixels,
           numBinsX,
           numBinsY
         ]);
+        noBrush = ndarray(new Int32Array(numBinsX * numBinsY));
 
         for (let i = 0; i < this.length; i++) {
           // ignore filtered entries
@@ -202,12 +209,10 @@ export class DataBase<V extends string, D extends string> {
           const keyY = binY(columnY.get(i));
           const keyActive = binActive(activeCol.get(i));
           if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
-            if (0 <= keyActive && keyActive < pixels + 1) {
+            if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, keyX, keyY)]++;
-            } else {
-              // add to cumulative hist
-              hists.data[hists.index(pixels, keyX, keyY)]++;
             }
+            noBrush.data[noBrush.index(keyX, keyY)]++;
           }
         }
 
@@ -219,7 +224,144 @@ export class DataBase<V extends string, D extends string> {
         }
       }
 
-      result.set(name, hists);
+      result.set(name, { hists, noBrush });
+    }
+
+    console.timeEnd("Build result cube");
+
+    return result;
+  }
+
+  public loadData2D(
+    activeView: View2D<D>,
+    pixels: [number, number],
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
+  ) {
+    console.time("Build result cube");
+
+    const filterMasks = this.getFilterMasks(brushes);
+    const result = new Map<
+      V,
+      {
+        hists: ndarray;
+        noBrush: ndarray;
+      }
+    >();
+
+    const [activeDimX, activeDimY] = activeView.dimensions;
+    const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
+    const activeStepSizeY = stepSize(activeDimY.extent, pixels[1]);
+    const binActiveX = binNumberFunction({
+      start: activeDimX.extent[0] - activeStepSizeX,
+      step: activeStepSizeX
+    });
+    const binActiveY = binNumberFunction({
+      start: activeDimY.extent[0] - activeStepSizeY,
+      step: activeStepSizeY
+    });
+    const activeColX = this.data.getColumn(activeDimX.name)!;
+    const activeColY = this.data.getColumn(activeDimY.name)!;
+
+    const [numPixelsX, numPixelsY] = [pixels[0] + 1, pixels[1] + 1];
+
+    for (const [name, view] of views) {
+      // array for histograms with last histogram being the complete histogram
+      let hists: ndarray;
+      let noBrush: ndarray;
+
+      // get union of all filter masks that don't contain the dimension(s) for the current view
+      const relevantMasks = new Map(filterMasks);
+      if (view.type === "0D") {
+        // use all filters
+      } else if (view.type === "1D") {
+        relevantMasks.delete(view.dimension.name);
+      } else {
+        relevantMasks.delete(view.dimensions[0].name);
+        relevantMasks.delete(view.dimensions[1].name);
+      }
+      const filterMask = union(...relevantMasks.values());
+
+      if (view.type === "0D") {
+        hists = ndarray(new Int32Array(numPixelsX * numPixelsY), [
+          numPixelsX,
+          numPixelsY
+        ]);
+        noBrush = ndarray(new Int32Array(1));
+
+        // add data to aggregation matrix
+        for (let i = 0; i < this.length; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.check(i)) {
+            continue;
+          }
+
+          const keyActiveX = binActiveX(activeColX.get(i));
+          const keyActiveY = binActiveY(activeColY.get(i));
+          if (
+            0 <= keyActiveX &&
+            keyActiveX < numPixelsX &&
+            0 <= keyActiveY &&
+            keyActiveY < numPixelsY
+          ) {
+            hists.data[hists.index(keyActiveX, keyActiveY)]++;
+          }
+
+          // add to cumulative hist
+          noBrush.data[0]++;
+        }
+
+        prefixSum(hists);
+      } else if (view.type === "1D") {
+        const dim = view.dimension;
+
+        const binConfig = dim.binConfig!;
+        const bin = binNumberFunction(binConfig);
+        const binCount = numBins(binConfig);
+
+        hists = ndarray(new Uint32Array(numPixelsX * numPixelsY * binCount), [
+          numPixelsX,
+          numPixelsY,
+          binCount
+        ]);
+        noBrush = ndarray(new Int32Array(binCount));
+
+        const column = this.data.getColumn(dim.name)!;
+
+        // add data to aggregation matrix
+        for (let i = 0; i < this.length; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.check(i)) {
+            continue;
+          }
+
+          const key = bin(column.get(i));
+          const keyActiveX = binActiveX(activeColX.get(i));
+          const keyActiveY = binActiveY(activeColY.get(i));
+          if (0 <= key && key < binCount) {
+            if (
+              0 <= keyActiveX &&
+              keyActiveX < numPixelsX &&
+              0 <= keyActiveY &&
+              keyActiveY < numPixelsY
+            ) {
+              hists.data[hists.index(keyActiveX, keyActiveY, key)]++;
+            }
+
+            // add to cumulative hist
+            noBrush.data[key]++;
+          }
+        }
+
+        // compute cumulative sums
+        for (let x = 0; x < hists.shape[2]; x++) {
+          prefixSum(hists.pick(null, null, x));
+        }
+      } else {
+        throw new Error("2D view brushing and viewing not yet implemented.");
+      }
+
+      result.set(name, { hists, noBrush });
     }
 
     console.timeEnd("Build result cube");
