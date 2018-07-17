@@ -1,9 +1,9 @@
+import cwise from "cwise";
 import ndarray from "ndarray";
-import { sub as subop, add as addop } from "ndarray-ops";
+import { add as addop, sub as subop } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
-import cwise from "cwise";
 
 export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
@@ -92,12 +92,6 @@ export function flatten(data) {
 export function sub(a: ndarray, b: ndarray) {
   const out = ndarray(new Array(a.size), a.shape);
   subop(out, b, a);
-  return out;
-}
-
-export function add(a: ndarray, b: ndarray) {
-  const out = ndarray(new Array(a.size), a.shape);
-  addop(out, b, a);
   return out;
 }
 
