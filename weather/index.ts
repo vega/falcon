@@ -2,7 +2,6 @@ import { Views } from "./../src/api";
 import { Table } from "@apache-arrow/es2015-esm";
 import { App } from "../src/app";
 import { DataBase } from "../src/db";
-import { SimpleLogger } from "../src/logger";
 
 document.getElementById("app")!.innerText = "";
 

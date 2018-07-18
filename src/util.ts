@@ -1,6 +1,6 @@
 import cwise from "cwise";
 import ndarray from "ndarray";
-import { add as addop, sub as subop } from "ndarray-ops";
+import { sub as subop } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";

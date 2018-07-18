@@ -16,10 +16,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "files": [
-    "src/index.ts",
-    "flights/index.ts",
-    "weather/index.ts",
-    "movies/index.ts"
-  ]
+  "files": ["src/index.ts", "flights/index.ts", "weather/index.ts"]
 }
