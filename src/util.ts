@@ -4,6 +4,7 @@ import { sub as subop } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
+import { HIST_TYPE } from "./consts";
 
 export const bin: (
   opt: { maxbins: number; extent: Interval<number> }
@@ -90,7 +91,7 @@ export function flatten(data) {
 }
 
 export function sub(a: ndarray, b: ndarray) {
-  const out = ndarray(new Int32Array(a.size), a.shape);
+  const out = ndarray(new HIST_TYPE(a.size), a.shape);
   subop(out, b, a);
   return out;
 }
@@ -121,7 +122,7 @@ export function summedAreaTableLookup(
   c: ndarray,
   d: ndarray
 ) {
-  const out = ndarray(new Int32Array(a.size), a.shape);
+  const out = ndarray(new HIST_TYPE(a.size), a.shape);
 
   satl(out, a, b, c, d);
 

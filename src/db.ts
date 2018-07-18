@@ -1,3 +1,4 @@
+import { HIST_TYPE, CUM_ARR_TYPE } from "./consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
@@ -43,7 +44,7 @@ export class DataBase<V extends string, D extends string> {
     const bin = binNumberFunction(binConfig);
     const binCount = numBins(binConfig);
 
-    const hist = ndarray(new Uint32Array(binCount));
+    const hist = ndarray(new HIST_TYPE(binCount));
     for (const value of this.data.getColumn(dimension.name)!) {
       const key = bin(value);
       if (0 <= key && key < binCount) {
@@ -66,7 +67,7 @@ export class DataBase<V extends string, D extends string> {
       d => this.data.getColumn(d.name)!
     );
 
-    const heat = ndarray(new Uint32Array(numBinsX * numBinsY), [
+    const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
       numBinsX,
       numBinsY
     ]);
@@ -129,8 +130,8 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Uint32Array(numPixels));
-        noBrush = ndarray(new Uint32Array(1), [1]);
+        hists = ndarray(new CUM_ARR_TYPE(numPixels));
+        noBrush = ndarray(new HIST_TYPE(1), [1]);
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -154,11 +155,11 @@ export class DataBase<V extends string, D extends string> {
         const bin = binNumberFunction(binConfig);
         const binCount = numBins(binConfig);
 
-        hists = ndarray(new Uint32Array(numPixels * binCount), [
+        hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
           numPixels,
           binCount
         ]);
-        noBrush = ndarray(new Uint32Array(binCount), [binCount]);
+        noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
         const column = this.data.getColumn(dim.name)!;
 
@@ -192,12 +193,12 @@ export class DataBase<V extends string, D extends string> {
           d => this.data.getColumn(d.name)!
         );
 
-        hists = ndarray(new Uint32Array(numPixels * numBinsX * numBinsY), [
+        hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
           numPixels,
           numBinsX,
           numBinsY
         ]);
-        noBrush = ndarray(new Uint32Array(numBinsX * numBinsY), [
+        noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
           numBinsX,
           numBinsY
         ]);
@@ -286,11 +287,11 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Uint32Array(numPixelsX * numPixelsY), [
+        hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
           numPixelsX,
           numPixelsY
         ]);
-        noBrush = ndarray(new Uint32Array(1));
+        noBrush = ndarray(new HIST_TYPE(1));
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -322,12 +323,12 @@ export class DataBase<V extends string, D extends string> {
         const bin = binNumberFunction(binConfig);
         const binCount = numBins(binConfig);
 
-        hists = ndarray(new Uint32Array(numPixelsX * numPixelsY * binCount), [
+        hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount), [
           numPixelsX,
           numPixelsY,
           binCount
         ]);
-        noBrush = ndarray(new Uint32Array(binCount));
+        noBrush = ndarray(new HIST_TYPE(binCount));
 
         const column = this.data.getColumn(dim.name)!;
 
