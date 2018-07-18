@@ -90,7 +90,7 @@ export function flatten(data) {
 }
 
 export function sub(a: ndarray, b: ndarray) {
-  const out = ndarray(new Array(a.size), a.shape);
+  const out = ndarray(new Int32Array(a.size), a.shape);
   subop(out, b, a);
   return out;
 }
@@ -121,7 +121,7 @@ export function summedAreaTableLookup(
   c: ndarray,
   d: ndarray
 ) {
-  const out = ndarray(new Array(a.size), a.shape);
+  const out = ndarray(new Int32Array(a.size), a.shape);
 
   satl(out, a, b, c, d);
 

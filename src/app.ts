@@ -338,6 +338,7 @@ export class App<V extends string, D extends string> {
           const value = activeBrush
             ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
             : data.noBrush.data[0];
+
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
           const hist = activeBrush

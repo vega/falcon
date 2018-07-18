@@ -129,8 +129,8 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Int32Array(numPixels));
-        noBrush = ndarray(new Int32Array(1));
+        hists = ndarray(new Uint32Array(numPixels));
+        noBrush = ndarray(new Uint32Array(1), [1]);
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -158,7 +158,7 @@ export class DataBase<V extends string, D extends string> {
           numPixels,
           binCount
         ]);
-        noBrush = ndarray(new Int32Array(binCount));
+        noBrush = ndarray(new Uint32Array(binCount), [binCount]);
 
         const column = this.data.getColumn(dim.name)!;
 
@@ -197,7 +197,10 @@ export class DataBase<V extends string, D extends string> {
           numBinsX,
           numBinsY
         ]);
-        noBrush = ndarray(new Int32Array(numBinsX * numBinsY));
+        noBrush = ndarray(new Uint32Array(numBinsX * numBinsY), [
+          numBinsX,
+          numBinsY
+        ]);
 
         for (let i = 0; i < this.length; i++) {
           // ignore filtered entries
@@ -283,11 +286,11 @@ export class DataBase<V extends string, D extends string> {
       const filterMask = union(...relevantMasks.values());
 
       if (view.type === "0D") {
-        hists = ndarray(new Int32Array(numPixelsX * numPixelsY), [
+        hists = ndarray(new Uint32Array(numPixelsX * numPixelsY), [
           numPixelsX,
           numPixelsY
         ]);
-        noBrush = ndarray(new Int32Array(1));
+        noBrush = ndarray(new Uint32Array(1));
 
         // add data to aggregation matrix
         for (let i = 0; i < this.length; i++) {
@@ -324,7 +327,7 @@ export class DataBase<V extends string, D extends string> {
           numPixelsY,
           binCount
         ]);
-        noBrush = ndarray(new Int32Array(binCount));
+        noBrush = ndarray(new Uint32Array(binCount));
 
         const column = this.data.getColumn(dim.name)!;
 
