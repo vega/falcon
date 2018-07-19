@@ -4,7 +4,8 @@ export const DEFAULT_CONFIG = {
   chartCount: false,
   zoomBrush: true,
   showBase: true,
-  zeroDBar: true
+  zeroDBar: true,
+  showInterestingness: true
 };
 
 export type Config = typeof DEFAULT_CONFIG;

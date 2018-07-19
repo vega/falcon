@@ -9,6 +9,7 @@ import {
   bin,
   binNumberFunction,
   binToData,
+  chEmd,
   omit,
   stepSize,
   sub,
@@ -129,17 +130,22 @@ export class App<V extends string, D extends string> {
   }
 
   private switchActiveView(name: V) {
-    console.log(`Active view ${this.activeView} => ${name}`);
+    console.info(`Active view ${this.activeView} => ${name}`);
 
     if (this.activeView) {
       this.vegaViews.get(this.activeView)!.runAfter(view => {
-        view.signal("active", false).run();
+        view
+          .remove("interesting", truthy)
+          .resize()
+          .signal("active", false)
+          .run();
       });
     }
 
     this.activeView = name;
 
     const activeView = this.getActiveView();
+    const activeVgView = this.vegaViews.get(name)!;
 
     const brushes = new Map(this.brushes);
     if (activeView.type == "1D") {
@@ -151,6 +157,17 @@ export class App<V extends string, D extends string> {
         omit(this.views, name),
         brushes
       );
+
+      if (this.config.showInterestingness) {
+        activeVgView
+          .change(
+            "interesting",
+            changeset()
+              .remove(truthy)
+              .insert(this.calculateInterestingness())
+          )
+          .resize();
+      }
     } else {
       brushes.delete(activeView.dimensions[0].name);
       brushes.delete(activeView.dimensions[1].name);
@@ -163,47 +180,50 @@ export class App<V extends string, D extends string> {
       );
     }
 
-    const activeVgView = this.vegaViews.get(name)!;
     activeVgView.runAfter(view => {
       view.signal("active", true).run();
     });
-
-    // activeVgView.change(
-    //   "interesting",
-    //   changeset()
-    //     .remove(truthy)
-    //     .insert(this.calculateInterestingness())
-    // );
   }
 
-  // private calculateInterestingness() {
-  //   let out: {
-  //     view: V;
-  //     x: number;
-  //     value: any;
-  //   }[] = [];
+  private calculateInterestingness() {
+    let out: {
+      view: V;
+      x: number;
+      value: any;
+    }[] = [];
 
-  //   for (const [name, view] of omit(this.views, this.activeView)) {
-  //     if (view.type === '1D') {
-  //       const data = range(HISTOGRAM_WIDTH - 1).map(pixel => {
-  //         const distance = diff(
-  //           this.getResult(name, pixel),
-  //           this.getResult(name, pixel + 1)
-  //         ).reduce((acc, val) => acc + Math.abs(val), 0);
-  //         return {
-  //           view: name,
-  //           x: pixel,
-  //           value: distance
-  //         };
-  //       });
-  //       out = out.concat(data);
-  //     } else {
-  //       // TODO
-  //     }
-  //   }
+    console.time("Compute interestingness");
+    for (const [name, view] of omit(this.views, this.activeView)) {
+      if (view.type !== "0D") {
+        const { hists } = this.data.get(name)!;
+        const data = new Array(HISTOGRAM_WIDTH);
+        for (let pixel = 0; pixel < HISTOGRAM_WIDTH; pixel++) {
+          let distance: number;
+          if (view.type === "1D") {
+            distance = chEmd(
+              hists.pick(pixel, null),
+              hists.pick(pixel + 1, null)
+            );
+          } else {
+            distance = chEmd(
+              hists.pick(pixel, null, null),
+              hists.pick(pixel + 1, null, null)
+            );
+          }
 
-  //   return out;
-  // }
+          data[pixel] = {
+            view: name,
+            x: pixel,
+            value: Math.log(distance + 1e-6)
+          };
+        }
+        out = out.concat(data);
+      }
+    }
+    console.timeEnd("Compute interestingness");
+
+    return out;
+  }
 
   private brushMove1D(name: V, dimension: D, value: [number, number]) {
     if (this.activeView !== name) {

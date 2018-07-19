@@ -14,6 +14,7 @@ export function createHeatmapView<D extends string>(
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     width: HEATMAP_WIDTH,
     height: HEATMAP_WIDTH,
+    padding: 5,
     data: [
       {
         name: "table"

@@ -14,7 +14,8 @@
     "prepublishOnly": "npm run build",
     "build:flights": "parcel build --public-url '.' flights/index.html",
     "build:weather": "parcel build --public-url '.' weather/index.html",
-    "deploy:demo": "npm run clean && npm run build:flights && gh-pages -d dist"
+    "deploy:demo": "npm run clean && npm run build:flights && gh-pages -d dist",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -38,12 +39,14 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.33"
+    "vega-typings": "^0.3.34"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",
+    "@types/jest": "^23.3.0",
     "@types/ndarray": "1.0.6",
     "gh-pages": "^1.2.0",
+    "jest": "^23.4.1",
     "node-sass": "^4.9.2",
     "parcel-bundler": "1.9.7",
     "prettier": "^1.13.7",
@@ -51,6 +54,26 @@
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-json": "^3.0.0",
     "rollup-plugin-node-resolve": "^3.3.0",
+    "ts-jest": "^23.0.1",
     "typescript": "^2.9.2"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "<rootDir>/build",
+      "src"
+    ]
   }
 }

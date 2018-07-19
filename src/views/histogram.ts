@@ -57,6 +57,13 @@ export function createHistogramView<D extends string>(
   const marks: Mark[] = [
     {
       type: "group",
+      name: "main",
+      encode: {
+        enter: {
+          height: { signal: "histHeight" },
+          width: { signal: "width" }
+        }
+      },
       marks: [
         {
           type: "text",
@@ -98,7 +105,7 @@ export function createHistogramView<D extends string>(
           name: "chart",
           encode: {
             enter: {
-              height: { signal: "height" },
+              height: { field: { group: "height" } },
               width: { signal: "width" },
               fill: { value: "transparent" },
               cursor: { value: "crosshair" }
@@ -108,6 +115,7 @@ export function createHistogramView<D extends string>(
               clip: { signal: "pixelBrush[0] === -10" }
             }
           },
+
           marks: [
             {
               type: "rect",
@@ -154,7 +162,7 @@ export function createHistogramView<D extends string>(
               type: "group",
               encode: {
                 enter: {
-                  height: { signal: "height" }
+                  height: { field: { group: "height" } }
                 },
                 update: {
                   x: { signal: "pixelBrush[0]" }
@@ -215,7 +223,7 @@ export function createHistogramView<D extends string>(
               type: "group",
               encode: {
                 enter: {
-                  height: { signal: "height" }
+                  height: { field: { group: "height" } }
                 },
                 update: {
                   x: { signal: "pixelBrush[1]" }
@@ -273,9 +281,29 @@ export function createHistogramView<D extends string>(
             }
           ]
         }
+      ],
+
+      axes: [
+        {
+          scale: "y",
+          orient: "left",
+          labelOverlap: true,
+          tickCount: { signal: "ceil(histHeight/40)" },
+          title: "Count",
+          grid: true
+        },
+        {
+          scale: "x",
+          orient: "bottom",
+          labelOverlap: true,
+          tickCount: { signal: "ceil(width/20)" }
+        }
       ]
-    },
-    {
+    }
+  ];
+
+  if (config.showInterestingness) {
+    marks.push({
       type: "group",
       marks: [
         {
@@ -299,25 +327,28 @@ export function createHistogramView<D extends string>(
           name: "y",
           type: "band",
           domain: { data: "interesting", field: "view" },
-          range: [0, { signal: "length(data('interesting')) ? 40 : 0" }],
+          range: { step: 10 },
           paddingInner: 0.1,
           paddingOuter: 0
         },
         {
           name: "color",
           type: "sequential",
-          range: { scheme: "inferno" },
+          range: { scheme: "viridis" },
           domain: { data: "interesting", field: "value" }
         }
       ],
       axes: [
         {
           scale: "y",
-          orient: "left"
+          orient: "left",
+          ticks: false,
+          labelPadding: 5,
+          labelLimit: 60
         }
       ]
-    }
-  ];
+    } as Mark);
+  }
 
   const onBrush: OnEvent[] = [
     {
@@ -354,6 +385,7 @@ export function createHistogramView<D extends string>(
   }
 
   const signals: Signal[] = [
+    { name: "histHeight", value: Math.round(HISTOGRAM_WIDTH / 3.6) },
     { name: "active", value: false },
     { name: "bin", value: dimension.binConfig },
     {
@@ -366,7 +398,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "mousedown!, wheel!",
+          events: "mousedown!, wheel",
           update: 'invert("x", x())'
         }
       ]
@@ -510,9 +542,9 @@ export function createHistogramView<D extends string>(
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    autosize: "fit-y",
+    autosize: "pad",
     width: HISTOGRAM_WIDTH,
-    height: HISTOGRAM_WIDTH / 3,
+    padding: 5,
     data: data,
     signals: signals,
 
@@ -525,7 +557,7 @@ export function createHistogramView<D extends string>(
     },
 
     layout: {
-      padding: { row: 40 },
+      padding: { row: 10 },
       columns: 1,
       bounds: "full",
       align: "each"
@@ -551,27 +583,12 @@ export function createHistogramView<D extends string>(
             { data: "table", field: "value" }
           ]
         },
-        range: "height",
+        range: [{ signal: "histHeight" }, 0],
         nice: true,
         zero: true
       }
     ],
-    axes: [
-      {
-        scale: "y",
-        orient: "left",
-        labelOverlap: true,
-        tickCount: { signal: "ceil(height/40)" },
-        title: "Count",
-        grid: true
-      },
-      {
-        scale: "x",
-        orient: "bottom",
-        labelOverlap: true,
-        tickCount: { signal: "ceil(width/20)" }
-      }
-    ],
+
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 

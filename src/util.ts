@@ -1,6 +1,6 @@
 import cwise from "cwise";
 import ndarray from "ndarray";
-import { sub as subop } from "ndarray-ops";
+import { divseq, sub as sub_, sum } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
@@ -92,7 +92,7 @@ export function flatten(data) {
 
 export function sub(a: ndarray, b: ndarray) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
-  subop(out, b, a);
+  sub_(out, b, a);
   return out;
 }
 
@@ -127,6 +127,43 @@ export function summedAreaTableLookup(
   satl(out, a, b, c, d);
 
   return out;
+}
+
+/**
+ * Normalizes an ndarray histogram in place to a pdf.
+ */
+export function normalizePdf(a: ndarray) {
+  const s = sum(a);
+  divseq(a, s);
+}
+
+/**
+ * Normalizes the underlying histogram to a pdf of a cumulative histogram in place. This simply divides the data by the last value.
+ */
+export function normalizeChf(a: ndarray) {
+  divseq(a, a.get(a.size - 1));
+}
+
+export const _chEmd = cwise({
+  args: ["array", "array", "scalar", "scalar"],
+  pre: function(_0, _1, _2, _3) {
+    this.sum = 0.0;
+  },
+  body: function(a, b, al, bl) {
+    this.sum += Math.abs(a / al - b / bl);
+  },
+  post: function(_0, _1, _2, _3) {
+    return this.sum;
+  },
+  funcName: "_chEmd"
+});
+
+/**
+ * Compute the Earth mover's distance from two cumulative histograms.
+ */
+export function chEmd(a: ndarray, b: ndarray) {
+  // compute the sum of absolute differences between CDFs, and normalize it by the number of bins
+  return _chEmd(a, b, a.get(a.size - 1) || 1, b.get(b.size - 1) || 1) / a.size;
 }
 
 /**
