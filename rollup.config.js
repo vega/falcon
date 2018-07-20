@@ -11,7 +11,9 @@ export default {
     sourcemap: true
   },
   plugins: [
-    resolve(),
+    resolve({
+      browser: true
+    }),
     commonjs({
       namedExports: {
         "node_modules/ndarray-ops/ndarray-ops.js": ["sub", "add", "divseq"]
