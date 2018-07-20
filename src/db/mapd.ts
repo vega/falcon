@@ -165,33 +165,24 @@ export class MapDDB<V extends string, D extends string>
         const where =
           Array.from(relevantFilters.values()).join(" AND ") || "true";
 
+        let query: string;
+        let fullQuery: string;
+
         if (view.type === "0D") {
           hists = ndarray(new CUM_ARR_TYPE(numPixels));
           noBrush = ndarray(new HIST_TYPE(1), [1]);
 
-          const [res, resFull] = await Promise.all([
-            this.query(`
+          query = `
           SELECT
             ${binActive.select} AS keyActive,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${where}
-          GROUP BY keyActive`),
-            this.query(`
+          GROUP BY keyActive`;
+          fullQuery = `
           SELECT count(*) AS cnt
           FROM ${this.table}
-          WHERE ${where}`)
-          ]);
-
-          for (const { keyActive, cnt } of res) {
-            hists.set(keyActive, cnt);
-          }
-
-          for (const { cnt } of resFull) {
-            noBrush.set(0, cnt);
-          }
-
-          prefixSum(hists);
+          WHERE ${where}`;
         } else if (view.type === "1D") {
           const dim = view.dimension;
 
@@ -205,8 +196,7 @@ export class MapDDB<V extends string, D extends string>
           ]);
           noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
-          const [res, resFull] = await Promise.all([
-            this.query(`
+          (query = `
           SELECT
             ${binActive.select} AS keyActive,
             ${bin.select} as key,
@@ -214,27 +204,13 @@ export class MapDDB<V extends string, D extends string>
           FROM ${this.table}
           WHERE ${binActive.where} AND ${bin.where} AND ${where}
           GROUP BY keyActive, key`),
-            this.query(`
+            (fullQuery = `
           SELECT
             ${bin.select} as key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
-          GROUP BY key`)
-          ]);
-
-          for (const { keyActive, key, cnt } of res) {
-            hists.set(keyActive, key, cnt);
-          }
-
-          for (const { key, cnt } of resFull) {
-            noBrush.set(key, cnt);
-          }
-
-          // compute cumulative sums
-          for (let x = 0; x < hists.shape[1]; x++) {
-            prefixSum(hists.pick(null, x));
-          }
+          GROUP BY key`);
         } else {
           const dimensions = view.dimensions;
           const binConfigs = dimensions.map(d => d.binConfig!);
@@ -253,8 +229,7 @@ export class MapDDB<V extends string, D extends string>
             numBinsY
           ]);
 
-          const [res, resFull] = await Promise.all([
-            this.query(`
+          query = `
           SELECT
             ${binActive.select} AS keyActive,
             ${binX.select} as keyX,
@@ -262,25 +237,40 @@ export class MapDDB<V extends string, D extends string>
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${binX.where} AND ${
-              binY.where
-            } AND ${where}
-          GROUP BY keyActive, keyX, keyY`),
-            this.query(`
+            binY.where
+          } AND ${where}
+          GROUP BY keyActive, keyX, keyY`;
+
+          fullQuery = `
           SELECT
             ${binX.select} as keyX,
             ${binY.select} as keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} AND ${where}
-          GROUP BY keyX, keyY`)
-          ]);
+          GROUP BY keyX, keyY`;
+        }
 
-          for (const { keyActive, keyX, keyY, cnt } of res) {
-            hists.set(keyActive, keyX, keyY, cnt);
+        const res = await this.query(query);
+
+        if (view.type === "0D") {
+          for (const { keyActive, cnt } of res) {
+            hists.set(keyActive, cnt);
           }
 
-          for (const { keyX, keyY, cnt } of resFull) {
-            noBrush.set(keyX, keyY, cnt);
+          prefixSum(hists);
+        } else if (view.type === "1D") {
+          for (const { keyActive, key, cnt } of res) {
+            hists.set(keyActive, key, cnt);
+          }
+
+          // compute cumulative sums
+          for (let x = 0; x < hists.shape[1]; x++) {
+            prefixSum(hists.pick(null, x));
+          }
+        } else {
+          for (const { keyActive, keyX, keyY, cnt } of res) {
+            hists.set(keyActive, keyX, keyY, cnt);
           }
 
           // compute cumulative sums
@@ -291,7 +281,27 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
+        const noBrushPromise = new Promise<ndarray>(resolve => {
+          this.query(fullQuery).then(resFull => {
+            if (view.type === "0D") {
+              for (const { cnt } of resFull) {
+                noBrush.set(0, cnt);
+              }
+            } else if (view.type === "1D") {
+              for (const { key, cnt } of resFull) {
+                noBrush.set(key, cnt);
+              }
+            } else {
+              for (const { keyX, keyY, cnt } of resFull) {
+                noBrush.set(keyX, keyY, cnt);
+              }
+            }
+
+            resolve(noBrush);
+          });
+        });
+
+        result.set(name, { hists, noBrush: noBrushPromise });
       })
     );
 
