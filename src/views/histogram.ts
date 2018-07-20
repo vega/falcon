@@ -363,17 +363,17 @@ export function createHistogramView<D extends string>(
     },
     {
       events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-      update: '[down, clamp(invert("x", x()), bin.start, bin.stop)]'
+      update: "[down, clamp(invert('x', x()), bin.start, bin.stop)]"
     },
     {
       events:
         "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: '[clamp(invert("x", x()), bin.start, bin.stop), brush[1]]'
+      update: "[clamp(invert('x', x()), bin.start, bin.stop), brush[1]]"
     },
     {
       events:
         "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: '[brush[0], clamp(invert("x", x()), bin.start, bin.stop)]'
+      update: "[brush[0], clamp(invert('x', x()), bin.start, bin.stop)]"
     }
   ];
 
@@ -399,7 +399,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "mousedown!, wheel",
-          update: 'invert("x", x())'
+          update: "invert('x', x())"
         }
       ]
     },
@@ -408,7 +408,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "@brush:mousedown!",
+          events: "@brush:mousedown",
           update: "slice(brush)" // copy the brush
         }
       ]
@@ -419,7 +419,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-          update: 'down - invert("x", x())'
+          update: "down - invert('x', x())"
         }
       ]
     },
@@ -430,7 +430,7 @@ export function createHistogramView<D extends string>(
         {
           events: { signal: "brush" },
           update:
-            'span(brush) ? [scale("x", brush[0]), scale("x", brush[1])] : [-10, -10]'
+            "span(brush) ? [scale('x', brush[0]), scale('x', brush[1])] : [-10, -10]"
         }
       ]
     },
@@ -440,6 +440,39 @@ export function createHistogramView<D extends string>(
       on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
     }
   ];
+
+  if (config.showInterestingness) {
+    signals.push.apply(signals, [
+      {
+        name: "brushSingleStart",
+        value: null,
+        on: [
+          {
+            events: "@chart:mousedown",
+            update: "x()"
+          },
+          {
+            events: "@left:mousedown, @left_grabber:mousedown",
+            update: "pixelBrush[1]"
+          },
+          {
+            events: "@right:mousedown, @right_grabber:mousedown",
+            update: "pixelBrush[0]"
+          }
+        ]
+      },
+      {
+        name: "brushMoveStart",
+        value: null,
+        on: [
+          {
+            events: "@brush:mousedown",
+            update: "abs(span(pixelBrush))"
+          }
+        ]
+      }
+    ] as Signal[]);
+  }
 
   if (logging) {
     signals.push({

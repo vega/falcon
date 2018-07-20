@@ -163,6 +163,15 @@ export const _chEmd = cwise({
  */
 export function chEmd(a: ndarray, b: ndarray) {
   // compute the sum of absolute differences between CDFs, and normalize it by the number of bins
+
+  if (a.get(a.size - 1) === 0 || b.get(b.size - 1) === 0) {
+    if (a.get(a.size - 1) === 0 && b.get(b.size - 1) === 0) {
+      // return 0;
+    } else {
+      return 1;
+    }
+  }
+
   return _chEmd(a, b, a.get(a.size - 1) || 1, b.get(b.size - 1) || 1) / a.size;
 }
 

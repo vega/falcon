@@ -20,9 +20,9 @@ import {
   createHeatmapView,
   createHistogramView,
   createTextView,
+  HEATMAP_WIDTH,
   HISTOGRAM_WIDTH
 } from "./views";
-import { HEATMAP_WIDTH } from "./views/heatmap";
 
 export class App<V extends string, D extends string> {
   private readonly views: Views<V, D> = new Map();
@@ -93,6 +93,36 @@ export class App<V extends string, D extends string> {
           }
         });
 
+        if (this.config.showInterestingness) {
+          vegaView.addSignalListener(
+            "brushSingleStart",
+            (_name, value: number) => {
+              vegaView
+                .change(
+                  "interesting",
+                  changeset()
+                    .remove(truthy)
+                    .insert(this.calculateInterestingness({ start: value }))
+                )
+                .run();
+            }
+          );
+
+          vegaView.addSignalListener(
+            "brushMoveStart",
+            (_name, value: number) => {
+              vegaView
+                .change(
+                  "interesting",
+                  changeset()
+                    .remove(truthy)
+                    .insert(this.calculateInterestingness({ window: value }))
+                )
+                .run();
+            }
+          );
+        }
+
         if (this.logger) {
           this.logger.attach(name, vegaView);
         }
@@ -159,6 +189,7 @@ export class App<V extends string, D extends string> {
       );
 
       if (this.config.showInterestingness) {
+        // show basic interestingness
         activeVgView
           .change(
             "interesting",
@@ -185,7 +216,9 @@ export class App<V extends string, D extends string> {
     });
   }
 
-  private calculateInterestingness() {
+  private calculateInterestingness(
+    opt: { start?: number; window?: number } = {}
+  ) {
     let out: {
       view: V;
       x: number;
@@ -196,27 +229,54 @@ export class App<V extends string, D extends string> {
     for (const [name, view] of omit(this.views, this.activeView)) {
       if (view.type !== "0D") {
         const { hists } = this.data.get(name)!;
-        const data = new Array(HISTOGRAM_WIDTH);
-        for (let pixel = 0; pixel < HISTOGRAM_WIDTH; pixel++) {
-          let distance: number;
-          if (view.type === "1D") {
-            distance = chEmd(
-              hists.pick(pixel, null),
-              hists.pick(pixel + 1, null)
+        let data: Array<any>;
+
+        if (opt.window !== undefined) {
+          const w = Math.floor(opt.window / 2);
+
+          data = new Array(HISTOGRAM_WIDTH - opt.window);
+
+          for (let pixel = w; pixel < HISTOGRAM_WIDTH - w; pixel++) {
+            const distance = chEmd(
+              hists.pick(pixel - w, null, null),
+              hists.pick(pixel + w, null, null)
             );
-          } else {
-            distance = chEmd(
-              hists.pick(pixel, null, null),
-              hists.pick(pixel + 1, null, null)
-            );
+
+            data[pixel - w] = {
+              view: name,
+              x: pixel,
+              value: Math.log(distance + 1e-6)
+            };
+          }
+        } else {
+          data = new Array(HISTOGRAM_WIDTH);
+
+          // cache the start cumulative histogram
+          let startChf: ndarray = ndarray([]);
+          if (opt.start !== undefined) {
+            startChf = hists.pick(opt.start, null, null);
           }
 
-          data[pixel] = {
-            view: name,
-            x: pixel,
-            value: Math.log(distance + 1e-6)
-          };
+          for (let pixel = 0; pixel < HISTOGRAM_WIDTH; pixel++) {
+            let distance: number;
+
+            if (opt.start !== undefined) {
+              distance = chEmd(startChf, hists.pick(pixel, null, null));
+            } else {
+              distance = chEmd(
+                hists.pick(pixel, null, null),
+                hists.pick(pixel + 1, null, null)
+              );
+            }
+
+            data[pixel] = {
+              view: name,
+              x: pixel,
+              value: Math.log(distance + 1e-6)
+            };
+          }
         }
+
         out = out.concat(data);
       }
     }
