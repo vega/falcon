@@ -244,7 +244,7 @@ export class ArrowDB<V extends string, D extends string>
 
     console.timeEnd("Build result cube");
 
-    return result;
+    return Promise.resolve(result);
   }
 
   public loadData2D(
@@ -375,6 +375,6 @@ export class ArrowDB<V extends string, D extends string>
 
     console.timeEnd("Build result cube");
 
-    return result;
+    return Promise.resolve(result);
   }
 }

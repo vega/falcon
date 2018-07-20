@@ -1,11 +1,12 @@
-import { BinConfig } from "./../api";
-import { HIST_TYPE } from "./../consts";
 import "mapd-connector/dist/browser-connector";
 import ndarray from "ndarray";
+import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
-import { DataBase } from "./db";
-import { numBins } from "../util";
+import { numBins, stepSize } from "../util";
+import { BinConfig } from "./../api";
+import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
+import { DataBase, DbResult } from "./db";
 
 const connector = new (window as any).MapdCon();
 
@@ -27,28 +28,38 @@ export class MapDDB<V extends string, D extends string>
       .user("mapd")
       .password("HyperInteractive");
 
+    // const connection = connector
+    //   .protocol("https")
+    //   .host("beast-azure.mapd.com")
+    //   .port("443")
+    //   .dbName("newflights")
+    //   .user("demouser")
+    //   .password("HyperInteractive");
+
     this.session = await connection.connectAsync();
   }
 
   private async query(q: string): Promise<any> {
+    console.log(q);
     const t0 = Date.now();
     const result = await this.session.queryAsync(q);
     console.info(q, `${Date.now() - t0} ms`);
     return result;
   }
 
-  private binSQL(field: string, binConfig: BinConfig) {
+  private binSQL(dimension: D, binConfig: BinConfig) {
+    const field = this.nameMap.get(dimension)!;
     return {
-      select: `floor((cast(${field} as float) - ${binConfig.start}) / ${
+      select: `cast((${field} - ${binConfig.start}) / ${
         binConfig.step
-      })`,
+      } as int)`,
       where: `${binConfig.start} <= ${field} AND ${field} < ${binConfig.stop}`
     };
   }
 
   public async length() {
     const result = await this.query(
-      `SELECT count(*) as cnt FROM ${this.table}`
+      `SELECT count(*) AS cnt FROM ${this.table}`
     );
 
     return result[0].cnt;
@@ -57,15 +68,14 @@ export class MapDDB<V extends string, D extends string>
   public async histogram(dimension: Dimension<D>) {
     const bin = dimension.binConfig!;
     const binCount = numBins(bin);
-    const field = this.nameMap.get(dimension.name)!;
-    const bSql = this.binSQL(field, bin);
+    const bSql = this.binSQL(dimension.name, bin);
 
     const hist = ndarray(new HIST_TYPE(binCount));
 
     const result = await this.query(`
       SELECT
-        ${bSql.select} as key,
-        count(*) as cnt
+        ${bSql.select} AS key,
+        count(*) AS cnt
       FROM ${this.table}
       WHERE ${bSql.where}
       GROUP BY key
@@ -81,9 +91,8 @@ export class MapDDB<V extends string, D extends string>
   public async heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
     const [binX, binY] = dimensions.map(d => d.binConfig!);
     const [numBinsX, numBinsY] = [binX, binY].map(numBins);
-    const [fieldX, fieldY] = dimensions.map(d => this.nameMap.get(d.name)!);
-    const bSqlX = this.binSQL(fieldX, binX);
-    const bSqlY = this.binSQL(fieldY, binY);
+    const bSqlX = this.binSQL(dimensions[0].name, binX);
+    const bSqlY = this.binSQL(dimensions[1].name, binY);
 
     const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
       numBinsX,
@@ -92,9 +101,9 @@ export class MapDDB<V extends string, D extends string>
 
     const result = await this.query(`
       SELECT
-        ${bSqlX.select} as keyX,
-        ${bSqlY.select} as keyY,
-        count(*) as cnt
+        ${bSqlX.select} AS keyX,
+        ${bSqlY.select} AS keyY,
+        count(*) AS cnt
       FROM ${this.table}
       WHERE
         ${bSqlX.where} AND ${bSqlY.where}
@@ -112,30 +121,184 @@ export class MapDDB<V extends string, D extends string>
     const filters = new Map<D, string>();
 
     for (const [dimension, extent] of brushes) {
+      const field = this.nameMap.get(dimension)!;
       filters.set(
         dimension,
-        `${extent[0]} < ${dimension} AND ${dimension} < ${extent[1]}`
+        `${extent[0]} < ${field} AND ${field} < ${extent[1]}`
       );
     }
 
     return filters;
   }
 
-  public loadData1D(
+  public async loadData1D(
     activeView: View1D<D>,
     pixels: number,
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    const wheres = this.getWhereClauses(brushes);
+    const filters = this.getWhereClauses(brushes);
+    const result: DbResult<V> = new Map();
 
-    console.log(wheres);
+    const activeDim = activeView.dimension;
+    const activeStepSize = stepSize(activeDim.extent, pixels);
+    const binActive = this.binSQL(activeDim.name, {
+      start: activeDim.extent[0] - activeStepSize,
+      step: activeStepSize,
+      stop: activeDim.extent[1]
+    });
 
-    const result = new Map();
+    const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
+
+    await Promise.all(
+      Array.from(views.entries()).map(async ([name, view]) => {
+        let hists: ndarray;
+        let noBrush: ndarray;
+
+        const relevantFilters = new Map(filters);
+        if (view.type === "0D") {
+          // use all filters
+        } else if (view.type === "1D") {
+          relevantFilters.delete(view.dimension.name);
+        } else {
+          relevantFilters.delete(view.dimensions[0].name);
+          relevantFilters.delete(view.dimensions[1].name);
+        }
+
+        const where =
+          Array.from(relevantFilters.values()).join(" AND ") || "true";
+
+        if (view.type === "0D") {
+          hists = ndarray(new CUM_ARR_TYPE(numPixels));
+          noBrush = ndarray(new HIST_TYPE(1), [1]);
+
+          const res = await this.query(`
+          SELECT
+            ${binActive.select} AS keyActive,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActive.where} AND ${where}
+          GROUP BY keyActive`);
+
+          for (const { keyActive, cnt } of res) {
+            hists.set(keyActive, cnt);
+          }
+
+          const resFull = await this.query(`
+          SELECT count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${where}`);
+
+          for (const { cnt } of resFull) {
+            noBrush.set(0, cnt);
+          }
+
+          prefixSum(hists);
+        } else if (view.type === "1D") {
+          const dim = view.dimension;
+
+          const binConfig = dim.binConfig!;
+          const bin = this.binSQL(dim.name, binConfig);
+          const binCount = numBins(binConfig);
+
+          hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
+            numPixels,
+            binCount
+          ]);
+          noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
+
+          const res = await this.query(`
+          SELECT
+            ${binActive.select} AS keyActive,
+            ${bin.select} as key,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActive.where} AND ${bin.where} AND ${where}
+          GROUP BY keyActive, key`);
+
+          for (const { keyActive, key, cnt } of res) {
+            hists.set(keyActive, key, cnt);
+          }
+
+          const resFull = await this.query(`
+          SELECT
+            ${bin.select} as key,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${bin.where} AND ${where}
+          GROUP BY key`);
+
+          for (const { key, cnt } of resFull) {
+            noBrush.set(key, cnt);
+          }
+
+          // compute cumulative sums
+          for (let x = 0; x < hists.shape[1]; x++) {
+            prefixSum(hists.pick(null, x));
+          }
+        } else {
+          const dimensions = view.dimensions;
+          const binConfigs = dimensions.map(d => d.binConfig!);
+          const [numBinsX, numBinsY] = binConfigs.map(numBins);
+          const [binX, binY] = [0, 1].map(i =>
+            this.binSQL(dimensions[i].name, binConfigs[i])
+          );
+
+          hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
+            numPixels,
+            numBinsX,
+            numBinsY
+          ]);
+          noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
+            numBinsX,
+            numBinsY
+          ]);
+
+          const res = await this.query(`
+          SELECT
+            ${binActive.select} AS keyActive,
+            ${binX.select} as keyX,
+            ${binY.select} as keyY,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActive.where} AND ${binX.where} AND ${
+            binY.where
+          } AND ${where}
+          GROUP BY keyActive, keyX, keyY`);
+
+          for (const { keyActive, keyX, keyY, cnt } of res) {
+            hists.set(keyActive, keyX, keyY, cnt);
+          }
+
+          const resFull = await this.query(`
+          SELECT
+            ${binX.select} as keyX,
+            ${binY.select} as keyY,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binX.where} AND ${binY.where} AND ${where}
+          GROUP BY keyX, keyY`);
+
+          for (const { keyX, keyY, cnt } of resFull) {
+            noBrush.set(keyX, keyY, cnt);
+          }
+
+          // compute cumulative sums
+          for (let x = 0; x < hists.shape[1]; x++) {
+            for (let y = 0; y < hists.shape[2]; y++) {
+              prefixSum(hists.pick(null, x, y));
+            }
+          }
+        }
+
+        result.set(name, { hists, noBrush });
+      })
+    );
+
     return result;
   }
 
-  public loadData2D(
+  public async loadData2D(
     activeView: View2D<D>,
     pixels: [number, number],
     views: Views<V, D>,

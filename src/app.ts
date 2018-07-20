@@ -64,7 +64,9 @@ export class App<V extends string, D extends string> {
     await this.db.initialize();
 
     await Promise.all(
-      Array.from(this.views.entries()).map(d => this.initializeView(d[0], d[1]))
+      Array.from(this.views.entries()).map(([name, view]) =>
+        this.initializeView(name, view)
+      )
     );
   }
 
@@ -168,7 +170,7 @@ export class App<V extends string, D extends string> {
     }
   }
 
-  private switchActiveView(name: V) {
+  private async switchActiveView(name: V) {
     console.info(`Active view ${this.activeView} => ${name}`);
 
     if (this.activeView) {
@@ -190,7 +192,7 @@ export class App<V extends string, D extends string> {
     if (activeView.type == "1D") {
       brushes.delete(activeView.dimension.name);
 
-      this.data = this.db.loadData1D(
+      this.data = await this.db.loadData1D(
         activeView,
         HISTOGRAM_WIDTH,
         omit(this.views, name),
@@ -212,7 +214,7 @@ export class App<V extends string, D extends string> {
       brushes.delete(activeView.dimensions[0].name);
       brushes.delete(activeView.dimensions[1].name);
 
-      this.data = this.db.loadData2D(
+      this.data = await this.db.loadData2D(
         activeView,
         [HEATMAP_WIDTH, HEATMAP_WIDTH],
         omit(this.views, name),

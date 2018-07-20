@@ -21,12 +21,12 @@ export interface DataBase<V extends string, D extends string> {
     pixels: number,
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
-  ): DbResult<V>;
+  ): Promise<DbResult<V>>;
 
   loadData2D(
     activeView: View2D<D>,
     pixels: [number, number],
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
-  ): DbResult<V>;
+  ): Promise<DbResult<V>>;
 }
