@@ -1,4 +1,4 @@
-import { DB, DbResult } from "./db";
+import { DataBase, DbResult } from "./db";
 import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
@@ -8,8 +8,20 @@ import { Interval } from "../basic";
 import { BitSet, union } from "../bitset";
 import { binNumberFunction, numBins, stepSize } from "../util";
 
-export class DataBase<V extends string, D extends string> implements DB<V, D> {
-  public constructor(private readonly data: Table) {}
+export class ArrowDB<V extends string, D extends string>
+  implements DataBase<V, D> {
+  private data: Table;
+
+  public constructor(private readonly url: string) {}
+
+  public async initialize() {
+    const response = await fetch(this.url);
+    const buffer = await response.arrayBuffer();
+
+    this.data = Table.from(new Uint8Array(buffer));
+
+    return;
+  }
 
   private getFilterMask(dimension: D, extent: Interval<number>) {
     const column = this.data.getColumn(dimension)!;
@@ -39,7 +51,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
   }
 
   public length() {
-    return this.data.length;
+    return Promise.resolve(this.data.length);
   }
 
   public histogram(dimension: Dimension<D>) {
@@ -59,7 +71,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
 
     console.timeEnd("Histogram");
 
-    return hist;
+    return Promise.resolve(hist);
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
@@ -77,7 +89,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
       numBinsY
     ]);
 
-    for (let i = 0; i < this.length(); i++) {
+    for (let i = 0; i < this.data.length; i++) {
       const keyX = binX(columnX.get(i));
       const keyY = binY(columnY.get(i));
 
@@ -88,7 +100,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
 
     console.timeEnd("Heatmap");
 
-    return heat;
+    return Promise.resolve(heat);
   }
 
   public loadData1D(
@@ -133,7 +145,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
         noBrush = ndarray(new HIST_TYPE(1), [1]);
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length(); i++) {
+        for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -163,7 +175,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
         const column = this.data.getColumn(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length(); i++) {
+        for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -202,7 +214,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
           numBinsY
         ]);
 
-        for (let i = 0; i < this.length(); i++) {
+        for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -287,7 +299,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
         noBrush = ndarray(new HIST_TYPE(1));
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length(); i++) {
+        for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -326,7 +338,7 @@ export class DataBase<V extends string, D extends string> implements DB<V, D> {
         const column = this.data.getColumn(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length(); i++) {
+        for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;

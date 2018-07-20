@@ -2,7 +2,7 @@ import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
 import { Logger, View1D, View2D, Views } from "./api";
-import { Interval } from "./basic.d";
+import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
 import {
@@ -52,10 +52,17 @@ export class App<V extends string, D extends string> {
       }
     }
 
-    this.initialize();
+    this.initialize()
+      .then(() => {
+        console.info("Initialization finished.");
+      })
+      .catch(console.error);
   }
 
-  private initialize() {
+  private async initialize() {
+    // initialize the database
+    await this.db.initialize();
+
     for (const [name, view] of this.views) {
       const el = view.el!;
       if (view.type === "0D") {
@@ -64,7 +71,7 @@ export class App<V extends string, D extends string> {
           : createTextView)(el, view);
         this.vegaViews.set(name, vegaView);
 
-        this.update0DView(name, this.db.length(), true);
+        this.update0DView(name, await this.db.length(), true);
       } else if (view.type === "1D") {
         const binConfig = bin({
           maxbins: view.dimension.bins,
@@ -80,7 +87,7 @@ export class App<V extends string, D extends string> {
         );
         this.vegaViews.set(name, vegaView);
 
-        const data = this.db.histogram(view.dimension);
+        const data = await this.db.histogram(view.dimension);
         this.update1DView(name, view, data, this.config.showBase);
 
         vegaView.addSignalListener("brush", (_name, value) => {
@@ -138,7 +145,7 @@ export class App<V extends string, D extends string> {
         const vegaView = createHeatmapView(el, view);
         this.vegaViews.set(name, vegaView);
 
-        const data = this.db.heatmap(view.dimensions);
+        const data = await this.db.heatmap(view.dimensions);
         this.update2DView(name, view, data);
 
         vegaView.addSignalListener("brush", (_name, value) => {

@@ -9,7 +9,7 @@ import {
   Spec,
   View
 } from "vega-lib";
-import { View1D } from "./../api";
+import { View1D } from "../api";
 import { Config } from "../config";
 
 export const HISTOGRAM_WIDTH = 600;

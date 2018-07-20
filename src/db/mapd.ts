@@ -1,7 +1,125 @@
-import { DataBase } from "./db";
+import { HIST_TYPE } from "./../consts";
 import "mapd-connector/dist/browser-connector";
+import ndarray from "ndarray";
+import { Dimension, View1D, View2D, Views } from "../api";
+import { Interval } from "../basic";
+import { DataBase } from "./db";
+import { numBins } from "../util";
 
-export class MapDDb<V, D> {}
+const connector = new (window as any).MapdCon();
+
+const NAME_MAP = {
+  ARR_DELAY: "arrdelay",
+  ARR_TIME: "arrtime",
+  DISTANCE: "distance",
+  DEP_DELAY: "depdelay",
+  AIR_TIME: "airtime",
+  DEP_TIME: "deptime"
+};
+
+export class MapDDB<V extends string, D extends string>
+  implements DataBase<V, D> {
+  private session: any;
+
+  public async initialize() {
+    const connection = connector
+      .protocol("https")
+      .host("metis.mapd.com")
+      .port("443")
+      .dbName("mapd")
+      .user("mapd")
+      .password("HyperInteractive");
+
+    this.session = await connection.connectAsync();
+  }
+
+  private async query(q: string): Promise<any> {
+    console.info(q);
+    const result = await this.session.queryAsync(q);
+    return result;
+  }
+
+  public async length() {
+    const result = await this.query(
+      `select count(*) as cnt from flights_donotmodify`
+    );
+
+    return result[0].cnt;
+  }
+
+  public async histogram(dimension: Dimension<D>) {
+    const bin = dimension.binConfig!;
+    const binCount = numBins(bin);
+
+    const field = NAME_MAP[dimension.name as string];
+
+    const hist = ndarray(new HIST_TYPE(binCount));
+
+    const result = await this.query(`
+      SELECT
+        cast((${field} - ${bin.start}) / ${bin.step} as int) as key,
+        count(*) as cnt
+      FROM flights_donotmodify
+      WHERE ${bin.start} <= ${field} AND ${field} < ${bin.stop}
+      GROUP BY key
+      `);
+
+    for (const { key, cnt } of result) {
+      hist.set(key, cnt);
+    }
+
+    return hist;
+  }
+
+  public async heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
+    const [binX, binY] = dimensions.map(d => d.binConfig!);
+    const [numBinsX, numBinsY] = [binX, binY].map(numBins);
+    const [fieldX, fieldY] = dimensions.map(d => NAME_MAP[d.name as string]);
+
+    const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
+      numBinsX,
+      numBinsY
+    ]);
+
+    const result = await this.query(`
+      SELECT
+        cast((${fieldX} - ${binX.start}) / ${binX.step} as int) as keyX,
+        cast((${fieldY} - ${binY.start}) / ${binY.step} as int) as keyY,
+        count(*) as cnt
+      FROM flights_donotmodify
+      WHERE
+        ${binX.start} <= ${fieldX} AND ${fieldX} < ${binX.stop} AND
+        ${binY.start} <= ${fieldY} AND ${fieldY} < ${binY.stop}
+      GROUP BY keyX, keyY
+      `);
+
+    for (const { keyX, keyY, cnt } of result) {
+      heat.set(keyX, keyY, cnt);
+    }
+
+    return heat;
+  }
+
+  public loadData1D(
+    activeView: View1D<D>,
+    pixels: number,
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
+  ) {
+    const result = new Map();
+    return result;
+  }
+
+  public loadData2D(
+    activeView: View2D<D>,
+    pixels: [number, number],
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
+  ) {
+    const result = new Map();
+    return result;
+  }
+}
 
 export function connect() {
   const connector = new (window as any).MapdCon();

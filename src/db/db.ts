@@ -10,10 +10,11 @@ export type DbResult<V> = Map<
   }
 >;
 
-export interface DB<V extends string, D extends string> {
-  length(): number;
-  histogram(dimension: Dimension<D>): ndarray;
-  heatmap(dimensions: [Dimension<D>, Dimension<D>]): ndarray;
+export interface DataBase<V extends string, D extends string> {
+  initialize(): Promise<void>;
+  length(): Promise<number>;
+  histogram(dimension: Dimension<D>): Promise<ndarray>;
+  heatmap(dimensions: [Dimension<D>, Dimension<D>]): Promise<ndarray>;
 
   loadData1D(
     activeView: View1D<D>,

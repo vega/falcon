@@ -1,4 +1,4 @@
-import { View0D } from "./../api";
+import { View0D } from "../api";
 import { parse, Spec, View } from "vega-lib";
 
 export function createTextView(el: Element, view: View0D) {
