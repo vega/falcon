@@ -1,4 +1,4 @@
-# big-crossfilter
+# big-crossfilter [![Build Status](https://travis-ci.com/uwdata/big-crossfilter.svg?branch=master)](https://travis-ci.com/uwdata/big-crossfilter)
 
 Try the demo at https://uwdata.github.io/big-crossfilter.
 
