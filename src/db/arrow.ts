@@ -1,13 +1,14 @@
-import { HIST_TYPE, CUM_ARR_TYPE } from "./consts";
+import { DB, DbResult } from "./db";
+import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
-import { Dimension, View1D, View2D, Views } from "./api";
-import { Interval } from "./basic.d";
-import { BitSet, union } from "./bitset";
-import { binNumberFunction, numBins, stepSize } from "./util";
+import { Dimension, View1D, View2D, Views } from "../api";
+import { Interval } from "../basic";
+import { BitSet, union } from "../bitset";
+import { binNumberFunction, numBins, stepSize } from "../util";
 
-export class DataBase<V extends string, D extends string> {
+export class DataBase<V extends string, D extends string> implements DB<V, D> {
   public constructor(private readonly data: Table) {}
 
   private getFilterMask(dimension: D, extent: Interval<number>) {
@@ -35,6 +36,10 @@ export class DataBase<V extends string, D extends string> {
     console.timeEnd("Build filter masks");
 
     return filters;
+  }
+
+  public length() {
+    return this.data.length;
   }
 
   public histogram(dimension: Dimension<D>) {
@@ -72,7 +77,7 @@ export class DataBase<V extends string, D extends string> {
       numBinsY
     ]);
 
-    for (let i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length(); i++) {
       const keyX = binX(columnX.get(i));
       const keyY = binY(columnY.get(i));
 
@@ -95,13 +100,7 @@ export class DataBase<V extends string, D extends string> {
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result = new Map<
-      V,
-      {
-        hists: ndarray;
-        noBrush: ndarray;
-      }
-    >();
+    const result: DbResult<V> = new Map();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -134,7 +133,7 @@ export class DataBase<V extends string, D extends string> {
         noBrush = ndarray(new HIST_TYPE(1), [1]);
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length(); i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -164,7 +163,7 @@ export class DataBase<V extends string, D extends string> {
         const column = this.data.getColumn(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length(); i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -203,7 +202,7 @@ export class DataBase<V extends string, D extends string> {
           numBinsY
         ]);
 
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length(); i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -245,13 +244,7 @@ export class DataBase<V extends string, D extends string> {
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result = new Map<
-      V,
-      {
-        hists: ndarray;
-        noBrush: ndarray;
-      }
-    >();
+    const result: DbResult<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
@@ -294,7 +287,7 @@ export class DataBase<V extends string, D extends string> {
         noBrush = ndarray(new HIST_TYPE(1));
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length(); i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -333,7 +326,7 @@ export class DataBase<V extends string, D extends string> {
         const column = this.data.getColumn(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length(); i++) {
           // ignore filtered entries
           if (filterMask && filterMask.check(i)) {
             continue;
@@ -371,9 +364,5 @@ export class DataBase<V extends string, D extends string> {
     console.timeEnd("Build result cube");
 
     return result;
-  }
-
-  public get length() {
-    return this.data.length;
   }
 }

@@ -64,7 +64,7 @@ export class App<V extends string, D extends string> {
           : createTextView)(el, view);
         this.vegaViews.set(name, vegaView);
 
-        this.update0DView(name, this.db.length, true);
+        this.update0DView(name, this.db.length(), true);
       } else if (view.type === "1D") {
         const binConfig = bin({
           maxbins: view.dimension.bins,
