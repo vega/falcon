@@ -13,19 +13,19 @@ describe("emb", () => {
   });
 
   test("exposed emd produces the same result", () => {
-    expect(chEmd(ndarray(a), ndarray(b))).toBe(emd);
+    expect(chEmd(ndarray(a), ndarray(b))).toBe(emd / 6);
   });
 
   test("emd works for views", () => {
     expect(
       chEmd(ndarray([1, 2, 4, 6, 7, 8], [6]), ndarray([0, 3, 3, 4, 5, 7], [6]))
-    ).toBe(emd);
+    ).toBe(emd / 6);
 
     expect(
       chEmd(
         ndarray([1, 2, 4, 6, 7, 8, 1, 2], [6]),
         ndarray([0, 3, 3, 4, 5, 7, 8, 9], [6])
       )
-    ).toBe(emd);
+    ).toBe(emd / 6);
   });
 });
