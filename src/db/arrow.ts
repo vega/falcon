@@ -239,7 +239,7 @@ export class ArrowDB<V extends string, D extends string>
         }
       }
 
-      result.set(name, { hists, noBrush });
+      result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
     }
 
     console.timeEnd("Build result cube");

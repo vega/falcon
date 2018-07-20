@@ -1,3 +1,4 @@
+import { DbResult } from "./db/db";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
@@ -29,7 +30,7 @@ export class App<V extends string, D extends string> {
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
-  private data: Map<V, { hists: ndarray; noBrush: ndarray }>;
+  private data: DbResult<V>;
   private readonly config: Config;
 
   /**
@@ -403,7 +404,7 @@ export class App<V extends string, D extends string> {
     });
   }
 
-  private update() {
+  private async update() {
     const activeView = this.getActiveView();
 
     if (activeView.type === "1D") {
@@ -432,7 +433,7 @@ export class App<V extends string, D extends string> {
         if (view.type === "0D") {
           const value = activeBrush
             ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
-            : data.noBrush.data[0];
+            : (await data.noBrush).data[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
@@ -441,7 +442,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0], null),
                 hists.pick(activeBrush[1], null)
               )
-            : data.noBrush;
+            : await data.noBrush;
 
           this.update1DView(name, view, hist, false);
         } else {
@@ -450,7 +451,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0], null, null),
                 hists.pick(activeBrush[1], null, null)
               )
-            : data.noBrush;
+            : await data.noBrush;
 
           this.update2DView(name, view, heat);
         }
@@ -491,7 +492,7 @@ export class App<V extends string, D extends string> {
               hists.get(activeBrush[0][1], activeBrush[1][0]) -
               hists.get(activeBrush[0][0], activeBrush[1][1]) +
               hists.get(activeBrush[0][0], activeBrush[1][0])
-            : data.noBrush.data[0];
+            : (await data.noBrush)[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
@@ -502,7 +503,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0][0], activeBrush[1][1], null),
                 hists.pick(activeBrush[0][0], activeBrush[1][0], null)
               )
-            : data.noBrush;
+            : await data.noBrush;
 
           this.update1DView(name, view, hist, false);
         } else {

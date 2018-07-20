@@ -6,7 +6,7 @@ export type DbResult<V> = Map<
   V,
   {
     hists: ndarray;
-    noBrush: ndarray;
+    noBrush: Promise<ndarray>;
   }
 >;
 

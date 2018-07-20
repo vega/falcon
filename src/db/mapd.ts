@@ -291,7 +291,7 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        result.set(name, { hists, noBrush });
+        result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
       })
     );
 
@@ -299,13 +299,13 @@ export class MapDDB<V extends string, D extends string>
   }
 
   public async loadData2D(
-    activeView: View2D<D>,
-    pixels: [number, number],
-    views: Views<V, D>,
-    brushes: Map<D, Interval<number>>
+    _activeView: View2D<D>,
+    _pixels: [number, number],
+    _views: Views<V, D>,
+    _brushes: Map<D, Interval<number>>
   ) {
-    const result = new Map();
-    return result;
+    throw new Error("not yet implemented");
+    return new Map();
   }
 }
 
