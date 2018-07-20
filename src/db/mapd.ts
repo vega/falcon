@@ -7,6 +7,7 @@ import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
 import { DataBase, DbResult } from "./db";
+import { promises } from "fs";
 
 const connector = new (window as any).MapdCon();
 
@@ -135,7 +136,13 @@ export class MapDDB<V extends string, D extends string>
     brushes: Map<D, Interval<number>>
   ) {
     const filters = this.getWhereClauses(brushes);
-    const result: DbResult<V> = new Map();
+    const preparedResult = new Map<
+      V,
+      {
+        hists: ndarray;
+        noBrushResolve: (resolve: (ndarray) => void) => void;
+      }
+    >();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -281,7 +288,8 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        const noBrushPromise = new Promise<ndarray>(resolve => {
+        // we careate a function so that we can start the aquery after all the other queries have been started
+        const noBrushResolve = (resolve: (ndarray) => void) => {
           this.query(fullQuery).then(resFull => {
             if (view.type === "0D") {
               for (const { cnt } of resFull) {
@@ -299,11 +307,21 @@ export class MapDDB<V extends string, D extends string>
 
             resolve(noBrush);
           });
-        });
+        };
 
-        result.set(name, { hists, noBrush: noBrushPromise });
+        preparedResult.set(name, { hists, noBrushResolve });
       })
     );
+
+    const result: DbResult<V> = new Map();
+
+    for (const [name, res] of preparedResult) {
+      result.set(name, {
+        hists: res.hists,
+        // this starts the queries for the histograms without brushes
+        noBrush: new Promise(res.noBrushResolve)
+      });
+    }
 
     return result;
   }
