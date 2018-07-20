@@ -1,7 +1,7 @@
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
-import { Logger, View1D, View2D, Views } from "./api";
+import { Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
@@ -63,106 +63,108 @@ export class App<V extends string, D extends string> {
     // initialize the database
     await this.db.initialize();
 
-    for (const [name, view] of this.views) {
-      const el = view.el!;
-      if (view.type === "0D") {
-        const vegaView = (this.config.zeroDBar
-          ? createBarView
-          : createTextView)(el, view);
-        this.vegaViews.set(name, vegaView);
+    await Promise.all(
+      Array.from(this.views.entries()).map(d => this.initializeView(d[0], d[1]))
+    );
+  }
 
-        this.update0DView(name, await this.db.length(), true);
-      } else if (view.type === "1D") {
-        const binConfig = bin({
-          maxbins: view.dimension.bins,
-          extent: view.dimension.extent
-        });
-        view.dimension.binConfig = binConfig;
+  private async initializeView(name: V, view: View<D>) {
+    const el = view.el!;
+    if (view.type === "0D") {
+      const vegaView = (this.config.zeroDBar ? createBarView : createTextView)(
+        el,
+        view
+      );
+      this.vegaViews.set(name, vegaView);
 
-        const vegaView = createHistogramView(
-          el,
-          view,
-          this.config,
-          !!this.logger
+      this.update0DView(name, await this.db.length(), true);
+    } else if (view.type === "1D") {
+      const binConfig = bin({
+        maxbins: view.dimension.bins,
+        extent: view.dimension.extent
+      });
+      view.dimension.binConfig = binConfig;
+
+      const vegaView = createHistogramView(
+        el,
+        view,
+        this.config,
+        !!this.logger
+      );
+      this.vegaViews.set(name, vegaView);
+
+      const data = await this.db.histogram(view.dimension);
+      this.update1DView(name, view, data, this.config.showBase);
+
+      vegaView.addSignalListener("brush", (_name, value) => {
+        this.brushMove1D(name, view.dimension.name, value);
+      });
+
+      vegaView.addEventListener("mouseover", () => {
+        if (this.activeView !== name) {
+          this.switchActiveView(name);
+        }
+      });
+
+      if (this.config.showInterestingness) {
+        vegaView.addSignalListener(
+          "brushSingleStart",
+          (_name, value: number) => {
+            vegaView
+              .change(
+                "interesting",
+                changeset()
+                  .remove(truthy)
+                  .insert(this.calculateInterestingness({ start: value }))
+              )
+              .run();
+          }
         );
-        this.vegaViews.set(name, vegaView);
 
-        const data = await this.db.histogram(view.dimension);
-        this.update1DView(name, view, data, this.config.showBase);
-
-        vegaView.addSignalListener("brush", (_name, value) => {
-          this.brushMove1D(name, view.dimension.name, value);
-        });
-
-        vegaView.addEventListener("mouseover", () => {
-          if (this.activeView !== name) {
-            this.switchActiveView(name);
-          }
-        });
-
-        if (this.config.showInterestingness) {
-          vegaView.addSignalListener(
-            "brushSingleStart",
-            (_name, value: number) => {
-              vegaView
-                .change(
-                  "interesting",
-                  changeset()
-                    .remove(truthy)
-                    .insert(this.calculateInterestingness({ start: value }))
-                )
-                .run();
-            }
-          );
-
-          vegaView.addSignalListener(
-            "brushMoveStart",
-            (_name, value: number) => {
-              vegaView
-                .change(
-                  "interesting",
-                  changeset()
-                    .remove(truthy)
-                    .insert(this.calculateInterestingness({ window: value }))
-                )
-                .run();
-            }
-          );
-        }
-
-        if (this.logger) {
-          this.logger.attach(name, vegaView);
-        }
-      } else {
-        for (const dimension of view.dimensions) {
-          const binConfig = bin({
-            maxbins: dimension.bins,
-            extent: dimension.extent
-          });
-          dimension.binConfig = binConfig;
-        }
-
-        const vegaView = createHeatmapView(el, view);
-        this.vegaViews.set(name, vegaView);
-
-        const data = await this.db.heatmap(view.dimensions);
-        this.update2DView(name, view, data);
-
-        vegaView.addSignalListener("brush", (_name, value) => {
-          this.brushMove2D(
-            name,
-            view.dimensions[0].name,
-            view.dimensions[1].name,
-            value
-          );
-        });
-
-        vegaView.addEventListener("mouseover", () => {
-          if (this.activeView !== name) {
-            this.switchActiveView(name);
-          }
+        vegaView.addSignalListener("brushMoveStart", (_name, value: number) => {
+          vegaView
+            .change(
+              "interesting",
+              changeset()
+                .remove(truthy)
+                .insert(this.calculateInterestingness({ window: value }))
+            )
+            .run();
         });
       }
+
+      if (this.logger) {
+        this.logger.attach(name, vegaView);
+      }
+    } else {
+      for (const dimension of view.dimensions) {
+        const binConfig = bin({
+          maxbins: dimension.bins,
+          extent: dimension.extent
+        });
+        dimension.binConfig = binConfig;
+      }
+
+      const vegaView = createHeatmapView(el, view);
+      this.vegaViews.set(name, vegaView);
+
+      const data = await this.db.heatmap(view.dimensions);
+      this.update2DView(name, view, data);
+
+      vegaView.addSignalListener("brush", (_name, value) => {
+        this.brushMove2D(
+          name,
+          view.dimensions[0].name,
+          view.dimensions[1].name,
+          value
+        );
+      });
+
+      vegaView.addEventListener("mouseover", () => {
+        if (this.activeView !== name) {
+          this.switchActiveView(name);
+        }
+      });
     }
   }
 
