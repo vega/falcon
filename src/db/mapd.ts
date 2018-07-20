@@ -38,7 +38,6 @@ export class MapDDB<V extends string, D extends string>
   }
 
   private async query(q: string): Promise<any> {
-    console.log(q);
     const t0 = Date.now();
     const result = await this.session.queryAsync(q);
     console.info(q, `${Date.now() - t0} ms`);
