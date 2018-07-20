@@ -1351,8 +1351,8 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-db@^1.0.30000529, caniuse-db@^1.0.30000634, caniuse-db@^1.0.30000639:
-  version "1.0.30000867"
-  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000867.tgz#b55a6ecfac3107988940c9c7dfe1866315312c97"
+  version "1.0.30000869"
+  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000869.tgz#c3da59fa8d9456df88a24bb292ede0e3798798cb"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000844, caniuse-lite@^1.0.30000865:
   version "1.0.30000865"
@@ -2692,8 +2692,8 @@ extend-shallow@^3.0.0, extend-shallow@^3.0.2:
     is-extendable "^1.0.1"
 
 extend@~3.0.0, extend@~3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.1.tgz#a755ea7bc1adfcc5a31ce7e762dbaadc5e636444"
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.2.tgz#f8b1136b4071fbd8eb140aff858b1019ec2915fa"
 
 extglob@^0.3.1:
   version "0.3.2"
@@ -2843,7 +2843,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-flatbuffers@trxcllnt/flatbuffers-esm:
+"flatbuffers@github:trxcllnt/flatbuffers-esm":
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -4381,8 +4381,8 @@ map-visit@^1.0.0:
     object-visit "^1.0.0"
 
 "mapd-connector@git://github.com/mapd/mapd-connector.git":
-  version "1.0.0"
-  resolved "git://github.com/mapd/mapd-connector.git#bd164c2a829c16c90079c948029089590f0463c8"
+  version "4.0.1"
+  resolved "git://github.com/mapd/mapd-connector.git#781d9575b0fbc7b99f4a6c9455a1cc68c60cc484"
   dependencies:
     codecov "^2.2.0"
     script-loader "^0.7.0"
@@ -6211,9 +6211,9 @@ rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.2.0:
     estree-walker "^0.5.2"
     micromatch "^2.3.11"
 
-rollup@^0.63.2:
-  version "0.63.2"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.63.2.tgz#d27619204cd025c948d740972fb1d0da6aa64481"
+rollup@^0.63.4:
+  version "0.63.4"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.63.4.tgz#cb58bf6c2a6c38542cae250684c962799ad7c00c"
   dependencies:
     "@types/estree" "0.0.39"
     "@types/node" "*"
@@ -6835,8 +6835,8 @@ tar@^4:
     yallist "^3.0.2"
 
 terser@^3.7.3:
-  version "3.8.0"
-  resolved "https://registry.yarnpkg.com/terser/-/terser-3.8.0.tgz#66a4f4f500d2c829faab840f318c49cc471d73ae"
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/terser/-/terser-3.8.1.tgz#cb70070ac9e0a71add169dfb63c0a64fca2738ac"
   dependencies:
     commander "~2.16.0"
     source-map "~0.6.1"
@@ -7338,9 +7338,9 @@ vega-transforms@^2.2.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.34:
-  version "0.3.34"
-  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.34.tgz#99433ba3e17c1d8e5c53fe631d695c8ce5e77a92"
+vega-typings@*, vega-typings@^0.3.35:
+  version "0.3.35"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.35.tgz#54bae4d34ed4ca48d2d4e6baa0c25e89703964ea"
   dependencies:
     vega-util "^1.7.0"
 

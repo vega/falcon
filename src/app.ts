@@ -188,6 +188,8 @@ export class App<V extends string, D extends string> {
     const activeView = this.getActiveView();
     const activeVgView = this.vegaViews.get(name)!;
 
+    activeVgView.container()!.style.cursor = "wait";
+
     const brushes = new Map(this.brushes);
     if (activeView.type == "1D") {
       brushes.delete(activeView.dimension.name);
@@ -221,6 +223,8 @@ export class App<V extends string, D extends string> {
         brushes
       );
     }
+
+    activeVgView.container()!.style.cursor = "auto";
 
     activeVgView.runAfter(view => {
       view.signal("active", true).run();

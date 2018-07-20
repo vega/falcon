@@ -15,6 +15,12 @@ export class MapDDB<V extends string, D extends string>
   private session: any;
 
   constructor(
+    private readonly conn: {
+      host: string;
+      db: string;
+      user: string;
+      password: string;
+    },
     private readonly table: string,
     private readonly nameMap: Map<D, string>
   ) {}
@@ -22,19 +28,11 @@ export class MapDDB<V extends string, D extends string>
   public async initialize() {
     const connection = connector
       .protocol("https")
-      .host("metis.mapd.com")
+      .host(this.conn.host)
       .port("443")
-      .dbName("mapd")
-      .user("mapd")
-      .password("HyperInteractive");
-
-    // const connection = connector
-    //   .protocol("https")
-    //   .host("beast-azure.mapd.com")
-    //   .port("443")
-    //   .dbName("newflights")
-    //   .user("demouser")
-    //   .password("HyperInteractive");
+      .dbName(this.conn.db)
+      .user(this.conn.user)
+      .password(this.conn.password);
 
     this.session = await connection.connectAsync();
   }
@@ -172,22 +170,23 @@ export class MapDDB<V extends string, D extends string>
           hists = ndarray(new CUM_ARR_TYPE(numPixels));
           noBrush = ndarray(new HIST_TYPE(1), [1]);
 
-          const res = await this.query(`
+          const [res, resFull] = await Promise.all([
+            this.query(`
           SELECT
             ${binActive.select} AS keyActive,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${where}
-          GROUP BY keyActive`);
+          GROUP BY keyActive`),
+            this.query(`
+          SELECT count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${where}`)
+          ]);
 
           for (const { keyActive, cnt } of res) {
             hists.set(keyActive, cnt);
           }
-
-          const resFull = await this.query(`
-          SELECT count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${where}`);
 
           for (const { cnt } of resFull) {
             noBrush.set(0, cnt);
@@ -207,26 +206,27 @@ export class MapDDB<V extends string, D extends string>
           ]);
           noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
-          const res = await this.query(`
+          const [res, resFull] = await Promise.all([
+            this.query(`
           SELECT
             ${binActive.select} AS keyActive,
             ${bin.select} as key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${bin.where} AND ${where}
-          GROUP BY keyActive, key`);
-
-          for (const { keyActive, key, cnt } of res) {
-            hists.set(keyActive, key, cnt);
-          }
-
-          const resFull = await this.query(`
+          GROUP BY keyActive, key`),
+            this.query(`
           SELECT
             ${bin.select} as key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
-          GROUP BY key`);
+          GROUP BY key`)
+          ]);
+
+          for (const { keyActive, key, cnt } of res) {
+            hists.set(keyActive, key, cnt);
+          }
 
           for (const { key, cnt } of resFull) {
             noBrush.set(key, cnt);
@@ -254,7 +254,8 @@ export class MapDDB<V extends string, D extends string>
             numBinsY
           ]);
 
-          const res = await this.query(`
+          const [res, resFull] = await Promise.all([
+            this.query(`
           SELECT
             ${binActive.select} AS keyActive,
             ${binX.select} as keyX,
@@ -262,22 +263,22 @@ export class MapDDB<V extends string, D extends string>
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${binX.where} AND ${
-            binY.where
-          } AND ${where}
-          GROUP BY keyActive, keyX, keyY`);
-
-          for (const { keyActive, keyX, keyY, cnt } of res) {
-            hists.set(keyActive, keyX, keyY, cnt);
-          }
-
-          const resFull = await this.query(`
+              binY.where
+            } AND ${where}
+          GROUP BY keyActive, keyX, keyY`),
+            this.query(`
           SELECT
             ${binX.select} as keyX,
             ${binY.select} as keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} AND ${where}
-          GROUP BY keyX, keyY`);
+          GROUP BY keyX, keyY`)
+          ]);
+
+          for (const { keyActive, keyX, keyY, cnt } of res) {
+            hists.set(keyActive, keyX, keyY, cnt);
+          }
 
           for (const { keyX, keyY, cnt } of resFull) {
             noBrush.set(keyX, keyY, cnt);

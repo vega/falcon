@@ -140,7 +140,27 @@ names.set("DISTANCE", "distance");
 names.set("DEP_DELAY", "depdelay");
 names.set("AIR_TIME", "airtime");
 
-const db = new MapDDB("flights_donotmodify", names);
+const db = new MapDDB(
+  {
+    host: "metis.mapd.com",
+    db: "mapd",
+    user: "mapd",
+    password: "HyperInteractive"
+  },
+  "flights_donotmodify",
+  names
+);
+
+// const db = new MapDDB(
+//   {
+//     host: "beast-azure.mapd.com",
+//     db: "newflights",
+//     user: "demouser",
+//     password: "HyperInteractive"
+//   },
+//   "flights",
+//   names
+// );
 
 document.getElementById("loading")!.innerText = "";
 

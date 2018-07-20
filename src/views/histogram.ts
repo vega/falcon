@@ -103,6 +103,7 @@ export function createHistogramView<D extends string>(
         {
           type: "group",
           name: "chart",
+          interactive: { signal: "active" },
           encode: {
             enter: {
               height: { field: { group: "height" } },
