@@ -124,7 +124,23 @@ views.set("DEP_DELAY_ARR_DELAY", {
 });
 
 // const db = new ArrowDB(require("../data/flights-10k.arrow"));
-const db = new MapDDB();
+
+const names = new Map<DimensionName, string>();
+
+names.set("ARR_DELAY", "arrdelay");
+names.set(
+  "ARR_TIME",
+  "floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60"
+);
+names.set(
+  "DEP_TIME",
+  "floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60"
+);
+names.set("DISTANCE", "distance");
+names.set("DEP_DELAY", "depdelay");
+names.set("AIR_TIME", "airtime");
+
+const db = new MapDDB("flights_donotmodify", names);
 
 document.getElementById("loading")!.innerText = "";
 

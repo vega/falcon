@@ -9,18 +9,14 @@ import { numBins } from "../util";
 
 const connector = new (window as any).MapdCon();
 
-const NAME_MAP = {
-  ARR_DELAY: "arrdelay",
-  ARR_TIME: "floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60",
-  DEP_TIME: "floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60",
-  DISTANCE: "distance",
-  DEP_DELAY: "depdelay",
-  AIR_TIME: "airtime"
-};
-
 export class MapDDB<V extends string, D extends string>
   implements DataBase<V, D> {
   private session: any;
+
+  constructor(
+    private readonly table: string,
+    private readonly nameMap: Map<D, string>
+  ) {}
 
   public async initialize() {
     const connection = connector
@@ -52,7 +48,7 @@ export class MapDDB<V extends string, D extends string>
 
   public async length() {
     const result = await this.query(
-      `select count(*) as cnt from flights_donotmodify`
+      `SELECT count(*) as cnt FROM ${this.table}`
     );
 
     return result[0].cnt;
@@ -61,7 +57,7 @@ export class MapDDB<V extends string, D extends string>
   public async histogram(dimension: Dimension<D>) {
     const bin = dimension.binConfig!;
     const binCount = numBins(bin);
-    const field = NAME_MAP[dimension.name as string];
+    const field = this.nameMap.get(dimension.name)!;
     const bSql = this.binSQL(field, bin);
 
     const hist = ndarray(new HIST_TYPE(binCount));
@@ -70,7 +66,7 @@ export class MapDDB<V extends string, D extends string>
       SELECT
         ${bSql.select} as key,
         count(*) as cnt
-      FROM flights_donotmodify
+      FROM ${this.table}
       WHERE ${bSql.where}
       GROUP BY key
       `);
@@ -85,7 +81,7 @@ export class MapDDB<V extends string, D extends string>
   public async heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
     const [binX, binY] = dimensions.map(d => d.binConfig!);
     const [numBinsX, numBinsY] = [binX, binY].map(numBins);
-    const [fieldX, fieldY] = dimensions.map(d => NAME_MAP[d.name as string]);
+    const [fieldX, fieldY] = dimensions.map(d => this.nameMap.get(d.name)!);
     const bSqlX = this.binSQL(fieldX, binX);
     const bSqlY = this.binSQL(fieldY, binY);
 
@@ -99,7 +95,7 @@ export class MapDDB<V extends string, D extends string>
         ${bSqlX.select} as keyX,
         ${bSqlY.select} as keyY,
         count(*) as cnt
-      FROM flights_donotmodify
+      FROM ${this.table}
       WHERE
         ${bSqlX.where} AND ${bSqlY.where}
       GROUP BY keyX, keyY
