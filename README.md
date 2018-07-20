@@ -1,4 +1,9 @@
-# big-crossfilter [![Build Status](https://travis-ci.com/uwdata/big-crossfilter.svg?branch=master)](https://travis-ci.com/uwdata/big-crossfilter)
+# big-crossfilter
+
+[![npm version](https://img.shields.io/npm/v/big-crossfilter.svg)](https://www.npmjs.com/package/big-crossfilter)
+[![Build Status](https://travis-ci.com/uwdata/big-crossfilter.svg?branch=master)](https://travis-ci.com/uwdata/big-crossfilter)
+[![npm dependencies](https://david-dm.org/vega/big-crossfilter.svg)](https://www.npmjs.com/package/big-crossfilter)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 Try the demo at https://uwdata.github.io/big-crossfilter.
 
