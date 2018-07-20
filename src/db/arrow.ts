@@ -37,19 +37,6 @@ export class ArrowDB<V extends string, D extends string>
     return mask;
   }
 
-  private getFilterMasks(brushes: Map<D, Interval<number>>) {
-    console.time("Build filter masks");
-
-    const filters = new Map<D, BitSet>();
-    for (const [dimension, extent] of brushes) {
-      filters.set(dimension, this.getFilterMask(dimension, extent));
-    }
-
-    console.timeEnd("Build filter masks");
-
-    return filters;
-  }
-
   public length() {
     return Promise.resolve(this.data.length);
   }
@@ -101,6 +88,19 @@ export class ArrowDB<V extends string, D extends string>
     console.timeEnd("Heatmap");
 
     return Promise.resolve(heat);
+  }
+
+  private getFilterMasks(brushes: Map<D, Interval<number>>) {
+    console.time("Build filter masks");
+
+    const filters = new Map<D, BitSet>();
+    for (const [dimension, extent] of brushes) {
+      filters.set(dimension, this.getFilterMask(dimension, extent));
+    }
+
+    console.timeEnd("Build filter masks");
+
+    return filters;
   }
 
   public loadData1D(
