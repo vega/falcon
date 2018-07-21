@@ -5,6 +5,9 @@ import { Interval } from "./basic";
  * Views
  */
 export interface AbstractView {
+  /** The number of dimensions in the view. */
+  type: "0D" | "1D" | "2D";
+
   /** Title for axis. Should not be used as an identifier. */
   title?: string;
 

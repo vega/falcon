@@ -207,6 +207,7 @@ export class MapDDB<V extends string, D extends string>
           FROM ${this.table}
           WHERE ${binActive.where} AND ${where}
           GROUP BY keyActive`;
+
           fullQuery = `
           SELECT count(*) AS cnt
           FROM ${this.table}
@@ -224,21 +225,22 @@ export class MapDDB<V extends string, D extends string>
           ]);
           noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
-          (query = `
+          query = `
           SELECT
             ${binActive.select} AS keyActive,
             ${bin.select} as key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${bin.where} AND ${where}
-          GROUP BY keyActive, key`),
-            (fullQuery = `
+          GROUP BY keyActive, key`;
+
+          fullQuery = `
           SELECT
             ${bin.select} as key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
-          GROUP BY key`);
+          GROUP BY key`;
         } else {
           const dimensions = view.dimensions;
           const binConfigs = dimensions.map(d => d.binConfig!);
@@ -309,21 +311,17 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        // we careate a function so that we can start the aquery after all the other queries have been started
+        // we careate a function so that we can start the query after all the other queries have been started
         const noBrushResolve = (resolve: (ndarray) => void) => {
           this.query(fullQuery).then(resFull => {
-            if (view.type === "0D") {
-              for (const { cnt } of resFull) {
-                noBrush.set(0, cnt);
-              }
-            } else if (view.type === "1D") {
-              for (const { key, cnt } of resFull) {
-                noBrush.set(key, cnt);
-              }
-            } else if (view.type === "2D") {
-              for (const { keyX, keyY, cnt } of resFull) {
-                noBrush.set(keyX, keyY, cnt);
-              }
+            let keys: string[] = {
+              "0D": ["cnt"],
+              "1D": ["key", "cnt"],
+              "2D": ["keyX, keyY", "cnt"]
+            }[view.type];
+
+            for (const row of resFull) {
+              noBrush.set(...keys.map(k => row[k]));
             }
 
             resolve(noBrush);
@@ -350,48 +348,211 @@ export class MapDDB<V extends string, D extends string>
   }
 
   public async loadData2D(
-    _activeView: View2D<D>,
-    _pixels: [number, number],
-    _views: Views<V, D>,
-    _brushes: Map<D, Interval<number>>
+    activeView: View2D<D>,
+    pixels: [number, number],
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
   ) {
-    throw new Error("not yet implemented");
-    return new Map();
+    const t0 = Date.now();
+
+    const filters = this.getWhereClauses(brushes);
+    const preparedResult = new Map<
+      V,
+      {
+        hists: ndarray;
+        noBrushResolve: (resolve: (ndarray) => void) => void;
+      }
+    >();
+
+    const [activeDimX, activeDimY] = activeView.dimensions;
+    const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
+    const activeStepSizeY = stepSize(activeDimY.extent, pixels[1]);
+    const binActiveX = this.binSQL(activeDimX.name, {
+      start: activeDimX.extent[0] - activeStepSizeX,
+      step: activeStepSizeX,
+      stop: activeDimX.extent[1]
+    });
+    const binActiveY = this.binSQL(activeDimY.name, {
+      start: activeDimY.extent[0] - activeStepSizeY,
+      step: activeStepSizeY,
+      stop: activeDimY.extent[1]
+    });
+
+    const [numPixelsX, numPixelsY] = [pixels[0] + 1, pixels[1] + 1];
+
+    await Promise.all(
+      Array.from(views.entries()).map(async ([name, view]) => {
+        let hists: ndarray;
+        let noBrush: ndarray;
+
+        const relevantFilters = new Map(filters);
+        if (view.type === "0D") {
+          // use all filters
+        } else if (view.type === "1D") {
+          relevantFilters.delete(view.dimension.name);
+        } else {
+          relevantFilters.delete(view.dimensions[0].name);
+          relevantFilters.delete(view.dimensions[1].name);
+        }
+
+        const where =
+          Array.from(relevantFilters.values()).join(" AND ") || "true";
+
+        let query: string;
+        let fullQuery: string;
+
+        if (view.type === "0D") {
+          hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY));
+          noBrush = ndarray(new HIST_TYPE(1), [1]);
+
+          query = `
+          SELECT
+            ${binActiveX.select} AS keyActiveX,
+            ${binActiveY.select} AS keyActiveY,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${where}
+          GROUP BY keyActiveX, keyActiveY`;
+
+          fullQuery = `
+          SELECT count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${where}`;
+        } else if (view.type === "1D") {
+          const dim = view.dimension;
+
+          const binConfig = dim.binConfig!;
+          const bin = this.binSQL(dim.name, binConfig);
+          const binCount = numBins(binConfig);
+
+          hists = ndarray(
+            new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount),
+            [numPixelsX, numPixelsY, binCount]
+          );
+          noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
+
+          query = `
+          SELECT
+            ${binActiveX.select} AS keyActiveX,
+            ${binActiveY.select} AS keyActiveY,
+            ${bin.select} as key,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
+            bin.where
+          } AND ${where}
+          GROUP BY keyActiveX, keyActiveY, key`;
+
+          fullQuery = `
+          SELECT
+            ${bin.select} as key,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${bin.where} AND ${where}
+          GROUP BY key`;
+        } else {
+          const dimensions = view.dimensions;
+          const binConfigs = dimensions.map(d => d.binConfig!);
+          const [numBinsX, numBinsY] = binConfigs.map(numBins);
+          const [binX, binY] = [0, 1].map(i =>
+            this.binSQL(dimensions[i].name, binConfigs[i])
+          );
+
+          hists = ndarray(
+            new CUM_ARR_TYPE(numPixelsX * numPixelsY * numBinsX * numBinsY),
+            [numPixelsX, numPixelsY, numBinsX, numBinsY]
+          );
+          noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
+            numBinsX,
+            numBinsY
+          ]);
+
+          query = `
+          SELECT
+            ${binActiveX.select} AS keyActiveX,
+            ${binActiveY.select} AS keyActiveY,
+            ${binX.select} as keyX,
+            ${binY.select} as keyY,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
+            binX.where
+          } AND ${binY.where} AND ${where}
+          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
+
+          fullQuery = `
+          SELECT
+            ${binX.select} as keyX,
+            ${binY.select} as keyY,
+            count(*) AS cnt
+          FROM ${this.table}
+          WHERE ${binX.where} AND ${binY.where} AND ${where}
+          GROUP BY keyX, keyY`;
+        }
+
+        const res = await this.query(query);
+
+        if (view.type === "0D") {
+          for (const { keyActiveX, keyActiveY, cnt } of res) {
+            hists.set(keyActiveX, keyActiveY, cnt);
+          }
+
+          prefixSum(hists);
+        } else if (view.type === "1D") {
+          for (const { keyActiveX, keyActiveY, key, cnt } of res) {
+            hists.set(keyActiveX, keyActiveY, key, cnt);
+          }
+
+          // compute cumulative sums
+          for (let x = 0; x < hists.shape[1]; x++) {
+            prefixSum(hists.pick(null, null, x));
+          }
+        } else if (view.type === "2D") {
+          for (const { keyActiveX, keyActiveY, keyX, keyY, cnt } of res) {
+            hists.set(keyActiveX, keyActiveY, keyX, keyY, cnt);
+          }
+
+          // compute cumulative sums
+          for (let x = 0; x < hists.shape[1]; x++) {
+            for (let y = 0; y < hists.shape[2]; y++) {
+              prefixSum(hists.pick(null, null, x, y));
+            }
+          }
+        }
+
+        // we careate a function so that we can start the query after all the other queries have been started
+        const noBrushResolve = (resolve: (ndarray) => void) => {
+          this.query(fullQuery).then(resFull => {
+            let keys: string[] = {
+              "0D": ["cnt"],
+              "1D": ["key", "cnt"],
+              "2D": ["keyX, keyY", "cnt"]
+            }[view.type];
+
+            for (const row of resFull) {
+              noBrush.set(...keys.map(k => row[k]));
+            }
+
+            resolve(noBrush);
+          });
+        };
+
+        preparedResult.set(name, { hists, noBrushResolve });
+      })
+    );
+
+    const result: DbResult<V> = new Map();
+
+    for (const [name, res] of preparedResult) {
+      result.set(name, {
+        hists: res.hists,
+        // this starts the queries for the histograms without brushes
+        noBrush: new Promise(res.noBrushResolve)
+      });
+    }
+
+    console.log("Build result cube:" + (Date.now() - t0) + "ms");
+
+    return result;
   }
-}
-
-export function connect() {
-  const connector = new (window as any).MapdCon();
-
-  const connection = connector
-    .protocol("https")
-    .host("metis.mapd.com")
-    .port("443")
-    .dbName("mapd")
-    .user("mapd")
-    .password("HyperInteractive");
-
-  // const connection = connector
-  //   .protocol("https")
-  //   .host("beast-azure.mapd.com")
-  //   .port("443")
-  //   .dbName("newflights")
-  //   .user("demouser")
-  //   .password("HyperInteractive");
-
-  // field names in flights_donotmodify: ["flight_year", "flight_month", "flight_dayofmonth", "flight_dayofweek", "deptime", "crsdeptime", "arrtime", "crsarrtime", "uniquecarrier", "flightnum", "tailnum", "actualelapsedtime", "crselapsedtime", "airtime", "arrdelay", "depdelay", "origin", "dest", "distance", "taxiin", "taxiout", "cancelled", "cancellationcode", "diverted", "carrierdelay", "weatherdelay", "nasdelay", "securitydelay", "lateaircraftdelay", "dep_timestamp", "arr_timestamp", "carrier_name", "plane_type", "plane_manufacturer", "plane_issue_date", "plane_model", "plane_status", "plane_aircraft_type", "plane_engine_type", "plane_year", "origin_name", "origin_city", "origin_state", "origin_country", "origin_lat", "origin_lon", "dest_name", "dest_city", "dest_state", "dest_country", "dest_lat", "dest_lon", "origin_merc_x", "origin_merc_y", "dest_merc_x", "dest_merc_y"]
-
-  // field names in flights:  ["flight_year", "flight_mmonth", "flight_dayofmonth", "flight_dayofweek", "deptime", "crsdeptime", "arrtime", "crsarrtime", "uniquecarrier", "airline_id", "flightnum", "tail_num", "actualelapsedtime", "crsactualelapsedtime", "airtime", "arrdelay", "depdelay", "origin", "dest", "distance", "taxiin", "taxiout", "wheels_on", "wheels_off", "cancelled", "cancellationcode", "diverted", "carrierdelay", "weatherdelay", "nasdelay", "securitydelay", "lateaircraftdelay", "origin_airport_id", "origin_airport_id_seq", "origin_city", "origin_state_abr", "origin_state_name", "dest_airport_id", "dest_airport_id_seq", "dest_city", "dest_state_abr", "dest_state_name", "origin_world_area_code", "dest_world_area_code", "CRS_dep_time_stamp", "actual_dep_time_stamp", "carrier_name", "plane_type", "plane_manufacturer", "plane_issue_date", "plane_model", "plane_status", "plane_aircraft_type", "plane_engine_type", "plane_year", "origin_name", "origin_country", "origin_lat", "origin_lon", "dest_name", "dest_country", "dest_lat", "dest_lon", "aircraft_engine_num", "aircraft_weight", "aircraft_manufacturer_name", "aircraft_engine_horsepower", "aircraft_number_seats", "aircraft_engine_manufacturer", "aircraft_engine_model_name", "aircraft_engine_thrust", "aircraft_engine_type", "aircraft_category", "aircraft_type", "aircraft_model_name", "aircraft_max_speed_miles"]
-
-  connection
-    .connectAsync()
-    .then(session => {
-      session
-        .getTablesAsync()
-        .then(console.log)
-        .catch(console.error);
-
-      session.getFields("flights_donotmodify", (_, res) => console.log(res));
-    })
-    .catch(console.error);
 }
