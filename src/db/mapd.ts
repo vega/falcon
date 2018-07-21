@@ -41,7 +41,11 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     q = q.replace(/\s\s+/g, " ").trim();
-    const { results, timing, _fields } = await this.session.queryAsync(q, {
+    const {
+      results,
+      timing
+      // fields
+    } = await this.session.queryAsync(q, {
       returnTiming: true
     });
 
