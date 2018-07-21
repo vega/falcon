@@ -38,7 +38,7 @@ export class ArrowDB<V extends string, D extends string>
   }
 
   public length() {
-    return Promise.resolve(this.data.length);
+    return this.data.length;
   }
 
   public histogram(dimension: Dimension<D>) {
@@ -58,7 +58,7 @@ export class ArrowDB<V extends string, D extends string>
 
     console.timeEnd("Histogram");
 
-    return Promise.resolve(hist);
+    return hist;
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
@@ -87,7 +87,7 @@ export class ArrowDB<V extends string, D extends string>
 
     console.timeEnd("Heatmap");
 
-    return Promise.resolve(heat);
+    return heat;
   }
 
   private getFilterMasks(brushes: Map<D, Interval<number>>) {
@@ -239,12 +239,12 @@ export class ArrowDB<V extends string, D extends string>
         }
       }
 
-      result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
+      result.set(name, { hists, noBrush: noBrush });
     }
 
     console.timeEnd("Build result cube");
 
-    return Promise.resolve(result);
+    return result;
   }
 
   public loadData2D(
@@ -370,11 +370,11 @@ export class ArrowDB<V extends string, D extends string>
         throw new Error("2D view brushing and viewing not yet implemented.");
       }
 
-      result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
+      result.set(name, { hists, noBrush: noBrush });
     }
 
     console.timeEnd("Build result cube");
 
-    return Promise.resolve(result);
+    return result;
   }
 }

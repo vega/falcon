@@ -154,7 +154,7 @@ export class MapDDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    console.time("Build result cube");
+    const t0 = Date.now();
 
     const filters = this.getWhereClauses(brushes);
     const preparedResult = new Map<
@@ -344,7 +344,7 @@ export class MapDDB<V extends string, D extends string>
       });
     }
 
-    console.timeEnd("Build result cube");
+    console.log("Build result cube:" + (Date.now() - t0) + "ms");
 
     return result;
   }

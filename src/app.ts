@@ -70,6 +70,8 @@ export class App<V extends string, D extends string> {
     // initialize the database
     await this.db.initialize();
 
+    console.info("Connected to MapD.");
+
     await Promise.all(
       Array.from(this.views.entries()).map(([name, view]) =>
         this.initializeView(name, view)
