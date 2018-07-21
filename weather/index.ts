@@ -1,13 +1,7 @@
 import { App, ArrowDB, Views } from "../src";
+import { createElement } from "../flights/utils";
 
 document.getElementById("app")!.innerText = "";
-
-function createElement(id: string) {
-  const el = document.createElement("div");
-  el.setAttribute("id", id);
-  document.getElementById("app")!.appendChild(el);
-  return el;
-}
 
 type ViewName =
   | "ELEVATION"

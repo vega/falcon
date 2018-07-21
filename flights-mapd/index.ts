@@ -1,5 +1,5 @@
-import { App, ArrowDB, Views } from "../src";
-import { createElement } from "./utils";
+import { App, MapDDB, Views } from "../src";
+import { createElement } from "../flights/utils";
 
 document.getElementById("app")!.innerText = "";
 
@@ -116,15 +116,43 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
-const db = new ArrowDB(require("../data/flights-10k.arrow"));
+const names = new Map<DimensionName, string>();
+
+names.set("ARR_DELAY", "arrdelay");
+names.set(
+  "ARR_TIME",
+  "floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60"
+);
+names.set(
+  "DEP_TIME",
+  "floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60"
+);
+names.set("DISTANCE", "distance");
+names.set("DEP_DELAY", "depdelay");
+names.set("AIR_TIME", "airtime");
+
+const db = new MapDDB(
+  {
+    host: "metis.mapd.com",
+    db: "mapd",
+    user: "mapd",
+    password: "HyperInteractive"
+  },
+  "flights_donotmodify",
+  names
+);
+
+// const db = new MapDDB(
+//   {
+//     host: "beast-azure.mapd.com",
+//     db: "newflights",
+//     user: "demouser",
+//     password: "HyperInteractive"
+//   },
+//   "flights",
+//   names
+// );
 
 document.getElementById("loading")!.innerText = "";
-
-// const logger = new SimpleLogger<ViewName>();
-
-// window.onbeforeunload = () =>
-//   logger.hasUnsentData()
-//     ? "We still need to send logs. Try again in a few seconds."
-//     : null;
 
 new App(views, db);

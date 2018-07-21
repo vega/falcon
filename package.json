@@ -7,14 +7,14 @@
   "types": "build/src/index.d.ts",
   "scripts": {
     "start:flights": "parcel flights/index.html",
+    "start:flights-mapd": "parcel flights-mapd/index.html",
     "start:weather": "parcel weather/index.html",
     "start": "npm run start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
     "build": "tsc && rollup -c",
     "prepublishOnly": "npm run build",
-    "build:flights": "parcel build --public-url '.' flights/index.html",
-    "build:weather": "parcel build --public-url '.' weather/index.html",
-    "deploy:demo": "npm run clean && npm run build:flights && gh-pages -d dist",
+    "build:demos": "parcel build --public-url '/big-crossfilter/' flights/index.html flights-mapd/index.html weather/index.html",
+    "deploy:demos": "npm run clean && npm run build:demos && gh-pages -d dist",
     "test": "jest"
   },
   "repository": {
