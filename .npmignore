@@ -3,6 +3,7 @@
 .prettierrc
 .rpt2_cache*
 .vscode
+/src
 cross.gif
 data
 dist
@@ -11,6 +12,6 @@ flights-mapd
 movies
 node_modules
 rollup.config.js
-src
+test
 weather
 yarn-error.log
