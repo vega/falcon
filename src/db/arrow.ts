@@ -370,7 +370,7 @@ export class ArrowDB<V extends string, D extends string>
         throw new Error("2D view brushing and viewing not yet implemented.");
       }
 
-      result.set(name, { hists, noBrush });
+      result.set(name, { hists, noBrush: Promise.resolve(noBrush) });
     }
 
     console.timeEnd("Build result cube");
