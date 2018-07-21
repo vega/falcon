@@ -33,7 +33,7 @@
     "crossfilter2": "^1.4.6",
     "cwise": "^1.0.10",
     "d3": "^5.5.0",
-    "mapd-connector": "git://github.com/mapd/mapd-connector.git",
+    "@mapd/connector": "^4.0.1",
     "ndarray": "^1.0.18",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",

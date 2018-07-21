@@ -30,6 +30,14 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
+"@mapd/connector@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-4.0.1.tgz#6040d08d933a84958b326a6384fedae778bab7df"
+  dependencies:
+    codecov "^2.2.0"
+    script-loader "^0.7.0"
+    thrift "^0.10.0"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -2843,7 +2851,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-"flatbuffers@github:trxcllnt/flatbuffers-esm":
+flatbuffers@trxcllnt/flatbuffers-esm:
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -4379,14 +4387,6 @@ map-visit@^1.0.0:
   resolved "https://registry.yarnpkg.com/map-visit/-/map-visit-1.0.0.tgz#ecdca8f13144e660f1b5bd41f12f3479d98dfb8f"
   dependencies:
     object-visit "^1.0.0"
-
-"mapd-connector@git://github.com/mapd/mapd-connector.git":
-  version "4.0.1"
-  resolved "git://github.com/mapd/mapd-connector.git#781d9575b0fbc7b99f4a6c9455a1cc68c60cc484"
-  dependencies:
-    codecov "^2.2.0"
-    script-loader "^0.7.0"
-    thrift "^0.10.0"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.17"

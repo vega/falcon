@@ -1,4 +1,4 @@
-import "mapd-connector/dist/browser-connector";
+import "@mapd/connector/dist/browser-connector";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
@@ -7,7 +7,6 @@ import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
 import { DataBase, DbResult } from "./db";
-import { promises } from "fs";
 
 const connector = new (window as any).MapdCon();
 
