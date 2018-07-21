@@ -2,7 +2,7 @@
   "name": "big-crossfilter",
   "version": "0.1.4",
   "description": "Big data crossfilter",
-  "main": "build/src/big-crossfilter.js",
+  "main": "build/big-crossfilter.js",
   "module": "build/src/index",
   "types": "build/src/index.d.ts",
   "scripts": {
