@@ -1,1 +1,0 @@
-body{font-family:sans-serif}#app{display:grid;grid-auto-rows:min-content;grid-gap:10px;grid-template-columns:min-content;justify-content:start}#app #count{grid-column:1;grid-row:1}#app #arrival{grid-column:1;grid-row:2}#app #departure{grid-column:2;grid-row:2}#app #distance{grid-column:1;grid-row:3}#app #airtime{grid-column:2;grid-row:3}#app #delay{grid-column:1;grid-row:5/6}
