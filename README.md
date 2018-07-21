@@ -5,9 +5,15 @@
 [![npm dependencies](https://david-dm.org/vega/big-crossfilter.svg)](https://www.npmjs.com/package/big-crossfilter)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
-Try the demo at https://uwdata.github.io/big-crossfilter.
-
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
+
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights when connected to MapD. 
+
+## Demos
+
+* 1M flights in the browser: https://uwdata.github.io/big-crossfilter/flights/
+* 7M flights in [MapD](https://www.mapd.com/): https://uwdata.github.io/big-crossfilter/flights-mapd/
+* 500k weather records: https://uwdata.github.io/big-crossfilter/weather/
 
 Big Crossfilter uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 
