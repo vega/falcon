@@ -225,7 +225,7 @@ export class App<V extends string, D extends string> {
       );
     }
 
-    activeVgView.container()!.style.cursor = "auto";
+    activeVgView.container()!.style.cursor = "";
 
     activeVgView.runAfter(view => {
       view.signal("active", true).run();

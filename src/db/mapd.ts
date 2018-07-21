@@ -39,9 +39,25 @@ export class MapDDB<V extends string, D extends string>
 
   private async query(q: string): Promise<any> {
     const t0 = Date.now();
-    const result = await this.session.queryAsync(q);
-    console.info(q, `${Date.now() - t0} ms`);
-    return result;
+
+    q = q.replace(/\s\s+/g, " ").trim();
+    const { results, timing, _fields } = await this.session.queryAsync(q, {
+      returnTiming: true
+    });
+
+    console.info(
+      "%c" + q,
+      "color: #bbb",
+      "\nExecution time:",
+      timing.execution_time_ms,
+      "ms. Total time:",
+      timing.total_time_ms,
+      "ms. With Network:",
+      Date.now() - t0,
+      "ms."
+    );
+
+    return results;
   }
 
   private binSQL(dimension: D, binConfig: BinConfig) {
@@ -134,6 +150,8 @@ export class MapDDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
+    console.time("Build result cube");
+
     const filters = this.getWhereClauses(brushes);
     const preparedResult = new Map<
       V,
@@ -274,7 +292,7 @@ export class MapDDB<V extends string, D extends string>
           for (let x = 0; x < hists.shape[1]; x++) {
             prefixSum(hists.pick(null, x));
           }
-        } else {
+        } else if (view.type === "2D") {
           for (const { keyActive, keyX, keyY, cnt } of res) {
             hists.set(keyActive, keyX, keyY, cnt);
           }
@@ -298,7 +316,7 @@ export class MapDDB<V extends string, D extends string>
               for (const { key, cnt } of resFull) {
                 noBrush.set(key, cnt);
               }
-            } else {
+            } else if (view.type === "2D") {
               for (const { keyX, keyY, cnt } of resFull) {
                 noBrush.set(keyX, keyY, cnt);
               }
@@ -321,6 +339,8 @@ export class MapDDB<V extends string, D extends string>
         noBrush: new Promise(res.noBrushResolve)
       });
     }
+
+    console.timeEnd("Build result cube");
 
     return result;
   }
