@@ -1,0 +1,1 @@
+body{font-family:sans-serif}#app{display:grid;grid-auto-rows:min-content;grid-gap:20px;grid-template-columns:min-content;justify-content:start}#app #count{grid-column:1;grid-row:1}#app #elevation{grid-column:2;grid-row:1}#app #tempmin{grid-column:1;grid-row:2}#app #tempmax{grid-column:2;grid-row:2}#app #precipitation{grid-column:1;grid-row:3}#app #wind{grid-column:2;grid-row:3}
