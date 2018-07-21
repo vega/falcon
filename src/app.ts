@@ -32,20 +32,25 @@ export class App<V extends string, D extends string> {
   private brushes = new Map<D, Interval<number>>();
   private data: DbResult<V>;
   private readonly config: Config;
+  private logger?: Logger<V>;
 
   /**
    * Construct the app
    * @param views The views.
    * @param db The database to query.
-   * @param logger An optional logger to collect traces.
+   * @param opt Optional arguments.
    */
   public constructor(
     views: Views<V, D>,
     private db: DataBase<V, D>,
-    config?: Partial<Config>,
-    private logger?: Logger<V>
+    opt?: {
+      config?: Partial<Config>;
+      logger?: Logger<V>;
+      cb?: () => void;
+    }
   ) {
-    this.config = { ...DEFAULT_CONFIG, ...(config || {}) };
+    this.config = { ...DEFAULT_CONFIG, ...((opt && opt.config) || {}) };
+    this.logger = opt && opt.logger;
 
     for (const [name, view] of views) {
       if (view.el) {
@@ -56,6 +61,7 @@ export class App<V extends string, D extends string> {
     this.initialize()
       .then(() => {
         console.info("Initialization finished.");
+        opt && opt.cb && opt.cb();
       })
       .catch(console.error);
   }

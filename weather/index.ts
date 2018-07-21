@@ -87,6 +87,6 @@ views.set("WIND", {
 
 const db = new ArrowDB(require("../data/weather-10k.arrow"));
 
-document.getElementById("loading")!.innerText = "";
-
-new App(views, db);
+new App(views, db, {
+  cb: () => (document.getElementById("loading")!.innerText = "")
+});

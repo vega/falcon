@@ -153,6 +153,6 @@ const db = new MapDDB(
 //   names
 // );
 
-document.getElementById("loading")!.innerText = "";
-
-new App(views, db);
+new App(views, db, {
+  cb: () => (document.getElementById("loading")!.innerText = "")
+});

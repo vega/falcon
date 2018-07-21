@@ -118,7 +118,6 @@ views.set("DEP_DELAY_ARR_DELAY", {
 
 const db = new ArrowDB(require("../data/flights-10k.arrow"));
 
-document.getElementById("loading")!.innerText = "";
 
 // const logger = new SimpleLogger<ViewName>();
 
@@ -127,4 +126,6 @@ document.getElementById("loading")!.innerText = "";
 //     ? "We still need to send logs. Try again in a few seconds."
 //     : null;
 
-new App(views, db);
+new App(views, db, {
+  cb: () => (document.getElementById("loading")!.innerText = "")
+});
