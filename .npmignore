@@ -1,7 +1,9 @@
+.babelrc
 .cache
 .editorconfig
 .prettierrc
 .rpt2_cache*
+.travis.yml
 .vscode
 /src
 cross.gif
