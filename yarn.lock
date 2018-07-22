@@ -2851,7 +2851,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-"flatbuffers@github:trxcllnt/flatbuffers-esm":
+flatbuffers@trxcllnt/flatbuffers-esm:
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -7338,9 +7338,15 @@ vega-transforms@^2.2.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.35:
+vega-typings@*:
   version "0.3.35"
   resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.35.tgz#54bae4d34ed4ca48d2d4e6baa0c25e89703964ea"
+  dependencies:
+    vega-util "^1.7.0"
+
+vega-typings@^0.3.36:
+  version "0.3.36"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.36.tgz#5b032a2272ca1a1c53d129bf960cef1b9e278f3c"
   dependencies:
     vega-util "^1.7.0"
 
