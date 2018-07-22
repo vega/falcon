@@ -25,6 +25,16 @@ import {
   HISTOGRAM_WIDTH
 } from "./views";
 
+let mouseIsDown = false;
+
+document.onmousedown = () => {
+  mouseIsDown = true;
+};
+
+document.onmouseup = () => {
+  mouseIsDown = false;
+};
+
 export class App<V extends string, D extends string> {
   private readonly views: Views<V, D> = new Map();
   private activeView: V;
@@ -112,7 +122,7 @@ export class App<V extends string, D extends string> {
       });
 
       vegaView.addEventListener("mouseover", () => {
-        if (this.activeView !== name) {
+        if (!mouseIsDown && this.activeView !== name) {
           this.switchActiveView(name);
         }
       });
@@ -172,7 +182,7 @@ export class App<V extends string, D extends string> {
       });
 
       vegaView.addEventListener("mouseover", () => {
-        if (this.activeView !== name) {
+        if (!mouseIsDown && this.activeView !== name) {
           this.switchActiveView(name);
         }
       });

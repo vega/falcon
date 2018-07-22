@@ -21,6 +21,7 @@ export function createHeatmapView<D extends string>(
       }
     ],
     signals: [
+      { name: "active", value: false },
       { name: "binX", value: dimensionX.binConfig },
       { name: "binY", value: dimensionY.binConfig },
       { name: "extentX", value: dimensionX.extent },
@@ -150,6 +151,7 @@ export function createHeatmapView<D extends string>(
       {
         type: "group",
         name: "chart",
+        interactive: { signal: "active" },
         encode: {
           enter: {
             height: { signal: "height" },
