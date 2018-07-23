@@ -399,7 +399,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "mousedown!, wheel",
+          events: "mousedown, wheel",
           update: "invert('x', x())"
         }
       ]
@@ -439,6 +439,30 @@ export function createHistogramView<D extends string>(
       name: "showBase",
       value: true,
       on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
+    },
+    // set the cursor when the mouse is moving
+    {
+      name: "cursor",
+      value: "default",
+      on: [
+        {
+          events: { signal: "pan" },
+          update: "'move'"
+        },
+        {
+          events:
+            "[@left:mousedown, window:mouseup] > window:mousemove, [@left_grabber:mousedown, window:mouseup] > window:mousemove, [@right:mousedown, window:mouseup] > window:mousemove, [@right_grabber:mousedown, window:mouseup] > window:mousemove",
+          update: "'ew-resize'"
+        },
+        {
+          events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+          update: "'crosshair'"
+        },
+        {
+          events: "window:mouseup",
+          update: "'default'"
+        }
+      ]
     }
   ];
 

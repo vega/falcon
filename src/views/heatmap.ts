@@ -89,7 +89,7 @@ export function createHeatmapView<D extends string>(
         value: [0, 0],
         on: [
           {
-            events: "mousedown!",
+            events: "mousedown",
             update: '[invert("x", x()), invert("y", y())]'
           }
         ]
@@ -99,7 +99,7 @@ export function createHeatmapView<D extends string>(
         value: [0, 0],
         on: [
           {
-            events: "@brush:mousedown!",
+            events: "@brush:mousedown",
             update: "[slice(brushX), slice(brushY)]"
           }
         ]
@@ -143,6 +143,35 @@ export function createHeatmapView<D extends string>(
           {
             events: [{ signal: "brushX" }, { signal: "brushY" }],
             update: "[brushX, brushY]"
+          }
+        ]
+      },
+      // set the cursor when the mouse is moving
+      {
+        name: "cursor",
+        value: "default",
+        on: [
+          {
+            events: { signal: "pan" },
+            update: "'move'"
+          },
+          {
+            events:
+              "[@left:mousedown, window:mouseup] > window:mousemove, [@right:mousedown, window:mouseup] > window:mousemove",
+            update: "'ew-resize'"
+          },
+          {
+            events:
+              "[@top:mousedown, window:mouseup] > window:mousemove, [@bottom:mousedown, window:mouseup] > window:mousemove",
+            update: "'ns-resize'"
+          },
+          {
+            events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+            update: "'crosshair'"
+          },
+          {
+            events: "window:mouseup",
+            update: "'default'"
           }
         ]
       }
