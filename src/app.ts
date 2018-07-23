@@ -40,8 +40,24 @@ export class App<V extends string, D extends string> {
   private activeView: V;
   private vegaViews = new Map<V, VgView>();
   private brushes = new Map<D, Interval<number>>();
+
+  /**
+   * Data for each non-active view.
+   */
   private data: DbResult<V>;
+
+  /**
+   * Preferched data that can be moved to data when the active view changes.
+   */
+  private prefetchedData = new Map<V, Promise<DbResult<V>> | DbResult<V>>();
+
+  /**
+   * How many requests are pending for the view;
+   */
+  private pendingRequests = new Map<V, number>();
+
   private readonly config: Config;
+
   private logger?: Logger<V>;
 
   /**
@@ -79,8 +95,6 @@ export class App<V extends string, D extends string> {
   private async initialize() {
     // initialize the database
     await this.db.initialize();
-
-    console.info("Connected to MapD.");
 
     await Promise.all(
       Array.from(this.views.entries()).map(([name, view]) =>
@@ -122,9 +136,7 @@ export class App<V extends string, D extends string> {
       });
 
       vegaView.addEventListener("mouseover", () => {
-        if (!mouseIsDown && this.activeView !== name) {
-          this.switchActiveView(name);
-        }
+        this.prefetchActiveView(name);
       });
 
       if (this.config.showInterestingness) {
@@ -182,24 +194,91 @@ export class App<V extends string, D extends string> {
       });
 
       vegaView.addEventListener("mouseover", () => {
-        if (!mouseIsDown && this.activeView !== name) {
-          this.switchActiveView(name);
-        }
+        this.prefetchActiveView(name);
       });
     }
   }
 
+  /**
+   * Get data for the view so that we can brush in it.
+   */
+  private prefetchActiveView(name: V) {
+    if (
+      this.activeView === name ||
+      mouseIsDown ||
+      this.prefetchedData.has(name)
+    )
+      return;
+
+    const brushes = new Map(this.brushes);
+
+    const view = this.views.get(name)!;
+
+    let p: Promise<DbResult<V>> | DbResult<V>;
+
+    if (view.type === "1D") {
+      brushes.delete(view.dimension.name);
+
+      p = this.db.loadData1D(
+        view,
+        HISTOGRAM_WIDTH,
+        omit(this.views, name),
+        brushes
+      );
+    } else if (view.type === "2D") {
+      brushes.delete(view.dimensions[0].name);
+      brushes.delete(view.dimensions[1].name);
+
+      p = this.db.loadData2D(
+        view,
+        [HEATMAP_WIDTH, HEATMAP_WIDTH],
+        omit(this.views, name),
+        brushes
+      );
+    } else {
+      throw new Error("0D cannot be an active view.");
+    }
+
+    const vgView = this.vegaViews.get(name)!;
+    vgView.container()!.style.cursor = "wait";
+
+    function done() {
+      vgView.container()!.style.cursor = null;
+      vgView.signal("ready", true).run();
+    }
+
+    if (p instanceof Promise) {
+      this.pendingRequests.set(name, this.pendingRequests.get(name) || 0 + 1);
+      p.then(() => {
+        const count = this.pendingRequests.get(name)! - 1;
+        this.pendingRequests.set(name, count);
+        if (count === 0) {
+          done();
+        }
+      });
+    } else {
+      done();
+    }
+
+    this.prefetchedData.set(name, p);
+  }
+
+  /**
+   * Switch which view is active.
+   */
   private async switchActiveView(name: V) {
     console.info(`Active view ${this.activeView} => ${name}`);
 
-    if (this.activeView) {
-      this.vegaViews.get(this.activeView)!.runAfter(view => {
-        view
-          .remove("interesting", truthy)
-          .resize()
-          .signal("active", false)
-          .run();
-      });
+    for (const [n, v] of this.vegaViews) {
+      if (n !== name) {
+        v.runAfter(view => {
+          view
+            .remove("interesting", truthy)
+            .resize()
+            .signal("ready", false)
+            .run();
+        });
+      }
     }
 
     this.activeView = name;
@@ -207,49 +286,28 @@ export class App<V extends string, D extends string> {
     const activeView = this.getActiveView();
     const activeVgView = this.vegaViews.get(name)!;
 
-    activeVgView.container()!.style.cursor = "wait";
+    // data should be ready since we only allow interactions with views that are ready
+    this.data = await this.prefetchedData.get(name)!;
 
-    const brushes = new Map(this.brushes);
-    if (activeView.type == "1D") {
-      brushes.delete(activeView.dimension.name);
+    // need to clear because the brushes are changing now
+    this.prefetchedData.clear();
 
-      this.data = await this.db.loadData1D(
-        activeView,
-        HISTOGRAM_WIDTH,
-        omit(this.views, name),
-        brushes
-      );
-
-      if (this.config.showInterestingness) {
-        // show basic interestingness
-        activeVgView
-          .change(
-            "interesting",
-            changeset()
-              .remove(truthy)
-              .insert(this.calculateInterestingness())
-          )
-          .resize();
-      }
-    } else {
-      brushes.delete(activeView.dimensions[0].name);
-      brushes.delete(activeView.dimensions[1].name);
-
-      this.data = await this.db.loadData2D(
-        activeView,
-        [HEATMAP_WIDTH, HEATMAP_WIDTH],
-        omit(this.views, name),
-        brushes
-      );
+    if (activeView.type === "1D" && this.config.showInterestingness) {
+      // show basic interestingness
+      activeVgView
+        .change(
+          "interesting",
+          changeset()
+            .remove(truthy)
+            .insert(this.calculateInterestingness())
+        )
+        .resize();
     }
-
-    activeVgView.container()!.style.cursor = "";
-
-    activeVgView.runAfter(view => {
-      view.signal("active", true).run();
-    });
   }
 
+  /**
+   * Compute an interestingness metric.
+   */
   private calculateInterestingness(
     opt: { start?: number; window?: number } = {}
   ) {
@@ -319,9 +377,9 @@ export class App<V extends string, D extends string> {
     return out;
   }
 
-  private brushMove1D(name: V, dimension: D, value: [number, number]) {
+  private async brushMove1D(name: V, dimension: D, value: [number, number]) {
     if (this.activeView !== name) {
-      this.switchActiveView(name);
+      await this.switchActiveView(name);
     }
 
     // delete or set brush
@@ -334,14 +392,14 @@ export class App<V extends string, D extends string> {
     this.update();
   }
 
-  private brushMove2D(
+  private async brushMove2D(
     name: V,
     dim1: D,
     dim2: D,
     value: Interval<[number, number]>
   ) {
     if (this.activeView !== name) {
-      this.switchActiveView(name);
+      await this.switchActiveView(name);
     }
 
     // delete or set brush

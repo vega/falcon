@@ -41,6 +41,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     q = q.replace(/\s\s+/g, " ").trim();
+
     const {
       results,
       timing
@@ -52,7 +53,9 @@ export class MapDDB<V extends string, D extends string>
     console.info(
       "%c" + q,
       "color: #bbb",
-      "\nExecution time:",
+      "\nRows:",
+      results.length,
+      "Execution time:",
       timing.execution_time_ms,
       "ms. Total time:",
       timing.total_time_ms,

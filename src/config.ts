@@ -1,6 +1,6 @@
 export const DEFAULT_CONFIG = {
   // features
-  activeViewIndicator: false,
+  readyindicator: true,
   chartCount: false,
   zoomBrush: true,
   showBase: true,

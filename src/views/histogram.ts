@@ -103,7 +103,7 @@ export function createHistogramView<D extends string>(
         {
           type: "group",
           name: "chart",
-          interactive: { signal: "active" },
+          interactive: { signal: "ready" },
           encode: {
             enter: {
               height: { field: { group: "height" } },
@@ -387,7 +387,7 @@ export function createHistogramView<D extends string>(
 
   const signals: Signal[] = [
     { name: "histHeight", value: Math.round(HISTOGRAM_WIDTH / 3.6) },
-    { name: "active", value: false },
+    { name: "ready", value: false },
     { name: "bin", value: dimension.binConfig },
     {
       name: "brush",
@@ -512,7 +512,7 @@ export function createHistogramView<D extends string>(
     } as Mark);
   }
 
-  if (config.activeViewIndicator) {
+  if (config.readyindicator) {
     marks.push({
       type: "symbol",
       encode: {
@@ -522,12 +522,12 @@ export function createHistogramView<D extends string>(
         },
         update: {
           fill: {
-            signal: 'active ? "black" : "transparent"'
+            signal: 'ready ? "black" : "transparent"'
           },
           x: { signal: "width", offset: 10 },
           y: { value: 10 },
           tooltip: {
-            signal: '"Currently active: " + active'
+            signal: '"View ready: " + ready'
           }
         }
       }
