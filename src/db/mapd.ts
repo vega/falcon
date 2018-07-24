@@ -37,7 +37,7 @@ export class MapDDB<V extends string, D extends string>
     this.session = await connection.connectAsync();
   }
 
-  private async query(q: string): Promise<any> {
+  private async query(q: string): Promise<any[]> {
     const t0 = Date.now();
 
     q = q.replace(/\s\s+/g, " ").trim();
