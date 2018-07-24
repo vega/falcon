@@ -6,6 +6,7 @@ document.getElementById("app")!.innerText = "";
 type ViewName =
   | "DISTANCE"
   | "DEP_TIME"
+  | "DEP_TS"
   | "ARR_TIME"
   | "AIR_TIME"
   | "ARR_DELAY"
@@ -19,7 +20,8 @@ type DimensionName =
   | "DISTANCE"
   | "DEP_DELAY"
   | "AIR_TIME"
-  | "DEP_TIME";
+  | "DEP_TIME"
+  | "DEP_TS";
 
 const views: Views<ViewName, DimensionName> = new Map();
 
@@ -47,18 +49,30 @@ views.set("ARR_TIME", {
     name: "ARR_TIME",
     bins: 24,
     extent: [0, 24],
-    format: ".1f"
+    format: ".1~f"
   }
 });
-views.set("DEP_TIME", {
-  title: "Departure Time",
+// views.set("DEP_TIME", {
+//   title: "Departure Time",
+//   type: "1D",
+//   el: createElement("departure"),
+//   dimension: {
+//     name: "DEP_TIME",
+//     bins: 24,
+//     extent: [0, 24],
+//     format: ".1~f"
+//   }
+// });
+views.set("DEP_TS", {
+  title: "Departure",
   type: "1D",
   el: createElement("departure"),
   dimension: {
-    name: "DEP_TIME",
+    name: "DEP_TS",
     bins: 24,
-    extent: [0, 24],
-    format: ".1f"
+    extent: [1199145660000, 1230767940000],
+    format: "%Y-%m-%d %H:%M",
+    time: true
   }
 });
 // views.set("DEP_DELAY", {
@@ -69,7 +83,7 @@ views.set("DEP_TIME", {
 //     name: "DEP_DELAY",
 //     bins: 25,
 //     extent: [-20, 60],
-//     format: ".1f"
+//     format: ".1~f"
 //   }
 // });
 // views.set("ARR_DELAY", {
@@ -80,7 +94,7 @@ views.set("DEP_TIME", {
 //     name: "ARR_DELAY",
 //     bins: 25,
 //     extent: [-20, 60],
-//     format: ".1f"
+//     format: ".1~f"
 //   }
 // });
 views.set("AIR_TIME", {
@@ -130,6 +144,7 @@ names.set(
 names.set("DISTANCE", "distance");
 names.set("DEP_DELAY", "depdelay");
 names.set("AIR_TIME", "airtime");
+names.set("DEP_TS", "extract(epoch from dep_timestamp) * 1000");
 
 const db = new MapDDB(
   {

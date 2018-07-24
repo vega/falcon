@@ -14,7 +14,8 @@ import {
   omit,
   stepSize,
   sub,
-  summedAreaTableLookup
+  summedAreaTableLookup,
+  binTime
 } from "./util";
 import {
   createBarView,
@@ -114,10 +115,10 @@ export class App<V extends string, D extends string> {
 
       this.update0DView(name, await this.db.length(), true);
     } else if (view.type === "1D") {
-      const binConfig = bin({
-        maxbins: view.dimension.bins,
-        extent: view.dimension.extent
-      });
+      const binConfig = (view.dimension.time ? binTime : bin)(
+        view.dimension.bins,
+        view.dimension.extent
+      );
       view.dimension.binConfig = binConfig;
 
       const vegaView = createHistogramView(
@@ -171,10 +172,10 @@ export class App<V extends string, D extends string> {
       }
     } else {
       for (const dimension of view.dimensions) {
-        const binConfig = bin({
-          maxbins: dimension.bins,
-          extent: dimension.extent
-        });
+        const binConfig = (dimension.time ? binTime : bin)(
+          dimension.bins,
+          dimension.extent
+        );
         dimension.binConfig = binConfig;
       }
 

@@ -7,7 +7,8 @@ import {
   parse,
   Signal,
   Spec,
-  View
+  View,
+  Scale
 } from "vega-lib";
 import { View1D } from "../api";
 import { Config } from "../config";
@@ -93,9 +94,11 @@ export function createHistogramView<D extends string>(
             },
             update: {
               text: {
-                signal: `brush ? '[' + format(brush[0], '${
-                  dimension.format
-                }') + ',' + format(brush[1], '${dimension.format}') + ']' : ''`
+                signal: `brush ? '[' + ${
+                  dimension.time ? "timeFormat" : "format"
+                }(brush[0], '${dimension.format}') + ',' + ${
+                  dimension.time ? "timeFormat" : "format"
+                }(brush[1], '${dimension.format}') + ']' : ''`
               }
             }
           }
@@ -297,7 +300,9 @@ export function createHistogramView<D extends string>(
           scale: "x",
           orient: "bottom",
           labelOverlap: true,
-          tickCount: { signal: "ceil(width/20)" }
+          tickCount: dimension.time
+            ? dimension.bins
+            : { signal: "ceil(width/20)" }
         }
       ]
     }
@@ -598,6 +603,42 @@ export function createHistogramView<D extends string>(
     } as Signal);
   }
 
+  const scales: Scale[] = [
+    {
+      name: "y",
+      type: "linear",
+      domain: {
+        fields: [
+          { data: "base", field: "value" },
+          { data: "table", field: "value" }
+        ]
+      },
+      range: [{ signal: "histHeight" }, 0],
+      nice: true,
+      zero: true
+    }
+  ];
+
+  if (dimension.time) {
+    scales.push({
+      name: "x",
+      type: "time",
+      domain: {
+        signal: "[bin.start, bin.stop]"
+      },
+      range: "width"
+    });
+  } else {
+    scales.push({
+      name: "x",
+      type: "bin-linear",
+      domain: {
+        signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
+      },
+      range: "width"
+    });
+  }
+
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "pad",
@@ -623,29 +664,7 @@ export function createHistogramView<D extends string>(
 
     marks: marks,
 
-    scales: [
-      {
-        name: "x",
-        type: "bin-linear",
-        domain: {
-          signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
-        },
-        range: "width"
-      },
-      {
-        name: "y",
-        type: "linear",
-        domain: {
-          fields: [
-            { data: "base", field: "value" },
-            { data: "table", field: "value" }
-          ]
-        },
-        range: [{ signal: "histHeight" }, 0],
-        nice: true,
-        zero: true
-      }
-    ],
+    scales: scales,
 
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };

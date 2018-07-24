@@ -1,4 +1,5 @@
 import cwise from "cwise";
+import { scaleTime } from "d3";
 import ndarray from "ndarray";
 import { divseq, sub as sub_, sum } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
@@ -6,9 +7,24 @@ import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
 
-export const bin: (
-  opt: { maxbins: number; extent: Interval<number> }
-) => BinConfig = bin_;
+export function bin(maxbins: number, extent: Interval<number>): BinConfig {
+  return bin_({ maxbins, extent });
+}
+
+export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
+  const ts = scaleTime().domain(extent);
+  const ticks = ts.ticks(maxbins);
+  const start = ticks[0].getTime();
+  const stop = ticks[ticks.length - 1].getTime();
+  const step = (stop - start) / ticks.length;
+
+  // not that this is not accurate but the best we can do if we require regular intervals
+  return {
+    start,
+    stop,
+    step: step
+  };
+}
 
 /**
  * BinConfig that does not need to have a stop.

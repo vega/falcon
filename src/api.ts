@@ -30,6 +30,7 @@ export interface Dimension<D> {
 
   /** D3 Format specifier */
   format: string;
+  time?: boolean;
 
   /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
   bins: number;
