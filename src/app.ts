@@ -481,7 +481,7 @@ export class App<V extends string, D extends string> {
     });
   }
 
-  private async update() {
+  private update() {
     const activeView = this.getActiveView();
 
     if (activeView.type === "1D") {
@@ -510,7 +510,7 @@ export class App<V extends string, D extends string> {
         if (view.type === "0D") {
           const value = activeBrush
             ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
-            : (await data.noBrush).data[0];
+            : data.noBrush.data[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
@@ -519,7 +519,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0], null),
                 hists.pick(activeBrush[1], null)
               )
-            : await data.noBrush;
+            : data.noBrush;
 
           this.update1DView(name, view, hist, false);
         } else {
@@ -528,7 +528,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0], null, null),
                 hists.pick(activeBrush[1], null, null)
               )
-            : await data.noBrush;
+            : data.noBrush;
 
           this.update2DView(name, view, heat);
         }
@@ -569,7 +569,7 @@ export class App<V extends string, D extends string> {
               hists.get(activeBrush[0][1], activeBrush[1][0]) -
               hists.get(activeBrush[0][0], activeBrush[1][1]) +
               hists.get(activeBrush[0][0], activeBrush[1][0])
-            : (await data.noBrush)[0];
+            : data.noBrush[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
@@ -580,7 +580,7 @@ export class App<V extends string, D extends string> {
                 hists.pick(activeBrush[0][0], activeBrush[1][1], null),
                 hists.pick(activeBrush[0][0], activeBrush[1][0], null)
               )
-            : await data.noBrush;
+            : data.noBrush;
 
           this.update1DView(name, view, hist, false);
         } else {

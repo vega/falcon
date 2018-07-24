@@ -59,7 +59,7 @@ export class MapDDB<V extends string, D extends string>
       timing.execution_time_ms,
       "ms. Total time:",
       timing.total_time_ms,
-      "ms. With Network:",
+      "ms. With network:",
       Date.now() - t0,
       "ms."
     );
@@ -162,13 +162,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     const filters = this.getWhereClauses(brushes);
-    const preparedResult = new Map<
-      V,
-      {
-        hists: ndarray;
-        noBrushResolve: (resolve: (ndarray) => void) => void;
-      }
-    >();
+    const result: DbResult<V> = new Map();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -199,7 +193,6 @@ export class MapDDB<V extends string, D extends string>
           Array.from(relevantFilters.values()).join(" AND ") || "true";
 
         let query: string;
-        let fullQuery: string;
 
         if (view.type === "0D") {
           hists = ndarray(new CUM_ARR_TYPE(numPixels));
@@ -207,16 +200,14 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActive.select} AS keyActive,
+            CASE
+              WHEN ${binActive.where}
+              THEN ${binActive.select}
+              ELSE -1 END AS keyActive,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${binActive.where} AND ${where}
+          WHERE ${where}
           GROUP BY keyActive`;
-
-          fullQuery = `
-          SELECT count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${where}`;
         } else if (view.type === "1D") {
           const dim = view.dimension;
 
@@ -232,20 +223,15 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActive.select} AS keyActive,
-            ${bin.select} AS key,
-            count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${binActive.where} AND ${bin.where} AND ${where}
-          GROUP BY keyActive, key`;
-
-          fullQuery = `
-          SELECT
+            CASE
+              WHEN ${binActive.where}
+              THEN ${binActive.select}
+              ELSE -1 END AS keyActive,
             ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
-          GROUP BY key`;
+          GROUP BY keyActive, key`;
         } else {
           const dimensions = view.dimensions;
           const binConfigs = dimensions.map(d => d.binConfig!);
@@ -266,37 +252,36 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActive.select} AS keyActive,
-            ${binX.select} as keyX,
-            ${binY.select} as keyY,
-            count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${binActive.where} AND ${binX.where} AND ${
-            binY.where
-          } AND ${where}
-          GROUP BY keyActive, keyX, keyY`;
-
-          fullQuery = `
-          SELECT
+            CASE
+              WHEN ${binActive.where}
+              THEN ${binActive.select}
+              ELSE -1 END AS keyActive,
             ${binX.select} as keyX,
             ${binY.select} as keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} AND ${where}
-          GROUP BY keyX, keyY`;
+          GROUP BY keyActive, keyX, keyY`;
         }
 
         const res = await this.query(query);
 
+        
         if (view.type === "0D") {
           for (const { keyActive, cnt } of res) {
-            hists.set(keyActive, cnt);
+            if (keyActive >= 0) {
+              hists.set(keyActive, cnt);
+            }
+            noBrush.data[0] += cnt;
           }
 
           prefixSum(hists);
         } else if (view.type === "1D") {
           for (const { keyActive, key, cnt } of res) {
-            hists.set(keyActive, key, cnt);
+            if (keyActive >= 0) {
+              hists.set(keyActive, key, cnt);
+            }
+            noBrush.data[noBrush.index(key)] += cnt;
           }
 
           // compute cumulative sums
@@ -305,7 +290,10 @@ export class MapDDB<V extends string, D extends string>
           }
         } else if (view.type === "2D") {
           for (const { keyActive, keyX, keyY, cnt } of res) {
-            hists.set(keyActive, keyX, keyY, cnt);
+            if (keyActive >= 0) {
+              hists.set(keyActive, keyX, keyY, cnt);
+            }
+            noBrush.data[noBrush.index(keyX, keyY)] += cnt;
           }
 
           // compute cumulative sums
@@ -315,39 +303,13 @@ export class MapDDB<V extends string, D extends string>
             }
           }
         }
+        
 
-        // we careate a function so that we can start the query after all the other queries have been started
-        const noBrushResolve = (resolve: (ndarray) => void) => {
-          this.query(fullQuery).then(resFull => {
-            let keys: string[] = {
-              "0D": ["cnt"],
-              "1D": ["key", "cnt"],
-              "2D": ["keyX, keyY", "cnt"]
-            }[view.type];
-
-            for (const row of resFull) {
-              noBrush.set(...keys.map(k => row[k]));
-            }
-
-            resolve(noBrush);
-          });
-        };
-
-        preparedResult.set(name, { hists, noBrushResolve });
+        result.set(name, { hists, noBrush });
       })
     );
 
-    const result: DbResult<V> = new Map();
-
-    for (const [name, res] of preparedResult) {
-      result.set(name, {
-        hists: res.hists,
-        // this starts the queries for the histograms without brushes
-        noBrush: new Promise(res.noBrushResolve)
-      });
-    }
-
-    console.log("Build result cube:" + (Date.now() - t0) + "ms");
+    console.log(`Build result cube: ${Date.now() - t0}ms`);
 
     return result;
   }
@@ -361,13 +323,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     const filters = this.getWhereClauses(brushes);
-    const preparedResult = new Map<
-      V,
-      {
-        hists: ndarray;
-        noBrushResolve: (resolve: (ndarray) => void) => void;
-      }
-    >();
+    const result: DbResult<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
@@ -404,7 +360,6 @@ export class MapDDB<V extends string, D extends string>
           Array.from(relevantFilters.values()).join(" AND ") || "true";
 
         let query: string;
-        let fullQuery: string;
 
         if (view.type === "0D") {
           hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY));
@@ -412,17 +367,18 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActiveX.select} AS keyActiveX,
-            ${binActiveY.select} AS keyActiveY,
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveX.select}
+              ELSE -1 END AS keyActiveX,
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveY.select}
+              ELSE -1 END AS keyActiveY,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${where}
+          WHERE ${where}
           GROUP BY keyActiveX, keyActiveY`;
-
-          fullQuery = `
-          SELECT count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${where}`;
         } else if (view.type === "1D") {
           const dim = view.dimension;
 
@@ -438,23 +394,19 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActiveX.select} AS keyActiveX,
-            ${binActiveY.select} AS keyActiveY,
-            ${bin.select} AS key,
-            count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
-            bin.where
-          } AND ${where}
-          GROUP BY keyActiveX, keyActiveY, key`;
-
-          fullQuery = `
-          SELECT
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveX.select}
+              ELSE -1 END AS keyActiveX,
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveY.select}
+              ELSE -1 END AS keyActiveY,
             ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
-          GROUP BY key`;
+          GROUP BY keyActiveX, keyActiveY, key`;
         } else {
           const dimensions = view.dimensions;
           const binConfigs = dimensions.map(d => d.binConfig!);
@@ -474,38 +426,39 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            ${binActiveX.select} AS keyActiveX,
-            ${binActiveY.select} AS keyActiveY,
-            ${binX.select} AS keyX,
-            ${binY.select} AS keyY,
-            count(*) AS cnt
-          FROM ${this.table}
-          WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
-            binX.where
-          } AND ${binY.where} AND ${where}
-          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
-
-          fullQuery = `
-          SELECT
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveX.select}
+              ELSE -1 END AS keyActiveX,
+            CASE
+              WHEN ${binActiveX.where} AND ${binActiveY.where}
+              THEN ${binActiveY.select}
+              ELSE -1 END AS keyActiveY,
             ${binX.select} AS keyX,
             ${binY.select} AS keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} AND ${where}
-          GROUP BY keyX, keyY`;
+          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
         }
 
         const res = await this.query(query);
 
         if (view.type === "0D") {
           for (const { keyActiveX, keyActiveY, cnt } of res) {
-            hists.set(keyActiveX, keyActiveY, cnt);
+            if (keyActiveX >= 0 && keyActiveY >= 0) {
+              hists.set(keyActiveX, keyActiveY, cnt);
+            }
+            noBrush.data[0] += cnt;
           }
 
           prefixSum(hists);
         } else if (view.type === "1D") {
           for (const { keyActiveX, keyActiveY, key, cnt } of res) {
-            hists.set(keyActiveX, keyActiveY, key, cnt);
+            if (keyActiveX >= 0 && keyActiveY >= 0) {
+              hists.set(keyActiveX, keyActiveY, key, cnt);
+            }
+            noBrush.data[noBrush.index(key)] += cnt;
           }
 
           // compute cumulative sums
@@ -514,7 +467,10 @@ export class MapDDB<V extends string, D extends string>
           }
         } else if (view.type === "2D") {
           for (const { keyActiveX, keyActiveY, keyX, keyY, cnt } of res) {
-            hists.set(keyActiveX, keyActiveY, keyX, keyY, cnt);
+            if (keyActiveX >= 0 && keyActiveY >= 0) {
+              hists.set(keyActiveX, keyActiveY, keyX, keyY, cnt);
+            }
+            noBrush.data[noBrush.index(keyX, keyY)] += cnt;
           }
 
           // compute cumulative sums
@@ -525,38 +481,11 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        // we careate a function so that we can start the query after all the other queries have been started
-        const noBrushResolve = (resolve: (ndarray) => void) => {
-          this.query(fullQuery).then(resFull => {
-            let keys: string[] = {
-              "0D": ["cnt"],
-              "1D": ["key", "cnt"],
-              "2D": ["keyX, keyY", "cnt"]
-            }[view.type];
-
-            for (const row of resFull) {
-              noBrush.set(...keys.map(k => row[k]));
-            }
-
-            resolve(noBrush);
-          });
-        };
-
-        preparedResult.set(name, { hists, noBrushResolve });
+        result.set(name, { hists, noBrush });
       })
     );
 
-    const result: DbResult<V> = new Map();
-
-    for (const [name, res] of preparedResult) {
-      result.set(name, {
-        hists: res.hists,
-        // this starts the queries for the histograms without brushes
-        noBrush: new Promise(res.noBrushResolve)
-      });
-    }
-
-    console.log("Build result cube:" + (Date.now() - t0) + "ms");
+    console.log(`Build result cube: ${Date.now() - t0}ms`);
 
     return result;
   }
