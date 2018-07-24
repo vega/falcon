@@ -40,8 +40,6 @@ export class MapDDB<V extends string, D extends string>
   private async query(q: string): Promise<any[]> {
     const t0 = Date.now();
 
-    q = q.replace(/\s\s+/g, " ").trim();
-
     const {
       results,
       timing
@@ -49,6 +47,8 @@ export class MapDDB<V extends string, D extends string>
     } = await this.session.queryAsync(q, {
       returnTiming: true
     });
+
+    q = q.replace(/\s\s+/g, " ").trim();
 
     console.info(
       "%c" + q,
@@ -73,8 +73,9 @@ export class MapDDB<V extends string, D extends string>
       select: `floor(
         (${field} - cast(${binConfig.start} as float))
         / cast(${binConfig.step} as float))`,
-      where: `cast(${binConfig.start} as float) <= ${field}
-      AND ${field} < cast(${binConfig.stop} as float)`
+      where: `${field} BETWEEN cast(${binConfig.start} as float) AND cast(${
+        binConfig.stop
+      } as float)`
     };
   }
 
@@ -232,7 +233,7 @@ export class MapDDB<V extends string, D extends string>
           query = `
           SELECT
             ${binActive.select} AS keyActive,
-            ${bin.select} as key,
+            ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActive.where} AND ${bin.where} AND ${where}
@@ -240,7 +241,7 @@ export class MapDDB<V extends string, D extends string>
 
           fullQuery = `
           SELECT
-            ${bin.select} as key,
+            ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
@@ -439,7 +440,7 @@ export class MapDDB<V extends string, D extends string>
           SELECT
             ${binActiveX.select} AS keyActiveX,
             ${binActiveY.select} AS keyActiveY,
-            ${bin.select} as key,
+            ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
@@ -449,7 +450,7 @@ export class MapDDB<V extends string, D extends string>
 
           fullQuery = `
           SELECT
-            ${bin.select} as key,
+            ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${bin.where} AND ${where}
@@ -475,8 +476,8 @@ export class MapDDB<V extends string, D extends string>
           SELECT
             ${binActiveX.select} AS keyActiveX,
             ${binActiveY.select} AS keyActiveY,
-            ${binX.select} as keyX,
-            ${binY.select} as keyY,
+            ${binX.select} AS keyX,
+            ${binY.select} AS keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binActiveX.where} AND ${binActiveY.where} AND ${
@@ -486,8 +487,8 @@ export class MapDDB<V extends string, D extends string>
 
           fullQuery = `
           SELECT
-            ${binX.select} as keyX,
-            ${binY.select} as keyY,
+            ${binX.select} AS keyX,
+            ${binY.select} AS keyY,
             count(*) AS cnt
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} AND ${where}
