@@ -1,4 +1,4 @@
-import { App, ArrowDB, Views } from "../src";
+import { App, createApp, ArrowDB, Views } from "../src";
 import { createElement } from "./utils";
 
 document.getElementById("app")!.innerText = "";
@@ -118,7 +118,6 @@ views.set("DEP_DELAY_ARR_DELAY", {
 
 const db = new ArrowDB(require("../data/flights-10k.arrow"));
 
-
 // const logger = new SimpleLogger<ViewName>();
 
 // window.onbeforeunload = () =>
@@ -126,6 +125,6 @@ const db = new ArrowDB(require("../data/flights-10k.arrow"));
 //     ? "We still need to send logs. Try again in a few seconds."
 //     : null;
 
-new App(views, db, {
+createApp(views, db, {
   cb: () => (document.getElementById("loading")!.innerText = "")
 });
