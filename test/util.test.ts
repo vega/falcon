@@ -1,5 +1,5 @@
 import ndarray from "ndarray";
-import { _chEmd, chEmd } from "./../src/util";
+import { _chEmd, chEmd, omit } from "./../src/util";
 
 describe("emb", () => {
   const a = [1, 2, 4, 6, 7, 8];
@@ -27,5 +27,20 @@ describe("emb", () => {
         ndarray([0, 3, 3, 4, 5, 7, 8, 9], [6])
       )
     ).toBe(emd / 6);
+  });
+});
+
+describe("omit", () => {
+  test("omit does not change original map", () => {
+    const original = new Map<number, number>();
+    original.set(1, 1);
+    original.set(2, 2);
+    original.set(3, 3);
+    original.set(4, 4);
+    const copy = omit(original, 2, 3);
+    expect(Array.from(original.keys())).toEqual(
+      expect.arrayContaining([1, 2, 3, 4])
+    );
+    expect(Array.from(original.keys())).toEqual(expect.arrayContaining([2, 3]));
   });
 });

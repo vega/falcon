@@ -194,9 +194,11 @@ export function chEmd(a: ndarray, b: ndarray) {
 /**
  * Return a map without a particular key.
  */
-export function omit<K, V>(map: Map<K, V>, omit: K) {
+export function omit<K, V>(map: Map<K, V>, ...omit: K[]) {
   const copy = new Map(map);
-  copy.delete(omit);
+  for (const key of omit) {
+    copy.delete(key);
+  }
   return copy;
 }
 
