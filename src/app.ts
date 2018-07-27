@@ -211,14 +211,12 @@ export class App<V extends string, D extends string> {
     )
       return;
 
-    const brushes = new Map(this.brushes);
-
     const view = this.views.get(name)!;
 
     let p: Promise<DbResult<V>> | DbResult<V>;
 
     if (view.type === "1D") {
-      brushes.delete(view.dimension.name);
+      const brushes = omit(this.brushes, view.dimension.name);
 
       p = this.db.loadData1D(
         view,
@@ -227,8 +225,7 @@ export class App<V extends string, D extends string> {
         brushes
       );
     } else if (view.type === "2D") {
-      brushes.delete(view.dimensions[0].name);
-      brushes.delete(view.dimensions[1].name);
+      const brushes = omit(this.brushes, ...view.dimensions.map(d => d.name));
 
       p = this.db.loadData2D(
         view,
