@@ -1,4 +1,4 @@
-import { DataBase, DbResult } from "./db";
+import { DataBase, Cubes } from "./db";
 import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
@@ -11,6 +11,8 @@ import { binNumberFunction, numBins, stepSize } from "../util";
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
   private data: Table;
+
+  public readonly blocking: boolean = true;
 
   public constructor(private readonly url: string) {}
 
@@ -112,7 +114,7 @@ export class ArrowDB<V extends string, D extends string>
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result: DbResult<V> = new Map();
+    const cubes: Cubes<V> = new Map();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -239,12 +241,12 @@ export class ArrowDB<V extends string, D extends string>
         }
       }
 
-      result.set(name, { hists, noBrush: noBrush });
+      cubes.set(name, { hists, noBrush: noBrush });
     }
 
     console.timeEnd("Build result cube");
 
-    return result;
+    return cubes;
   }
 
   public loadData2D(
@@ -256,7 +258,7 @@ export class ArrowDB<V extends string, D extends string>
     console.time("Build result cube");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const result: DbResult<V> = new Map();
+    const cubes: Cubes<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
@@ -370,11 +372,11 @@ export class ArrowDB<V extends string, D extends string>
         throw new Error("2D view brushing and viewing not yet implemented.");
       }
 
-      result.set(name, { hists, noBrush: noBrush });
+      cubes.set(name, { hists, noBrush: noBrush });
     }
 
     console.timeEnd("Build result cube");
 
-    return result;
+    return cubes;
   }
 }

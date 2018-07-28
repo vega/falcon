@@ -317,18 +317,24 @@ export function createHistogramView<D extends string>(
           from: { data: "interesting" },
           encode: {
             enter: {
-              x: { field: "x" },
-              width: { value: 1 },
+              x: { field: "x", scale: "xPix" },
+              width: { scale: "xPix", band: 1 },
               y: { field: "view", scale: "y" },
-              height: { scale: "y", band: true }
-            },
-            update: {
+              height: { scale: "y", band: 1 },
               fill: { field: "value", scale: "color" }
             }
           }
         }
       ],
       scales: [
+        {
+          name: "xPix",
+          type: "band",
+          domain: { signal: "sequence(pixels)" },
+          range: "width",
+          padding: 0,
+          round: false
+        },
         {
           name: "y",
           type: "band",
@@ -350,7 +356,9 @@ export function createHistogramView<D extends string>(
           orient: "left",
           ticks: false,
           labelPadding: 5,
-          labelLimit: 60
+          labelLimit: 60,
+          domain: false,
+          labelFontSize: 8
         }
       ]
     } as Mark);
@@ -500,6 +508,10 @@ export function createHistogramView<D extends string>(
             update: "abs(span(pixelBrush))"
           }
         ]
+      },
+      {
+        name: "pixels",
+        value: HISTOGRAM_WIDTH
       }
     ] as Signal[]);
   }

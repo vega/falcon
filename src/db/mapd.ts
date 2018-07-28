@@ -6,13 +6,15 @@ import { Interval } from "../basic";
 import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
-import { DataBase, DbResult } from "./db";
+import { DataBase, Cubes } from "./db";
 
 const connector = new (window as any).MapdCon();
 
 export class MapDDB<V extends string, D extends string>
   implements DataBase<V, D> {
   private session: any;
+
+  public readonly blocking: boolean = false;
 
   constructor(
     private readonly conn: {
@@ -162,7 +164,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     const filters = this.getWhereClauses(brushes);
-    const result: DbResult<V> = new Map();
+    const cubes: Cubes<V> = new Map();
 
     const activeDim = activeView.dimension;
     const activeStepSize = stepSize(activeDim.extent, pixels);
@@ -266,7 +268,6 @@ export class MapDDB<V extends string, D extends string>
 
         const res = await this.query(query);
 
-        
         if (view.type === "0D") {
           for (const { keyActive, cnt } of res) {
             if (keyActive >= 0) {
@@ -303,15 +304,14 @@ export class MapDDB<V extends string, D extends string>
             }
           }
         }
-        
 
-        result.set(name, { hists, noBrush });
+        cubes.set(name, { hists, noBrush });
       })
     );
 
     console.log(`Build result cube: ${Date.now() - t0}ms`);
 
-    return result;
+    return cubes;
   }
 
   public async loadData2D(
@@ -323,7 +323,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = Date.now();
 
     const filters = this.getWhereClauses(brushes);
-    const result: DbResult<V> = new Map();
+    const cubes: Cubes<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
@@ -481,12 +481,12 @@ export class MapDDB<V extends string, D extends string>
           }
         }
 
-        result.set(name, { hists, noBrush });
+        cubes.set(name, { hists, noBrush });
       })
     );
 
     console.log(`Build result cube: ${Date.now() - t0}ms`);
 
-    return result;
+    return cubes;
   }
 }

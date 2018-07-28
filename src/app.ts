@@ -1,4 +1,3 @@
-import { DbResult } from "./db/db";
 import { extent } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
@@ -6,16 +5,17 @@ import { Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
+import { Cubes } from "./db/db";
 import {
   bin,
   binNumberFunction,
+  binTime,
   binToData,
   chEmd,
   omit,
   stepSize,
   sub,
-  summedAreaTableLookup,
-  binTime
+  summedAreaTableLookup
 } from "./util";
 import {
   createBarView,
@@ -36,6 +36,16 @@ document.onmouseup = () => {
   mouseIsDown = false;
 };
 
+interface Data<V> {
+  pixels: number | Interval<number>;
+  cubes: Cubes<V>;
+}
+
+interface PendingData<V> {
+  pixels: number | Interval<number>;
+  cubes: Cubes<V> | Promise<Cubes<V>>;
+}
+
 export class App<V extends string, D extends string> {
   private readonly views: Views<V, D> = new Map();
   private activeView: V;
@@ -45,12 +55,12 @@ export class App<V extends string, D extends string> {
   /**
    * Data for each non-active view.
    */
-  private data: DbResult<V>;
+  private data: Data<V>;
 
   /**
    * Preferched data that can be moved to data when the active view changes.
    */
-  private prefetchedData = new Map<V, Promise<DbResult<V>> | DbResult<V>>();
+  private prefetchedData = new Map<V, PendingData<V>>();
 
   /**
    * How many requests are pending for the view;
@@ -104,6 +114,22 @@ export class App<V extends string, D extends string> {
     );
   }
 
+  /**
+   * Get a hash of the current state to see whether requests are still valid in the future.
+   */
+  private stateHash() {
+    const activeView = this.getActiveView();
+    const brushes =
+      activeView.type === "1D"
+        ? omit(this.brushes, activeView.dimension.name)
+        : omit(this.brushes, ...activeView.dimensions.map(d => d.name));
+    let brushStrings: string[] = [];
+    for (const [k, v] of brushes) {
+      brushStrings.push(`${k}:${v}`);
+    }
+    return `${this.activeView} ${brushStrings.sort().join(" ")}`;
+  }
+
   private async initializeView(name: V, view: View<D>) {
     const el = view.el!;
     if (view.type === "0D") {
@@ -145,6 +171,7 @@ export class App<V extends string, D extends string> {
           "brushSingleStart",
           (_name, value: number) => {
             vegaView
+              .signal("pixels", this.data.pixels)
               .change(
                 "interesting",
                 changeset()
@@ -157,6 +184,7 @@ export class App<V extends string, D extends string> {
 
         vegaView.addSignalListener("brushMoveStart", (_name, value: number) => {
           vegaView
+            .signal("pixels", this.data.pixels)
             .change(
               "interesting",
               changeset()
@@ -179,7 +207,7 @@ export class App<V extends string, D extends string> {
         dimension.binConfig = binConfig;
       }
 
-      const vegaView = createHeatmapView(el, view);
+      const vegaView = createHeatmapView(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
@@ -213,26 +241,15 @@ export class App<V extends string, D extends string> {
 
     const view = this.views.get(name)!;
 
-    let p: Promise<DbResult<V>> | DbResult<V>;
+    let cubes: Promise<Cubes<V>> | Cubes<V>;
+    let pixels: number | Interval<number>;
 
     if (view.type === "1D") {
-      const brushes = omit(this.brushes, view.dimension.name);
-
-      p = this.db.loadData1D(
-        view,
-        HISTOGRAM_WIDTH,
-        omit(this.views, name),
-        brushes
-      );
+      pixels = 10;
+      cubes = this.load1DData(name, view, pixels);
     } else if (view.type === "2D") {
-      const brushes = omit(this.brushes, ...view.dimensions.map(d => d.name));
-
-      p = this.db.loadData2D(
-        view,
-        [HEATMAP_WIDTH, HEATMAP_WIDTH],
-        omit(this.views, name),
-        brushes
-      );
+      pixels = [10, 10];
+      cubes = this.load2DData(name, view, pixels);
     } else {
       throw new Error("0D cannot be an active view.");
     }
@@ -240,14 +257,16 @@ export class App<V extends string, D extends string> {
     const vgView = this.vegaViews.get(name)!;
     vgView.container()!.style.cursor = "wait";
 
-    function done() {
+    // mark view as pending as long as we don't have required data
+    const done = () => {
+      console.log("view ready", name);
       vgView.container()!.style.cursor = null;
       vgView.signal("ready", true).run();
-    }
+    };
 
-    if (p instanceof Promise) {
+    if (cubes instanceof Promise) {
       this.pendingRequests.set(name, this.pendingRequests.get(name) || 0 + 1);
-      p.then(() => {
+      cubes.then(() => {
         const count = this.pendingRequests.get(name)! - 1;
         this.pendingRequests.set(name, count);
         if (count === 0) {
@@ -258,7 +277,25 @@ export class App<V extends string, D extends string> {
       done();
     }
 
-    this.prefetchedData.set(name, p);
+    this.prefetchedData.set(name, { pixels, cubes });
+  }
+
+  private load1DData(name: V, view: View1D<D>, pixels: number) {
+    return this.db.loadData1D(
+      view,
+      pixels,
+      omit(this.views, name),
+      omit(this.brushes, view.dimension.name)
+    );
+  }
+
+  private load2DData(name: V, view: View2D<D>, pixels: Interval<number>) {
+    return this.db.loadData2D(
+      view,
+      pixels,
+      omit(this.views, name),
+      omit(this.brushes, ...view.dimensions.map(d => d.name))
+    );
   }
 
   /**
@@ -284,8 +321,12 @@ export class App<V extends string, D extends string> {
     const activeView = this.getActiveView();
     const activeVgView = this.vegaViews.get(name)!;
 
-    // data should be ready since we only allow interactions with views that are ready
-    this.data = await this.prefetchedData.get(name)!;
+    const data = this.prefetchedData.get(name)!;
+    this.data = {
+      pixels: data.pixels,
+      // data cubes should be ready since we only allow interactions with views that are ready
+      cubes: await data.cubes
+    };
 
     // need to clear because the brushes are changing now
     this.prefetchedData.clear();
@@ -293,13 +334,53 @@ export class App<V extends string, D extends string> {
     if (activeView.type === "1D" && this.config.showInterestingness) {
       // show basic interestingness
       activeVgView
+        .signal("pixels", this.data.pixels)
         .change(
           "interesting",
           changeset()
             .remove(truthy)
             .insert(this.calculateInterestingness())
         )
-        .resize();
+        .resize()
+        .run();
+    }
+
+    const hash = this.stateHash();
+
+    const loadHighResData = async () => {
+      console.info("Loading high resolution data...");
+      if (activeView.type === "1D") {
+        const pixels = HISTOGRAM_WIDTH;
+        return {
+          pixels,
+          cubes: await this.load1DData(name, activeView, pixels)
+        };
+      } else {
+        const pixels: Interval<number> = [HEATMAP_WIDTH, HEATMAP_WIDTH];
+        return {
+          pixels,
+          cubes: await this.load2DData(name, activeView, pixels)
+        };
+      }
+    };
+
+    if (this.db.blocking) {
+      window.setTimeout(async () => {
+        if (hash === this.stateHash()) {
+          this.data = await loadHighResData();
+          this.update();
+        }
+      }, 1000);
+    } else {
+      // put request for high resolution data in the background
+      loadHighResData().then(data => {
+        if (hash === this.stateHash()) {
+          this.data = data;
+          this.update();
+        } else {
+          console.info("Received outdated result that was ignored.");
+        }
+      });
     }
   }
 
@@ -316,17 +397,22 @@ export class App<V extends string, D extends string> {
     }[] = [];
 
     console.time("Compute interestingness");
+
+    const { cubes, pixels: pixels_ } = this.data;
+    const pixels = pixels_ as number;
+
     for (const [name, view] of omit(this.views, this.activeView)) {
       if (view.type !== "0D") {
-        const { hists } = this.data.get(name)!;
         let data: Array<any>;
+
+        const { hists } = cubes.get(name)!;
 
         if (opt.window !== undefined) {
           const w = Math.floor(opt.window / 2);
 
-          data = new Array(HISTOGRAM_WIDTH - opt.window);
+          data = new Array(pixels - opt.window);
 
-          for (let pixel = w; pixel < HISTOGRAM_WIDTH - w; pixel++) {
+          for (let pixel = w; pixel < pixels - w; pixel++) {
             const distance = chEmd(
               hists.pick(pixel - w, null, null),
               hists.pick(pixel + w, null, null)
@@ -339,7 +425,7 @@ export class App<V extends string, D extends string> {
             };
           }
         } else {
-          data = new Array(HISTOGRAM_WIDTH);
+          data = new Array(pixels);
 
           // cache the start cumulative histogram
           let startChf: ndarray = ndarray([]);
@@ -347,7 +433,7 @@ export class App<V extends string, D extends string> {
             startChf = hists.pick(opt.start, null, null);
           }
 
-          for (let pixel = 0; pixel < HISTOGRAM_WIDTH; pixel++) {
+          for (let pixel = 0; pixel < pixels; pixel++) {
             let distance: number;
 
             if (opt.start !== undefined) {
@@ -481,10 +567,12 @@ export class App<V extends string, D extends string> {
   private update() {
     const activeView = this.getActiveView();
 
+    const { cubes, pixels } = this.data;
+
     if (activeView.type === "1D") {
       const activeBinF = binNumberFunction({
         start: activeView.dimension.extent[0],
-        step: stepSize(activeView.dimension.extent, HISTOGRAM_WIDTH)
+        step: stepSize(activeView.dimension.extent, pixels as number)
       });
 
       const brush = this.brushes.get(activeView.dimension.name);
@@ -501,7 +589,7 @@ export class App<V extends string, D extends string> {
           continue;
         }
 
-        const data = this.data.get(name)!;
+        const data = cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {
@@ -534,7 +622,10 @@ export class App<V extends string, D extends string> {
       const activeBinF = [0, 1].map(i =>
         binNumberFunction({
           start: activeView.dimensions[i].extent[0],
-          step: stepSize(activeView.dimensions[i].extent, HEATMAP_WIDTH)
+          step: stepSize(
+            activeView.dimensions[i].extent,
+            (pixels as Interval<number>)[i]
+          )
         })
       );
 
@@ -556,8 +647,7 @@ export class App<V extends string, D extends string> {
         if (name === this.activeView) {
           continue;
         }
-
-        const data = this.data.get(name)!;
+        const data = cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {

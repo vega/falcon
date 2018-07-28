@@ -1,14 +1,165 @@
-import { parse, Spec, View } from "vega-lib";
+import { parse, Spec, View, Mark } from "vega-lib";
 import { View2D } from "../api";
 import { AXIS_Y_EXTENT } from "./bar";
+import { Config } from "../config";
 
 export const HEATMAP_WIDTH = 450;
 
 export function createHeatmapView<D extends string>(
   el: Element,
-  view: View2D<D>
+  view: View2D<D>,
+  config: Config
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
+
+  const marks: Mark[] = [];
+
+  if (config.readyindicator) {
+    marks.push({
+      type: "symbol",
+      encode: {
+        enter: {
+          shape: { value: "circle" },
+          stroke: { value: "black" }
+        },
+        update: {
+          fill: {
+            signal: 'ready ? "black" : "transparent"'
+          },
+          x: { signal: "width", offset: 80 },
+          y: { value: 10 },
+          tooltip: {
+            signal: '"View ready: " + ready'
+          }
+        }
+      }
+    } as Mark);
+  }
+
+  marks.push({
+    type: "group",
+    name: "chart",
+    interactive: { signal: "ready" },
+    encode: {
+      enter: {
+        height: { signal: "height" },
+        width: { signal: "width" },
+        clip: { value: true },
+        fill: { value: "transparent" },
+        cursor: { value: "crosshair" }
+      }
+    },
+    marks: [
+      {
+        type: "rect",
+        from: { data: "table" },
+        interactive: false,
+        encode: {
+          update: {
+            x: { scale: "x", field: "keyX" },
+            x2: {
+              scale: "x",
+              signal: `datum.keyX + binX.step`
+            },
+            y: { scale: "y", field: "keyY" },
+            y2: {
+              scale: "y",
+              signal: `datum.keyY + binY.step`
+            },
+            fill: {
+              signal:
+                "datum.value === 0 ? 'white' : scale('color', datum.value)"
+            },
+            key: { field: "keyX" }
+          }
+        }
+      },
+      {
+        type: "rect",
+        name: "brush",
+        encode: {
+          enter: {
+            y: { value: 0 },
+            height: { field: { group: "height" } },
+            fill: { value: "rgba(0,0,0,0.05)" },
+            stroke: { value: "firebrick" },
+            opacity: { value: 1 },
+            cursor: { value: "move" }
+          },
+          update: {
+            x: { signal: "pixelBrushX[0]" },
+            x2: { signal: "pixelBrushX[1]" },
+            y: { signal: "pixelBrushY[0]" },
+            y2: { signal: "pixelBrushY[1]" }
+          }
+        }
+      },
+      {
+        type: "rect",
+        name: "left",
+        encode: {
+          enter: {
+            fill: { value: "transparent" },
+            cursor: { value: "ew-resize" }
+          },
+          update: {
+            x: { signal: "pixelBrushX[0]", offset: -3 },
+            x2: { signal: "pixelBrushX[0]", offset: 3 },
+            y: { signal: "pixelBrushY[0]" },
+            y2: { signal: "pixelBrushY[1]" }
+          }
+        }
+      },
+      {
+        type: "rect",
+        name: "right",
+        encode: {
+          enter: {
+            fill: { value: "transparent" },
+            cursor: { value: "ew-resize" }
+          },
+          update: {
+            x: { signal: "pixelBrushX[1]", offset: -3 },
+            x2: { signal: "pixelBrushX[1]", offset: 3 },
+            y: { signal: "pixelBrushY[0]" },
+            y2: { signal: "pixelBrushY[1]" }
+          }
+        }
+      },
+      {
+        type: "rect",
+        name: "bottom",
+        encode: {
+          enter: {
+            fill: { value: "transparent" },
+            cursor: { value: "ns-resize" }
+          },
+          update: {
+            x: { signal: "pixelBrushX[0]" },
+            x2: { signal: "pixelBrushX[1]" },
+            y: { signal: "pixelBrushY[0]", offset: -3 },
+            y2: { signal: "pixelBrushY[0]", offset: 3 }
+          }
+        }
+      },
+      {
+        type: "rect",
+        name: "top",
+        encode: {
+          enter: {
+            fill: { value: "transparent" },
+            cursor: { value: "ns-resize" }
+          },
+          update: {
+            x: { signal: "pixelBrushX[0]" },
+            x2: { signal: "pixelBrushX[1]" },
+            y: { signal: "pixelBrushY[1]", offset: -3 },
+            y2: { signal: "pixelBrushY[1]", offset: 3 }
+          }
+        }
+      }
+    ]
+  });
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
@@ -176,132 +327,7 @@ export function createHeatmapView<D extends string>(
         ]
       }
     ],
-    marks: [
-      {
-        type: "group",
-        name: "chart",
-        interactive: { signal: "ready" },
-        encode: {
-          enter: {
-            height: { signal: "height" },
-            width: { signal: "width" },
-            clip: { value: true },
-            fill: { value: "transparent" },
-            cursor: { value: "crosshair" }
-          }
-        },
-        marks: [
-          {
-            type: "rect",
-            from: { data: "table" },
-            interactive: false,
-            encode: {
-              update: {
-                x: { scale: "x", field: "keyX" },
-                x2: {
-                  scale: "x",
-                  signal: `datum.keyX + binX.step`
-                },
-                y: { scale: "y", field: "keyY" },
-                y2: {
-                  scale: "y",
-                  signal: `datum.keyY + binY.step`
-                },
-                fill: {
-                  signal:
-                    "datum.value === 0 ? 'white' : scale('color', datum.value)"
-                },
-                key: { field: "keyX" }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "brush",
-            encode: {
-              enter: {
-                y: { value: 0 },
-                height: { field: { group: "height" } },
-                fill: { value: "rgba(0,0,0,0.05)" },
-                stroke: { value: "firebrick" },
-                opacity: { value: 1 },
-                cursor: { value: "move" }
-              },
-              update: {
-                x: { signal: "pixelBrushX[0]" },
-                x2: { signal: "pixelBrushX[1]" },
-                y: { signal: "pixelBrushY[0]" },
-                y2: { signal: "pixelBrushY[1]" }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "left",
-            encode: {
-              enter: {
-                fill: { value: "transparent" },
-                cursor: { value: "ew-resize" }
-              },
-              update: {
-                x: { signal: "pixelBrushX[0]", offset: -3 },
-                x2: { signal: "pixelBrushX[0]", offset: 3 },
-                y: { signal: "pixelBrushY[0]" },
-                y2: { signal: "pixelBrushY[1]" }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "right",
-            encode: {
-              enter: {
-                fill: { value: "transparent" },
-                cursor: { value: "ew-resize" }
-              },
-              update: {
-                x: { signal: "pixelBrushX[1]", offset: -3 },
-                x2: { signal: "pixelBrushX[1]", offset: 3 },
-                y: { signal: "pixelBrushY[0]" },
-                y2: { signal: "pixelBrushY[1]" }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "bottom",
-            encode: {
-              enter: {
-                fill: { value: "transparent" },
-                cursor: { value: "ns-resize" }
-              },
-              update: {
-                x: { signal: "pixelBrushX[0]" },
-                x2: { signal: "pixelBrushX[1]" },
-                y: { signal: "pixelBrushY[0]", offset: -3 },
-                y2: { signal: "pixelBrushY[0]", offset: 3 }
-              }
-            }
-          },
-          {
-            type: "rect",
-            name: "top",
-            encode: {
-              enter: {
-                fill: { value: "transparent" },
-                cursor: { value: "ns-resize" }
-              },
-              update: {
-                x: { signal: "pixelBrushX[0]" },
-                x2: { signal: "pixelBrushX[1]" },
-                y: { signal: "pixelBrushY[1]", offset: -3 },
-                y2: { signal: "pixelBrushY[1]", offset: 3 }
-              }
-            }
-          }
-        ]
-      }
-    ],
+    marks: marks,
     scales: [
       {
         name: "x",
