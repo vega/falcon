@@ -71,6 +71,9 @@ export class App<V extends string, D extends string> {
 
   private logger?: Logger<V>;
 
+  private readonly highRes1D: number;
+  private readonly highRes2D: number;
+
   /**
    * Construct the app
    * @param views The views.
@@ -88,6 +91,15 @@ export class App<V extends string, D extends string> {
   ) {
     this.config = { ...DEFAULT_CONFIG, ...((opt && opt.config) || {}) };
     this.logger = opt && opt.logger;
+
+    this.highRes1D = Math.min(
+      this.config.maxInteractiveResolution1D,
+      HISTOGRAM_WIDTH
+    );
+    this.highRes2D = Math.min(
+      this.config.maxInteractiveResolution2D,
+      HEATMAP_WIDTH
+    );
 
     for (const [name, view] of views) {
       if (view.el) {
@@ -245,12 +257,12 @@ export class App<V extends string, D extends string> {
     let pixels: number | Interval<number>;
 
     if (view.type === "1D") {
-      pixels = this.config.progressiveInteractions ? 50 : HISTOGRAM_WIDTH;
+      pixels = this.config.progressiveInteractions ? 50 : this.highRes1D;
       cubes = this.load1DData(name, view, pixels);
     } else if (view.type === "2D") {
       pixels = this.config.progressiveInteractions
         ? [20, 20]
-        : [HEATMAP_WIDTH, HEATMAP_WIDTH];
+        : [this.highRes2D, this.highRes2D];
       cubes = this.load2DData(name, view, pixels);
     } else {
       throw new Error("0D cannot be an active view.");
@@ -353,13 +365,13 @@ export class App<V extends string, D extends string> {
       const loadHighResData = async () => {
         console.info("Loading high resolution data...");
         if (activeView.type === "1D") {
-          const pixels = HISTOGRAM_WIDTH;
+          const pixels = this.highRes1D;
           return {
             pixels,
             cubes: await this.load1DData(name, activeView, pixels)
           };
         } else {
-          const pixels: Interval<number> = [HEATMAP_WIDTH, HEATMAP_WIDTH];
+          const pixels: Interval<number> = [this.highRes2D, this.highRes2D];
           return {
             pixels,
             cubes: await this.load2DData(name, activeView, pixels)

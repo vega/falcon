@@ -6,7 +6,9 @@ export const DEFAULT_CONFIG = {
   showBase: true,
   zeroDBar: true,
   showInterestingness: false,
-  progressiveInteractions: true
+  progressiveInteractions: true,
+  maxInteractiveResolution1D: Infinity,
+  maxInteractiveResolution2D: 80
 };
 
 export type Config = typeof DEFAULT_CONFIG;
