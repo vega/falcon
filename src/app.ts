@@ -1,4 +1,4 @@
-import { extent } from "d3";
+import { extent, scaleLinear } from "d3";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
 import { Logger, View, View1D, View2D, Views } from "./api";
@@ -16,7 +16,10 @@ import {
   stepSize,
   sub,
   summedAreaTableLookup,
-  throttle
+  throttle,
+  linearNumberFunction,
+  interpolateLinear1D,
+  clamp
 } from "./util";
 import {
   createBarView,
@@ -588,21 +591,30 @@ export class App<V extends string, D extends string> {
   private update() {
     const activeView = this.getActiveView();
 
-    const { cubes, pixels } = this.data;
+    const { cubes, pixels: pixels_ } = this.data;
 
     if (activeView.type === "1D") {
-      const activeBinF = binNumberFunction({
+      const pixels = pixels_ as number;
+      const activeBinF = linearNumberFunction({
         start: activeView.dimension.extent[0],
-        step: stepSize(activeView.dimension.extent, pixels as number)
+        step: stepSize(activeView.dimension.extent, pixels)
       });
 
       const brush = this.brushes.get(activeView.dimension.name);
 
-      let activeBrush: number[] | null = null;
+      let activeBrushFloor: number[] = [-1];
+      let activeBrushCeil: number[] = [-1];
+      let activeBrushFloat: number[] = [-1];
+      let fraction: number[] = [-1];
 
       if (brush) {
         // active brush in pixel domain
-        activeBrush = brush.map(activeBinF);
+        activeBrushFloat = brush.map(activeBinF);
+        activeBrushFloor = activeBrushFloat.map(Math.floor);
+        activeBrushCeil = activeBrushFloat
+          .map(Math.ceil)
+          .map(d => clamp(d, [0, pixels]));
+        fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);
       }
 
       for (const [name, view] of this.views) {
@@ -614,25 +626,36 @@ export class App<V extends string, D extends string> {
         const hists = data.hists;
 
         if (view.type === "0D") {
-          const value = activeBrush
-            ? hists.get(activeBrush[1]) - hists.get(activeBrush[0])
+          const value = brush
+            ? (1 - fraction[1]) * hists.get(activeBrushFloor[1]) +
+              fraction[1] * hists.get(activeBrushCeil[1]) -
+              ((1 - fraction[0]) * hists.get(activeBrushFloor[0]) +
+                fraction[0] * hists.get(activeBrushCeil[0]))
             : data.noBrush.data[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
-          const hist = activeBrush
-            ? sub(
-                hists.pick(activeBrush[0], null),
-                hists.pick(activeBrush[1], null)
+          const hist = brush
+            ? interpolateLinear1D(
+                hists.pick(activeBrushFloor[0], null),
+                hists.pick(activeBrushCeil[0], null),
+                hists.pick(activeBrushFloor[1], null),
+                hists.pick(activeBrushCeil[1], null),
+                fraction[0],
+                fraction[1]
               )
             : data.noBrush;
 
           this.update1DView(name, view, hist, false);
         } else {
-          const heat = activeBrush
-            ? sub(
-                hists.pick(activeBrush[0], null, null),
-                hists.pick(activeBrush[1], null, null)
+          const heat = brush
+            ? interpolateLinear1D(
+                hists.pick(activeBrushFloor[0], null, null),
+                hists.pick(activeBrushCeil[0], null, null),
+                hists.pick(activeBrushFloor[1], null, null),
+                hists.pick(activeBrushCeil[1], null, null),
+                fraction[0],
+                fraction[1]
               )
             : data.noBrush;
 
@@ -640,13 +663,11 @@ export class App<V extends string, D extends string> {
         }
       }
     } else {
+      const pixels = pixels_ as Interval<number>;
       const activeBinF = [0, 1].map(i =>
         binNumberFunction({
           start: activeView.dimensions[i].extent[0],
-          step: stepSize(
-            activeView.dimensions[i].extent,
-            (pixels as Interval<number>)[i]
-          )
+          step: stepSize(activeView.dimensions[i].extent, pixels[i])
         })
       );
 

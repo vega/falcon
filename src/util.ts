@@ -72,6 +72,13 @@ export function binNumberFunction({ start, step }: StartStepBinConfig) {
 }
 
 /**
+ * Returns a function that returns the float bin for a value.
+ */
+export function linearNumberFunction({ start, step }: StartStepBinConfig) {
+  return (v: number) => (v - start) / step;
+}
+
+/**
  * Only execute a function so often.
  *
  * @param func The function to throttle.
@@ -122,6 +129,27 @@ export function flatten(data) {
 export function sub(a: ndarray, b: ndarray) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
   sub_(out, b, a);
+  return out;
+}
+
+const interpolate1D_ = cwise({
+  args: ["array", "array", "array", "array", "array", "scalar", "scalar"],
+  body: function(_, a, a2, b, b2, fa, fb) {
+    _ = (1 - fb) * b + fb * b2 - ((1 - fa) * a + fa * a2);
+  },
+  funcName: "interpolate1D"
+});
+
+export function interpolateLinear1D(
+  a: ndarray,
+  a2: ndarray,
+  b: ndarray,
+  b2: ndarray,
+  fa: number,
+  fb: number
+) {
+  const out = ndarray(new HIST_TYPE(a.size), a.shape);
+  interpolate1D_(out, a, a2, b, b2, fa, fb);
   return out;
 }
 
