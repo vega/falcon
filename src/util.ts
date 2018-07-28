@@ -7,6 +7,13 @@ import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
 
+export function extent(e: Interval<number>): Interval<number> {
+  if (e[0] > e[1]) {
+    return [e[1], e[0]];
+  }
+  return e;
+}
+
 export function bin(maxbins: number, extent: Interval<number>): BinConfig {
   return bin_({ maxbins, extent });
 }
@@ -132,15 +139,18 @@ export function sub(a: ndarray, b: ndarray) {
   return out;
 }
 
-const interpolate1D_ = cwise({
+const subInterpolate_ = cwise({
   args: ["array", "array", "array", "array", "array", "scalar", "scalar"],
   body: function(_, a, a2, b, b2, fa, fb) {
     _ = (1 - fb) * b + fb * b2 - ((1 - fa) * a + fa * a2);
   },
-  funcName: "interpolate1D"
+  funcName: "subi"
 });
 
-export function interpolateLinear1D(
+/**
+ * Like sub but interpolates histograms.
+ */
+export function subInterpolated(
   a: ndarray,
   a2: ndarray,
   b: ndarray,
@@ -149,7 +159,7 @@ export function interpolateLinear1D(
   fb: number
 ) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
-  interpolate1D_(out, a, a2, b, b2, fa, fb);
+  subInterpolate_(out, a, a2, b, b2, fa, fb);
   return out;
 }
 
@@ -182,6 +192,142 @@ export function summedAreaTableLookup(
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
 
   satl(out, a, b, c, d);
+
+  return out;
+}
+
+const satli = cwise({
+  args: [
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "array",
+    "scalar",
+    "scalar",
+    "scalar",
+    "scalar",
+    "scalar",
+    "scalar",
+    "scalar",
+    "scalar"
+  ],
+  body: function(
+    _,
+    a1,
+    a2,
+    a3,
+    a4,
+    b1,
+    b2,
+    b3,
+    b4,
+    c1,
+    c2,
+    c3,
+    c4,
+    d1,
+    d2,
+    d3,
+    d4,
+    fax,
+    fay,
+    fbx,
+    fby,
+    fcx,
+    fcy,
+    fdx,
+    fdy
+  ) {
+    // https://en.wikipedia.org/wiki/Bilinear_interpolation
+    _ =
+      a1 * fax * fay +
+      a2 * (1 - fax) * fay +
+      a3 * (1 - fax) * (1 - fay) +
+      a4 * fax * (1 - fay) -
+      (b1 * fbx * fby +
+        b2 * (1 - fbx) * fby +
+        b3 * (1 - fbx) * (1 - fby) +
+        b4 * fbx * (1 - fby)) -
+      (c1 * fcx * fcy +
+        c2 * (1 - fcx) * fcy +
+        c3 * (1 - fcx) * (1 - fcy) +
+        c4 * fcx * (1 - fcy)) +
+      (d1 * fdx * fdy +
+        d2 * (1 - fdx) * fdy +
+        d3 * (1 - fdx) * (1 - fdy) +
+        d4 * fdx * (1 - fdy));
+  },
+  funcName: "satli"
+});
+
+export function summedAreaTableLookupInterpolate(
+  a1: ndarray,
+  a2: ndarray,
+  a3: ndarray,
+  a4: ndarray,
+  b1: ndarray,
+  b2: ndarray,
+  b3: ndarray,
+  b4: ndarray,
+  c1: ndarray,
+  c2: ndarray,
+  c3: ndarray,
+  c4: ndarray,
+  d1: ndarray,
+  d2: ndarray,
+  d3: ndarray,
+  d4: ndarray,
+  fax: number,
+  fay: number,
+  fbx: number,
+  fby: number,
+  fcx: number,
+  fcy: number,
+  fdx: number,
+  fdy: number
+) {
+  const out = ndarray(new HIST_TYPE(a1.size), a1.shape);
+
+  satli(
+    out,
+    a1,
+    a2,
+    a3,
+    a4,
+    b1,
+    b2,
+    b3,
+    b4,
+    c1,
+    c2,
+    c3,
+    c4,
+    d1,
+    d2,
+    d3,
+    d4,
+    fax,
+    fay,
+    fbx,
+    fby,
+    fcx,
+    fcy,
+    fdx,
+    fdy
+  );
 
   return out;
 }

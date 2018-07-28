@@ -1,4 +1,4 @@
-import { parse, Spec, View, Mark } from "vega-lib";
+import { parse, Spec, View, Mark, Warn } from "vega-lib";
 import { View2D } from "../api";
 import { AXIS_Y_EXTENT } from "./bar";
 import { Config } from "../config";
@@ -12,9 +12,12 @@ export function createHeatmapView<D extends string>(
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
 
+  // TODO: support 2D interpolation
+  const interpolate = false;
+
   const marks: Mark[] = [];
 
-  if (config.readyindicator) {
+  if (config.readyIndicator) {
     marks.push({
       type: "symbol",
       encode: {
@@ -44,9 +47,12 @@ export function createHeatmapView<D extends string>(
       enter: {
         height: { signal: "height" },
         width: { signal: "width" },
-        clip: { value: true },
         fill: { value: "transparent" },
         cursor: { value: "crosshair" }
+      },
+      update: {
+        // hack: clip brush when it is inactive
+        clip: { signal: "pixelBrushX[0] === -10" }
       }
     },
     marks: [
@@ -174,6 +180,16 @@ export function createHeatmapView<D extends string>(
       { name: "ready", value: false },
       { name: "binX", value: dimensionX.binConfig },
       { name: "binY", value: dimensionY.binConfig },
+      { name: "pixels", value: [1, 1] },
+      {
+        name: "resolution",
+        on: [
+          {
+            events: { signal: "pixels" },
+            update: "[width / pixels[0], height / pixels[1]]"
+          }
+        ]
+      },
       { name: "extentX", value: dimensionX.extent },
       { name: "extentY", value: dimensionY.extent },
       {
@@ -265,13 +281,37 @@ export function createHeatmapView<D extends string>(
         ]
       },
       {
+        name: "reverseBrushX",
+        value: false,
+        on: [
+          {
+            events: { signal: "brushX" },
+            update: "brushX[0] > brushX[1]"
+          }
+        ]
+      },
+      {
+        name: "reverseBrushY",
+        value: false,
+        on: [
+          {
+            events: { signal: "brushY" },
+            update: "brushY[1] > brushY[0]"
+          }
+        ]
+      },
+      {
         name: "pixelBrushX", // in pixel space
         value: [-10, -10],
         on: [
           {
             events: { signal: "brushX" },
-            update:
-              'span(brushX) ? [scale("x", brushX[0]), scale("x", brushX[1])] : [-10, -10]'
+            update: `span(brushX) ? [${
+              interpolate
+                ? "scale('x', brushX[0]), scale('x', brushX[1])"
+                : "(reverseBrushX ? ceil(scale('x', brushX[0]) / resolution[0]) : floor(scale('x', brushX[0]) / resolution[0])) * resolution[0]," +
+                  "(reverseBrushX ? floor(scale('x', brushX[1]) / resolution[0]) : ceil(scale('x', brushX[1]) / resolution[0])) * resolution[0]"
+            }] : [-10, -10]`
           }
         ]
       },
@@ -281,8 +321,12 @@ export function createHeatmapView<D extends string>(
         on: [
           {
             events: { signal: "brushY" },
-            update:
-              'span(brushY) ? [scale("y", brushY[0]), scale("y", brushY[1])] : [-10, -10]'
+            update: `span(brushY) ? [${
+              interpolate
+                ? "scale('y', brushY[0]), scale('y', brushY[1])"
+                : "(reverseBrushY ? ceil(scale('y', brushY[0]) / resolution[1]) : floor(scale('y', brushY[0]) / resolution[1])) * resolution[1]," +
+                  "(reverseBrushY ? floor(scale('y', brushY[1]) / resolution[1]) : ceil(scale('y', brushY[1]) / resolution[1])) * resolution[1]"
+            }] : [-10, -10]`
           }
         ]
       },
@@ -376,7 +420,15 @@ export function createHeatmapView<D extends string>(
         fill: "color",
         type: "gradient",
         title: "Count",
-        gradientLength: { signal: "height - 16" }
+        gradientLength: { signal: "height - 16" },
+        orient: "none",
+        encode: {
+          legend: {
+            enter: {
+              x: { signal: "width + 20" }
+            }
+          }
+        }
       }
     ],
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
@@ -384,7 +436,10 @@ export function createHeatmapView<D extends string>(
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("canvas");
+  const vgView = new View(runtime)
+    .logLevel(Warn)
+    .initialize(el)
+    .renderer("canvas");
 
   vgView["_spec"] = vgSpec;
   return vgView;

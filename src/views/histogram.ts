@@ -12,6 +12,7 @@ import {
 } from "vega-lib";
 import { View1D } from "../api";
 import { Config } from "../config";
+import { Warn } from "../../node_modules/vega-util";
 
 export const HISTOGRAM_WIDTH = 600;
 
@@ -190,7 +191,7 @@ export function createHistogramView<D extends string>(
                     update: {
                       path: {
                         signal:
-                          "pixelBrush[0] <= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                          "!reverseBrush ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
                       }
                     }
                   }
@@ -251,7 +252,7 @@ export function createHistogramView<D extends string>(
                     update: {
                       path: {
                         signal:
-                          "pixelBrush[0] >= pixelBrush[1] ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
+                          "reverseBrush ? 'M-0.5,33.333333333333336A6,6 0 0 0 -6.5,39.333333333333336V60.66666666666667A6,6 0 0 0 -0.5,66.66666666666667ZM-2.5,41.333333333333336V58.66666666666667M-4.5,41.333333333333336V58.66666666666667' : 'M0.5,33.333333333333336A6,6 0 0 1 6.5,39.333333333333336V60.66666666666667A6,6 0 0 1 0.5,66.66666666666667ZM2.5,41.333333333333336V58.66666666666667M4.5,41.333333333333336V58.66666666666667'"
                       }
                     }
                   }
@@ -403,6 +404,19 @@ export function createHistogramView<D extends string>(
     { name: "ready", value: false },
     { name: "bin", value: dimension.binConfig },
     {
+      name: "pixels",
+      value: 1
+    },
+    {
+      name: "resolution",
+      on: [
+        {
+          events: { signal: "pixels" },
+          update: "width / pixels"
+        }
+      ]
+    },
+    {
       name: "brush",
       value: 0,
       on: onBrush
@@ -438,13 +452,27 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
+      name: "reverseBrush",
+      value: false,
+      on: [
+        {
+          events: { signal: "brush" },
+          update: "brush[0] > brush[1]"
+        }
+      ]
+    },
+    {
       name: "pixelBrush",
       value: [-10, -10],
       on: [
         {
           events: { signal: "brush" },
-          update:
-            "span(brush) ? [scale('x', brush[0]), scale('x', brush[1])] : [-10, -10]"
+          update: `span(brush) ? [${
+            config.interpolate
+              ? "scale('x', brush[0]), scale('x', brush[1])"
+              : "(reverseBrush ? ceil(scale('x', brush[0]) / resolution) : floor(scale('x', brush[0]) / resolution)) * resolution," +
+                "(reverseBrush ? floor(scale('x', brush[1]) / resolution) : ceil(scale('x', brush[1]) / resolution)) * resolution"
+          }] : [-10, -10]`
         }
       ]
     },
@@ -508,10 +536,6 @@ export function createHistogramView<D extends string>(
             update: "abs(span(pixelBrush))"
           }
         ]
-      },
-      {
-        name: "pixels",
-        value: HISTOGRAM_WIDTH
       }
     ] as Signal[]);
   }
@@ -553,7 +577,7 @@ export function createHistogramView<D extends string>(
     } as Mark);
   }
 
-  if (config.readyindicator) {
+  if (config.readyIndicator) {
     marks.push({
       type: "symbol",
       encode: {
@@ -684,6 +708,7 @@ export function createHistogramView<D extends string>(
   const runtime = parse(vgSpec);
 
   const vgView = new View(runtime)
+    .logLevel(Warn)
     .initialize(el)
     .renderer("svg")
     .run();

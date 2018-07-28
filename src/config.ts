@@ -2,7 +2,7 @@ export const DEFAULT_CONFIG = {
   //---------
   // features
 
-  readyindicator: true,
+  readyIndicator: false,
   chartCount: false,
   zoomBrush: true,
   showBase: true,
@@ -10,6 +10,7 @@ export const DEFAULT_CONFIG = {
   showInterestingness: false,
   /** Load high resolution interactions later. */
   progressiveInteractions: true,
+  interpolate: false,
 
   //--------------
   // configuration
@@ -20,7 +21,7 @@ export const DEFAULT_CONFIG = {
    * How long to wait before requesting high resolution data.
    * Only applies to blocking databases.
    */
-  progressiveTimeout: 10000
+  progressiveTimeout: 1000
 };
 
 export type Config = typeof DEFAULT_CONFIG;
