@@ -71,9 +71,15 @@ export function binNumberFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => Math.floor((v - start) / step);
 }
 
+/**
+ * Only execute a function so often.
+ *
+ * @param func The function to throttle.
+ * @param timeout Timeout if set. Otherwise uses requestAnimationFrame.
+ */
 export function throttle<A extends (...args: any[]) => any>(
   func: A,
-  timeout: number
+  timeout?: number
 ): A {
   let inThrottle;
 
@@ -82,9 +88,16 @@ export function throttle<A extends (...args: any[]) => any>(
     if (!inThrottle) {
       func.apply(context, args);
       inThrottle = true;
-      setTimeout(() => {
-        return (inThrottle = false);
-      }, timeout);
+
+      if (timeout !== undefined) {
+        setTimeout(() => {
+          return (inThrottle = false);
+        }, timeout);
+      } else {
+        window.requestAnimationFrame(() => {
+          return (inThrottle = false);
+        });
+      }
     }
   } as any;
 }

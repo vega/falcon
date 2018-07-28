@@ -169,7 +169,7 @@ const db = new MapDDB(
 // );
 
 new App(views, db, {
-  cb: () => (document.getElementById("loading")!.innerText = "")
+  cb: () => (document.getElementById("loading")!.style.display = "none")
 });
 
 // field names in flights_donotmodify:

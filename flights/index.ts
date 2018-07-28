@@ -118,7 +118,6 @@ views.set("DEP_DELAY_ARR_DELAY", {
 
 const db = new ArrowDB(require("../data/flights-10k.arrow"));
 
-
 // const logger = new SimpleLogger<ViewName>();
 
 // window.onbeforeunload = () =>
@@ -127,5 +126,5 @@ const db = new ArrowDB(require("../data/flights-10k.arrow"));
 //     : null;
 
 new App(views, db, {
-  cb: () => (document.getElementById("loading")!.innerText = "")
+  cb: () => (document.getElementById("loading")!.style.display = "none")
 });

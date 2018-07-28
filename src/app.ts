@@ -15,7 +15,8 @@ import {
   omit,
   stepSize,
   sub,
-  summedAreaTableLookup
+  summedAreaTableLookup,
+  throttle
 } from "./util";
 import {
   createBarView,
@@ -74,6 +75,8 @@ export class App<V extends string, D extends string> {
   private readonly highRes1D: number;
   private readonly highRes2D: number;
 
+  private throttledUpdate: () => void;
+
   /**
    * Construct the app
    * @param views The views.
@@ -100,6 +103,8 @@ export class App<V extends string, D extends string> {
       this.config.maxInteractiveResolution2D,
       HEATMAP_WIDTH
     );
+
+    this.throttledUpdate = throttle(this.update);
 
     for (const [name, view] of views) {
       if (view.el) {
@@ -489,7 +494,7 @@ export class App<V extends string, D extends string> {
       this.brushes.set(dimension, extent(value) as [number, number]);
     }
 
-    this.update();
+    this.throttledUpdate();
   }
 
   private async brushMove2D(
@@ -511,7 +516,7 @@ export class App<V extends string, D extends string> {
       this.brushes.set(dim2, extent(value[1]) as [number, number]);
     }
 
-    this.update();
+    this.throttledUpdate();
   }
 
   private getActiveView() {
