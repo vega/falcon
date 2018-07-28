@@ -209,3 +209,7 @@ export function only<K, V>(map: Map<K, V>, only: K[]) {
   }
   return copy;
 }
+
+export function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

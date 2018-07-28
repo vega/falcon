@@ -30,7 +30,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.5.3",
+    "@types/node": "^10.5.4",
     "crossfilter2": "^1.4.6",
     "cwise": "^1.0.10",
     "d3": "^5.5.0",

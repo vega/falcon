@@ -69,8 +69,7 @@ export function createHeatmapView<D extends string>(
             fill: {
               signal:
                 "datum.value === 0 ? 'white' : scale('color', datum.value)"
-            },
-            key: { field: "keyX" }
+            }
           }
         }
       },

@@ -683,7 +683,10 @@ export function createHistogramView<D extends string>(
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("svg");
+  const vgView = new View(runtime)
+    .initialize(el)
+    .renderer("svg")
+    .run();
 
   vgView["_spec"] = vgSpec;
   return vgView;
