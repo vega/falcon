@@ -245,10 +245,12 @@ export class App<V extends string, D extends string> {
     let pixels: number | Interval<number>;
 
     if (view.type === "1D") {
-      pixels = 10;
+      pixels = this.config.progressiveInteractions ? 50 : HISTOGRAM_WIDTH;
       cubes = this.load1DData(name, view, pixels);
     } else if (view.type === "2D") {
-      pixels = [10, 10];
+      pixels = this.config.progressiveInteractions
+        ? [20, 20]
+        : [HEATMAP_WIDTH, HEATMAP_WIDTH];
       cubes = this.load2DData(name, view, pixels);
     } else {
       throw new Error("0D cannot be an active view.");
@@ -347,40 +349,42 @@ export class App<V extends string, D extends string> {
 
     const hash = this.stateHash();
 
-    const loadHighResData = async () => {
-      console.info("Loading high resolution data...");
-      if (activeView.type === "1D") {
-        const pixels = HISTOGRAM_WIDTH;
-        return {
-          pixels,
-          cubes: await this.load1DData(name, activeView, pixels)
-        };
-      } else {
-        const pixels: Interval<number> = [HEATMAP_WIDTH, HEATMAP_WIDTH];
-        return {
-          pixels,
-          cubes: await this.load2DData(name, activeView, pixels)
-        };
-      }
-    };
-
-    if (this.db.blocking) {
-      window.setTimeout(async () => {
-        if (hash === this.stateHash()) {
-          this.data = await loadHighResData();
-          this.update();
-        }
-      }, 1000);
-    } else {
-      // put request for high resolution data in the background
-      loadHighResData().then(data => {
-        if (hash === this.stateHash()) {
-          this.data = data;
-          this.update();
+    if (this.config.progressiveInteractions) {
+      const loadHighResData = async () => {
+        console.info("Loading high resolution data...");
+        if (activeView.type === "1D") {
+          const pixels = HISTOGRAM_WIDTH;
+          return {
+            pixels,
+            cubes: await this.load1DData(name, activeView, pixels)
+          };
         } else {
-          console.info("Received outdated result that was ignored.");
+          const pixels: Interval<number> = [HEATMAP_WIDTH, HEATMAP_WIDTH];
+          return {
+            pixels,
+            cubes: await this.load2DData(name, activeView, pixels)
+          };
         }
-      });
+      };
+
+      if (this.db.blocking) {
+        window.setTimeout(async () => {
+          if (hash === this.stateHash()) {
+            this.data = await loadHighResData();
+            this.update();
+          }
+        }, 1000);
+      } else {
+        // put request for high resolution data in the background
+        loadHighResData().then(data => {
+          if (hash === this.stateHash()) {
+            this.data = data;
+            this.update();
+          } else {
+            console.info("Received outdated result that was ignored.");
+          }
+        });
+      }
     }
   }
 

@@ -5,7 +5,8 @@ export const DEFAULT_CONFIG = {
   zoomBrush: true,
   showBase: true,
   zeroDBar: true,
-  showInterestingness: false
+  showInterestingness: false,
+  progressiveInteractions: true
 };
 
 export type Config = typeof DEFAULT_CONFIG;
