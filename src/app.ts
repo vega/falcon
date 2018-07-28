@@ -390,7 +390,7 @@ export class App<V extends string, D extends string> {
             this.data = await loadHighResData();
             this.update();
           }
-        }, 1000);
+        }, this.config.progressiveTimeout);
       } else {
         // put request for high resolution data in the background
         loadHighResData().then(data => {
