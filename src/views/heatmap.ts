@@ -203,21 +203,19 @@ export function createHeatmapView<D extends string>(
           {
             events: { signal: "pan" },
             update:
-              "clampRange(panLinear(anchor[0], pan[0] / span(anchor[0])), binX.start, binX.stop)"
+              "clampRange(panLinear(anchor[0], pan[0] / span(anchor[0])), 0, width)"
           },
           {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-            update: '[down[0], clamp(invert("x", x()), binX.start, binX.stop)]'
+            update: "[down[0], clamp(x(), 0, width)]"
           },
           {
             events: "[@left:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[clamp(invert("x", x()), binX.start, binX.stop), brushX[1]]'
+            update: "[clamp(x(), 0, width), brushX[1]]"
           },
           {
             events: "[@right:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[brushX[0], clamp(invert("x", x()), binX.start, binX.stop)]'
+            update: "[brushX[0], clamp(x(), 0, width)]"
           }
         ]
       },
@@ -232,21 +230,19 @@ export function createHeatmapView<D extends string>(
           {
             events: { signal: "pan" },
             update:
-              "clampRange(panLinear(anchor[1], pan[1] / span(anchor[1])), binY.start, binY.stop)"
+              "clampRange(panLinear(anchor[1], pan[1] / span(anchor[1])), 0, height)"
           },
           {
             events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-            update: '[down[1], clamp(invert("y", y()), binY.start, binY.stop)]'
+            update: "[down[1], clamp(y(), 0, height)]"
           },
           {
             events: "[@top:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[brushY[0], clamp(invert("y", y()), binY.start, binY.stop)]'
+            update: "[brushY[0], clamp(y(), 0, height)]"
           },
           {
             events: "[@bottom:mousedown, window:mouseup] > window:mousemove!",
-            update:
-              '[clamp(invert("y", y()), binY.start, binY.stop), brushY[1]]'
+            update: "[clamp(y(), 0, height), brushY[1]]"
           }
         ]
       },
@@ -256,12 +252,12 @@ export function createHeatmapView<D extends string>(
         on: [
           {
             events: "mousedown",
-            update: '[invert("x", x()), invert("y", y())]'
+            update: "[x(), y()]"
           }
         ]
       },
       {
-        name: "anchor", // in data space
+        name: "anchor",
         value: [0, 0],
         on: [
           {
@@ -271,12 +267,12 @@ export function createHeatmapView<D extends string>(
         ]
       },
       {
-        name: "pan", // in data space
+        name: "pan",
         value: [0, 0],
         on: [
           {
             events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-            update: '[down[0] - invert("x", x()), down[1] - invert("y", y())]'
+            update: "[down[0] - x(), down[1] - y()]"
           }
         ]
       },
@@ -301,42 +297,42 @@ export function createHeatmapView<D extends string>(
         ]
       },
       {
-        name: "pixelBrushX", // in pixel space
+        name: "pixelBrushX",
         value: [-10, -10],
         on: [
           {
             events: { signal: "brushX" },
             update: `span(brushX) ? [${
               interpolate
-                ? "scale('x', brushX[0]), scale('x', brushX[1])"
-                : "(reverseBrushX ? ceil(scale('x', brushX[0]) / resolution[0]) : floor(scale('x', brushX[0]) / resolution[0])) * resolution[0]," +
-                  "(reverseBrushX ? floor(scale('x', brushX[1]) / resolution[0]) : ceil(scale('x', brushX[1]) / resolution[0])) * resolution[0]"
+                ? "brushX[0], brushX[1]"
+                : "(reverseBrushX ? ceil(brushX[0] / resolution[0]) : floor(brushX[0] / resolution[0])) * resolution[0]," +
+                  "(reverseBrushX ? floor(brushX[1] / resolution[0]) : ceil(brushX[1] / resolution[0])) * resolution[0]"
             }] : [-10, -10]`
           }
         ]
       },
       {
-        name: "pixelBrushY", // in pixel space
+        name: "pixelBrushY",
         value: [-10, -10],
         on: [
           {
             events: { signal: "brushY" },
             update: `span(brushY) ? [${
               interpolate
-                ? "scale('y', brushY[0]), scale('y', brushY[1])"
-                : "(reverseBrushY ? ceil(scale('y', brushY[0]) / resolution[1]) : floor(scale('y', brushY[0]) / resolution[1])) * resolution[1]," +
-                  "(reverseBrushY ? floor(scale('y', brushY[1]) / resolution[1]) : ceil(scale('y', brushY[1]) / resolution[1])) * resolution[1]"
+                ? "brushY[0], brushY[1]"
+                : "(reverseBrushY ? ceil(brushY[0] / resolution[1]) : floor(brushY[0] / resolution[1])) * resolution[1]," +
+                  "(reverseBrushY ? floor(brushY[1] / resolution[1]) : ceil(brushY[1] / resolution[1])) * resolution[1]"
             }] : [-10, -10]`
           }
         ]
       },
       {
-        name: "brush", // in data space
+        name: "dataBrush",
         value: 0,
         on: [
           {
             events: [{ signal: "brushX" }, { signal: "brushY" }],
-            update: "[brushX, brushY]"
+            update: "[invert('x', brushX), invert('y', brushY)]"
           }
         ]
       },

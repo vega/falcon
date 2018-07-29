@@ -95,11 +95,11 @@ export function createHistogramView<D extends string>(
             },
             update: {
               text: {
-                signal: `brush ? '[' + ${
+                signal: `dataBrush ? '[' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[0], '${dimension.format}') + ',' + ${
+                }(dataBrush[0], '${dimension.format}') + ',' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[1], '${dimension.format}') + ']' : ''`
+                }(dataBrush[1], '${dimension.format}') + ']' : ''`
               }
             }
           }
@@ -373,29 +373,28 @@ export function createHistogramView<D extends string>(
     },
     {
       events: { signal: "pan" },
-      update:
-        "clampRange(panLinear(anchor, pan / span(anchor)), bin.start, bin.stop)"
+      update: "clampRange(panLinear(anchor, pan / span(anchor)), 0, width)"
     },
     {
       events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-      update: "[down, clamp(invert('x', x()), bin.start, bin.stop)]"
+      update: "[down, clamp(x(), 0, width)]"
     },
     {
       events:
         "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[clamp(invert('x', x()), bin.start, bin.stop), brush[1]]"
+      update: "[clamp(x(), 0, width), brush[1]]"
     },
     {
       events:
         "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[brush[0], clamp(invert('x', x()), bin.start, bin.stop)]"
+      update: "[brush[0], clamp(x(), 0, width)]"
     }
   ];
 
   if (config.zoomBrush) {
     onBrush.push({
       events: { signal: "zoom" },
-      update: "clampRange(zoomLinear(brush, down, zoom), bin.start, bin.stop)"
+      update: "clampRange(zoomLinear(brush, down, zoom), 0, width)"
     } as OnEvent);
   }
 
@@ -422,17 +421,27 @@ export function createHistogramView<D extends string>(
       on: onBrush
     },
     {
-      name: "down", // in data space
+      name: "snapped",
       value: 0,
       on: [
         {
-          events: "mousedown, wheel",
-          update: "invert('x', x())"
+          events: "mousemove",
+          update: "x()"
         }
       ]
     },
     {
-      name: "anchor", // in data space
+      name: "down",
+      value: 0,
+      on: [
+        {
+          events: "mousedown, wheel",
+          update: "x()"
+        }
+      ]
+    },
+    {
+      name: "anchor",
       value: 0,
       on: [
         {
@@ -442,12 +451,12 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
-      name: "pan", // in data space
+      name: "pan",
       value: 0,
       on: [
         {
           events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-          update: "down - invert('x', x())"
+          update: "down - x()"
         }
       ]
     },
@@ -461,6 +470,7 @@ export function createHistogramView<D extends string>(
         }
       ]
     },
+    // brush after snapping
     {
       name: "pixelBrush",
       value: [-10, -10],
@@ -469,10 +479,21 @@ export function createHistogramView<D extends string>(
           events: { signal: "brush" },
           update: `span(brush) ? [${
             config.interpolate
-              ? "scale('x', brush[0]), scale('x', brush[1])"
-              : "(reverseBrush ? ceil(scale('x', brush[0]) / resolution) : floor(scale('x', brush[0]) / resolution)) * resolution," +
-                "(reverseBrush ? floor(scale('x', brush[1]) / resolution) : ceil(scale('x', brush[1]) / resolution)) * resolution"
+              ? "brush[0], brush[1]"
+              : "(reverseBrush ? ceil(brush[0] / resolution) : floor(brush[0] / resolution)) * resolution," +
+                "(reverseBrush ? floor(brush[1] / resolution) : ceil(brush[1] / resolution)) * resolution"
           }] : [-10, -10]`
+        }
+      ]
+    },
+    // brush in data space
+    {
+      name: "dataBrush",
+      value: 0,
+      on: [
+        {
+          events: { signal: "brush" },
+          update: "[invert('x', brush[0]), invert('x', brush[0])]"
         }
       ]
     },

@@ -178,7 +178,7 @@ export class App<V extends string, D extends string> {
       const data = await this.db.histogram(view.dimension);
       this.update1DView(name, view, data, this.config.showBase);
 
-      vegaView.addSignalListener("brush", (_name, value) => {
+      vegaView.addSignalListener("dataBrush", (_name, value) => {
         this.brushMove1D(name, view.dimension.name, value);
       });
 
@@ -231,7 +231,7 @@ export class App<V extends string, D extends string> {
       const data = await this.db.heatmap(view.dimensions);
       this.update2DView(name, view, data);
 
-      vegaView.addSignalListener("brush", (_name, value) => {
+      vegaView.addSignalListener("dataBrush", (_name, value) => {
         this.brushMove2D(
           name,
           view.dimensions[0].name,
