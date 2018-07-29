@@ -1,4 +1,3 @@
-import { HEATMAP_WIDTH } from "./views/heatmap";
 import ndarray from "ndarray";
 import { changeset, truthy, View as VgView } from "vega-lib";
 import { Logger, View, View1D, View2D, Views } from "./api";
@@ -600,35 +599,20 @@ export class App<V extends string, D extends string> {
     const { cubes, pixels: pixels_ } = this.data;
 
     if (activeView.type === "1D") {
-      const pixels = pixels_ as number;
-      const activeBinF = linearNumberFunction({
-        start: activeView.dimension.extent[0],
-        step: stepSize(activeView.dimension.extent, pixels)
-      });
-
       const brush = this.brushes.get(activeView.dimension.name);
 
-      let activeBrushPixel: number[] = [-1];
       let activeBrushFloor: number[] = [-1];
       let activeBrushCeil: number[] = [-1];
       let fraction: number[] = [-1];
 
       if (brush) {
-        if (this.config.interpolate) {
-          const activeBrushFloat = brush.map(activeBinF);
-          activeBrushFloor = activeBrushFloat.map(Math.floor);
-          activeBrushCeil = activeBrushFloat.map(Math.ceil);
-          fraction = [0, 1].map(
-            i => activeBrushFloat![i] - activeBrushFloor![i]
-          );
-        } else {
-          activeBrushPixel = extent(
-            this.vegaViews
-              .get(this.activeView)!
-              .signal("pixelBrush")
-              .map(d => (d / HISTOGRAM_WIDTH) * pixels)
-          );
-        }
+        const activeBrushFloat = extent(
+          this.vegaViews.get(this.activeView)!.signal("binBrush")
+        );
+
+        activeBrushFloor = activeBrushFloat.map(Math.floor);
+        activeBrushCeil = activeBrushFloat.map(Math.ceil);
+        fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);
       }
 
       for (const [name, view] of this.views) {
@@ -646,7 +630,7 @@ export class App<V extends string, D extends string> {
                 fraction[1] * hists.get(activeBrushCeil[1]) -
                 ((1 - fraction[0]) * hists.get(activeBrushFloor[0]) +
                   fraction[0] * hists.get(activeBrushCeil[0]))
-              : hists.get(activeBrushPixel[1]) - hists.get(activeBrushPixel[0])
+              : hists.get(activeBrushFloor[1]) - hists.get(activeBrushFloor[0])
             : data.noBrush.data[0];
 
           this.update0DView(name, value, false);
@@ -662,8 +646,8 @@ export class App<V extends string, D extends string> {
                   fraction[1]
                 )
               : sub(
-                  hists.pick(activeBrushPixel[0], null),
-                  hists.pick(activeBrushPixel[1], null)
+                  hists.pick(activeBrushFloor[0], null),
+                  hists.pick(activeBrushFloor[1], null)
                 )
             : data.noBrush;
 
@@ -680,8 +664,8 @@ export class App<V extends string, D extends string> {
                   fraction[1]
                 )
               : sub(
-                  hists.pick(activeBrushPixel[0], null, null),
-                  hists.pick(activeBrushPixel[1], null, null)
+                  hists.pick(activeBrushFloor[0], null, null),
+                  hists.pick(activeBrushFloor[1], null, null)
                 )
             : data.noBrush;
 
@@ -701,42 +685,20 @@ export class App<V extends string, D extends string> {
         this.brushes.get(activeView.dimensions[i].name)
       );
 
-      let activeBrushPixelX: number[] = [-1];
-      let activeBrushPixelY: number[] = [-1];
-
       let activeBrushFloorX: number[] = [-1];
       let activeBrushFloorY: number[] = [-1];
-
-      let activeBrushCeilX: number[] = [-1];
-      let activeBrushCeilY: number[] = [-1];
 
       const hasBrush = brush[0] && brush[1];
 
       if (hasBrush) {
-        if (this.config.interpolate) {
-          let activeBrushFloat = [0, 1].map(i => brush[i]!.map(activeBinF[i]));
-          [activeBrushFloorX, activeBrushFloorY] = [
-            activeBrushFloat[0].map(Math.floor),
-            activeBrushFloat[1].map(Math.floor)
-          ];
-          [activeBrushCeilX, activeBrushCeilY] = [
-            activeBrushFloat[0].map(Math.ceil),
-            activeBrushFloat[1].map(Math.ceil)
-          ];
-        } else {
-          const activeVgView = this.vegaViews.get(this.activeView)!;
-          activeBrushPixelX = extent(
-            activeVgView
-              .signal("pixelBrushX")
-              .map(d => (d / HEATMAP_WIDTH) * pixels[0])
-          );
-
-          activeBrushPixelY = extent(
-            activeVgView
-              .signal("pixelBrushY")
-              .map(d => pixels[1] - (d / HEATMAP_WIDTH) * pixels[1])
-          );
-        }
+        const activeBrushFloat: Interval<Interval<number>> = this.vegaViews
+          .get(this.activeView)!
+          .signal("binBrush")
+          .map(extent);
+        [activeBrushFloorX, activeBrushFloorY] = [
+          activeBrushFloat[0].map(Math.floor),
+          activeBrushFloat[1].map(Math.floor)
+        ];
       }
 
       for (const [name, view] of this.views) {
@@ -748,20 +710,20 @@ export class App<V extends string, D extends string> {
 
         if (view.type === "0D") {
           const value = hasBrush
-            ? hists.get(activeBrushPixelX[1], activeBrushPixelY[1]) -
-              hists.get(activeBrushPixelX[1], activeBrushPixelY[0]) -
-              hists.get(activeBrushPixelX[0], activeBrushPixelY[1]) +
-              hists.get(activeBrushPixelX[0], activeBrushPixelY[0])
+            ? hists.get(activeBrushFloorX[1], activeBrushFloorY[1]) -
+              hists.get(activeBrushFloorX[1], activeBrushFloorY[0]) -
+              hists.get(activeBrushFloorX[0], activeBrushFloorY[1]) +
+              hists.get(activeBrushFloorX[0], activeBrushFloorY[0])
             : data.noBrush[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
           const hist = hasBrush
             ? summedAreaTableLookup(
-                hists.pick(activeBrushPixelX[1], activeBrushPixelY[1], null),
-                hists.pick(activeBrushPixelX[1], activeBrushPixelY[0], null),
-                hists.pick(activeBrushPixelX[0], activeBrushPixelY[1], null),
-                hists.pick(activeBrushPixelX[0], activeBrushPixelY[0], null)
+                hists.pick(activeBrushFloorX[1], activeBrushFloorY[1], null),
+                hists.pick(activeBrushFloorX[1], activeBrushFloorY[0], null),
+                hists.pick(activeBrushFloorX[0], activeBrushFloorY[1], null),
+                hists.pick(activeBrushFloorX[0], activeBrushFloorY[0], null)
               )
             : data.noBrush;
 

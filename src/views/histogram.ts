@@ -80,7 +80,7 @@ export function createHistogramView<D extends string>(
               fill: { value: "black" }
             },
             update: {
-              text: { signal: "brush ? 'Reset Brush' : ''" }
+              text: { signal: "span(brush) ? 'Reset Brush' : ''" }
             }
           }
         },
@@ -116,8 +116,8 @@ export function createHistogramView<D extends string>(
               cursor: { value: "crosshair" }
             },
             update: {
-              // hack: clip brush when it is inactive
-              clip: { signal: "pixelBrush[0] === -10" }
+              // clip brush when it is inactive
+              clip: { signal: "!span(brush)" }
             }
           },
 
@@ -377,17 +377,17 @@ export function createHistogramView<D extends string>(
     },
     {
       events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-      update: "[down, clamp(x(), 0, width)]"
+      update: "[down, clamp(snapped, 0, width)]"
     },
     {
       events:
         "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[clamp(x(), 0, width), brush[1]]"
+      update: "[clamp(snapped, 0, width), brush[1]]"
     },
     {
       events:
         "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[brush[0], clamp(x(), 0, width)]"
+      update: "[brush[0], clamp(snapped, 0, width)]"
     }
   ];
 
@@ -426,7 +426,9 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "mousemove",
-          update: "x()"
+          update: config.interpolate
+            ? "x()"
+            : "round(x() / resolution) * resolution"
         }
       ]
     },
@@ -436,7 +438,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "mousedown, wheel",
-          update: "x()"
+          update: "snapped"
         }
       ]
     },
@@ -456,7 +458,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
-          update: "down - x()"
+          update: "down - snapped"
         }
       ]
     },
@@ -470,19 +472,18 @@ export function createHistogramView<D extends string>(
         }
       ]
     },
-    // brush after snapping
+    // brush in data space
     {
       name: "pixelBrush",
       value: [-10, -10],
       on: [
         {
           events: { signal: "brush" },
-          update: `span(brush) ? [${
-            config.interpolate
-              ? "brush[0], brush[1]"
-              : "(reverseBrush ? ceil(brush[0] / resolution) : floor(brush[0] / resolution)) * resolution," +
-                "(reverseBrush ? floor(brush[1] / resolution) : ceil(brush[1] / resolution)) * resolution"
-          }] : [-10, -10]`
+          update: "brush ? brush : [-10, -10]"
+        },
+        {
+          events: "window:mouseup",
+          update: "span(brush) ? brush : [-10, -10]"
         }
       ]
     },
@@ -493,7 +494,18 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: { signal: "brush" },
-          update: "[invert('x', brush[0]), invert('x', brush[0])]"
+          update: "span(brush) ? invert('x', brush) : 0"
+        }
+      ]
+    },
+    // brush in bin space
+    {
+      name: "binBrush",
+      value: 0,
+      on: [
+        {
+          events: { signal: "brush" },
+          update: "[brush[0] / resolution, brush[1] / resolution]"
         }
       ]
     },
@@ -540,11 +552,11 @@ export function createHistogramView<D extends string>(
           },
           {
             events: "@left:mousedown, @left_grabber:mousedown",
-            update: "pixelBrush[1]"
+            update: "brush[1]"
           },
           {
             events: "@right:mousedown, @right_grabber:mousedown",
-            update: "pixelBrush[0]"
+            update: "brush[0]"
           }
         ]
       },
@@ -554,7 +566,7 @@ export function createHistogramView<D extends string>(
         on: [
           {
             events: "@brush:mousedown",
-            update: "abs(span(pixelBrush))"
+            update: "abs(span(brush))"
           }
         ]
       }
