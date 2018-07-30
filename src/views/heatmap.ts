@@ -15,7 +15,50 @@ export function createHeatmapView<D extends string>(
   // TODO: support 2D interpolation
   const interpolate = false;
 
-  const marks: Mark[] = [];
+  const marks: Mark[] = [
+    {
+      type: "text",
+      name: "reset",
+      encode: {
+        enter: {
+          x: { signal: "width", mult: 0.5, offset: 5 },
+          y: { value: -10 },
+          align: { value: "left" },
+          cursor: { value: "pointer" },
+          fontWeight: { value: "bold" },
+          fill: { value: "black" }
+        },
+        update: {
+          text: { signal: "span(brushX) && span(brushY) ? 'Reset Brush' : ''" }
+        }
+      }
+    },
+    {
+      type: "text",
+      encode: {
+        enter: {
+          x: { signal: "width", mult: 0.5, offset: -5 },
+          y: { value: -10 },
+          align: { value: "right" },
+          fill: { value: "#666" }
+        },
+        update: {
+          text: {
+            signal: `dataBrush ? 'X: [' + ${
+              dimensionX.time ? "timeFormat" : "format"
+            }(dataBrush[0][0], '${dimensionX.format}') + ',' + ${
+              dimensionX.time ? "timeFormat" : "format"
+            }(dataBrush[0][1], '${dimensionX.format}') + '] Y: [' + ${
+              dimensionY.time ? "timeFormat" : "format"
+            }(dataBrush[1][0], '${dimensionY.format}') + ',' + ${
+              dimensionY.time ? "timeFormat" : "format"
+            }(dataBrush[1][1], '${dimensionY.format}') + ']' : ''`
+          }
+        }
+      }
+    }
+  ];
+
 
   if (config.readyIndicator) {
     marks.push({
@@ -197,7 +240,7 @@ export function createHeatmapView<D extends string>(
         value: 0,
         on: [
           {
-            events: "@chart:dblclick!, @brush:dblclick!",
+            events: "@chart:dblclick!, @brush:dblclick!, @reset:click!",
             update: "0"
           },
           {
@@ -224,7 +267,7 @@ export function createHeatmapView<D extends string>(
         value: 0,
         on: [
           {
-            events: "@chart:dblclick!, @brush:dblclick!",
+            events: "@chart:dblclick!, @brush:dblclick!, @reset:click!",
             update: "0"
           },
           {

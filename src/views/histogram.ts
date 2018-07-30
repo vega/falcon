@@ -416,6 +416,11 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
+      name: "showBase",
+      value: true,
+      on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
+    },
+    {
       name: "brush",
       value: 0,
       on: onBrush
@@ -508,11 +513,6 @@ export function createHistogramView<D extends string>(
           update: "[brush[0] / resolution, brush[1] / resolution]"
         }
       ]
-    },
-    {
-      name: "showBase",
-      value: true,
-      on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
     },
     // set the cursor when the mouse is moving
     {
