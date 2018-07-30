@@ -49,13 +49,13 @@
     "jest": "^23.4.2",
     "node-sass": "^4.9.2",
     "parcel-bundler": "1.9.7",
-    "prettier": "^1.13.7",
+    "prettier": "^1.14.0",
     "rollup": "^0.63.4",
     "rollup-plugin-commonjs": "^9.1.4",
     "rollup-plugin-json": "^3.0.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "ts-jest": "^23.0.1",
-    "typescript": "^2.9.2"
+    "typescript": "^3.0.1"
   },
   "jest": {
     "transform": {

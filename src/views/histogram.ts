@@ -1,18 +1,18 @@
-import { AXIS_Y_EXTENT } from "./bar";
 import {
   Data,
   EncodeEntry,
   Mark,
   OnEvent,
   parse,
+  Scale,
   Signal,
   Spec,
   View,
-  Scale
+  Warn
 } from "vega-lib";
 import { View1D } from "../api";
 import { Config } from "../config";
-import { Warn } from "../../node_modules/vega-util";
+import { AXIS_Y_EXTENT } from "./bar";
 
 export const HISTOGRAM_WIDTH = 600;
 

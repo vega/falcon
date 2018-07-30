@@ -10,15 +10,13 @@ import {
   binTime,
   binToData,
   chEmd,
-  linearNumberFunction,
+  extent,
   numBins,
   omit,
-  stepSize,
   sub,
   subInterpolated,
   summedAreaTableLookup,
-  throttle,
-  extent
+  throttle
 } from "./util";
 import {
   createBarView,
@@ -596,7 +594,7 @@ export class App<V extends string, D extends string> {
   private update() {
     const activeView = this.getActiveView();
 
-    const { cubes, pixels: pixels_ } = this.data;
+    const { cubes } = this.data;
 
     if (activeView.type === "1D") {
       const brush = this.brushes.get(activeView.dimension.name);
@@ -673,14 +671,6 @@ export class App<V extends string, D extends string> {
         }
       }
     } else {
-      const pixels = pixels_ as Interval<number>;
-      const activeBinF = [0, 1].map(i =>
-        linearNumberFunction({
-          start: activeView.dimensions[i].extent[0],
-          step: stepSize(activeView.dimensions[i].extent, pixels[i])
-        })
-      );
-
       const brush = [0, 1].map(i =>
         this.brushes.get(activeView.dimensions[i].name)
       );
