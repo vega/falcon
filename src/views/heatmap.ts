@@ -2,8 +2,7 @@ import { parse, Spec, View, Mark, Warn } from "vega-lib";
 import { View2D } from "../api";
 import { AXIS_Y_EXTENT } from "./bar";
 import { Config } from "../config";
-
-export const HEATMAP_WIDTH = 450;
+import { darkerBlue } from "./histogram";
 
 export function createHeatmapView<D extends string>(
   el: Element,
@@ -59,6 +58,25 @@ export function createHeatmapView<D extends string>(
     }
   ];
 
+  if (config.circleHeatmap && config.showBase) {
+    marks.push({
+      type: "text",
+      name: "toggleShowBase",
+      encode: {
+        enter: {
+          x: { signal: "width" },
+          y: { value: -10 },
+          align: { value: "right" },
+          cursor: { value: "pointer" },
+          fontWeight: { value: "bold" },
+          fill: { value: "black" }
+        },
+        update: {
+          text: { signal: "showBase ? 'Hide Base' : 'Show Base'" }
+        }
+      }
+    } as Mark);
+  }
 
   if (config.readyIndicator) {
     marks.push({
@@ -82,22 +100,64 @@ export function createHeatmapView<D extends string>(
     } as Mark);
   }
 
-  marks.push({
-    type: "group",
-    name: "chart",
-    interactive: { signal: "ready" },
-    encode: {
-      enter: {
-        height: { signal: "height" },
-        width: { signal: "width" },
-        fill: { value: "transparent" },
-        cursor: { value: "crosshair" }
+  let dataMarks: Mark[];
+
+  if (config.circleHeatmap) {
+    dataMarks = [
+      {
+        type: "symbol",
+        from: { data: "base" },
+        interactive: false,
+        encode: {
+          enter: {
+            shape: { value: "circle" },
+            fill: { value: "#000" },
+            opacity: { value: 0.07 }
+          },
+          update: {
+            x: {
+              scale: "x",
+              signal: `datum.keyX + binX.step/2`
+            },
+            y: {
+              scale: "y",
+              signal: `datum.keyY + binY.step/2`
+            },
+            size: {
+              scale: "size",
+              field: "value"
+            }
+          }
+        }
       },
-      update: {
-        clip: { signal: "!(span(brushX) && span(brushY))" }
+      {
+        type: "symbol",
+        from: { data: "table" },
+        interactive: false,
+        encode: {
+          enter: {
+            shape: { value: "circle" },
+            fill: { value: darkerBlue }
+          },
+          update: {
+            x: {
+              scale: "x",
+              signal: `datum.keyX + binX.step/2`
+            },
+            y: {
+              scale: "y",
+              signal: `datum.keyY + binY.step/2`
+            },
+            size: {
+              scale: "size",
+              field: "value"
+            }
+          }
+        }
       }
-    },
-    marks: [
+    ];
+  } else {
+    dataMarks = [
       {
         type: "rect",
         from: { data: "table" },
@@ -120,7 +180,26 @@ export function createHeatmapView<D extends string>(
             }
           }
         }
+      }
+    ];
+  }
+
+  marks.push({
+    type: "group",
+    name: "chart",
+    interactive: { signal: "ready" },
+    encode: {
+      enter: {
+        height: { signal: "height" },
+        width: { signal: "width" },
+        fill: { value: "transparent" },
+        cursor: { value: "crosshair" }
       },
+      update: {
+        clip: { signal: "!(span(brushX) && span(brushY))" }
+      }
+    },
+    marks: dataMarks.concat([
       {
         type: "rect",
         name: "brush",
@@ -205,15 +284,24 @@ export function createHeatmapView<D extends string>(
           }
         }
       }
-    ]
+    ])
   });
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    width: HEATMAP_WIDTH,
-    height: HEATMAP_WIDTH,
+    width: config.heatmapWidth,
+    height: config.heatmapWidth,
     padding: 5,
     data: [
+      {
+        name: "base",
+        transform: [
+          {
+            type: "filter",
+            expr: "showBase"
+          }
+        ]
+      },
       {
         name: "table"
       }
@@ -233,8 +321,11 @@ export function createHeatmapView<D extends string>(
           }
         ]
       },
-      { name: "extentX", value: dimensionX.extent },
-      { name: "extentY", value: dimensionY.extent },
+      {
+        name: "showBase",
+        value: true,
+        on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
+      },
       {
         name: "brushX",
         value: 0,
@@ -443,13 +534,26 @@ export function createHeatmapView<D extends string>(
         range: "height",
         reverse: true
       },
-      {
-        name: "color",
-        type: "sequential",
-        range: { scheme: "greenblue" },
-        domain: { data: "table", field: "value" },
-        nice: true
-      }
+      config.circleHeatmap
+        ? {
+            name: "size",
+            type: "linear",
+            range: [0, config.maxCircleSize],
+            domain: {
+              fields: [
+                { data: "base", field: "value" },
+                { data: "table", field: "value" }
+              ]
+            },
+            nice: true
+          }
+        : {
+            name: "color",
+            type: "sequential",
+            range: { scheme: "greenblue" },
+            domain: { data: "table", field: "value" },
+            nice: true
+          }
     ],
     axes: [
       {
@@ -471,11 +575,20 @@ export function createHeatmapView<D extends string>(
     ],
     legends: [
       {
-        fill: "color",
-        type: "gradient",
         title: "Count",
-        gradientLength: { signal: "height - 16" },
         orient: "none",
+
+        ...(config.circleHeatmap
+          ? {
+              size: "size",
+              symbolFillColor: darkerBlue,
+              symbolStrokeWidth: 0
+            }
+          : {
+              fill: "color",
+              type: "gradient",
+              gradientLength: { signal: "height - 16" }
+            }),
         encode: {
           legend: {
             enter: {

@@ -14,7 +14,7 @@ import { View1D } from "../api";
 import { Config } from "../config";
 import { AXIS_Y_EXTENT } from "./bar";
 
-export const HISTOGRAM_WIDTH = 600;
+export const darkerBlue = "#4c78a8";
 
 export function createHistogramView<D extends string>(
   el: Element,
@@ -159,7 +159,7 @@ export function createHistogramView<D extends string>(
               encode: {
                 update: {
                   ...barEncodeBase,
-                  fill: { value: "#4c78a8" } // darker blue
+                  fill: { value: darkerBlue }
                 }
               }
             },
@@ -399,7 +399,7 @@ export function createHistogramView<D extends string>(
   }
 
   const signals: Signal[] = [
-    { name: "histHeight", value: Math.round(HISTOGRAM_WIDTH / 3.6) },
+    { name: "histHeight", value: Math.round(config.histogramWidth / 3.6) },
     { name: "ready", value: false },
     { name: "bin", value: dimension.binConfig },
     {
@@ -711,7 +711,7 @@ export function createHistogramView<D extends string>(
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     autosize: "pad",
-    width: HISTOGRAM_WIDTH,
+    width: config.histogramWidth,
     padding: 5,
     data: data,
     signals: signals,

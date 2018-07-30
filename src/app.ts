@@ -22,9 +22,7 @@ import {
   createBarView,
   createHeatmapView,
   createHistogramView,
-  createTextView,
-  HEATMAP_WIDTH,
-  HISTOGRAM_WIDTH
+  createTextView
 } from "./views";
 
 let mouseIsDown = false;
@@ -97,11 +95,11 @@ export class App<V extends string, D extends string> {
 
     this.highRes1D = Math.min(
       this.config.maxInteractiveResolution1D,
-      HISTOGRAM_WIDTH
+      this.config.histogramWidth
     );
     this.highRes2D = Math.min(
       this.config.maxInteractiveResolution2D,
-      HEATMAP_WIDTH
+      this.config.heatmapWidth
     );
 
     this.throttledUpdate = throttle(this.update);
@@ -226,7 +224,7 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
-      this.update2DView(name, view, data);
+      this.update2DView(name, view, data, this.config.showBase);
 
       vegaView.addSignalListener("dataBrush", (_name, value) => {
         this.brushMove2D(
@@ -556,7 +554,7 @@ export class App<V extends string, D extends string> {
     this.updateView(name, data, base);
   }
 
-  private update2DView(name: V, view: View2D<D>, heat: ndarray) {
+  private update2DView(name: V, view: View2D<D>, heat: ndarray, base: boolean) {
     const binConfigs = view.dimensions.map(d => d.binConfig!);
     const [binToDataX, binToDataY] = binConfigs.map(binToData);
 
@@ -573,7 +571,7 @@ export class App<V extends string, D extends string> {
       }
     }
 
-    this.updateView(name, data);
+    this.updateView(name, data, base);
   }
 
   private updateView<T>(name: V, data: T[], base: boolean = false) {
@@ -667,7 +665,7 @@ export class App<V extends string, D extends string> {
                 )
             : data.noBrush;
 
-          this.update2DView(name, view, heat);
+          this.update2DView(name, view, heat, false);
         }
       }
     } else {
