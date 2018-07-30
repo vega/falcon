@@ -19,6 +19,10 @@ Big Crossfilter uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](htt
 
 ![Crossfilter demo](cross.gif "Crossfilter demo")
 
+## Developers
+
+Install the dependencies with `yarn`. Then run `yarn start` to start the flight demo with in memory data. Have a look at the other `script` commands in [`package.json`](https://github.com/uwdata/big-crossfilter/blob/master/package.json).
+
 ## Experiments
 
 First version that turned out to be too complicated is at https://github.com/uwdata/big-crossfilter/tree/complex and the client-server version is at https://github.com/uwdata/big-crossfilter/tree/client-server.
