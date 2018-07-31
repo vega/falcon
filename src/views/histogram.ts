@@ -493,7 +493,7 @@ export function createHistogramView<D extends string>(
     // brush in bin space
     {
       name: "binBrush",
-      update: "[brush[0] / resolution, brush[1] / resolution]"
+      update: "span(brush) ? [brush[0] / resolution, brush[1] / resolution] : 0"
     },
     // set the cursor when the mouse is moving
     {

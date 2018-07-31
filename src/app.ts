@@ -667,14 +667,18 @@ export class App<V extends string, D extends string> {
         }
       }
     } else {
-      const activeBrushFloat: Interval<Interval<number>> = activeVgView
-        .signal("binBrush")
-        .map(extent);
+      let activeBrushFloat: Interval<Interval<number>> = activeVgView.signal(
+        "binBrush"
+      );
 
       let activeBrushFloorX: number[] = [-1];
       let activeBrushFloorY: number[] = [-1];
 
       if (activeBrushFloat) {
+        activeBrushFloat = [
+          extent(activeBrushFloat[0]),
+          extent(activeBrushFloat[1])
+        ];
         [activeBrushFloorX, activeBrushFloorY] = [
           activeBrushFloat[0].map(Math.floor),
           activeBrushFloat[1].map(Math.floor)
