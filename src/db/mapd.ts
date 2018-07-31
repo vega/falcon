@@ -297,7 +297,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.log(`Build result cube: ${Date.now() - t0}ms`);
+    console.info(`Build result cube: ${Date.now() - t0}ms`);
 
     return cubes;
   }
@@ -359,7 +359,10 @@ export class MapDDB<V extends string, D extends string>
           count(*) AS cnt`;
 
         if (view.type === "0D") {
-          hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY));
+          hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
+            numPixelsX,
+            numPixelsY
+          ]);
           noBrush = ndarray(new HIST_TYPE(1), [1]);
 
           query = `
@@ -435,7 +438,7 @@ export class MapDDB<V extends string, D extends string>
           }
 
           // compute cumulative sums
-          for (let x = 0; x < hists.shape[1]; x++) {
+          for (let x = 0; x < hists.shape[2]; x++) {
             prefixSum(hists.pick(null, null, x));
           }
         } else if (view.type === "2D") {
@@ -447,8 +450,8 @@ export class MapDDB<V extends string, D extends string>
           }
 
           // compute cumulative sums
-          for (let x = 0; x < hists.shape[1]; x++) {
-            for (let y = 0; y < hists.shape[2]; y++) {
+          for (let x = 0; x < hists.shape[2]; x++) {
+            for (let y = 0; y < hists.shape[3]; y++) {
               prefixSum(hists.pick(null, null, x, y));
             }
           }
@@ -458,7 +461,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.log(`Build result cube: ${Date.now() - t0}ms`);
+    console.info(`Build result cube: ${Date.now() - t0}ms`);
 
     return cubes;
   }
