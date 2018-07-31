@@ -408,12 +408,7 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "resolution",
-      on: [
-        {
-          events: { signal: "pixels" },
-          update: "width / pixels"
-        }
-      ]
+      update: "width / pixels"
     },
     {
       name: "showBase",
@@ -469,13 +464,7 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "reverseBrush",
-      value: false,
-      on: [
-        {
-          events: { signal: "brush" },
-          update: "brush[0] > brush[1]"
-        }
-      ]
+      update: "brush[0] > brush[1]"
     },
     // brush in data space
     {
@@ -495,24 +484,16 @@ export function createHistogramView<D extends string>(
     // brush in data space
     {
       name: "dataBrush",
-      value: 0,
-      on: [
-        {
-          events: { signal: "brush" },
-          update: "span(brush) ? invert('x', brush) : 0"
-        }
-      ]
+      update: `span(brush) ? ${
+        dimension.time
+          ? "[time(invert('x', brush[0])), time(invert('x', brush[1]))]"
+          : "invert('x', brush)"
+      } : 0`
     },
     // brush in bin space
     {
       name: "binBrush",
-      value: 0,
-      on: [
-        {
-          events: { signal: "brush" },
-          update: "[brush[0] / resolution, brush[1] / resolution]"
-        }
-      ]
+      update: "[brush[0] / resolution, brush[1] / resolution]"
     },
     // set the cursor when the mouse is moving
     {

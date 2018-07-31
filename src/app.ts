@@ -35,11 +35,6 @@ document.onmouseup = () => {
   mouseIsDown = false;
 };
 
-interface Data<V> {
-  pixels: number | Interval<number>;
-  cubes: Cubes<V>;
-}
-
 interface PendingData<V> {
   pixels: number | Interval<number>;
   cubes: Cubes<V> | Promise<Cubes<V>>;
@@ -54,7 +49,7 @@ export class App<V extends string, D extends string> {
   /**
    * Data for each non-active view.
    */
-  private data: Data<V>;
+  private cubes: Cubes<V>;
 
   /**
    * Preferched data that can be moved to data when the active view changes.
@@ -279,6 +274,7 @@ export class App<V extends string, D extends string> {
 
     // mark view as pending as long as we don't have required data
     const done = () => {
+      // FIXME: this can arrive too late and result in an invalid state
       vgView.container()!.style.cursor = null;
       vgView
         .signal("pixels", pixels)
@@ -343,11 +339,8 @@ export class App<V extends string, D extends string> {
     const activeVgView = this.vegaViews.get(name)!;
 
     const data = this.prefetchedData.get(name)!;
-    this.data = {
-      pixels: data.pixels,
-      // data cubes should be ready since we only allow interactions with views that are ready
-      cubes: await data.cubes
-    };
+    // data cubes should be ready since we only allow interactions with views that are ready
+    this.cubes = await data.cubes;
 
     // need to clear because the brushes are changing now
     this.prefetchedData.clear();
@@ -385,22 +378,29 @@ export class App<V extends string, D extends string> {
         }
       };
 
+      const done = (cubes: Cubes<V>, pixels: number | Interval<number>) => {
+        console.info(`High reslution data available: ${pixels}`);
+        this.cubes = cubes;
+        activeVgView.signal("pixels", pixels).run();
+
+        // only need to update if we interpolated until now
+        if (this.config.interpolate) {
+          this.update();
+        }
+      };
+
       if (this.db.blocking) {
         window.setTimeout(async () => {
           if (hash === this.stateHash()) {
-            this.data = await loadHighResData();
-            activeVgView.signal("pixels", this.data.pixels).run();
-            this.update();
+            const { cubes, pixels } = await loadHighResData();
+            done(cubes, pixels);
           }
         }, this.config.progressiveTimeout);
       } else {
         // put request for high resolution data in the background
         loadHighResData().then(data => {
           if (hash === this.stateHash()) {
-            console.info(`High reslution data available: ${data.pixels}`);
-            this.data = data;
-            activeVgView.signal("pixels", this.data.pixels).run();
-            this.update();
+            done(data.cubes, data.pixels);
           } else {
             console.info("Received outdated result that was ignored.");
           }
@@ -423,14 +423,13 @@ export class App<V extends string, D extends string> {
 
     console.time("Compute interestingness");
 
-    const { cubes, pixels: pixels_ } = this.data;
-    const pixels = pixels_ as number;
+    const pixels = this.getActiveVegaView().signal("pixels");
 
     for (const [name, view] of omit(this.views, this.activeView)) {
       if (view.type !== "0D") {
         let data: Array<any>;
 
-        const { hists } = cubes.get(name)!;
+        const { hists } = this.cubes.get(name)!;
 
         if (opt.window !== undefined) {
           const w = Math.floor(opt.window / 2);
@@ -527,6 +526,10 @@ export class App<V extends string, D extends string> {
     return this.views.get(this.activeView)! as View1D<D> | View2D<D>;
   }
 
+  private getActiveVegaView() {
+    return this.vegaViews.get(this.activeView)!;
+  }
+
   private update0DView(name: V, value: number, base: boolean) {
     this.updateView(
       name,
@@ -591,21 +594,16 @@ export class App<V extends string, D extends string> {
 
   private update() {
     const activeView = this.getActiveView();
-
-    const { cubes } = this.data;
+    const activeVgView = this.getActiveVegaView();
 
     if (activeView.type === "1D") {
-      const brush = this.brushes.get(activeView.dimension.name);
+      const activeBrushFloat = extent(activeVgView.signal("binBrush"));
 
       let activeBrushFloor: number[] = [-1];
       let activeBrushCeil: number[] = [-1];
       let fraction: number[] = [-1];
 
-      if (brush) {
-        const activeBrushFloat = extent(
-          this.vegaViews.get(this.activeView)!.signal("binBrush")
-        );
-
+      if (activeBrushFloat) {
         activeBrushFloor = activeBrushFloat.map(Math.floor);
         activeBrushCeil = activeBrushFloat.map(Math.ceil);
         fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);
@@ -616,11 +614,11 @@ export class App<V extends string, D extends string> {
           continue;
         }
 
-        const data = cubes.get(name)!;
+        const data = this.cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {
-          const value = brush
+          const value = activeBrushFloat
             ? this.config.interpolate
               ? (1 - fraction[1]) * hists.get(activeBrushFloor[1]) +
                 fraction[1] * hists.get(activeBrushCeil[1]) -
@@ -631,7 +629,7 @@ export class App<V extends string, D extends string> {
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
-          const hist = brush
+          const hist = activeBrushFloat
             ? this.config.interpolate
               ? subInterpolated(
                   hists.pick(activeBrushFloor[0], null),
@@ -649,7 +647,7 @@ export class App<V extends string, D extends string> {
 
           this.update1DView(name, view, hist, false);
         } else {
-          const heat = brush
+          const heat = activeBrushFloat
             ? this.config.interpolate
               ? subInterpolated(
                   hists.pick(activeBrushFloor[0], null, null),
@@ -669,20 +667,14 @@ export class App<V extends string, D extends string> {
         }
       }
     } else {
-      const brush = [0, 1].map(i =>
-        this.brushes.get(activeView.dimensions[i].name)
-      );
+      const activeBrushFloat: Interval<Interval<number>> = activeVgView
+        .signal("binBrush")
+        .map(extent);
 
       let activeBrushFloorX: number[] = [-1];
       let activeBrushFloorY: number[] = [-1];
 
-      const hasBrush = brush[0] && brush[1];
-
-      if (hasBrush) {
-        const activeBrushFloat: Interval<Interval<number>> = this.vegaViews
-          .get(this.activeView)!
-          .signal("binBrush")
-          .map(extent);
+      if (activeBrushFloat) {
         [activeBrushFloorX, activeBrushFloorY] = [
           activeBrushFloat[0].map(Math.floor),
           activeBrushFloat[1].map(Math.floor)
@@ -693,11 +685,11 @@ export class App<V extends string, D extends string> {
         if (name === this.activeView) {
           continue;
         }
-        const data = cubes.get(name)!;
+        const data = this.cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {
-          const value = hasBrush
+          const value = activeBrushFloat
             ? hists.get(activeBrushFloorX[1], activeBrushFloorY[1]) -
               hists.get(activeBrushFloorX[1], activeBrushFloorY[0]) -
               hists.get(activeBrushFloorX[0], activeBrushFloorY[1]) +
@@ -706,7 +698,7 @@ export class App<V extends string, D extends string> {
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
-          const hist = hasBrush
+          const hist = activeBrushFloat
             ? summedAreaTableLookup(
                 hists.pick(activeBrushFloorX[1], activeBrushFloorY[1], null),
                 hists.pick(activeBrushFloorX[1], activeBrushFloorY[0], null),

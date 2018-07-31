@@ -313,13 +313,7 @@ export function createHeatmapView<D extends string>(
       { name: "pixels", value: [1, 1] },
       {
         name: "resolution",
-        value: [1, 1],
-        on: [
-          {
-            events: { signal: "pixels" },
-            update: "[width / pixels[0], height / pixels[1]]"
-          }
-        ]
+        update: "[width / pixels[0], height / pixels[1]]"
       },
       {
         name: "showBase",
@@ -464,26 +458,21 @@ export function createHeatmapView<D extends string>(
       },
       {
         name: "dataBrush",
-        value: 0,
-        on: [
-          {
-            events: [{ signal: "brushX" }, { signal: "brushY" }],
-            update:
-              "span(brushX) && span(brushY) ? [invert('x', brushX), invert('y', brushY)] : 0"
-          }
-        ]
+        update: `span(brushX) && span(brushY) ? [${
+          dimensionX.time
+            ? "[time(invert('x', brushX[0])), time(invert('x', brushX[1]))]"
+            : "invert('x', brushX)"
+        }, ${
+          dimensionY.time
+            ? "[time(invert('y', brushY[0])), time(invert('y', brushY[1]))]"
+            : "invert('y', brushY)"
+        }] : 0`
       },
       {
         name: "binBrush",
-        value: 0,
-        on: [
-          {
-            events: [{ signal: "brushX" }, { signal: "brushY" }],
-            update:
-              "[[brushX[0] / resolution[0], brushX[1] / resolution[0]]," +
-              "[pixels[1] - brushY[0] / resolution[1], pixels[1] - brushY[1] / resolution[1]]]"
-          }
-        ]
+        update:
+          "span(brushX) && span(brushY) ? [[brushX[0] / resolution[0], brushX[1] / resolution[0]]," +
+          "[pixels[1] - brushY[0] / resolution[1], pixels[1] - brushY[1] / resolution[1]]] : 0"
       },
       // set the cursor when the mouse is moving
       {
