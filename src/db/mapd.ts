@@ -190,17 +190,19 @@ export class MapDDB<V extends string, D extends string>
 
         let query: string;
 
+        const select = `CASE
+            WHEN ${binActive.where}
+            THEN ${binActive.select}
+            ELSE -1 END AS keyActive,
+          count(*) AS cnt`;
+
         if (view.type === "0D") {
           hists = ndarray(new CUM_ARR_TYPE(numPixels));
           noBrush = ndarray(new HIST_TYPE(1), [1]);
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActive.where}
-              THEN ${binActive.select}
-              ELSE -1 END AS keyActive,
-            count(*) AS cnt
+            ${select}
           FROM ${this.table}
           ${where ? `WHERE ${where}` : ""}
           GROUP BY keyActive`;
@@ -219,12 +221,8 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActive.where}
-              THEN ${binActive.select}
-              ELSE -1 END AS keyActive,
-            ${bin.select} AS key,
-            count(*) AS cnt
+            ${select},
+            ${bin.select} AS key
           FROM ${this.table}
           WHERE ${bin.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActive, key`;
@@ -248,13 +246,9 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActive.where}
-              THEN ${binActive.select}
-              ELSE -1 END AS keyActive,
+            ${select},
             ${binX.select} as keyX,
-            ${binY.select} as keyY,
-            count(*) AS cnt
+            ${binY.select} as keyY
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActive, keyX, keyY`;
@@ -354,21 +348,23 @@ export class MapDDB<V extends string, D extends string>
 
         let query: string;
 
+        const select = `CASE
+            WHEN ${binActiveX.where} AND ${binActiveY.where}
+            THEN ${binActiveX.select}
+            ELSE -1 END AS keyActiveX,
+          CASE
+            WHEN ${binActiveX.where} AND ${binActiveY.where}
+            THEN ${binActiveY.select}
+            ELSE -1 END AS keyActiveY,
+          count(*) AS cnt`;
+
         if (view.type === "0D") {
           hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY));
           noBrush = ndarray(new HIST_TYPE(1), [1]);
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveX.select}
-              ELSE -1 END AS keyActiveX,
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveY.select}
-              ELSE -1 END AS keyActiveY,
-            count(*) AS cnt
+            ${select}
           FROM ${this.table}
           ${where ? `WHERE ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY`;
@@ -387,16 +383,8 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveX.select}
-              ELSE -1 END AS keyActiveX,
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveY.select}
-              ELSE -1 END AS keyActiveY,
-            ${bin.select} AS key,
-            count(*) AS cnt
+            ${select},
+            ${bin.select} AS key
           FROM ${this.table}
           WHERE ${bin.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY, key`;
@@ -419,17 +407,9 @@ export class MapDDB<V extends string, D extends string>
 
           query = `
           SELECT
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveX.select}
-              ELSE -1 END AS keyActiveX,
-            CASE
-              WHEN ${binActiveX.where} AND ${binActiveY.where}
-              THEN ${binActiveY.select}
-              ELSE -1 END AS keyActiveY,
+            ${select},
             ${binX.select} AS keyX,
-            ${binY.select} AS keyY,
-            count(*) AS cnt
+            ${binY.select} AS keyY
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
