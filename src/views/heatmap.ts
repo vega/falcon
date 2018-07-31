@@ -339,11 +339,13 @@ export function createHeatmapView<D extends string>(
           },
           {
             events: "[@left:mousedown, window:mouseup] > window:mousemove!",
-            update: "[clamp(snappedX, 0, width), brushX[1]]"
+            update:
+              "[clamp(snappedX, 0, width), round(brushX[1] / resolution[0]) * resolution[0]]"
           },
           {
             events: "[@right:mousedown, window:mouseup] > window:mousemove!",
-            update: "[brushX[0], clamp(snappedX, 0, width)]"
+            update:
+              "[round(brushX[0] / resolution[0]) * resolution[0], clamp(snappedX, 0, width)]"
           }
         ]
       },
@@ -366,11 +368,13 @@ export function createHeatmapView<D extends string>(
           },
           {
             events: "[@top:mousedown, window:mouseup] > window:mousemove!",
-            update: "[brushY[0], clamp(snappedY, 0, height)]"
+            update:
+              "[round(brushY[0] / resolution[1]) * resolution[1], clamp(snappedY, 0, height)]"
           },
           {
             events: "[@bottom:mousedown, window:mouseup] > window:mousemove!",
-            update: "[clamp(snappedY, 0, height), brushY[1]]"
+            update:
+              "[clamp(snappedY, 0, height), round(brushY[1] / resolution[1]) * resolution[1]]"
           }
         ]
       },
@@ -414,7 +418,9 @@ export function createHeatmapView<D extends string>(
         on: [
           {
             events: "@brush:mousedown",
-            update: "[slice(brushX), slice(brushY)]"
+            update:
+              "[[round(brushX[0] / resolution[0]) * resolution[0], round(brushX[1] / resolution[0]) * resolution[0]]," +
+              "[round(brushY[0] / resolution[1]) * resolution[1], round(brushY[1] / resolution[1]) * resolution[1]]]"
           }
         ]
       },

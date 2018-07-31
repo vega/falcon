@@ -382,12 +382,14 @@ export function createHistogramView<D extends string>(
     {
       events:
         "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[clamp(snapped, 0, width), brush[1]]"
+      update:
+        "[clamp(snapped, 0, width), round(brush[1] / resolution) * resolution]"
     },
     {
       events:
         "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
-      update: "[brush[0], clamp(snapped, 0, width)]"
+      update:
+        "[round(brush[0] / resolution) * resolution, clamp(snapped, 0, width)]"
     }
   ];
 
@@ -448,7 +450,8 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "@brush:mousedown",
-          update: "slice(brush)" // copy the brush
+          update:
+            "[round(brush[0] / resolution) * resolution, round(brush[1] / resolution) * resolution]"
         }
       ]
     },
