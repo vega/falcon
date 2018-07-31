@@ -383,7 +383,7 @@ export function createHeatmapView<D extends string>(
         value: 0,
         on: [
           {
-            events: "mousemove",
+            events: "window:mousemove",
             update: interpolate
               ? "x()"
               : "round(x() / resolution[0]) * resolution[0]"
@@ -395,7 +395,7 @@ export function createHeatmapView<D extends string>(
         value: 0,
         on: [
           {
-            events: "mousemove",
+            events: "window:mousemove",
             update: interpolate
               ? "x()"
               : "round(y() / resolution[1]) * resolution[1]"

@@ -427,7 +427,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "mousemove",
+          events: "window:mousemove",
           update: config.interpolate
             ? "x()"
             : "round(x() / resolution) * resolution"
