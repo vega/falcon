@@ -75,9 +75,7 @@ export class MapDDB<V extends string, D extends string>
       select: `floor(
         (${field} - cast(${binConfig.start} as float))
         / cast(${binConfig.step} as float))`,
-      where: `${field} BETWEEN cast(${binConfig.start} as float) AND cast(${
-        binConfig.stop
-      } as float)`
+      where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
   }
 
@@ -146,10 +144,7 @@ export class MapDDB<V extends string, D extends string>
 
     for (const [dimension, extent] of brushes) {
       const field = this.nameMap.get(dimension)!;
-      filters.set(
-        dimension,
-        `${extent[0]} < ${field} AND ${field} < ${extent[1]}`
-      );
+      filters.set(dimension, `${field} BETWEEN ${extent[0]} AND ${extent[1]}`);
     }
 
     return filters;
@@ -191,8 +186,7 @@ export class MapDDB<V extends string, D extends string>
           relevantFilters.delete(view.dimensions[1].name);
         }
 
-        const where =
-          Array.from(relevantFilters.values()).join(" AND ") || "true";
+        const where = Array.from(relevantFilters.values()).join(" AND ");
 
         let query: string;
 
@@ -208,7 +202,7 @@ export class MapDDB<V extends string, D extends string>
               ELSE -1 END AS keyActive,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${where}
+          ${where ? `WHERE ${where}` : ""}
           GROUP BY keyActive`;
         } else if (view.type === "1D") {
           const dim = view.dimension;
@@ -232,7 +226,7 @@ export class MapDDB<V extends string, D extends string>
             ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${bin.where} AND ${where}
+          WHERE ${bin.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActive, key`;
         } else {
           const dimensions = view.dimensions;
@@ -262,7 +256,7 @@ export class MapDDB<V extends string, D extends string>
             ${binY.select} as keyY,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${binX.where} AND ${binY.where} AND ${where}
+          WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActive, keyX, keyY`;
         }
 
@@ -356,8 +350,7 @@ export class MapDDB<V extends string, D extends string>
           relevantFilters.delete(view.dimensions[1].name);
         }
 
-        const where =
-          Array.from(relevantFilters.values()).join(" AND ") || "true";
+        const where = Array.from(relevantFilters.values()).join(" AND ");
 
         let query: string;
 
@@ -377,7 +370,7 @@ export class MapDDB<V extends string, D extends string>
               ELSE -1 END AS keyActiveY,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${where}
+          ${where ? `WHERE ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY`;
         } else if (view.type === "1D") {
           const dim = view.dimension;
@@ -405,7 +398,7 @@ export class MapDDB<V extends string, D extends string>
             ${bin.select} AS key,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${bin.where} AND ${where}
+          WHERE ${bin.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY, key`;
         } else {
           const dimensions = view.dimensions;
@@ -438,7 +431,7 @@ export class MapDDB<V extends string, D extends string>
             ${binY.select} AS keyY,
             count(*) AS cnt
           FROM ${this.table}
-          WHERE ${binX.where} AND ${binY.where} AND ${where}
+          WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
           GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
         }
 
