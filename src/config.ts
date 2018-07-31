@@ -4,7 +4,7 @@ export const DEFAULT_CONFIG = {
 
   readyIndicator: false,
   chartCount: false,
-  zoomBrush: true,
+  zoomBrush: false,
   showBase: true,
   /** Use a bar chart for showing teh overall count. */
   zeroDBar: true,
