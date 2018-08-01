@@ -145,10 +145,12 @@ export function createHistogramView<D extends string>(
               from: { data: "base" },
               encode: {
                 enter: {
-                  ...barEncodeBase,
                   fill: { value: "#000" },
                   opacity: { value: 0.07 },
                   key: { field: "key" }
+                },
+                update: {
+                  ...barEncodeBase
                 }
               }
             },
@@ -157,9 +159,11 @@ export function createHistogramView<D extends string>(
               interactive: false,
               from: { data: "table" },
               encode: {
-                update: {
-                  ...barEncodeBase,
+                enter: {
                   fill: { value: darkerBlue }
+                },
+                update: {
+                  ...barEncodeBase
                 }
               }
             },
