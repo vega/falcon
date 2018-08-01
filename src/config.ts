@@ -22,7 +22,7 @@ export const DEFAULT_CONFIG = {
   maxInteractiveResolution2D: 80,
   /**
    * How long to wait before requesting high resolution data.
-   * Only applies to blocking databases.
+   * There is no delay for asynchronous databases when the dimension is activated.
    */
   progressiveTimeout: 1000,
 

@@ -52,7 +52,7 @@ export class App<V extends string, D extends string> {
   private cubes: Cubes<V>;
 
   /**
-   * Preferched data that can be moved to data when the active view changes.
+   * Prefetched data that can be moved to data when the active view changes.
    */
   private prefetchedData = new Map<V, PendingData<V>>();
 
@@ -69,6 +69,14 @@ export class App<V extends string, D extends string> {
   private readonly highRes2D: number;
 
   private throttledUpdate: () => void;
+
+  /**
+   * Track which view was last hovered so we can fetch high resolution data.
+   */
+  private lastHovered: {
+    view: V | null;
+    when: number;
+  } = { view: null, when: 0 };
 
   /**
    * Construct the app
@@ -126,18 +134,22 @@ export class App<V extends string, D extends string> {
 
   /**
    * Get a hash of the current state to see whether requests are still valid in the future.
+   *
+   * By passing in a view name you can calculate the hash assuming a different active view. This can be used for caching.
    */
-  private stateHash() {
-    const activeView = this.getActiveView();
+  private stateHash(name?: V) {
+    const view = name
+      ? (this.views.get(name)! as View1D<D> | View2D<D>)
+      : this.getActiveView();
     const brushes =
-      activeView.type === "1D"
-        ? omit(this.brushes, activeView.dimension.name)
-        : omit(this.brushes, ...activeView.dimensions.map(d => d.name));
+      view.type === "1D"
+        ? omit(this.brushes, view.dimension.name)
+        : omit(this.brushes, ...view.dimensions.map(d => d.name));
     let brushStrings: string[] = [];
     for (const [k, v] of brushes) {
       brushStrings.push(`${k}:${v}`);
     }
-    return `${this.activeView} ${brushStrings.sort().join(" ")}`;
+    return `${name} ${brushStrings.sort().join(" ")}`;
   }
 
   private async initializeView(name: V, view: View<D>) {
@@ -236,16 +248,84 @@ export class App<V extends string, D extends string> {
     }
   }
 
+  private fetchHighResData(name: V) {
+    const hash = this.stateHash(name);
+    const view = this.views.get(name)! as View1D<D> | View2D<D>;
+
+    const startTime = Date.now();
+
+    window.setTimeout(async () => {
+      // are we still hovering over the same view?
+      if (this.lastHovered.view !== name || startTime < this.lastHovered.when) {
+        console.info(
+          "We are not hovering over the same view anymore so we are not going to fetch high resolution data."
+        );
+        return;
+      }
+
+      let pixels: number | Interval<number>;
+      let cubes: Cubes<V>;
+
+      if (view.type === "1D") {
+        pixels = this.highRes1D;
+        cubes = await this.load1DData(name, view, pixels);
+      } else {
+        pixels = [this.highRes2D, this.highRes2D];
+        cubes = await this.load2DData(name, view, pixels);
+      }
+
+      if (hash === this.stateHash(name)) {
+        if (name === this.activeView) {
+          this.cubes = cubes;
+
+          console.info(
+            `High resolution data available for active view. Pixels: ${pixels}`
+          );
+        } else {
+          // view is not active yet
+          const data = this.prefetchedData.get(name)!;
+
+          data.cubes = cubes;
+          data.pixels = pixels;
+
+          console.info(
+            `High resolution data available for view ${name}. Pixels: ${pixels}`
+          );
+        }
+
+        this.cubes = cubes;
+
+        this.vegaViews
+          .get(name)!
+          .signal("pixels", pixels)
+          .run();
+
+        // only need to update if we interpolated until now and the view is active
+        if (this.config.interpolate && name === this.activeView) {
+          this.update();
+        }
+      } else {
+        console.warn("Received outdated high res result that was ignored.");
+      }
+    }, this.config.progressiveTimeout);
+  }
+
   /**
    * Get data for the view so that we can brush in it.
    */
   private prefetchActiveView(name: V) {
-    if (
-      this.activeView === name ||
-      mouseIsDown ||
-      this.prefetchedData.has(name)
-    )
+    if (mouseIsDown) {
       return;
+    }
+
+    if (this.lastHovered.view !== name) {
+      this.lastHovered = {
+        view: name,
+        when: Date.now()
+      };
+    }
+
+    if (this.activeView === name || this.prefetchedData.has(name)) return;
 
     const view = this.views.get(name)!;
 
@@ -272,14 +352,24 @@ export class App<V extends string, D extends string> {
     const vgView = this.vegaViews.get(name)!;
     vgView.container()!.style.cursor = "wait";
 
+    const hash = this.stateHash(name);
+
     // mark view as pending as long as we don't have required data
     const done = () => {
-      // FIXME: this can arrive too late and result in an invalid state
+      if (hash !== this.stateHash(name)) {
+        console.warn("Received outdated prefetch result that was ignored.");
+        return;
+      }
+
       vgView.container()!.style.cursor = null;
       vgView
         .signal("pixels", pixels)
         .signal("ready", true)
         .run();
+
+      if (this.config.progressiveInteractions) {
+        this.fetchHighResData(name);
+      }
     };
 
     if (cubes instanceof Promise) {
@@ -356,56 +446,6 @@ export class App<V extends string, D extends string> {
         )
         .resize()
         .run();
-    }
-
-    const hash = this.stateHash();
-
-    if (this.config.progressiveInteractions) {
-      const loadHighResData = async () => {
-        console.info("Loading high resolution data...");
-        if (activeView.type === "1D") {
-          const pixels = this.highRes1D;
-          return {
-            pixels,
-            cubes: await this.load1DData(name, activeView, pixels)
-          };
-        } else {
-          const pixels: Interval<number> = [this.highRes2D, this.highRes2D];
-          return {
-            pixels,
-            cubes: await this.load2DData(name, activeView, pixels)
-          };
-        }
-      };
-
-      const done = (cubes: Cubes<V>, pixels: number | Interval<number>) => {
-        console.info(`High reslution data available: ${pixels}`);
-        this.cubes = cubes;
-        activeVgView.signal("pixels", pixels).run();
-
-        // only need to update if we interpolated until now
-        if (this.config.interpolate) {
-          this.update();
-        }
-      };
-
-      if (this.db.blocking) {
-        window.setTimeout(async () => {
-          if (hash === this.stateHash()) {
-            const { cubes, pixels } = await loadHighResData();
-            done(cubes, pixels);
-          }
-        }, this.config.progressiveTimeout);
-      } else {
-        // put request for high resolution data in the background
-        loadHighResData().then(data => {
-          if (hash === this.stateHash()) {
-            done(data.cubes, data.pixels);
-          } else {
-            console.info("Received outdated result that was ignored.");
-          }
-        });
-      }
     }
   }
 
