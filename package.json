@@ -36,6 +36,7 @@
     "ndarray": "^1.0.18",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
+    "premonish": "^1.0.4",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
     "vega-typings": "^0.3.36"

@@ -24,6 +24,29 @@ import {
   createHistogramView,
   createTextView
 } from "./views";
+import Premonish from "premonish";
+import { select } from "d3-selection";
+
+const width = window.innerWidth;
+const height = window.innerHeight;
+const svg = select("body")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height)
+  .style("position", "absolute")
+  .style("top", 0)
+  .style("bottom", 0);
+
+const line = svg
+  .append("line")
+  .attr("stroke", "rgb(0, 0, 0)")
+  .attr("opacity", 0.4)
+  .attr("stroke-width", 2);
+const circle = svg
+  .append("circle")
+  .attr("fill", "rgb(0, 0, 0)")
+  .attr("opacity", 0.4)
+  .attr("r", 10);
 
 let mouseIsDown = false;
 
@@ -109,6 +132,8 @@ export class App<V extends string, D extends string> {
     when: number;
   } = { view: null, when: 0 };
 
+  private interactiveElements: HTMLElement[] = [];
+
   /**
    * Construct the app
    * @param views The views.
@@ -146,6 +171,26 @@ export class App<V extends string, D extends string> {
 
     this.initialize()
       .then(() => {
+        const premonish = new Premonish({
+          elements: this.interactiveElements
+        });
+
+        premonish.onMouseMove(({ position, velocity, estimate }) => {
+          circle.attr("cx", estimate.x).attr("cy", estimate.y);
+
+          line
+            .attr("x1", position.x)
+            .attr("y1", position.y)
+            .attr("x2", estimate.x)
+            .attr("y2", estimate.y);
+        });
+
+        premonish.onIntent(({ el, confidence }) => {
+          this.prefetchActiveView(el.getAttribute("data-name") as V);
+          // console.log(el.getAttribute("data-name")); // The DOM node we suspect the user is about to interact with.
+          // console.log(confidence); // How confident are we about the user's intention? Scale 0-1
+        });
+
         console.info("Initialization finished.");
         opt && opt.cb && opt.cb();
       })
@@ -165,6 +210,9 @@ export class App<V extends string, D extends string> {
 
   private async initializeView(name: V, view: View<D>) {
     const el = view.el!;
+
+    el.setAttribute("data-name", name);
+
     if (view.type === "0D") {
       const vegaView = (this.config.zeroDBar ? createBarView : createTextView)(
         el,
@@ -229,6 +277,8 @@ export class App<V extends string, D extends string> {
       if (this.logger) {
         this.logger.attach(name, vegaView);
       }
+
+      this.interactiveElements.push(el);
     } else {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
@@ -256,6 +306,8 @@ export class App<V extends string, D extends string> {
       vegaView.addEventListener("mouseover", () => {
         this.prefetchActiveView(name);
       });
+
+      this.interactiveElements.push(el);
     }
   }
 
