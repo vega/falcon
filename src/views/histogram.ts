@@ -301,9 +301,16 @@ export function createHistogramView<D extends string>(
           scale: "x",
           orient: "bottom",
           labelOverlap: true,
-          tickCount: dimension.time
-            ? dimension.bins
-            : { signal: "ceil(width/20)" }
+          ...(dimension.time
+            ? {
+                tickCount: dimension.bins
+              }
+            : {
+                values: {
+                  signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
+                },
+                tickCount: { signal: "ceil(width/20)" }
+              })
         }
       ]
     }
@@ -669,28 +676,16 @@ export function createHistogramView<D extends string>(
       range: [{ signal: "histHeight" }, 0],
       nice: true,
       zero: true
-    }
-  ];
-
-  if (dimension.time) {
-    scales.push({
+    },
+    {
       name: "x",
-      type: "time",
+      type: dimension.time ? "time" : "linear",
       domain: {
         signal: "[bin.start, bin.stop]"
       },
       range: "width"
-    });
-  } else {
-    scales.push({
-      name: "x",
-      type: "bin-linear",
-      domain: {
-        signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
-      },
-      range: "width"
-    });
-  }
+    } as Scale
+  ];
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
