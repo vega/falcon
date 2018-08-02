@@ -1,6 +1,7 @@
 import {
   Data,
   EncodeEntry,
+  expressionFunction,
   Mark,
   OnEvent,
   parse,
@@ -12,6 +13,7 @@ import {
 } from "vega-lib";
 import { View1D } from "../api";
 import { Config } from "../config";
+import { extent, repeatInvisible } from "../util";
 import { AXIS_Y_EXTENT } from "./bar";
 
 export const darkerBlue = "#4c78a8";
@@ -95,11 +97,11 @@ export function createHistogramView<D extends string>(
             },
             update: {
               text: {
-                signal: `dataBrush ? '[' + ${
+                signal: `brush ? '[' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(dataBrush[0], '${dimension.format}') + ',' + ${
+                }(brush[0], '${dimension.format}') + ',' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(dataBrush[1], '${dimension.format}') + ']' : ''`
+                }(brush[1], '${dimension.format}') + ']' : ''`
               }
             }
           }
@@ -134,38 +136,44 @@ export function createHistogramView<D extends string>(
                   cursor: { value: "move" }
                 },
                 update: {
-                  x: { signal: "pixelBrush[0]" },
-                  x2: { signal: "pixelBrush[1]" }
+                  x: { signal: "brush[0]", scale: "x" },
+                  x2: { signal: "brush[1]", scale: "x" }
                 }
               }
             },
             {
-              type: "rect",
-              interactive: false,
-              from: { data: "base" },
-              encode: {
-                enter: {
-                  fill: { value: "#000" },
-                  opacity: { value: 0.07 },
-                  key: { field: "key" }
+              type: "group",
+              clip: true,
+              marks: [
+                {
+                  type: "rect",
+                  interactive: false,
+                  from: { data: "base" },
+                  encode: {
+                    enter: {
+                      fill: { value: "#000" },
+                      opacity: { value: 0.07 },
+                      key: { field: "key" }
+                    },
+                    update: {
+                      ...barEncodeBase
+                    }
+                  }
                 },
-                update: {
-                  ...barEncodeBase
+                {
+                  type: "rect",
+                  interactive: false,
+                  from: { data: "table" },
+                  encode: {
+                    enter: {
+                      fill: { value: darkerBlue }
+                    },
+                    update: {
+                      ...barEncodeBase
+                    }
+                  }
                 }
-              }
-            },
-            {
-              type: "rect",
-              interactive: false,
-              from: { data: "table" },
-              encode: {
-                enter: {
-                  fill: { value: darkerBlue }
-                },
-                update: {
-                  ...barEncodeBase
-                }
-              }
+              ]
             },
             {
               type: "group",
@@ -174,7 +182,7 @@ export function createHistogramView<D extends string>(
                   height: { field: { group: "height" } }
                 },
                 update: {
-                  x: { signal: "pixelBrush[0]" }
+                  x: { signal: "brush ? scale('x', brush[0]) : -10" }
                 }
               },
               marks: [
@@ -235,7 +243,7 @@ export function createHistogramView<D extends string>(
                   height: { field: { group: "height" } }
                 },
                 update: {
-                  x: { signal: "pixelBrush[1]" }
+                  x: { signal: "brush ? scale('x', brush[1]) : -10" }
                 }
               },
               marks: [
@@ -378,38 +386,41 @@ export function createHistogramView<D extends string>(
 
   const onBrush: OnEvent[] = [
     {
+      events: [{ signal: "step" }],
+      update:
+        "span(brush) ? [round((brush[0] - (bin.start % step)) / step) * step, round((brush[1] - (bin.start % step)) / step) * step] : brush"
+    },
+    {
+      events: "mouseup",
+      update: "span(brush) ? brush : 0"
+    },
+    {
       events:
         "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!",
       update: "0"
     },
     {
       events: { signal: "pan" },
-      update: "clampRange(panLinear(anchor, pan / span(anchor)), 0, width)"
+      update:
+        "clampRange(panLinear(anchor, pan / span(anchor)), invert('x', 0), invert('x', width))"
     },
     {
       events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
-      update: "[down, clamp(snapped, 0, width)]"
+      update: "[down, clamp(snapped, invert('x', 0), invert('x', width))]"
     },
     {
       events:
         "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
       update:
-        "[clamp(snapped, 0, width), round(brush[1] / resolution) * resolution]"
+        "[clamp(snapped, invert('x', 0), invert('x', width)), scale('snap', brush[1])]"
     },
     {
       events:
         "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
       update:
-        "[round(brush[0] / resolution) * resolution, clamp(snapped, 0, width)]"
+        "[scale('snap', brush[0]), clamp(snapped, invert('x', 0), invert('x', width))]"
     }
   ];
-
-  if (config.zoomBrush) {
-    onBrush.push({
-      events: { signal: "zoom" },
-      update: "clampRange(zoomLinear(brush, down, zoom), 0, width)"
-    } as OnEvent);
-  }
 
   const signals: Signal[] = [
     { name: "histHeight", value: Math.round(config.histogramWidth / 3.6) },
@@ -420,8 +431,8 @@ export function createHistogramView<D extends string>(
       value: 1
     },
     {
-      name: "resolution",
-      update: "width / pixels"
+      name: "step",
+      update: "(bin.stop - bin.start) / pixels"
     },
     {
       name: "showBase",
@@ -440,8 +451,8 @@ export function createHistogramView<D extends string>(
         {
           events: "window:mousemove",
           update: config.interpolate
-            ? "x()"
-            : "round(x() / resolution) * resolution"
+            ? "invert('x', x())"
+            : "scale('snap', invert('x', x()))"
         }
       ]
     },
@@ -450,7 +461,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "mousedown, wheel",
+          events: "mousedown",
           update: "snapped"
         }
       ]
@@ -461,8 +472,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events: "@brush:mousedown",
-          update:
-            "[round(brush[0] / resolution) * resolution, round(brush[1] / resolution) * resolution]"
+          update: "[scale('snap', brush[0]), scale('snap', brush[1])]"
         }
       ]
     },
@@ -477,37 +487,29 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
-      name: "reverseBrush",
-      update: "brush[0] > brush[1]"
-    },
-    // brush in data space
-    {
-      name: "pixelBrush",
-      value: [-10, -10],
+      name: "zoomAnchor",
+      value: 0,
       on: [
         {
-          events: { signal: "brush" },
-          update: "brush ? brush : [-10, -10]"
-        },
-        {
-          events: "window:mouseup",
-          update: "span(brush) ? brush : [-10, -10]"
+          events: "wheel",
+          update: dimension.time ? "time(invert('x', x()))" : "invert('x', x())"
         }
       ]
     },
-    // brush in data space
     {
-      name: "dataBrush",
-      update: `span(brush) ? ${
-        dimension.time
-          ? "[time(invert('x', brush[0])), time(invert('x', brush[1]))]"
-          : "invert('x', brush)"
-      } : 0`
+      name: "zoom",
+      value: 0,
+      on: [
+        {
+          events: "wheel!",
+          force: true,
+          update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+        }
+      ]
     },
-    // brush in bin space
     {
-      name: "binBrush",
-      update: "span(brush) ? [brush[0] / resolution, brush[1] / resolution] : 0"
+      name: "reverseBrush",
+      update: "brush[0] > brush[1]"
     },
     // set the cursor when the mouse is moving
     {
@@ -530,6 +532,17 @@ export function createHistogramView<D extends string>(
         {
           events: "window:mouseup",
           update: "'default'"
+        }
+      ]
+    },
+    {
+      name: "domain",
+      value: [dimension.binConfig!.start, dimension.binConfig!.stop],
+      on: [
+        {
+          events: { signal: "zoom" },
+          update:
+            "keepWithin([zoomAnchor + (domain[0] - zoomAnchor) * zoom, zoomAnchor + (domain[1] - zoomAnchor) * zoom], brush)"
         }
       ]
     }
@@ -654,19 +667,6 @@ export function createHistogramView<D extends string>(
     } as Data);
   }
 
-  if (config.zoomBrush) {
-    signals.push({
-      name: "zoom", // in pixel space
-      value: 0,
-      on: [
-        {
-          events: "@brush:wheel!",
-          update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
-        }
-      ]
-    } as Signal);
-  }
-
   const scales: Scale[] = [
     {
       name: "y",
@@ -685,10 +685,22 @@ export function createHistogramView<D extends string>(
       name: "x",
       type: dimension.time ? "time" : "linear",
       domain: {
-        signal: "[bin.start, bin.stop]"
+        signal: "domain"
       },
-      range: "width"
-    } as Scale
+      range: "width",
+      zero: false
+    } as Scale,
+    {
+      name: "snap",
+      type: "threshold",
+      domain: {
+        signal: "sequence(bin.start + step / 2, bin.stop, step)"
+      },
+      range: {
+        signal:
+          "repeatInvisible(sequence(bin.start, bin.stop + step, step), invert('x', 0), invert('x', width))"
+      }
+    }
   ];
 
   const vgSpec: Spec = {
@@ -721,6 +733,21 @@ export function createHistogramView<D extends string>(
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
+  // function to replace invisible steps with visible ones
+  expressionFunction("repeatInvisible", repeatInvisible);
+
+  // function to make sure we never zoom the brush outside the view
+  expressionFunction("keepWithin", (range, bounds) => {
+    bounds = extent(bounds);
+    if (bounds[0] < range[0]) {
+      range[0] = bounds[0];
+    }
+    if (bounds[1] > range[1]) {
+      range[1] = bounds[1];
+    }
+    return range;
+  });
+
   const runtime = parse(vgSpec);
 
   const vgView = new View(runtime)
@@ -728,6 +755,8 @@ export function createHistogramView<D extends string>(
     .initialize(el)
     .renderer("svg")
     .run();
+
+  window[view.dimension.name] = vgView;
 
   vgView["_spec"] = vgSpec;
   return vgView;

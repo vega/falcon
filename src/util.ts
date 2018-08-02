@@ -6,6 +6,8 @@ import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
+import { isArray } from "vega";
+import { stringify } from "querystring";
 
 export function extent(e: Interval<number>): Interval<number> {
   if (e[0] > e[1]) {
@@ -98,9 +100,8 @@ export function throttle<A extends (...args: any[]) => any>(
   let inThrottle;
 
   return function(this: any, ...args: any[]) {
-    const context = this;
     if (!inThrottle) {
-      func.apply(context, args);
+      func.apply(this, args);
       inThrottle = true;
 
       if (timeout !== undefined) {
@@ -113,6 +114,21 @@ export function throttle<A extends (...args: any[]) => any>(
         });
       }
     }
+  } as any;
+}
+
+export function debounce<A extends (...args: any[]) => any>(
+  func: A,
+  delay: number
+): A {
+  let tid;
+  return function(this: any, ...args: any[]) {
+    if (tid) clearTimeout(tid);
+
+    tid = setTimeout(() => {
+      func.apply(this, args);
+      tid = null;
+    }, delay);
   } as any;
 }
 
@@ -399,4 +415,44 @@ export function only<K, V>(map: Map<K, V>, only: K[]) {
 
 export function timeout(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function repeatInvisible(sequence, start, end) {
+  for (let i = 0; i < sequence.length; i++) {
+    const el = sequence[i];
+    if (el < start || end < el) {
+      sequence[i] = null;
+    }
+  }
+
+  let element = null;
+  for (let i = 0; i < sequence.length; i++) {
+    if (sequence[i] === null) {
+      sequence[i] = element;
+    } else {
+      element = sequence[i];
+    }
+  }
+
+  for (let i = sequence.length - 1; i >= 0; i--) {
+    if (sequence[i] === null) {
+      sequence[i] = element;
+    } else {
+      element = sequence[i];
+    }
+  }
+
+  return sequence;
+}
+
+export function equal<T>(a: T[], b: T[]) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
 }

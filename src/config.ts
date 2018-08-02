@@ -4,7 +4,6 @@ export const DEFAULT_CONFIG = {
 
   readyIndicator: false,
   chartCount: false,
-  zoomBrush: false,
   showBase: true,
   /** Use a bar chart for showing teh overall count. */
   zeroDBar: true,
@@ -24,7 +23,7 @@ export const DEFAULT_CONFIG = {
    * How long to wait before requesting high resolution data.
    * There is no delay for asynchronous databases when the dimension is activated.
    */
-  progressiveTimeout: 1000,
+  progressiveTimeout: 5000,
 
   histogramWidth: 600,
   heatmapWidth: 450,

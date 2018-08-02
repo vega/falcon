@@ -16,7 +16,9 @@ import {
   sub,
   subInterpolated,
   summedAreaTableLookup,
-  throttle
+  throttle,
+  debounce,
+  equal
 } from "./util";
 import {
   createBarView,
@@ -188,16 +190,58 @@ export class App<V extends string, D extends string> {
       );
       this.vegaViews.set(name, vegaView);
 
-      const data = await this.db.histogram(view.dimension);
-      this.update1DView(name, view, data, this.config.showBase);
+      const { hist } = await this.db.histogram(view.dimension);
+      this.update1DView(name, view, hist, this.config.showBase);
 
-      vegaView.addSignalListener("dataBrush", (_name, value) => {
-        this.brushMove1D(name, view.dimension.name, value);
+      vegaView.addSignalListener("brush", (_name, value) => {
+        const brush = this.brushes.get(view.dimension.name);
+        if (!brush || !equal(value, brush)) {
+          this.brushMove1D(name, view.dimension.name, value);
+        }
       });
 
       vegaView.addEventListener("mouseover", () => {
         this.prefetchActiveView(name);
       });
+
+      // The domain has changed so we need to zoom the chart.
+      const updateHistogram = domain => {
+        const newBinConfig = (view.dimension.time ? binTime : bin)(
+          view.dimension.bins,
+          domain
+        );
+        const oldBinConfig = view.dimension.binConfig!;
+
+        if (
+          oldBinConfig.start !== newBinConfig.start ||
+          oldBinConfig.stop !== newBinConfig.stop
+        ) {
+          view.dimension.binConfig = newBinConfig;
+          vegaView.signal("bin", newBinConfig).runAfter(async () => {
+            // load new data for interactions, this will block the view
+            this.prefetchedData.delete(name);
+            this.prefetchActiveView(name);
+
+            if (this.config.showBase) {
+              const { hist, noBrush } = await this.db.histogram(
+                view.dimension,
+                omit(this.brushes, view.dimension.name)
+              );
+              this.update1DView(name, view, noBrush, true);
+              this.update1DView(name, view, hist, false);
+            } else {
+              const { hist } = await this.db.histogram(view.dimension);
+              this.update1DView(name, view, hist, false);
+            }
+          });
+        }
+      };
+
+      const updateHistDebounced = debounce(updateHistogram, 1000);
+
+      vegaView.addSignalListener("domain", (__dirname, value) =>
+        updateHistDebounced(value)
+      );
 
       if (this.config.showInterestingness) {
         vegaView.addSignalListener(
@@ -289,8 +333,6 @@ export class App<V extends string, D extends string> {
         this.prefetchedData.get(name)!.fetchHighRes();
       }, this.config.progressiveTimeout);
     };
-
-    if (this.activeView === name) return;
 
     if (this.prefetchedData.has(name)) {
       // we might have already prefetched but aborted a previous hover with wait
@@ -661,13 +703,20 @@ export class App<V extends string, D extends string> {
     const activeVgView = this.getActiveVegaView();
 
     if (activeView.type === "1D") {
-      const activeBrushFloat = extent(activeVgView.signal("binBrush"));
+      let activeBrushFloat = this.brushes.get(activeView.dimension.name) as
+        | Interval<number>
+        | 0;
 
       let activeBrushFloor: number[] = [-1];
       let activeBrushCeil: number[] = [-1];
       let fraction: number[] = [-1];
 
       if (activeBrushFloat) {
+        const bin = activeView.dimension.binConfig!;
+        const step = activeVgView.signal("step");
+        activeBrushFloat = activeBrushFloat.map(
+          d => (d - (bin.start % step)) / step
+        ) as Interval<number>;
         activeBrushFloor = activeBrushFloat.map(Math.floor);
         activeBrushCeil = activeBrushFloat.map(Math.ceil);
         fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);

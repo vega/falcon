@@ -10,6 +10,11 @@ export type Cubes<V> = Map<
   }
 >;
 
+export type Hist = {
+  hist: ndarray;
+  noBrush: ndarray;
+};
+
 export interface DataBase<V extends string, D extends string> {
   initialize(): Promise<void> | void;
 
@@ -17,7 +22,10 @@ export interface DataBase<V extends string, D extends string> {
   readonly blocking: boolean;
 
   length(): Promise<number> | number;
-  histogram(dimension: Dimension<D>): Promise<ndarray> | ndarray;
+  histogram(
+    dimension: Dimension<D>,
+    brushes?: Map<D, Interval<number>>
+  ): Promise<Hist> | Hist;
   heatmap(dimensions: [Dimension<D>, Dimension<D>]): Promise<ndarray> | ndarray;
 
   loadData1D(

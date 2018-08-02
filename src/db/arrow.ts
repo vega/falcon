@@ -43,24 +43,42 @@ export class ArrowDB<V extends string, D extends string>
     return this.data.length;
   }
 
-  public histogram(dimension: Dimension<D>) {
+  public histogram(
+    dimension: Dimension<D>,
+    brushes?: Map<D, Interval<number>>
+  ) {
     console.time("Histogram");
+
+    const filterMask = union(
+      ...this.getFilterMasks(brushes || new Map()).values()
+    );
 
     const binConfig = dimension.binConfig!;
     const bin = binNumberFunction(binConfig);
     const binCount = numBins(binConfig);
 
-    const hist = ndarray(new HIST_TYPE(binCount));
-    for (const value of this.data.getColumn(dimension.name)!) {
+    const column = this.data.getColumn(dimension.name)!;
+
+    const noBrush = ndarray(new HIST_TYPE(binCount));
+    const hist = filterMask ? ndarray(new HIST_TYPE(binCount)) : noBrush;
+    for (let i = 0; i < this.data.length; i++) {
+      const value = column.get(i);
       const key = bin(value);
       if (0 <= key && key < binCount) {
-        hist.data[hist.index(key)]++;
+        const idx = hist.index(key);
+        noBrush.data[idx]++;
+        if (filterMask && !filterMask.check(i)) {
+          hist.data[idx]++;
+        }
       }
     }
 
     console.timeEnd("Histogram");
 
-    return hist;
+    return {
+      hist,
+      noBrush
+    };
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {

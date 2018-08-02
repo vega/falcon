@@ -1,5 +1,5 @@
 import ndarray from "ndarray";
-import { _chEmd, chEmd, omit } from "./../src/util";
+import { _chEmd, chEmd, omit, repeatInvisible } from "./../src/util";
 
 describe("emb", () => {
   const a = [1, 2, 4, 6, 7, 8];
@@ -42,5 +42,21 @@ describe("omit", () => {
       expect.arrayContaining([1, 2, 3, 4])
     );
     expect(Array.from(original.keys())).toEqual(expect.arrayContaining([2, 3]));
+  });
+});
+
+describe("repeatInvisible", () => {
+  test("simple case", () => {
+    expect(repeatInvisible([1, 2, 3, 4, 5, 6, 7, 8, 9], 3.5, 8.5)).toEqual([
+      4,
+      4,
+      4,
+      4,
+      5,
+      6,
+      7,
+      8,
+      8
+    ]);
   });
 });

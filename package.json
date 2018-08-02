@@ -38,7 +38,7 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.36"
+    "vega-typings": "^0.3.38"
   },
   "devDependencies": {
     "@types/d3": "^5.0.0",

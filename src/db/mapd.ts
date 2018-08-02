@@ -87,12 +87,17 @@ export class MapDDB<V extends string, D extends string>
     return result[0].cnt;
   }
 
-  public async histogram(dimension: Dimension<D>) {
+  public async histogram(
+    dimension: Dimension<D>,
+    brushes?: Map<D, Interval<number>>
+  ) {
     const bin = dimension.binConfig!;
     const binCount = numBins(bin);
     const bSql = this.binSQL(dimension.name, bin);
 
-    const hist = ndarray(new HIST_TYPE(binCount));
+    const noBrush = ndarray(new HIST_TYPE(binCount));
+    const hasBrushes = brushes && brushes.size > 0;
+    const hist = hasBrushes ? ndarray(new HIST_TYPE(binCount)) : noBrush;
 
     const result = await this.query(`
       SELECT
@@ -104,10 +109,31 @@ export class MapDDB<V extends string, D extends string>
       `);
 
     for (const { key, cnt } of result) {
-      hist.set(key, cnt);
+      noBrush.set(key, cnt);
     }
 
-    return hist;
+    if (hasBrushes) {
+      const where = Array.from(this.getWhereClauses(brushes!).values()).join(
+        " AND "
+      );
+      const result = await this.query(`
+        SELECT
+          ${bSql.select} AS key,
+          count(*) AS cnt
+        FROM ${this.table}
+        WHERE ${bSql.where} AND ${where}
+        GROUP BY key
+      `);
+
+      for (const { key, cnt } of result) {
+        hist.set(key, cnt);
+      }
+    }
+
+    return {
+      hist,
+      noBrush
+    };
   }
 
   public async heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
