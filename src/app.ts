@@ -101,9 +101,6 @@ export class App<V extends string, D extends string> {
   private readonly highRes1D: number;
   private readonly highRes2D: number;
 
-  // todo: rename to ibins
-  private pixels: number | Interval<number>;
-
   private throttledUpdate: () => void;
 
   /**
@@ -479,7 +476,6 @@ export class App<V extends string, D extends string> {
   }
 
   private setPixels(name: V, pixels: number | Interval<number>) {
-    this.pixels = pixels;
     this.vegaViews
       .get(name)!
       .signal("pixels", pixels)
