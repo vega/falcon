@@ -6,8 +6,6 @@ import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
-import { isArray } from "vega";
-import { stringify } from "querystring";
 
 export function extent(e: Interval<number>): Interval<number> {
   if (e[0] > e[1]) {

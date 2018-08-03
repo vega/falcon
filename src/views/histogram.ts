@@ -386,9 +386,9 @@ export function createHistogramView<D extends string>(
 
   const onBrush: OnEvent[] = [
     {
-      events: [{ signal: "step" }],
+      events: [{ signal: "step" }], // the right thing would be if bin or pixels changes but this works as well because bins align
       update:
-        "span(brush) ? [round((brush[0] - (bin.start % step)) / step) * step, round((brush[1] - (bin.start % step)) / step) * step] : brush"
+        "span(brush) ? [floor(brush[0] / step) * step, floor(brush[1] / step) * step] : brush"
     },
     {
       events: "mouseup",
@@ -487,27 +487,6 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
-      name: "zoomAnchor",
-      value: 0,
-      on: [
-        {
-          events: "wheel",
-          update: dimension.time ? "time(invert('x', x()))" : "invert('x', x())"
-        }
-      ]
-    },
-    {
-      name: "zoom",
-      value: 0,
-      on: [
-        {
-          events: "wheel!",
-          force: true,
-          update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
-        }
-      ]
-    },
-    {
       name: "reverseBrush",
       update: "brush[0] > brush[1]"
     },
@@ -538,18 +517,48 @@ export function createHistogramView<D extends string>(
     {
       name: "domain",
       value: [dimension.binConfig!.start, dimension.binConfig!.stop],
-      on: [
-        {
-          events: { signal: "zoom" },
-          update:
-            "keepWithin([zoomAnchor + (domain[0] - zoomAnchor) * zoom, zoomAnchor + (domain[1] - zoomAnchor) * zoom], brush)"
-        }
-      ]
+      on: config.zoom
+        ? [
+            {
+              events: { signal: "zoom" },
+              update:
+                "keepWithin([zoomAnchor + (domain[0] - zoomAnchor) * zoom, zoomAnchor + (domain[1] - zoomAnchor) * zoom], brush)"
+            }
+          ]
+        : []
     }
   ];
 
+  if (config.zoom) {
+    [].push.apply(signals, [
+      {
+        name: "zoomAnchor",
+        value: 0,
+        on: [
+          {
+            events: "wheel",
+            update: dimension.time
+              ? "time(invert('x', x()))"
+              : "invert('x', x())"
+          }
+        ]
+      },
+      {
+        name: "zoom",
+        value: 0,
+        on: [
+          {
+            events: "wheel!",
+            force: true,
+            update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+          }
+        ]
+      }
+    ] as Signal[]);
+  }
+
   if (config.showInterestingness) {
-    signals.push.apply(signals, [
+    [].push.apply(signals, [
       {
         name: "brushSingleStart",
         value: null,
@@ -733,20 +742,22 @@ export function createHistogramView<D extends string>(
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
-  // function to replace invisible steps with visible ones
-  expressionFunction("repeatInvisible", repeatInvisible);
+  if (config.zoom) {
+    // function to replace invisible steps with visible ones
+    expressionFunction("repeatInvisible", repeatInvisible);
 
-  // function to make sure we never zoom the brush outside the view
-  expressionFunction("keepWithin", (range, bounds) => {
-    bounds = extent(bounds);
-    if (bounds[0] < range[0]) {
-      range[0] = bounds[0];
-    }
-    if (bounds[1] > range[1]) {
-      range[1] = bounds[1];
-    }
-    return range;
-  });
+    // function to make sure we never zoom the brush outside the view
+    expressionFunction("keepWithin", (range, bounds) => {
+      bounds = extent(bounds);
+      if (bounds[0] < range[0]) {
+        range[0] = bounds[0];
+      }
+      if (bounds[1] > range[1]) {
+        range[1] = bounds[1];
+      }
+      return range;
+    });
+  }
 
   const runtime = parse(vgSpec);
 
@@ -755,8 +766,6 @@ export function createHistogramView<D extends string>(
     .initialize(el)
     .renderer("svg")
     .run();
-
-  window[view.dimension.name] = vgView;
 
   vgView["_spec"] = vgSpec;
   return vgView;
