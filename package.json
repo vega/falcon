@@ -41,6 +41,7 @@
     "vega-typings": "^0.3.38"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0-beta.55",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.1",
     "@types/ndarray": "1.0.6",
@@ -57,6 +58,7 @@
     "typescript": "^3.0.1"
   },
   "jest": {
+    "testURL": "http://localhost/",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
