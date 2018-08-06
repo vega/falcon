@@ -200,9 +200,9 @@ export class App<V extends string, D extends string> {
         }
       });
 
-      vegaView.addEventListener("mouseover", () => {
+      el.onmouseenter = () => {
         this.prefetchActiveView(name);
-      });
+      };
 
       if (this.config.zoom) {
         const updateHistDebounced = debounce(
@@ -269,9 +269,9 @@ export class App<V extends string, D extends string> {
         );
       });
 
-      vegaView.addEventListener("mouseover", () => {
+      el.onmouseenter = () => {
         this.prefetchActiveView(name);
-      });
+      };
     }
   }
 
