@@ -536,7 +536,8 @@ export function createHistogramView<D extends string>(
         value: 0,
         on: [
           {
-            events: "wheel",
+            events:
+              "@chart:wheel, @brush:wheel, @left:wheel, @left_grabber:wheel, @right:wheel, @right_grabber:wheel",
             update: dimension.time
               ? "time(invert('x', x()))"
               : "invert('x', x())"
@@ -548,7 +549,8 @@ export function createHistogramView<D extends string>(
         value: 0,
         on: [
           {
-            events: "wheel!",
+            events:
+              "@chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
             force: true,
             update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
           }
