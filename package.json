@@ -30,7 +30,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.5.7",
+    "@types/node": "^10.7.0",
     "cwise": "^1.0.10",
     "d3": "^5.5.0",
     "ndarray": "^1.0.18",
@@ -39,15 +39,15 @@
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.38"
+    "vega-typings": "^0.3.39"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-rc.0",
+    "@babel/core": "^7.0.0-rc.1",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.1",
     "@types/ndarray": "1.0.6",
     "gh-pages": "^1.2.0",
-    "jest": "^23.4.2",
+    "jest": "^23.5.0",
     "node-sass": "^4.9.3",
     "parcel-bundler": "1.9.7",
     "prettier": "^1.14.2",
