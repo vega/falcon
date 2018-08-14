@@ -26,6 +26,7 @@ import {
   createHistogramView,
   createTextView
 } from "./views";
+import imshow from "ndarray-imshow";
 
 let mouseIsDown = false;
 
@@ -170,7 +171,7 @@ export class App<V extends string, D extends string> {
     if (view.type === "0D") {
       const vegaView = (this.config.zeroDBar ? createBarView : createTextView)(
         el,
-        view
+        view, this.config
       );
       this.vegaViews.set(name, vegaView);
 
@@ -441,6 +442,8 @@ export class App<V extends string, D extends string> {
       if (name === this.activeView) {
         this.cubes = cubes;
       }
+
+      // imshow(cubes.get("DISTANCE")!.hists, {gray: true})
 
       this.setPixels(name, lowResPixels);
       vgView.signal("ready", true).run();

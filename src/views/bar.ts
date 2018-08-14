@@ -1,11 +1,10 @@
+import { Config } from "./../config";
 import { EncodeEntry, parse, Spec, View } from "vega-lib";
 import { View0D } from "../api";
 
-export const BAR_HEIGHT = 200;
-
 export const AXIS_Y_EXTENT = 50;
 
-export function createBarView(el: Element, view: View0D) {
+export function createBarView(el: Element, view: View0D, config: Config) {
   const barEncodeBase: EncodeEntry = {
     x: { value: 4 },
     x2: { signal: "width - 4" },
@@ -15,7 +14,7 @@ export function createBarView(el: Element, view: View0D) {
   };
 
   const vgSpec: Spec = {
-    height: BAR_HEIGHT,
+    height: config.barHeight,
     width: 28,
     padding: 5,
 

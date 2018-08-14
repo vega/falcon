@@ -2,27 +2,27 @@
 
 #app {
   #count {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  #arrival {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  #departure {
     grid-column: 1;
     grid-row: 1;
   }
-  #arrival {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  #departure {
-    grid-column: 2;
-    grid-row: 2;
-  }
   #distance {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
   }
   #airtime {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 2;
   }
   #delay {
     grid-column: 1;
-    grid-row: 5/6;
+    grid-row: 3;
   }
 }

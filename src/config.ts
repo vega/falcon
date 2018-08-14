@@ -30,8 +30,9 @@ export const DEFAULT_CONFIG = {
    */
   progressiveTimeout: 2000,
 
+  barHeight: 300,
   histogramWidth: 600,
-  heatmapWidth: 450,
+  heatmapWidth: 400,
   maxCircleSize: 800
 };
 

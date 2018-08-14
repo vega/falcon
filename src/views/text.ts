@@ -1,7 +1,8 @@
+import { Config } from "./../config";
 import { View0D } from "../api";
 import { parse, Spec, View } from "vega-lib";
 
-export function createTextView(el: Element, view: View0D) {
+export function createTextView(el: Element, view: View0D, _config: Config) {
   const vgSpec: Spec = {
     padding: 10,
     height: 20,
