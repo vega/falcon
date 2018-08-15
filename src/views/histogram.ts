@@ -386,11 +386,6 @@ export function createHistogramView<D extends string>(
 
   const onBrush: OnEvent[] = [
     {
-      events: [{ signal: "step" }], // the right thing would be if bin or pixels changes but this works as well because bins align
-      update:
-        "span(brush) ? [floor(brush[0] / step) * step, floor(brush[1] / step) * step] : brush"
-    },
-    {
       events: "mouseup",
       update: "span(brush) ? brush : 0"
     },
@@ -421,6 +416,14 @@ export function createHistogramView<D extends string>(
         "[scale('snap', brush[0]), clamp(snapped, invert('x', 0), invert('x', width))]"
     }
   ];
+
+  if (!config.interpolate) {
+    onBrush.push({
+      events: [{ signal: "step" }], // the right thing would be if bin or pixels changes but this works as well because bins align
+      update:
+        "span(brush) ? [floor(brush[0] / step) * step, floor(brush[1] / step) * step] : brush"
+    });
+  }
 
   const signals: Signal[] = [
     { name: "histHeight", value: Math.round(config.histogramWidth / 3.6) },

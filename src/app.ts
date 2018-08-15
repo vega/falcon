@@ -26,7 +26,7 @@ import {
   createHistogramView,
   createTextView
 } from "./views";
-import imshow from "ndarray-imshow";
+// import imshow from "ndarray-imshow";
 
 let mouseIsDown = false;
 
@@ -334,12 +334,18 @@ export class App<V extends string, D extends string> {
     const fetchAfterTimeout = () => {
       const startTime = Date.now();
       window.setTimeout(() => {
-        if (
-          this.lastHovered.view !== name ||
-          startTime < this.lastHovered.when
-        ) {
+        if (this.lastHovered.view !== name) {
           console.info(
-            "We are not hovering over the same view anymore so we are not going to fetch high resolution data."
+            `We are hovering over ${
+              this.lastHovered.view
+            } instead of ${name} so we are not going to fetch high resolution data.`
+          );
+          return;
+        }
+
+        if (startTime < this.lastHovered.when) {
+          console.info(
+            `We haven't hovered long enough over ${name} yet to fetch high resolution data.`
           );
           return;
         }
