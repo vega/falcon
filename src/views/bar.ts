@@ -1,6 +1,7 @@
 import { Config } from "./../config";
 import { EncodeEntry, parse, Spec, View } from "vega-lib";
 import { View0D } from "../api";
+import { darkerBlue } from "./histogram";
 
 export const AXIS_Y_EXTENT = 50;
 
@@ -17,6 +18,8 @@ export function createBarView(el: Element, view: View0D, config: Config) {
     height: config.barHeight,
     width: 28,
     padding: 5,
+
+    signals: [{ name: "approximate", value: false }],
 
     data: [
       {
@@ -71,7 +74,10 @@ export function createBarView(el: Element, view: View0D, config: Config) {
         encode: {
           enter: {
             ...barEncodeBase,
-            fill: { value: "#4c78a8" }
+            fill: { value: darkerBlue }
+          },
+          update: {
+            opacity: { signal: "approximate ? 0.7 : 1" }
           }
         }
       }

@@ -422,6 +422,12 @@ export class App<V extends string, D extends string> {
         );
         this.setPixels(name, highResPixels);
 
+        for (const [n, vgView] of this.vegaViews) {
+          if (n !== name) {
+            vgView.signal("approximate", false).run();
+          }
+        }
+
         if (name === this.activeView) {
           this.cubes = cubes;
 
@@ -548,8 +554,21 @@ export class App<V extends string, D extends string> {
     // data cubes should be ready since we only allow interactions with views that are ready
     this.cubes = await data.cubes();
 
+    // TODO: currently only 1D views support interpolation
+    if (
+      activeView.type === "1D" &&
+      this.config.interpolate &&
+      this.config.progressiveInteractions
+    ) {
+      for (const [n, vgView] of this.vegaViews) {
+        if (n !== name) {
+          vgView.signal("approximate", true).run();
+        }
+      }
+    }
+
     if (this.config.progressiveInteractions && !this.db.blocking) {
-      // we are not using a blocking db and now this dimension is active so let's get high resolution data
+      // we are not using a blocking db and now this dimension is active so let's get high resolution data now
       this.prefetchedData.get(name)!.fetchHighRes();
     }
 

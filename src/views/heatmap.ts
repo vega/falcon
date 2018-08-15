@@ -151,7 +151,8 @@ export function createHeatmapView<D extends string>(
             size: {
               scale: "size",
               field: "value"
-            }
+            },
+            opacity: { signal: "approximate ? 0.7 : 1" }
           }
         }
       }
@@ -308,6 +309,7 @@ export function createHeatmapView<D extends string>(
     ],
     signals: [
       { name: "ready", value: false },
+      { name: "approximate", value: false },
       { name: "binX", value: dimensionX.binConfig },
       { name: "binY", value: dimensionY.binConfig },
       { name: "pixels", value: [1, 1] },
