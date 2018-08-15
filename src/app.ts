@@ -171,7 +171,8 @@ export class App<V extends string, D extends string> {
     if (view.type === "0D") {
       const vegaView = (this.config.zeroDBar ? createBarView : createTextView)(
         el,
-        view, this.config
+        view,
+        this.config
       );
       this.vegaViews.set(name, vegaView);
 
@@ -208,7 +209,7 @@ export class App<V extends string, D extends string> {
       if (this.config.zoom) {
         const updateHistDebounced = debounce(
           this.updateHistogram.bind(this),
-          1000
+          600
         );
 
         vegaView.addSignalListener("domain", (__dirname, value) =>
@@ -293,7 +294,8 @@ export class App<V extends string, D extends string> {
       oldBinConfig.start !== newBinConfig.start ||
       oldBinConfig.stop !== newBinConfig.stop
     ) {
-      view.dimension.binConfig = newBinConfig;
+      console.info(`New bin configuration for ${name}.`);
+      view.dimension.binConfig = newBinConfig; // we are already setting the new bin config so we need to lock the view
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
         // load new data for interactions, this will block the view
         this.prefetchedData.delete(name);
@@ -312,9 +314,6 @@ export class App<V extends string, D extends string> {
         }
       });
     }
-
-    // regardless of whether the domain has changed, we need to set the domain of the chart to the bin range so that the brushes are aligned properly
-    // vegaView.signal("domain", [newBinConfig.start, newBinConfig.stop]);
   }
 
   /**
@@ -350,7 +349,7 @@ export class App<V extends string, D extends string> {
           data.fetchHighRes();
         } else {
           console.warn(
-            "Tried to get high resolution data for a view that is not preloaded."
+            `Tried to get high resolution data after fetching low res data for ${name} but it is not preloaded.`
           );
         }
       }, this.config.progressiveTimeout);
@@ -406,12 +405,15 @@ export class App<V extends string, D extends string> {
       },
       cubes => {
         if (this.prefetchedData.get(name) !== pendingData) {
-          console.warn("Received outdated high res result that was ignored.");
+          console.warn(
+            `Received outdated high res result for ${name} that was ignored.`
+          );
           return;
         }
 
-        console.info(`High res data available. ${highResPixels}`);
-
+        console.info(
+          `High res data for ${name} available. Pixels: ${highResPixels}`
+        );
         this.setPixels(name, highResPixels);
 
         if (name === this.activeView) {
@@ -429,15 +431,16 @@ export class App<V extends string, D extends string> {
     // mark view as pending as long as we don't have required data
     const done = cubes => {
       if (this.prefetchedData.get(name) !== pendingData) {
-        console.warn("Received outdated prefetch result that was ignored.");
+        console.warn(
+          `Received outdated prefetch result for ${name} that was ignored.`
+        );
         return;
       }
 
       vgView.container()!.style.cursor = null;
       (vgView
         .container()!
-        .children.item(0) as HTMLElement).style.pointerEvents =
-        "all";
+        .children.item(0) as HTMLElement).style.pointerEvents = "all";
 
       if (name === this.activeView) {
         this.cubes = cubes;
@@ -504,7 +507,12 @@ export class App<V extends string, D extends string> {
   }
 
   private clearPrefetched() {
+    // keep the prefetched data for the active dimension
+    const activePrefetched = this.prefetchedData.get(this.activeView);
     this.prefetchedData.clear();
+    if (activePrefetched) {
+      this.prefetchedData.set(this.activeView, activePrefetched);
+    }
 
     for (const [n, v] of this.vegaViews) {
       if (n !== this.activeView) {
