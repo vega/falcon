@@ -1,7 +1,7 @@
 # Falcon for Big Data Crossfiltering
 
 [![npm version](https://img.shields.io/npm/v/big-crossfilter.svg)](https://www.npmjs.com/package/big-crossfilter)
-[![Build Status](https://travis-ci.com/uwdata/big-crossfilter.svg?branch=master)](https://travis-ci.com/uwdata/falcon)
+[![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
