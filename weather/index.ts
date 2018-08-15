@@ -9,6 +9,7 @@ type ViewName =
   | "TEMP_MAX"
   | "PRECIPITATION"
   | "WIND"
+  | "SNOW"
   | "COUNT";
 
 type DimensionName =
@@ -81,6 +82,17 @@ views.set("WIND", {
     name: "WIND",
     bins: 25,
     extent: [0, 12],
+    format: ".1f"
+  }
+});
+views.set("SNOW", {
+  title: "Snow Depth in Millimeter",
+  type: "1D",
+  el: createElement("snow"),
+  dimension: {
+    name: "SNOW",
+    bins: 25,
+    extent: [0, 1400],
     format: ".1f"
   }
 });
