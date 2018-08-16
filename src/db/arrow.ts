@@ -6,7 +6,7 @@ import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
 import { BitSet, union } from "../bitset";
-import { binNumberFunction, numBins, stepSize } from "../util";
+import { binNumberFunction, numBins, binNumberFunctionBins } from "../util";
 
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
@@ -135,11 +135,7 @@ export class ArrowDB<V extends string, D extends string>
     const cubes: Cubes<V> = new Map();
 
     const activeDim = activeView.dimension;
-    const activeStepSize = stepSize(activeDim.extent, pixels);
-    const binActive = binNumberFunction({
-      start: activeDim.extent[0] - activeStepSize,
-      step: activeStepSize
-    });
+    const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
     const activeCol = this.data.getColumn(activeDim.name)!;
     const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
@@ -219,7 +215,7 @@ export class ArrowDB<V extends string, D extends string>
         const dimensions = view.dimensions;
         const binConfigs = dimensions.map(d => d.binConfig!);
         const [numBinsX, numBinsY] = binConfigs.map(numBins);
-        const [binX, binY] = binConfigs.map(binNumberFunction);
+        const [binX, binY] = binConfigs.map(c => binNumberFunction(c));
         const [columnX, columnY] = dimensions.map(
           d => this.data.getColumn(d.name)!
         );
@@ -279,16 +275,8 @@ export class ArrowDB<V extends string, D extends string>
     const cubes: Cubes<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
-    const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
-    const activeStepSizeY = stepSize(activeDimY.extent, pixels[1]);
-    const binActiveX = binNumberFunction({
-      start: activeDimX.extent[0] - activeStepSizeX,
-      step: activeStepSizeX
-    });
-    const binActiveY = binNumberFunction({
-      start: activeDimY.extent[0] - activeStepSizeY,
-      step: activeStepSizeY
-    });
+    const binActiveX = binNumberFunctionBins(activeDimX.binConfig!, pixels[0]);
+    const binActiveY = binNumberFunctionBins(activeDimY.binConfig!, pixels[1]);
     const activeColX = this.data.getColumn(activeDimX.name)!;
     const activeColY = this.data.getColumn(activeDimY.name)!;
 

@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG = {
   barHeight: 300,
   histogramWidth: 600,
   heatmapWidth: 400,
-  maxCircleSize: 800
+  maxCircleSize: 700
 };
 
 export type Config = typeof DEFAULT_CONFIG;

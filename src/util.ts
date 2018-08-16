@@ -42,6 +42,15 @@ interface StartStepBinConfig {
   step: number;
 }
 
+/**
+ * BinConfig that does not need to have a step.
+ */
+interface StartStopBinConfig {
+  start: number;
+  stop: number;
+  step?: number;
+}
+
 export function clamp(i: number, range: Interval<number>) {
   return Math.max(range[0], Math.min(range[1], i));
 }
@@ -67,8 +76,8 @@ export function numBins({ start, step, stop }: BinConfig) {
   return (stop - start) / step;
 }
 
-export function stepSize(range: [number, number], bins: number) {
-  return (range[1] - range[0]) / bins;
+export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
+  return (stop - start) / bins;
 }
 
 /**
@@ -76,6 +85,17 @@ export function stepSize(range: [number, number], bins: number) {
  */
 export function binNumberFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => Math.floor((v - start) / step);
+}
+
+/**
+ * Returns a function that returns the bin for a pixel. Starts one pixel before so that the brush contains the data.
+ */
+export function binNumberFunctionBins(
+  { start, stop }: StartStopBinConfig,
+  pixel: number
+) {
+  const step = stepSize({ start, stop }, pixel);
+  return binNumberFunction({ start: start - step, step });
 }
 
 /**

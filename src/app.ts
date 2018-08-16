@@ -85,11 +85,6 @@ export class App<V extends string, D extends string> {
   private brushes = new Map<D, Interval<number>>();
 
   /**
-   * Data for each non-active view.
-   */
-  private cubes: Cubes<V>;
-
-  /**
    * Prefetched data that can be moved to data when the active view changes.
    */
   private prefetchedData = new Map<V, PendingData<V>>();
@@ -213,7 +208,7 @@ export class App<V extends string, D extends string> {
       if (this.config.zoom) {
         const updateHistDebounced = debounce(
           this.updateHistogram.bind(this),
-          600
+          500
         );
 
         vegaView.addSignalListener("domain", async (__dirname, value) => {
@@ -222,7 +217,7 @@ export class App<V extends string, D extends string> {
             await this.switchActiveView(name, false);
           }
 
-          updateHistDebounced(name, value);
+          updateHistDebounced(value);
         });
       }
 
@@ -289,9 +284,10 @@ export class App<V extends string, D extends string> {
   /**
    * The domain has changed so we need to zoom the chart.
    */
-  updateHistogram(name: V, domain: Interval<number>) {
-    const view = this.views.get(name) as View1D<D>;
-    const vegaView = this.vegaViews.get(name)!;
+  updateHistogram(domain: Interval<number>) {
+    const view = this.getActiveView() as View1D<D>;
+    const vegaView = this.getActiveVegaView();
+    const name = this.activeView;
 
     const newBinConfig = (view.dimension.time ? binTime : bin)(
       view.dimension.bins,
@@ -304,10 +300,11 @@ export class App<V extends string, D extends string> {
       oldBinConfig.stop !== newBinConfig.stop
     ) {
       console.info(`New bin configuration for ${name}.`);
+      view.dimension.binConfig = newBinConfig;
+
       this.prefetchedData.delete(name);
       this.prefetchView(name, false);
 
-      view.dimension.binConfig = newBinConfig; // we are already setting the new bin config so we need to lock the view
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
         if (this.config.showBase) {
           const { hist, noBrush } = await this.db.histogram(
@@ -390,9 +387,12 @@ export class App<V extends string, D extends string> {
     let lowResPixels: number | Interval<number>;
 
     if (view.type === "1D") {
+      const binConfig = view.dimension.binConfig!;
+
       lowResPixels = progressive
-        ? numBins(view.dimension.binConfig!)
-        : this.highResPixels(view.dimension.binConfig!);
+        ? numBins(binConfig)
+        : this.highResPixels(binConfig);
+
       cubes = this.load1DData(name, view, lowResPixels);
     } else if (view.type === "2D") {
       lowResPixels = progressive
@@ -419,7 +419,7 @@ export class App<V extends string, D extends string> {
           return this.load2DData(name, view, highResPixels);
         }
       },
-      cubes => {
+      () => {
         if (this.prefetchedData.get(name) !== pendingData) {
           console.warn(
             `Received outdated high res result for ${name} that was ignored.`
@@ -439,8 +439,6 @@ export class App<V extends string, D extends string> {
         }
 
         if (name === this.activeView) {
-          this.cubes = cubes;
-
           if (this.config.interpolate) {
             this.update();
           }
@@ -451,7 +449,7 @@ export class App<V extends string, D extends string> {
     this.prefetchedData.set(name, pendingData);
 
     // mark view as pending as long as we don't have required data
-    const done = cubes => {
+    const done = () => {
       if (this.prefetchedData.get(name) !== pendingData) {
         console.warn(
           `Received outdated prefetch result for ${name} that was ignored.`
@@ -464,12 +462,6 @@ export class App<V extends string, D extends string> {
         .container()!
         .children.item(0) as HTMLElement).style.pointerEvents = "all";
 
-      if (name === this.activeView) {
-        this.cubes = cubes;
-      }
-
-      // imshow(cubes.get("DISTANCE")!.hists, {gray: true})
-
       this.setPixels(name, lowResPixels);
       vegaView.signal("ready", true).run();
 
@@ -480,15 +472,15 @@ export class App<V extends string, D extends string> {
 
     if (cubes instanceof Promise) {
       this.pendingRequests.set(name, this.pendingRequests.get(name) || 0 + 1);
-      cubes.then(fetchedCubes => {
+      cubes.then(() => {
         const count = this.pendingRequests.get(name)! - 1;
         this.pendingRequests.set(name, count);
         if (count === 0) {
-          done(fetchedCubes);
+          done();
         }
       });
     } else {
-      done(cubes);
+      done();
     }
   }
 
@@ -575,8 +567,6 @@ export class App<V extends string, D extends string> {
     this.activeView = name;
 
     const data = this.prefetchedData.get(name)!;
-    // data cubes should be ready since we only allow interactions with views that are ready
-    this.cubes = await data.cubes();
 
     if (approximate && !data.hasHighRes()) {
       this.markApproximate(name);
@@ -611,7 +601,7 @@ export class App<V extends string, D extends string> {
   /**
    * Compute an interestingness metric.
    */
-  private calculateInterestingness(
+  private async calculateInterestingness(
     opt: { start?: number; window?: number } = {}
   ) {
     let out: {
@@ -624,11 +614,12 @@ export class App<V extends string, D extends string> {
 
     const pixels = this.getActiveVegaView().signal("pixels");
 
+    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
     for (const [name, view] of omit(this.views, this.activeView)) {
       if (view.type !== "0D") {
         let data: Array<any>;
 
-        const { hists } = this.cubes.get(name)!;
+        const { hists } = cubes.get(name)!;
 
         if (opt.window !== undefined) {
           const w = Math.floor(opt.window / 2);
@@ -791,13 +782,15 @@ export class App<V extends string, D extends string> {
     });
   }
 
-  private update() {
+  private async update() {
     if (this.prefetchedData.size > 1) {
       this.clearPrefetched();
     }
 
     const activeView = this.getActiveView();
     const activeVgView = this.getActiveVegaView();
+
+    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
 
     if (activeView.type === "1D") {
       let activeBrushFloat = this.brushes.get(activeView.dimension.name) as
@@ -824,7 +817,7 @@ export class App<V extends string, D extends string> {
           continue;
         }
 
-        const data = this.cubes.get(name)!;
+        const data = cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {
@@ -899,7 +892,7 @@ export class App<V extends string, D extends string> {
         if (name === this.activeView) {
           continue;
         }
-        const data = this.cubes.get(name)!;
+        const data = cubes.get(name)!;
         const hists = data.hists;
 
         if (view.type === "0D") {

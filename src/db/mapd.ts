@@ -79,6 +79,13 @@ export class MapDDB<V extends string, D extends string>
     };
   }
 
+  private binSQLPixel(dimension: D, binConfig: BinConfig, pixels?: number) {
+    const step =
+      pixels !== undefined ? stepSize(binConfig, pixels) : binConfig.step;
+    const start = binConfig.start - step;
+    return this.binSQL(dimension, { ...binConfig, start, step });
+  }
+
   public async length() {
     const result = await this.query(
       `SELECT count(*) AS cnt FROM ${this.table}`
@@ -188,12 +195,11 @@ export class MapDDB<V extends string, D extends string>
     const cubes: Cubes<V> = new Map();
 
     const activeDim = activeView.dimension;
-    const activeStepSize = stepSize(activeDim.extent, pixels);
-    const binActive = this.binSQL(activeDim.name, {
-      start: activeDim.extent[0] - activeStepSize,
-      step: activeStepSize,
-      stop: activeDim.extent[1]
-    });
+    const binActive = this.binSQLPixel(
+      activeDim.name,
+      activeDim.binConfig!,
+      pixels
+    );
 
     const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
@@ -340,18 +346,16 @@ export class MapDDB<V extends string, D extends string>
     const cubes: Cubes<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
-    const activeStepSizeX = stepSize(activeDimX.extent, pixels[0]);
-    const activeStepSizeY = stepSize(activeDimY.extent, pixels[1]);
-    const binActiveX = this.binSQL(activeDimX.name, {
-      start: activeDimX.extent[0] - activeStepSizeX,
-      step: activeStepSizeX,
-      stop: activeDimX.extent[1]
-    });
-    const binActiveY = this.binSQL(activeDimY.name, {
-      start: activeDimY.extent[0] - activeStepSizeY,
-      step: activeStepSizeY,
-      stop: activeDimY.extent[1]
-    });
+    const binActiveX = this.binSQLPixel(
+      activeDimX.name,
+      activeDimX.binConfig!,
+      pixels[0]
+    );
+    const binActiveY = this.binSQLPixel(
+      activeDimY.name,
+      activeDimY.binConfig!,
+      pixels[1]
+    );
 
     const [numPixelsX, numPixelsY] = [pixels[0] + 1, pixels[1] + 1];
 
