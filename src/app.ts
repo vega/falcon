@@ -773,13 +773,11 @@ export class App<V extends string, D extends string> {
       .insert(data);
 
     const vgView = this.vegaViews.get(name)!;
-    vgView.runAfter(() => {
       vgView.change("table", changeSet);
-      if (base) {
-        vgView.change("base", changeSet);
-      }
-      vgView.run();
-    });
+    if (base) {
+      vgView.change("base", changeSet);
+    }
+    vgView.run();
   }
 
   private async update() {
