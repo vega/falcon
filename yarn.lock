@@ -345,13 +345,17 @@
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.6.tgz#47d716dce58b51bf26496f042df2d22a3a860fb7"
 
-"@types/node@*", "@types/node@^10.7.0":
+"@types/node@*":
   version "10.7.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.7.0.tgz#d384b2c8625414ab2aa18fdf989c288d6a7a8202"
 
 "@types/node@9.3.0":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.3.0.tgz#3a129cda7c4e5df2409702626892cb4b96546dd5"
+
+"@types/node@^10.7.1":
+  version "10.7.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.7.1.tgz#b704d7c259aa40ee052eec678758a68d07132a2e"
 
 "@types/text-encoding-utf-8@1.0.1":
   version "1.0.1"
@@ -2908,7 +2912,7 @@ find-up@^2.1.0:
   dependencies:
     locate-path "^2.0.0"
 
-"flatbuffers@github:trxcllnt/flatbuffers-esm":
+flatbuffers@trxcllnt/flatbuffers-esm:
   version "1.7.0"
   resolved "https://codeload.github.com/trxcllnt/flatbuffers-esm/tar.gz/0ed890546a45c361665b1778f856b4a48cc22c8a"
 
@@ -7392,9 +7396,15 @@ vega-transforms@^2.2.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.39:
+vega-typings@*:
   version "0.3.39"
   resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.39.tgz#6543badd259f377c7773cdcc40f28464acc1063e"
+  dependencies:
+    vega-util "^1.7.0"
+
+vega-typings@^0.3.40:
+  version "0.3.40"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.40.tgz#45737e2ff8ca4d70963b2d1f97c71c80ad597def"
   dependencies:
     vega-util "^1.7.0"
 

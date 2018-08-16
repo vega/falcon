@@ -30,7 +30,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.7.0",
+    "@types/node": "^10.7.1",
     "cwise": "^1.0.10",
     "d3": "^5.5.0",
     "ndarray": "^1.0.18",
@@ -39,7 +39,7 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.39"
+    "vega-typings": "^0.3.40"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-rc.1",
