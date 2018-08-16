@@ -1,6 +1,6 @@
 {
   "name": "big-crossfilter",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Big data crossfilter",
   "main": "build/big-crossfilter.js",
   "module": "build/src/index",
@@ -34,9 +34,9 @@
     "cwise": "^1.0.10",
     "d3": "^5.5.0",
     "ndarray": "^1.0.18",
+    "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
     "vega-typings": "^0.3.39"
