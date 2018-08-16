@@ -484,6 +484,14 @@ export function createHistogramView<D extends string>(
       ]
     },
     {
+      name: "binBrush",
+      update: "[(brush[0] - bin.start) / step, (brush[1] - bin.start) / step]"
+    },
+    {
+      name: "pixelBrush",
+      update: "[scale('x', brush[0]), scale('x', brush[1])]"
+    },
+    {
       name: "reverseBrush",
       update: "brush[0] > brush[1]"
     },

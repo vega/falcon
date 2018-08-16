@@ -793,20 +793,16 @@ export class App<V extends string, D extends string> {
     const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
 
     if (activeView.type === "1D") {
-      let activeBrushFloat = this.brushes.get(activeView.dimension.name) as
-        | Interval<number>
-        | 0;
+      let activeBrushFloat: Interval<number> | 0 = activeVgView.signal(
+        "binBrush"
+      );
 
       let activeBrushFloor: number[] = [-1];
       let activeBrushCeil: number[] = [-1];
       let fraction: number[] = [-1];
 
       if (activeBrushFloat) {
-        const bin = activeView.dimension.binConfig!;
-        const step = activeVgView.signal("step");
-        activeBrushFloat = activeBrushFloat.map(
-          d => (d - bin.start) / step
-        ) as Interval<number>;
+        activeBrushFloat = extent(activeBrushFloat);
         activeBrushFloor = activeBrushFloat.map(Math.floor);
         activeBrushCeil = activeBrushFloat.map(Math.ceil);
         fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);
@@ -870,9 +866,9 @@ export class App<V extends string, D extends string> {
         }
       }
     } else {
-      let activeBrushFloat: Interval<Interval<number>> = activeVgView.signal(
-        "binBrush"
-      );
+      let activeBrushFloat:
+        | Interval<Interval<number>>
+        | 0 = activeVgView.signal("binBrush");
 
       let activeBrushFloorX: number[] = [-1];
       let activeBrushFloorY: number[] = [-1];
