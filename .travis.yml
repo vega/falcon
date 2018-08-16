@@ -1,16 +1,16 @@
 language: node_js
 node_js:
-  - "10"
+- '10'
 script:
-  - yarn test
-  - yarn build
+- yarn test
+- yarn build
 cache: yarn
 deploy:
   provider: npm
   email: domoritz@gmail.com
   skip_cleanup: true
-  api_key:
-    secure: A9L0hgLF+ccDQsyELTXFZizk2dbgl4xSYa/C1KYEy2g0zCsoP9+ERFaHxLF03NzJtrORz9H+i5fylY08HccltmJj+CEDJODQnmKu0tHMEm4gMmw0FEV9ew9xfUupegNIcfDY8zPLW+MprQhxOScePydAfj6hl0j541AOVMLSNR6kzeRYwM97P43adGfpzgzd1llWR2NEzkH8UH/esMVPpt9PfFz4ei24X4cP0iL1Ebaih+Tz1ekN3I3T/jzyv3sbggkFVMTqZiAIAWhN6HiAwB8dgOy3aMXV5pr4T2yTre+1FhetPEW4bXJTkFGN+rHVYk6uWyAf5ogrlGfVrub8AKcb55e69siOccjqpwEB6QuvQ0x/LJBovhZ36dsE2/ID2ZXzda3BOstCIyPwUPUteg9PgInYfdv2q61yl3wAuwfp0qgy0v0BY4YGDDosVY5kBkKxjNNCgmi6A3bvfJNvapcMUMg0xugyO6xqwvcTeTgMTdmq8HuhWKMh795oF4640YJ6rP0iYk73LBQ5mX18WiOFyoPryQMRBGBcyWnj0R4yJLOI0M2hxrYvD8zfYL6cGWGw7CBUQtYaj09jjchX32IMDRKgld0BpXo+bS9OXVxgUwVRMrt+NWSaJbD9qi0Dp4wivbH3y2y+rrFBcfICf9EeFdg6H+pXqNI4KWllk4o=
   on:
     tags: true
     repo: uwdata/falcon
+  api_key:
+    secure: K8wkFhSzvk4G80IX0BDlTVD+J5BSqD212MDglRnkJvaSSZt+ln42+vtlif/KtBplYAB92zt+uNlNsRTgG4fcrYx5Ynwxf4zzE9BwRlrdwg0LuHOU9cxt8zjVUJ3dEhpiQv0/8Vx8DJG3uX5JjgCxbrS3xfNt9e+VpyRB/JenPx5x5AVBZLwbZSyWVYz840X6cwxBSALFW7c7kjvyh1fxp4bKzvAdcruLvCVRnh/DIQz8sB5Twu7079GgyrubrMqvCTKvC9oXT8L60IlJOrQQlM6IwxHZXIYop0p12eSQUTmt1PI6iLpeYKjEqxrQ5bOlsOu6oWpq0tDFWgfexKMhuVcX+hdjys53TymkyqVe/7e6+acx8bLwp2IWm1fsfb4vymFyJYgpcHMm3HE7iOWTN1cbnVozT/gXtWqzGcTnukQyX0UZOMLNNVwNM32Lg4gnLPVn5LBOfbmFJppPSij3MYGoEZKDLEM7PSGqLtsfcpUcTxlvu5/CzqLcja82ovfYHJup6+OHmC1dP0m93L3Ly6Cw7cMGq1a/6+uA41GE7X0rv4dt4BDrt9EnjYxLYw6os++F9vnfDGaoq99AX+8jciWOhDodii8shuMlfNJnMrHiYg2BxHkBJOMX9hvstXVIVUItAYQP6COURP7i/BNIY54kolWvEeynUBiz23uqoKE=
