@@ -741,22 +741,20 @@ export function createHistogramView<D extends string>(
     config: { axisY: { minExtent: AXIS_Y_EXTENT } }
   };
 
-  if (config.zoom) {
-    // function to replace invisible steps with visible ones
-    expressionFunction("repeatInvisible", repeatInvisible);
+  // function to replace invisible steps with visible ones
+  expressionFunction("repeatInvisible", repeatInvisible);
 
-    // function to make sure we never zoom the brush outside the view
-    expressionFunction("keepWithin", (range, bounds) => {
-      bounds = extent(bounds);
-      if (bounds[0] < range[0]) {
-        range[0] = bounds[0];
-      }
-      if (bounds[1] > range[1]) {
-        range[1] = bounds[1];
-      }
-      return range;
-    });
-  }
+  // function to make sure we never zoom the brush outside the view
+  expressionFunction("keepWithin", (range, bounds) => {
+    bounds = extent(bounds);
+    if (bounds[0] < range[0]) {
+      range[0] = bounds[0];
+    }
+    if (bounds[1] > range[1]) {
+      range[1] = bounds[1];
+    }
+    return range;
+  });
 
   const runtime = parse(vgSpec);
 
