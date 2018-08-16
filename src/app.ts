@@ -72,6 +72,10 @@ class PendingData<V> {
   public cubes(): Cubes<V> | Promise<Cubes<V>> {
     return this.highResPending ? this.lowRes : this.highRes;
   }
+
+  public hasHighRes() {
+    return !this.highResPending;
+  }
 }
 
 export class App<V extends string, D extends string> {
@@ -203,7 +207,7 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchView(name);
+        this.prefetchView(name, this.config.progressiveInteractions);
       };
 
       if (this.config.zoom) {
@@ -212,9 +216,14 @@ export class App<V extends string, D extends string> {
           600
         );
 
-        vegaView.addSignalListener("domain", (__dirname, value) =>
-          updateHistDebounced(name, value)
-        );
+        vegaView.addSignalListener("domain", async (__dirname, value) => {
+          // if you zoom, we activate the view
+          if (this.activeView !== name) {
+            await this.switchActiveView(name, false);
+          }
+
+          updateHistDebounced(name, value);
+        });
       }
 
       if (this.config.showInterestingness) {
@@ -272,7 +281,7 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchView(name);
+        this.prefetchView(name, this.config.progressiveInteractions);
       };
     }
   }
@@ -295,13 +304,11 @@ export class App<V extends string, D extends string> {
       oldBinConfig.stop !== newBinConfig.stop
     ) {
       console.info(`New bin configuration for ${name}.`);
+      this.prefetchedData.delete(name);
+      this.prefetchView(name, false);
 
       view.dimension.binConfig = newBinConfig; // we are already setting the new bin config so we need to lock the view
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
-        // load new data for interactions, this will block the view
-        this.prefetchedData.delete(name);
-        this.prefetchView(name);
-
         if (this.config.showBase) {
           const { hist, noBrush } = await this.db.histogram(
             view.dimension,
@@ -320,7 +327,7 @@ export class App<V extends string, D extends string> {
   /**
    * Get data for the view so that we can brush in it.
    */
-  private prefetchView(name: V) {
+  private prefetchView(name: V, progressive: boolean) {
     if (mouseIsDown) {
       return;
     }
@@ -362,18 +369,20 @@ export class App<V extends string, D extends string> {
       }, this.config.progressiveTimeout);
     };
 
-    if (this.prefetchedData.has(name)) {
+    const data = this.prefetchedData.get(name);
+    if (data) {
       // we might have already prefetched but aborted a previous hover with wait
-      if (this.config.progressiveInteractions) {
+      if (!data.hasHighRes() && progressive) {
         fetchAfterTimeout();
       }
       return;
     }
 
-    const vgView = this.vegaViews.get(name)!;
-    vgView.container()!.style.cursor = "wait";
-    (vgView.container()!.children.item(0) as HTMLElement).style.pointerEvents =
-      "none";
+    const vegaView = this.vegaViews.get(name)!;
+    vegaView.container()!.style.cursor = "wait";
+    (vegaView
+      .container()!
+      .children.item(0) as HTMLElement).style.pointerEvents = "none";
 
     const view = this.views.get(name)!;
 
@@ -381,12 +390,12 @@ export class App<V extends string, D extends string> {
     let lowResPixels: number | Interval<number>;
 
     if (view.type === "1D") {
-      lowResPixels = this.config.progressiveInteractions
+      lowResPixels = progressive
         ? numBins(view.dimension.binConfig!)
         : this.highResPixels(view.dimension.binConfig!);
       cubes = this.load1DData(name, view, lowResPixels);
     } else if (view.type === "2D") {
-      lowResPixels = this.config.progressiveInteractions
+      lowResPixels = progressive
         ? [
             numBins(view.dimensions[0].binConfig!),
             numBins(view.dimensions[1].binConfig!)
@@ -450,8 +459,8 @@ export class App<V extends string, D extends string> {
         return;
       }
 
-      vgView.container()!.style.cursor = null;
-      (vgView
+      vegaView.container()!.style.cursor = null;
+      (vegaView
         .container()!
         .children.item(0) as HTMLElement).style.pointerEvents = "all";
 
@@ -462,9 +471,9 @@ export class App<V extends string, D extends string> {
       // imshow(cubes.get("DISTANCE")!.hists, {gray: true})
 
       this.setPixels(name, lowResPixels);
-      vgView.signal("ready", true).run();
+      vegaView.signal("ready", true).run();
 
-      if (this.config.progressiveInteractions) {
+      if (progressive) {
         fetchAfterTimeout();
       }
     };
@@ -560,24 +569,30 @@ export class App<V extends string, D extends string> {
   /**
    * Switch which view is active.
    */
-  private async switchActiveView(name: V) {
+  private async switchActiveView(name: V, approximate = true) {
     console.info(`Active view ${this.activeView} => ${name}`);
 
     this.activeView = name;
-
-    const activeView = this.getActiveView();
-    const activeVgView = this.vegaViews.get(name)!;
 
     const data = this.prefetchedData.get(name)!;
     // data cubes should be ready since we only allow interactions with views that are ready
     this.cubes = await data.cubes();
 
-    this.markApproximate(name);
+    if (approximate && !data.hasHighRes()) {
+      this.markApproximate(name);
+    }
 
     if (this.config.progressiveInteractions && !this.db.blocking) {
       // we are not using a blocking db and now this dimension is active so let's get high resolution data now
       this.prefetchedData.get(name)!.fetchHighRes();
     }
+
+    this.showInterestingness();
+  }
+
+  private showInterestingness() {
+    const activeView = this.getActiveView();
+    const activeVgView = this.vegaViews.get(name)!;
 
     if (activeView.type === "1D" && this.config.showInterestingness) {
       // show basic interestingness

@@ -418,14 +418,6 @@ export function createHistogramView<D extends string>(
     }
   ];
 
-  if (!config.interpolate) {
-    onBrush.push({
-      events: [{ signal: "step" }], // the right thing would be if bin or pixels changes but this works as well because bins align
-      update:
-        "span(brush) ? [floor(brush[0] / step) * step, floor(brush[1] / step) * step] : brush"
-    });
-  }
-
   const signals: Signal[] = [
     { name: "histHeight", value: Math.round(config.histogramWidth / 3.6) },
     { name: "ready", value: false },
