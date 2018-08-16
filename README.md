@@ -1,18 +1,18 @@
-# Falcon for Big Data Crossfiltering
+# Falcon: Interactive Visual Analysis for Big Data
 
-[![npm version](https://img.shields.io/npm/v/big-crossfilter.svg)](https://www.npmjs.com/package/big-crossfilter)
+[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis)
 [![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights when connected to MapD. 
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights when connected to MapD.
 
 ## Demos
 
-* 1M flights in the browser: https://uwdata.github.io/falcon/flights/
-* 7M flights in [MapD](https://www.mapd.com/): https://uwdata.github.io/falcon/flights-mapd/
-* 500k weather records: https://uwdata.github.io/falcon/weather/
+- 1M flights in the browser: https://uwdata.github.io/falcon/flights/
+- 7M flights in [MapD](https://www.mapd.com/): https://uwdata.github.io/falcon/flights-mapd/
+- 500k weather records: https://uwdata.github.io/falcon/weather/
 
 Big Crossfilter uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 

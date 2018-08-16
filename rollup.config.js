@@ -5,7 +5,7 @@ import json from "rollup-plugin-json";
 export default {
   input: "build/src/index.js",
   output: {
-    file: "build/big-crossfilter.js",
+    file: "build/falcon.js",
     format: "umd",
     name: "bcf",
     sourcemap: true

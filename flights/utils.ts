@@ -2,7 +2,7 @@ import { version } from "./../src";
 
 document.getElementById(
   "version"
-)!.innerHTML = `Powered by <a href="https://github.com/uwdata/big-crossfilter">Big Crossfilter</a> ${version}`;
+)!.innerHTML = `Powered by <a href="https://github.com/uwdata/falcon">Falcon</a> ${version}`;
 
 export function createElement(id: string) {
   const el = document.createElement("div");

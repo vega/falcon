@@ -1,8 +1,8 @@
 {
-  "name": "big-crossfilter",
-  "version": "0.5.0",
+  "name": "falcon-vis",
+  "version": "0.1.0",
   "description": "Big data crossfilter",
-  "main": "build/big-crossfilter.js",
+  "main": "build/falcon.js",
   "module": "build/src/index",
   "types": "build/src/index.d.ts",
   "scripts": {
@@ -19,14 +19,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uwdata/big-crossfilter.git"
+    "url": "git+https://github.com/uwdata/falcon.git"
   },
   "author": "Dominik Moritz",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/uwdata/big-crossfilter/issues"
+    "url": "https://github.com/uwdata/falcon/issues"
   },
-  "homepage": "https://github.com/uwdata/big-crossfilter#readme",
+  "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
