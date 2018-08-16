@@ -74,9 +74,15 @@ export function createHistogramView<D extends string>(
           name: "reset",
           encode: {
             enter: {
-              x: { signal: "width", mult: 0.5, offset: 5 },
+              x: config.showBase
+                ? {
+                    signal: "width",
+                    mult: 0.5,
+                    offset: 5
+                  }
+                : { signal: "width" },
               y: { value: -8 },
-              align: { value: "left" },
+              align: config.showBase ? { value: "left" } : { value: "right" },
               cursor: { value: "pointer" },
               fontWeight: { value: "bold" },
               fill: { value: "black" }
@@ -90,7 +96,9 @@ export function createHistogramView<D extends string>(
           type: "text",
           encode: {
             enter: {
-              x: { signal: "width", mult: 0.5, offset: -5 },
+              x: config.showBase
+                ? { signal: "width", mult: 0.5, offset: -5 }
+                : { signal: "width", offset: -80 },
               y: { value: -8 },
               align: { value: "right" },
               fill: { value: "#666" }
@@ -485,11 +493,12 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "binBrush",
-      update: "[(brush[0] - bin.start) / step, (brush[1] - bin.start) / step]"
+      update:
+        "span(brush) ? [(brush[0] - bin.start) / step, (brush[1] - bin.start) / step] : 0"
     },
     {
       name: "pixelBrush",
-      update: "[scale('x', brush[0]), scale('x', brush[1])]"
+      update: "span(brush) ? [scale('x', brush[0]), scale('x', brush[1])] : 0"
     },
     {
       name: "reverseBrush",
