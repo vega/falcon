@@ -203,7 +203,7 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchActiveView(name);
+        this.prefetchView(name);
       };
 
       if (this.config.zoom) {
@@ -272,7 +272,7 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchActiveView(name);
+        this.prefetchView(name);
       };
     }
   }
@@ -295,11 +295,12 @@ export class App<V extends string, D extends string> {
       oldBinConfig.stop !== newBinConfig.stop
     ) {
       console.info(`New bin configuration for ${name}.`);
+
       view.dimension.binConfig = newBinConfig; // we are already setting the new bin config so we need to lock the view
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
         // load new data for interactions, this will block the view
         this.prefetchedData.delete(name);
-        this.prefetchActiveView(name);
+        this.prefetchView(name);
 
         if (this.config.showBase) {
           const { hist, noBrush } = await this.db.histogram(
@@ -319,7 +320,7 @@ export class App<V extends string, D extends string> {
   /**
    * Get data for the view so that we can brush in it.
    */
-  private prefetchActiveView(name: V) {
+  private prefetchView(name: V) {
     if (mouseIsDown) {
       return;
     }
@@ -539,6 +540,23 @@ export class App<V extends string, D extends string> {
     }
   }
 
+  private markApproximate(name: V) {
+    const view = this.views.get(name)!;
+
+    if (
+      // TODO: currently only 1D views support interpolation
+      view.type === "1D" &&
+      this.config.interpolate &&
+      this.config.progressiveInteractions
+    ) {
+      for (const [n, vgView] of this.vegaViews) {
+        if (n !== name) {
+          vgView.signal("approximate", true).run();
+        }
+      }
+    }
+  }
+
   /**
    * Switch which view is active.
    */
@@ -554,18 +572,7 @@ export class App<V extends string, D extends string> {
     // data cubes should be ready since we only allow interactions with views that are ready
     this.cubes = await data.cubes();
 
-    // TODO: currently only 1D views support interpolation
-    if (
-      activeView.type === "1D" &&
-      this.config.interpolate &&
-      this.config.progressiveInteractions
-    ) {
-      for (const [n, vgView] of this.vegaViews) {
-        if (n !== name) {
-          vgView.signal("approximate", true).run();
-        }
-      }
-    }
+    this.markApproximate(name);
 
     if (this.config.progressiveInteractions && !this.db.blocking) {
       // we are not using a blocking db and now this dimension is active so let's get high resolution data now
