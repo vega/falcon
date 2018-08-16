@@ -1,6 +1,6 @@
 {
   "name": "falcon-vis",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Big data crossfilter",
   "main": "build/falcon.js",
   "module": "build/src/index",
