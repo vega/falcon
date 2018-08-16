@@ -14,9 +14,13 @@ The largest experiments we have done so far is 10M flights in the browser and ~1
 - 7M flights in [MapD](https://www.mapd.com/): https://uwdata.github.io/falcon/flights-mapd/
 - 500k weather records: https://uwdata.github.io/falcon/weather/
 
-Big Crossfilter uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
+Falcon uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 
 ![Crossfilter demo](cross.gif "Crossfilter demo")
+
+## Usage
+
+Install with `yarn add falcon-vis`. You can use two database backends. First `ArrowDB` that works completely in the browser and scales up to ten million rows. Second, `MapDDB`, which connects to [MapD](http://mapd.com/). Check out the examples to see how to set up an app with your own data. More documentation will follow.
 
 ## Developers
 
