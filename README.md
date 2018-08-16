@@ -16,7 +16,7 @@ The largest experiments we have done so far is 10M flights in the browser and ~1
 
 Falcon uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 
-![Crossfilter demo](cross.gif "Crossfilter demo")
+![Falcon demo](cross.gif "Falcon demo")
 
 ## Usage
 
