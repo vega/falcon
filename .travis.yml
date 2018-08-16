@@ -1,13 +1,14 @@
 language: node_js
 node_js:
-- '10'
+  - "10"
 script:
-- yarn test
-- yarn build
+  - yarn test
+  - yarn build
 cache: yarn
 deploy:
   provider: npm
   email: domoritz@gmail.com
+  skip_cleanup: true
   api_key:
     secure: raK4PQrrTGUdFYKHaJehIvhPVB8qp3DT2WpM283Ec2D3BsZ6fTma+0mU1eccsOP47Aoz9PKzUZ1lAKGXt+Y8jOPGBl+x6pPcR/z2L0EWFP5GIkA7ABtxqw3qI6kfmNwXdJ4aZzjXMvGhXJjCaAmseBzPbYI6h18udNS86kfhqUgm8tkmxlJMsKQsOmUp6BFlvYXAaLzvwvr7hGN1DclM7DIRmGZ0MlZDB37/zz2aEkoI6lCrLB1ZMrsnpGFFeNsIx+Vt2+PnIR2PFT/kjbw40BjkDe2lE4eIBiFw2+fntJ0tluoVnSdb8gKLRMrW/BLo5jaR0wryUVELxktbKp8yIzPrWG/xMhO40uwxt6nOFRQR+etfHtiz19JydMZRdBTuoRbwGa6IPhrgMHoobBl7AHYj7sZbnIL6d3Dka1qRGTE2lQP677A4vuL4YTYTMKZOE+LdliCV6ygPcsFvJMqA76rZIxulohSREb7OO5ocRmtlNgPMQPlTgK/ea4L6VAHX2pRYpn4rxndd+7Irr0SyRcGWnbYrjinbHeLiFBpUpb9iJ+G1jqLdzUpVeCqw6ewffBoTLw7OQW6vsAapeLyuTQcCcY4HXO1abrU5A00H/PnYQdDpiab9gzEWwm7DYHd3PkTYqMsovsj+NSUUIfB+/Xpzn8sUmol0m2WzUV1V5Rw=
   on:
