@@ -95,7 +95,7 @@ export function binNumberFunctionBins(
   pixel: number
 ) {
   const step = stepSize({ start, stop }, pixel);
-  return binNumberFunction({ start: start - step, step });
+  return binNumberFunction({ start: start, step });
 }
 
 /**

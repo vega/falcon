@@ -167,7 +167,7 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const keyActive = binActive(activeCol.get(i));
+          const keyActive = binActive(activeCol.get(i)) + 1;
           if (0 <= keyActive && keyActive < numPixels) {
             hists.data[hists.index(keyActive)]++;
           }
@@ -198,7 +198,7 @@ export class ArrowDB<V extends string, D extends string>
           }
 
           const key = bin(column.get(i));
-          const keyActive = binActive(activeCol.get(i));
+          const keyActive = binActive(activeCol.get(i)) + 1;
           if (0 <= key && key < binCount) {
             if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, key)]++;
@@ -238,7 +238,7 @@ export class ArrowDB<V extends string, D extends string>
 
           const keyX = binX(columnX.get(i));
           const keyY = binY(columnY.get(i));
-          const keyActive = binActive(activeCol.get(i));
+          const keyActive = binActive(activeCol.get(i)) + 1;
           if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
             if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, keyX, keyY)]++;
@@ -313,8 +313,8 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const keyActiveX = binActiveX(activeColX.get(i));
-          const keyActiveY = binActiveY(activeColY.get(i));
+          const keyActiveX = binActiveX(activeColX.get(i)) + 1;
+          const keyActiveY = binActiveY(activeColY.get(i)) + 1;
           if (
             0 <= keyActiveX &&
             keyActiveX < numPixelsX &&
@@ -353,8 +353,8 @@ export class ArrowDB<V extends string, D extends string>
           }
 
           const key = bin(column.get(i));
-          const keyActiveX = binActiveX(activeColX.get(i));
-          const keyActiveY = binActiveY(activeColY.get(i));
+          const keyActiveX = binActiveX(activeColX.get(i)) + 1;
+          const keyActiveY = binActiveY(activeColY.get(i)) + 1;
           if (0 <= key && key < binCount) {
             if (
               0 <= keyActiveX &&

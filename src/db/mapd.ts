@@ -80,7 +80,8 @@ export class MapDDB<V extends string, D extends string>
     return {
       select: `floor(
         (${field} - cast(${binConfig.start} as float))
-        / cast(${binConfig.step} as float))`,
+        / cast(${binConfig.step} as float) + 1
+      )`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
   }
@@ -88,7 +89,7 @@ export class MapDDB<V extends string, D extends string>
   private binSQLPixel(dimension: D, binConfig: BinConfig, pixels?: number) {
     const step =
       pixels !== undefined ? stepSize(binConfig, pixels) : binConfig.step;
-    const start = binConfig.start - step;
+    const start = binConfig.start;
     return this.binSQL(dimension, { ...binConfig, start, step });
   }
 
