@@ -24,7 +24,8 @@ import {
   createBarView,
   createHeatmapView,
   createHistogramView,
-  createTextView
+  createTextView,
+  createHorizontalBarView
 } from "./views";
 // import imshow from "ndarray-imshow";
 
@@ -168,11 +169,11 @@ export class App<V extends string, D extends string> {
   private async initializeView(name: V, view: View<D>) {
     const el = view.el!;
     if (view.type === "0D") {
-      const vegaView = (this.config.zeroDBar ? createBarView : createTextView)(
-        el,
-        view,
-        this.config
-      );
+      const vegaView = (this.config.zeroD === "text"
+        ? createTextView
+        : this.config.zeroD === "hbar"
+          ? createHorizontalBarView
+          : createBarView)(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);

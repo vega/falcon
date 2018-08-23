@@ -9,7 +9,7 @@ export const DEFAULT_CONFIG = {
   /** Show the base as a gray background. */
   showBase: true,
   /** Use a bar chart for showing teh overall count. */
-  zeroDBar: true,
+  zeroD: "hbar" as "vbar" | "hbar" | "text",
   /** Use circles instead of colored rectangles. Supports showing base. */
   circleHeatmap: true,
   /** Show interestingness indicator. */
@@ -32,7 +32,10 @@ export const DEFAULT_CONFIG = {
    */
   progressiveTimeout: 2000,
 
+  /** For vertical bar chart. */
   barHeight: 300,
+  /** For horizontal bar chart. */
+  barWidth: 300,
   histogramWidth: 600,
   heatmapWidth: 400,
   maxCircleSize: 700
