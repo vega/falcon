@@ -107,9 +107,11 @@ export function createHistogramView<D extends string>(
               text: {
                 signal: `brush ? '[' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[0], '${dimension.format}') + ',' + ${
+                }(brush[reverseBrush ? 1 : 0], '${dimension.format}') + ',' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[1], '${dimension.format}') + ']' : ''`
+                }(brush[reverseBrush ? 0 : 1], '${
+                  dimension.format
+                }') + ']' : ''`
               }
             }
           }
