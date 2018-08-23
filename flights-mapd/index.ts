@@ -151,7 +151,9 @@ const db = new MapDDB(
     host: "metis.mapd.com",
     db: "mapd",
     user: "mapd",
-    password: "HyperInteractive"
+    password: "HyperInteractive",
+    protocol: "https",
+    port: 443
   },
   "flights_donotmodify",
   names

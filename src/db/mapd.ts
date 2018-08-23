@@ -22,6 +22,8 @@ export class MapDDB<V extends string, D extends string>
       db: string;
       user: string;
       password: string;
+      protocol: "http" | "https";
+      port: number;
     },
     private readonly table: string,
     private readonly nameMap: Map<D, string>
@@ -29,9 +31,9 @@ export class MapDDB<V extends string, D extends string>
 
   public async initialize() {
     const connection = connector
-      .protocol("https")
+      .protocol(this.conn.protocol)
       .host(this.conn.host)
-      .port("443")
+      .port(this.conn.port)
       .dbName(this.conn.db)
       .user(this.conn.user)
       .password(this.conn.password);
@@ -69,8 +71,12 @@ export class MapDDB<V extends string, D extends string>
     return results;
   }
 
+  private getName(dimension: D) {
+    return this.nameMap.get(dimension) || dimension;
+  }
+
   private binSQL(dimension: D, binConfig: BinConfig) {
-    const field = this.nameMap.get(dimension)!;
+    const field = this.getName(dimension);
     return {
       select: `floor(
         (${field} - cast(${binConfig.start} as float))
@@ -176,7 +182,7 @@ export class MapDDB<V extends string, D extends string>
     const filters = new Map<D, string>();
 
     for (const [dimension, extent] of brushes) {
-      const field = this.nameMap.get(dimension)!;
+      const field = this.getName(dimension);
       filters.set(dimension, `${field} BETWEEN ${extent[0]} AND ${extent[1]}`);
     }
 

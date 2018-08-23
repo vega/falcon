@@ -9,6 +9,7 @@
     "start:flights": "parcel flights/index.html",
     "start:flights-mapd": "parcel flights-mapd/index.html",
     "start:weather": "parcel weather/index.html",
+    "start:gaia-mapd": "parcel gaia-mapd/index.html",
     "start": "npm run start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
     "build": "tsc && rollup -c",
