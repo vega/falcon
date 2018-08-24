@@ -1,5 +1,5 @@
 import { Config } from "./../config";
-import { EncodeEntry, parse, Spec, View } from "vega-lib";
+import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 import { View0D } from "../api";
 import { darkerBlue } from "./histogram";
 
@@ -13,6 +13,9 @@ export function createBarView(el: Element, view: View0D, config: Config) {
     y2: { scale: "y", value: 0 },
     tooltip: { field: "value" }
   };
+
+  const largeEnough =
+    "(datum.datum.bounds.y2 - datum.datum.bounds.y1) > (datum.bounds.x2 - datum.bounds.x1) * 1.2";
 
   const vgSpec: Spec = {
     height: config.barHeight,
@@ -71,6 +74,7 @@ export function createBarView(el: Element, view: View0D, config: Config) {
       {
         type: "rect",
         from: { data: "table" },
+        name: "bar",
         encode: {
           enter: {
             ...barEncodeBase,
@@ -78,6 +82,38 @@ export function createBarView(el: Element, view: View0D, config: Config) {
           },
           update: {
             opacity: { signal: "approximate ? 0.7 : 1" }
+          }
+        }
+      },
+      {
+        type: "text",
+        from: { data: "bar" },
+        name: "dummy",
+        encode: {
+          enter: {
+            text: { signal: "format(datum.datum.value, 'd')" },
+            opacity: { value: 0 }
+          }
+        }
+      },
+      {
+        type: "text",
+        from: { data: "dummy" },
+        encode: {
+          enter: {
+            x: { signal: "width / 2" },
+            y: {
+              signal: `${largeEnough} ? (datum.datum.bounds.y1 + datum.datum.bounds.y2) / 2 : datum.datum.bounds.y1 - 10`
+            },
+            text: { field: "text" },
+            align: {
+              signal: `${largeEnough} ? 'center' : 'left'`
+            },
+            baseline: { value: "middle" },
+            angle: { value: -90 },
+            fill: {
+              signal: `${largeEnough} ? 'white' : 'black'`
+            }
           }
         }
       }
@@ -88,7 +124,10 @@ export function createBarView(el: Element, view: View0D, config: Config) {
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("svg");
+  const vgView = new View(runtime)
+    .logLevel(Warn)
+    .initialize(el)
+    .renderer("svg");
 
   vgView["_spec"] = vgSpec;
   return vgView;

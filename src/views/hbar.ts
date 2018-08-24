@@ -1,9 +1,7 @@
 import { Config } from "./../config";
-import { EncodeEntry, parse, Spec, View } from "vega-lib";
+import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 import { View0D } from "../api";
 import { darkerBlue } from "./histogram";
-
-export const AXIS_Y_EXTENT = 50;
 
 export function createHorizontalBarView(
   el: Element,
@@ -17,6 +15,9 @@ export function createHorizontalBarView(
     x2: { scale: "x", value: 0 },
     tooltip: { field: "value" }
   };
+
+  const largeEnough =
+    "(datum.datum.bounds.x2 - datum.datum.bounds.x1) > (datum.bounds.x2 - datum.bounds.x1) * 1.2";
 
   const vgSpec: Spec = {
     width: config.barWidth,
@@ -76,6 +77,7 @@ export function createHorizontalBarView(
       {
         type: "rect",
         from: { data: "table" },
+        name: "bar",
         encode: {
           enter: {
             ...barEncodeBase,
@@ -85,13 +87,47 @@ export function createHorizontalBarView(
             opacity: { signal: "approximate ? 0.7 : 1" }
           }
         }
+      },
+      {
+        type: "text",
+        from: { data: "bar" },
+        name: "dummy",
+        encode: {
+          enter: {
+            text: { signal: "format(datum.datum.value, 'd')" },
+            opacity: { value: 0 }
+          }
+        }
+      },
+      {
+        type: "text",
+        from: { data: "dummy" },
+        encode: {
+          enter: {
+            y: { signal: "height / 2" },
+            x: {
+              signal: `${largeEnough} ? (datum.datum.bounds.x1 + datum.datum.bounds.x2) / 2 : datum.datum.bounds.x2 + 10`
+            },
+            text: { field: "text" },
+            align: {
+              signal: `${largeEnough} ? 'center' : 'left'`
+            },
+            baseline: { value: "middle" },
+            fill: {
+              signal: `${largeEnough} ? 'white' : 'black'`
+            }
+          }
+        }
       }
     ]
   };
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("svg");
+  const vgView = new View(runtime)
+    .logLevel(Warn)
+    .initialize(el)
+    .renderer("svg");
 
   vgView["_spec"] = vgSpec;
   return vgView;
