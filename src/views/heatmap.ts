@@ -11,9 +11,6 @@ export function createHeatmapView<D extends string>(
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
 
-  // TODO: support 2D interpolation
-  const interpolate = false;
-
   const marks: Mark[] = [
     {
       type: "text",
@@ -386,7 +383,7 @@ export function createHeatmapView<D extends string>(
         on: [
           {
             events: "window:mousemove",
-            update: interpolate
+            update: config.interpolate
               ? "x()"
               : "round(x() / resolution[0]) * resolution[0]"
           }
@@ -398,8 +395,8 @@ export function createHeatmapView<D extends string>(
         on: [
           {
             events: "window:mousemove",
-            update: interpolate
-              ? "x()"
+            update: config.interpolate
+              ? "y()"
               : "round(y() / resolution[1]) * resolution[1]"
           }
         ]

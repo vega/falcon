@@ -36,6 +36,7 @@
     "d3": "^5.5.0",
     "ndarray": "^1.0.18",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
+    "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",

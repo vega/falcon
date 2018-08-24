@@ -18,7 +18,8 @@ import {
   summedAreaTableLookup,
   throttle,
   debounce,
-  equal
+  equal,
+  summedAreaTableLookupInterpolateSlow
 } from "./util";
 import {
   createBarView,
@@ -27,7 +28,10 @@ import {
   createTextView,
   createHorizontalBarView
 } from "./views";
+import interpolate from "ndarray-linear-interpolate";
 // import imshow from "ndarray-imshow";
+
+const interp2d = interpolate.d2;
 
 let mouseIsDown = false;
 
@@ -129,6 +133,12 @@ export class App<V extends string, D extends string> {
   ) {
     this.config = { ...DEFAULT_CONFIG, ...((opt && opt.config) || {}) };
     this.logger = opt && opt.logger;
+
+    if (this.config.interpolate && !this.config.progressiveInteractions) {
+      console.warn(
+        "If you use interpolation, you probably also want to enable progressive interactions."
+      );
+    }
 
     this.highRes1D = Math.min(
       this.config.maxInteractiveResolution1D,
@@ -543,14 +553,7 @@ export class App<V extends string, D extends string> {
   }
 
   private markApproximate(name: V) {
-    const view = this.views.get(name)!;
-
-    if (
-      // TODO: currently only 1D views support interpolation
-      view.type === "1D" &&
-      this.config.interpolate &&
-      this.config.progressiveInteractions
-    ) {
+    if (this.config.interpolate && this.config.progressiveInteractions) {
       for (const [n, vgView] of this.vegaViews) {
         if (n !== name) {
           vgView.signal("approximate", true).run();
@@ -774,7 +777,7 @@ export class App<V extends string, D extends string> {
       .insert(data);
 
     const vgView = this.vegaViews.get(name)!;
-      vgView.change("table", changeSet);
+    vgView.change("table", changeSet);
     if (base) {
       vgView.change("base", changeSet);
     }
@@ -892,21 +895,40 @@ export class App<V extends string, D extends string> {
 
         if (view.type === "0D") {
           const value = activeBrushFloat
-            ? hists.get(activeBrushFloorX[1], activeBrushFloorY[1]) -
-              hists.get(activeBrushFloorX[1], activeBrushFloorY[0]) -
-              hists.get(activeBrushFloorX[0], activeBrushFloorY[1]) +
-              hists.get(activeBrushFloorX[0], activeBrushFloorY[0])
+            ? this.config.interpolate
+              ? interp2d(
+                  hists,
+                  activeBrushFloat[0][1],
+                  activeBrushFloat[1][1]
+                ) -
+                interp2d(
+                  hists,
+                  activeBrushFloat[0][1],
+                  activeBrushFloat[1][0]
+                ) -
+                interp2d(
+                  hists,
+                  activeBrushFloat[0][0],
+                  activeBrushFloat[1][1]
+                ) +
+                interp2d(hists, activeBrushFloat[0][0], activeBrushFloat[1][0])
+              : hists.get(activeBrushFloorX[1], activeBrushFloorY[1]) -
+                hists.get(activeBrushFloorX[1], activeBrushFloorY[0]) -
+                hists.get(activeBrushFloorX[0], activeBrushFloorY[1]) +
+                hists.get(activeBrushFloorX[0], activeBrushFloorY[0])
             : data.noBrush[0];
 
           this.update0DView(name, value, false);
         } else if (view.type === "1D") {
           const hist = activeBrushFloat
-            ? summedAreaTableLookup(
-                hists.pick(activeBrushFloorX[1], activeBrushFloorY[1], null),
-                hists.pick(activeBrushFloorX[1], activeBrushFloorY[0], null),
-                hists.pick(activeBrushFloorX[0], activeBrushFloorY[1], null),
-                hists.pick(activeBrushFloorX[0], activeBrushFloorY[0], null)
-              )
+            ? this.config.interpolate
+              ? summedAreaTableLookupInterpolateSlow(hists, activeBrushFloat)
+              : summedAreaTableLookup(
+                  hists.pick(activeBrushFloorX[1], activeBrushFloorY[1], null),
+                  hists.pick(activeBrushFloorX[1], activeBrushFloorY[0], null),
+                  hists.pick(activeBrushFloorX[0], activeBrushFloorY[1], null),
+                  hists.pick(activeBrushFloorX[0], activeBrushFloorY[0], null)
+                )
             : data.noBrush;
 
           this.update1DView(name, view, hist, false);

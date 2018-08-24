@@ -6,6 +6,9 @@ import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
+import interpolate from "ndarray-linear-interpolate";
+
+const interp2d = interpolate.d2;
 
 export function extent(e: Interval<number>): Interval<number> {
   if (e[0] > e[1]) {
@@ -362,6 +365,40 @@ export function summedAreaTableLookupInterpolate(
     fdx,
     fdy
   );
+
+  return out;
+}
+
+/**
+ *   b----a
+ *   |    |
+ *   d----c
+ *
+ * 0
+ */
+export function summedAreaTableLookupInterpolateSlow(
+  hists: ndarray,
+  activeBrushFloat: [Interval<number>, Interval<number>]
+) {
+  const [brushX, brushY] = activeBrushFloat;
+  const A = [brushX[1], brushY[1]];
+  const B = [brushX[0], brushY[1]];
+  const C = [brushX[1], brushY[0]];
+  const D = [brushX[0], brushY[0]];
+
+  const size = hists.shape[2];
+  const out = ndarray(new HIST_TYPE(size));
+
+  for (let x = 0; x < size; x++) {
+    const slice = hists.pick(null, null, x);
+    out.set(
+      x,
+      interp2d(slice, ...A) -
+        interp2d(slice, ...B) -
+        interp2d(slice, ...C) +
+        interp2d(slice, ...D)
+    );
+  }
 
   return out;
 }
