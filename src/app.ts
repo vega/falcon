@@ -1,6 +1,7 @@
 import ndarray from "ndarray";
+import interpolate from "ndarray-linear-interpolate";
 import { changeset, truthy, View as VgView } from "vega-lib";
-import { Logger, View, View1D, View2D, Views, BinConfig } from "./api";
+import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
 import { DataBase } from "./db";
@@ -10,25 +11,24 @@ import {
   binTime,
   binToData,
   chEmd,
+  debounce,
+  equal,
   extent,
   numBins,
   omit,
   sub,
   subInterpolated,
   summedAreaTableLookup,
-  throttle,
-  debounce,
-  equal,
-  summedAreaTableLookupInterpolateSlow
+  summedAreaTableLookupInterpolateSlow,
+  throttle
 } from "./util";
 import {
-  createBarView,
   createHeatmapView,
   createHistogramView,
+  createHorizontalBarView,
   createTextView,
-  createHorizontalBarView
+  createVerticalBarView
 } from "./views";
-import interpolate from "ndarray-linear-interpolate";
 // import imshow from "ndarray-imshow";
 
 const interp2d = interpolate.d2;
@@ -183,7 +183,7 @@ export class App<V extends string, D extends string> {
         ? createTextView
         : this.config.zeroD === "hbar"
           ? createHorizontalBarView
-          : createBarView)(el, view, this.config);
+          : createVerticalBarView)(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);

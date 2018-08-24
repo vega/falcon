@@ -5,7 +5,11 @@ import { darkerBlue } from "./histogram";
 
 export const AXIS_Y_EXTENT = 50;
 
-export function createBarView(el: Element, view: View0D, config: Config) {
+export function createVerticalBarView(
+  el: Element,
+  view: View0D,
+  config: Config
+) {
   const barEncodeBase: EncodeEntry = {
     x: { value: 4 },
     x2: { signal: "width - 4" },
