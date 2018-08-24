@@ -10,6 +10,11 @@ export function createHeatmapView<D extends string>(
 ): View {
   const [dimensionX, dimensionY] = view.dimensions;
 
+  const [width, height] = view.chartSize || [
+    config.heatmapWidth,
+    config.heatmapWidth
+  ];
+
   const marks: Mark[] = [
     {
       type: "text",
@@ -286,8 +291,8 @@ export function createHeatmapView<D extends string>(
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    width: config.heatmapWidth,
-    height: config.heatmapWidth,
+    width: width,
+    height: height,
     padding: 5,
     data: [
       {
@@ -561,7 +566,7 @@ export function createHeatmapView<D extends string>(
         scale: "y",
         orient: "left",
         labelOverlap: true,
-        tickCount: { signal: "ceil(width/20)" },
+        tickCount: { signal: "ceil(height/20)" },
         title: dimensionY.title || dimensionY.name,
         zindex: 1
       }

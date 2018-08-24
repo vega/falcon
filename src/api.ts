@@ -28,7 +28,7 @@ export interface Dimension<D> {
   /** Initial domain for the dimension. */
   extent: Interval<number>;
 
-  /** D3 Format specifier */
+  /** D3 Format specifier. If time is true, this has to be a D3 date format. Otherwise it should be a number format. */
   format: string;
   time?: boolean;
 
@@ -52,6 +52,7 @@ export interface View1D<D extends string> extends AbstractView {
 
 export interface View2D<D extends string> extends AbstractView {
   type: "2D";
+  chartSize?: [number, number];
 
   /** The dimensions for this view. */
   dimensions: [Dimension<D>, Dimension<D>];

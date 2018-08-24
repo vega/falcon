@@ -16,23 +16,29 @@
     text-encoding-utf-8 "^1.0.2"
     tslib "1.9.0"
 
-"@babel/code-frame@7.0.0-rc.1", "@babel/code-frame@^7.0.0-beta.35":
+"@babel/code-frame@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.0.0-rc.2.tgz#12b6daeb408238360744649d16c0e9fa7ab3859e"
+  dependencies:
+    "@babel/highlight" "7.0.0-rc.2"
+
+"@babel/code-frame@^7.0.0-beta.35":
   version "7.0.0-rc.1"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.0.0-rc.1.tgz#5c2154415d6c09959a71845ef519d11157e95d10"
   dependencies:
     "@babel/highlight" "7.0.0-rc.1"
 
-"@babel/core@^7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.0-rc.1.tgz#53c84fd562e13325f123d5951184eec97b958204"
+"@babel/core@^7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.0-rc.2.tgz#dcb46b3adb63e35b1e82c35d9130d9c27be58427"
   dependencies:
-    "@babel/code-frame" "7.0.0-rc.1"
-    "@babel/generator" "7.0.0-rc.1"
-    "@babel/helpers" "7.0.0-rc.1"
-    "@babel/parser" "7.0.0-rc.1"
-    "@babel/template" "7.0.0-rc.1"
-    "@babel/traverse" "7.0.0-rc.1"
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/code-frame" "7.0.0-rc.2"
+    "@babel/generator" "7.0.0-rc.2"
+    "@babel/helpers" "7.0.0-rc.2"
+    "@babel/parser" "7.0.0-rc.2"
+    "@babel/template" "7.0.0-rc.2"
+    "@babel/traverse" "7.0.0-rc.2"
+    "@babel/types" "7.0.0-rc.2"
     convert-source-map "^1.1.0"
     debug "^3.1.0"
     json5 "^0.5.0"
@@ -41,43 +47,43 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/generator@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.0.0-rc.1.tgz#739c87d70b31aeed802bd6bc9fd51480065c45e8"
+"@babel/generator@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.0.0-rc.2.tgz#7aed8fb4ef1bdcc168225096b5b431744ba76bf8"
   dependencies:
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/types" "7.0.0-rc.2"
     jsesc "^2.5.1"
     lodash "^4.17.10"
     source-map "^0.5.0"
     trim-right "^1.0.1"
 
-"@babel/helper-function-name@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.0.0-rc.1.tgz#20b2cc836a53c669f297c8d309fc553385c5cdde"
+"@babel/helper-function-name@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.0.0-rc.2.tgz#ad7bb9df383c5f53e4bf38c0fe0c7f93e6a27729"
   dependencies:
-    "@babel/helper-get-function-arity" "7.0.0-rc.1"
-    "@babel/template" "7.0.0-rc.1"
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/helper-get-function-arity" "7.0.0-rc.2"
+    "@babel/template" "7.0.0-rc.2"
+    "@babel/types" "7.0.0-rc.2"
 
-"@babel/helper-get-function-arity@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/helper-get-function-arity/-/helper-get-function-arity-7.0.0-rc.1.tgz#60185957f72ed73766ce74c836ac574921743c46"
+"@babel/helper-get-function-arity@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/helper-get-function-arity/-/helper-get-function-arity-7.0.0-rc.2.tgz#323cb82e2d805b40c0c36be1dfcb8ffcbd0434f3"
   dependencies:
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/types" "7.0.0-rc.2"
 
-"@babel/helper-split-export-declaration@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.0.0-rc.1.tgz#b00323834343fd0210f1f46c7a53521ad53efa5e"
+"@babel/helper-split-export-declaration@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.0.0-rc.2.tgz#726b2dec4e46baeab32db67caa6e88b6521464f8"
   dependencies:
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/types" "7.0.0-rc.2"
 
-"@babel/helpers@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.0.0-rc.1.tgz#e59092cdf4b28026b3fc9d272e27e0ef152b4bee"
+"@babel/helpers@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.0.0-rc.2.tgz#e21f54451824f55b4f5022c6e9d6fa7df65e8746"
   dependencies:
-    "@babel/template" "7.0.0-rc.1"
-    "@babel/traverse" "7.0.0-rc.1"
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/template" "7.0.0-rc.2"
+    "@babel/traverse" "7.0.0-rc.2"
+    "@babel/types" "7.0.0-rc.2"
 
 "@babel/highlight@7.0.0-rc.1":
   version "7.0.0-rc.1"
@@ -87,36 +93,43 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@babel/parser@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.0.0-rc.1.tgz#d009a9bba8175d7b971e30cd03535b278c44082d"
-
-"@babel/template@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.0.0-rc.1.tgz#5f9c0a481c9f22ecdb84697b3c3a34eadeeca23c"
+"@babel/highlight@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.0.0-rc.2.tgz#0af688a69e3709d9cf392e1837cda18c08d34d4f"
   dependencies:
-    "@babel/code-frame" "7.0.0-rc.1"
-    "@babel/parser" "7.0.0-rc.1"
-    "@babel/types" "7.0.0-rc.1"
-    lodash "^4.17.10"
+    chalk "^2.0.0"
+    esutils "^2.0.2"
+    js-tokens "^4.0.0"
 
-"@babel/traverse@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.0.0-rc.1.tgz#867b4b45ada2d51ae2d0076f1c1d5880f8557158"
+"@babel/parser@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.0.0-rc.2.tgz#a98c01af5834e71d48a5108e3aeeee333cdf26c4"
+
+"@babel/template@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.0.0-rc.2.tgz#53f6be6c1336ddc7744625c9bdca9d10be5d5d72"
   dependencies:
-    "@babel/code-frame" "7.0.0-rc.1"
-    "@babel/generator" "7.0.0-rc.1"
-    "@babel/helper-function-name" "7.0.0-rc.1"
-    "@babel/helper-split-export-declaration" "7.0.0-rc.1"
-    "@babel/parser" "7.0.0-rc.1"
-    "@babel/types" "7.0.0-rc.1"
+    "@babel/code-frame" "7.0.0-rc.2"
+    "@babel/parser" "7.0.0-rc.2"
+    "@babel/types" "7.0.0-rc.2"
+
+"@babel/traverse@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.0.0-rc.2.tgz#6e54ebe82aa1b3b3cf5ec05594bc14d7c59c9766"
+  dependencies:
+    "@babel/code-frame" "7.0.0-rc.2"
+    "@babel/generator" "7.0.0-rc.2"
+    "@babel/helper-function-name" "7.0.0-rc.2"
+    "@babel/helper-split-export-declaration" "7.0.0-rc.2"
+    "@babel/parser" "7.0.0-rc.2"
+    "@babel/types" "7.0.0-rc.2"
     debug "^3.1.0"
     globals "^11.1.0"
     lodash "^4.17.10"
 
-"@babel/types@7.0.0-rc.1":
-  version "7.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.0.0-rc.1.tgz#6abf6d14ddd9fc022617e5b62e6b32f4fa6526ad"
+"@babel/types@7.0.0-rc.2":
+  version "7.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.0.0-rc.2.tgz#8e025b78764cee8751823e308558a3ca144ebd9d"
   dependencies:
     esutils "^2.0.2"
     lodash "^4.17.10"
@@ -353,9 +366,9 @@
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.3.0.tgz#3a129cda7c4e5df2409702626892cb4b96546dd5"
 
-"@types/node@^10.7.1":
-  version "10.7.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.7.1.tgz#b704d7c259aa40ee052eec678758a68d07132a2e"
+"@types/node@^10.9.1":
+  version "10.9.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.9.1.tgz#06f002136fbcf51e730995149050bb3c45ee54e6"
 
 "@types/text-encoding-utf-8@1.0.1":
   version "1.0.1"
@@ -2268,9 +2281,9 @@ d3-zoom@1:
     d3-selection "1"
     d3-transition "1"
 
-d3@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/d3/-/d3-5.5.0.tgz#948413b91b988a6597f3e4c3e941d3b530bfee63"
+d3@^5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/d3/-/d3-5.6.0.tgz#af9cd7720f6c09a352bd2d8bfca6dd8ec6cde61d"
   dependencies:
     d3-array "1"
     d3-axis "1"
@@ -4141,7 +4154,7 @@ js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
 
-"js-tokens@^3.0.0 || ^4.0.0":
+"js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
 
@@ -7061,12 +7074,13 @@ trim-right@^1.0.1:
   dependencies:
     glob "^6.0.4"
 
-ts-jest@^23.1.3:
-  version "23.1.3"
-  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-23.1.3.tgz#33e3187d3ef0d42adada6347acf2c3539ac56107"
+ts-jest@^23.1.4:
+  version "23.1.4"
+  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-23.1.4.tgz#66ac1d8d3fbf8f9a98432b11aa377aa850664b2b"
   dependencies:
     closest-file-data "^0.1.4"
     fs-extra "6.0.1"
+    json5 "^0.5.0"
     lodash "^4.17.10"
 
 tslib@1.9.0:
