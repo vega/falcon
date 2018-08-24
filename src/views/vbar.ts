@@ -3,8 +3,6 @@ import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 import { View0D } from "../api";
 import { darkerBlue } from "./histogram";
 
-export const AXIS_Y_EXTENT = 50;
-
 export function createVerticalBarView(
   el: Element,
   view: View0D,
@@ -123,7 +121,7 @@ export function createVerticalBarView(
       }
     ],
 
-    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
+    config: { axisY: { minExtent: config.yAxisExtent } }
   };
 
   const runtime = parse(vgSpec);

@@ -1,6 +1,5 @@
 import { parse, Spec, View, Mark, Warn } from "vega-lib";
 import { View2D } from "../api";
-import { AXIS_Y_EXTENT } from "./bar";
 import { Config } from "../config";
 import { darkerBlue } from "./histogram";
 
@@ -592,7 +591,7 @@ export function createHeatmapView<D extends string>(
         }
       }
     ],
-    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
+    config: { axisY: { minExtent: config.yAxisExtent } }
   };
 
   const runtime = parse(vgSpec);
