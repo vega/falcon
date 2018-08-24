@@ -8,7 +8,7 @@ export const DEFAULT_CONFIG = {
   chartCount: false,
   /** Show the base as a gray background. */
   showBase: true,
-  /** Use a bar chart for showing teh overall count. */
+  /** Use a bar chart for showing the overall count. */
   zeroD: "hbar" as "vbar" | "hbar" | "text",
   /** Use circles instead of colored rectangles. Supports showing base. */
   circleHeatmap: true,
