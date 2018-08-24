@@ -14,7 +14,6 @@ import {
 import { View1D } from "../api";
 import { Config } from "../config";
 import { extent, repeatInvisible } from "../util";
-import { AXIS_Y_EXTENT } from "./bar";
 
 export const darkerBlue = "#4c78a8";
 
@@ -757,7 +756,7 @@ export function createHistogramView<D extends string>(
 
     scales: scales,
 
-    config: { axisY: { minExtent: AXIS_Y_EXTENT } }
+    config: { axisY: { minExtent: config.yAxisExtent } }
   };
 
   // function to replace invisible steps with visible ones
