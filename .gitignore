@@ -9,3 +9,4 @@ yarn-error.log
 gaia-mapd/app.scss
 gaia-mapd/index.html
 gaia-mapd/index.ts
+data/altair-data-*
