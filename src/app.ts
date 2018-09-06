@@ -174,6 +174,21 @@ export class App<V extends string, D extends string> {
         this.initializeView(name, view)
       )
     );
+
+    const debouncedPreload = debounce(() => {
+      console.info("App is idle. Prefetching views.");
+      for (const [name, view] of this.views) {
+        if (view.type !== "0D") {
+          this.prefetchView(name, false);
+        }
+      }
+    }, this.config.idleTime);
+
+    // prefetch when the app is idle
+    document.onmousemove = () => {
+      debouncedPreload();
+    };
+    debouncedPreload();
   }
 
   private async initializeView(name: V, view: View<D>) {

@@ -32,6 +32,9 @@ export const DEFAULT_CONFIG = {
    */
   progressiveTimeout: 2000,
 
+  /** When the user does not move their mouse for this timeout, we prefetch all views. */
+  idleTime: 8000,
+
   /** For vertical bar chart. */
   barHeight: 300,
   /** For horizontal bar chart. */
