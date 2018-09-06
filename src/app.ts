@@ -176,7 +176,12 @@ export class App<V extends string, D extends string> {
     );
 
     const debouncedPreload = debounce(() => {
-      console.info("App is idle. Prefetching views.");
+      if (mouseIsDown) {
+        return;
+      }
+
+      console.info("App is idle. Prefetching all views.");
+
       for (const [name, view] of this.views) {
         if (view.type !== "0D") {
           this.prefetchView(name, false);
@@ -557,7 +562,7 @@ export class App<V extends string, D extends string> {
     for (const [n, v] of this.vegaViews) {
       if (n !== this.activeView) {
         v.runAfter(view => {
-          // TODO: why 2D?
+          // When the active view is 2D, we shold remove the interestingness data
           if (this.views.get(this.activeView)!.type === "2D") {
             view.remove("interesting", truthy).resize();
           }

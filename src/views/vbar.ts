@@ -24,7 +24,10 @@ export function createVerticalBarView(
     width: 28,
     padding: 5,
 
-    signals: [{ name: "approximate", value: false }],
+    signals: [
+      { name: "ready", value: false },
+      { name: "approximate", value: false }
+    ],
 
     data: [
       {

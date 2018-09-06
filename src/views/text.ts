@@ -7,6 +7,8 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
     padding: 10,
     height: 20,
 
+    signals: [{ name: "ready", value: false }],
+
     data: [
       {
         name: "base"
