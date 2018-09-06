@@ -31,9 +31,9 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.9.1",
+    "@types/node": "^10.9.4",
     "cwise": "^1.0.10",
-    "d3": "^5.6.0",
+    "d3": "^5.7.0",
     "ndarray": "^1.0.18",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
@@ -41,10 +41,10 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.40"
+    "vega-typings": "^0.3.41"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-rc.2",
+    "@babel/core": "^7.0.0",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.1",
     "@types/ndarray": "1.0.6",
@@ -53,12 +53,12 @@
     "node-sass": "^4.9.3",
     "parcel-bundler": "1.9.7",
     "prettier": "^1.14.2",
-    "rollup": "^0.64.1",
-    "rollup-plugin-commonjs": "^9.1.5",
+    "rollup": "^0.65.2",
+    "rollup-plugin-commonjs": "^9.1.6",
     "rollup-plugin-json": "^3.0.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
     "ts-jest": "^23.1.4",
-    "typescript": "^3.0.1"
+    "typescript": "^3.0.3"
   },
   "jest": {
     "testURL": "http://localhost/",
