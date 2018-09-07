@@ -244,7 +244,7 @@ export class App<V extends string, D extends string> {
         }
       });
 
-      el.onmouseenter = () => {
+      el["on" + this.config.prefetchOn] = () => {
         this.prefetchView(name, this.config.progressiveInteractions === true);
       };
 
@@ -323,7 +323,7 @@ export class App<V extends string, D extends string> {
         );
       });
 
-      el.onmouseenter = () => {
+      el["on" + this.config.prefetchOn] = () => {
         this.prefetchView(name, !!this.config.progressiveInteractions);
       };
 

@@ -29,6 +29,9 @@ export const DEFAULT_CONFIG = {
   /** Renderer for vega charts. */
   renderer: "canvas" as Renderers,
 
+  /** Prefetch on hover or click. */
+  prefetchOn: "mouseenter" as "mouseenter" | "mousedown",
+
   maxInteractiveResolution1D: Infinity,
   maxInteractiveResolution2D: 80,
   /**

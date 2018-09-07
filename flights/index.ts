@@ -126,7 +126,9 @@ const db = new ArrowDB(require("../data/flights-10k.arrow"));
 //     : null;
 
 new App(views, db, {
-  // config: { idleTime: 10e9 },
+  config: {
+    // idleTime: 10e9
+  },
   cb: _app => {
     document.getElementById("loading")!.style.display = "none";
 
