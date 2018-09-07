@@ -1,3 +1,5 @@
+import { Renderers } from "vega";
+
 export const DEFAULT_CONFIG = {
   //---------
   // features
@@ -23,6 +25,8 @@ export const DEFAULT_CONFIG = {
 
   //--------------
   // configuration
+
+  renderer: "canvas" as Renderers,
 
   maxInteractiveResolution1D: Infinity,
   maxInteractiveResolution2D: 80,

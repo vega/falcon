@@ -8,9 +8,12 @@ export function createHorizontalBarView(
   view: View0D,
   config: Config
 ) {
-  const barEncodeBase: EncodeEntry = {
+  const barEnterEncodeBase: EncodeEntry = {
     y: { value: 4 },
-    y2: { signal: "height - 4" },
+    y2: { signal: "height - 4" }
+  };
+
+  const barUpdateEncodeBase: EncodeEntry = {
     x: { scale: "x", field: "value" },
     x2: { scale: "x", value: 0 },
     tooltip: { field: "value" }
@@ -31,10 +34,12 @@ export function createHorizontalBarView(
 
     data: [
       {
-        name: "base"
+        name: "base",
+        values: [{ value: 0 }]
       },
       {
-        name: "table"
+        name: "table",
+        values: [{ value: 0 }]
       }
     ],
 
@@ -71,10 +76,11 @@ export function createHorizontalBarView(
         from: { data: "base" },
         encode: {
           enter: {
-            ...barEncodeBase,
+            ...barEnterEncodeBase,
             fill: { value: "#000" },
             opacity: { value: 0.07 }
-          }
+          },
+          update: barUpdateEncodeBase
         }
       },
       {
@@ -83,10 +89,11 @@ export function createHorizontalBarView(
         name: "bar",
         encode: {
           enter: {
-            ...barEncodeBase,
+            ...barEnterEncodeBase,
             fill: { value: darkerBlue }
           },
           update: {
+            ...barUpdateEncodeBase,
             opacity: { signal: "approximate ? 0.7 : 1" }
           }
         }
@@ -97,8 +104,10 @@ export function createHorizontalBarView(
         name: "dummy",
         encode: {
           enter: {
-            text: { signal: "format(datum.datum.value, 'd')" },
             opacity: { value: 0 }
+          },
+          update: {
+            text: { signal: "format(datum.datum.value, 'd')" }
           }
         }
       },
@@ -108,6 +117,9 @@ export function createHorizontalBarView(
         encode: {
           enter: {
             y: { signal: "height / 2" },
+            baseline: { value: "middle" }
+          },
+          update: {
             x: {
               signal: `${largeEnough} ? (datum.datum.bounds.x1 + datum.datum.bounds.x2) / 2 : datum.datum.bounds.x2 + 10`
             },
@@ -115,7 +127,6 @@ export function createHorizontalBarView(
             align: {
               signal: `${largeEnough} ? 'center' : 'left'`
             },
-            baseline: { value: "middle" },
             fill: {
               signal: `${largeEnough} ? 'white' : 'black'`
             }
@@ -130,7 +141,8 @@ export function createHorizontalBarView(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer("svg");
+    .renderer(config.renderer)
+    .run();
 
   vgView["_spec"] = vgSpec;
   return vgView;

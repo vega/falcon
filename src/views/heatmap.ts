@@ -604,7 +604,8 @@ export function createHeatmapView<D extends string>(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer("canvas");
+    .renderer(config.renderer)
+    .run();
 
   vgView["_spec"] = vgSpec;
   return vgView;

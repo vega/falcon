@@ -31,10 +31,12 @@ export function createVerticalBarView(
 
     data: [
       {
-        name: "base"
+        name: "base",
+        values: [{ value: 0 }]
       },
       {
-        name: "table"
+        name: "table",
+        values: [{ value: 0 }]
       }
     ],
 
@@ -132,7 +134,8 @@ export function createVerticalBarView(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer("svg");
+    .renderer(config.renderer)
+    .run();
 
   vgView["_spec"] = vgSpec;
   return vgView;

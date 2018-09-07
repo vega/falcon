@@ -207,6 +207,7 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);
+      this.update0DView(name, await this.db.length());
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
@@ -223,7 +224,11 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       const { hist } = await this.db.histogram(view.dimension);
-      this.update1DView(name, view, hist, this.config.showBase);
+
+      if (this.config.showBase) {
+        this.update1DView(name, view, hist, true);
+      }
+      this.update1DView(name, view, hist);
 
       vegaView.addSignalListener("brush", (_name, value) => {
         const brush = this.brushes.get(view.dimension.name);
@@ -295,7 +300,10 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
-      this.update2DView(name, view, data, this.config.showBase);
+      if (this.config.showBase) {
+        this.update2DView(name, view, data, true);
+      }
+      this.update2DView(name, view, data);
 
       vegaView.addSignalListener("dataBrush", (_name, value) => {
         this.brushMove2D(
@@ -343,10 +351,10 @@ export class App<V extends string, D extends string> {
             omit(this.brushes, view.dimension.name)
           );
           this.update1DView(name, view, noBrush, true);
-          this.update1DView(name, view, hist, false);
+          this.update1DView(name, view, hist);
         } else {
           const { hist } = await this.db.histogram(view.dimension);
-          this.update1DView(name, view, hist, false);
+          this.update1DView(name, view, hist);
         }
       });
     }
@@ -744,64 +752,86 @@ export class App<V extends string, D extends string> {
     return this.vegaViews.get(this.activeView)!;
   }
 
-  private update0DView(name: V, value: number, base: boolean) {
-    this.updateView(
-      name,
-      [
-        {
-          value: value
-        }
-      ],
-      base
-    );
+  private update0DView(name: V, value: number, base?: true) {
+    const vgView = this.vegaViews.get(name)!;
+    const table = base ? "base" : "table";
+
+    vgView
+      .change(table, changeset().modify(vgView.data(table)[0], "value", value))
+      .run();
   }
 
-  private update1DView(name: V, view: View1D<D>, hist: ndarray, base: boolean) {
+  private update1DView(name: V, view: View1D<D>, hist: ndarray, base?: true) {
+    const vgView = this.vegaViews.get(name)!;
+    const table = base ? "base" : "table";
+    const data = vgView.data(table);
+
     const unbin = binToData(view.dimension.binConfig!);
 
-    const data = new Array(hist.size);
+    const changes = changeset();
 
-    for (let x = 0; x < hist.shape[0]; x++) {
-      data[x] = {
-        key: unbin(x),
-        value: hist.get(x)
-      };
-    }
+    if (hist.size === data.length) {
+      for (let x = 0; x < hist.size; x++) {
+        const d = data[x];
 
-    this.updateView(name, data, base);
-  }
+        d.key = unbin(x);
+        d.value = hist.get(x);
 
-  private update2DView(name: V, view: View2D<D>, heat: ndarray, base: boolean) {
-    const binConfigs = view.dimensions.map(d => d.binConfig!);
-    const [binToDataX, binToDataY] = binConfigs.map(binToData);
+        changes.modify(d);
+      }
+    } else {
+      changes.remove(truthy);
 
-    const data = new Array(heat.size);
-
-    let i = 0;
-    for (let x = 0; x < heat.shape[0]; x++) {
-      for (let y = 0; y < heat.shape[1]; y++) {
-        data[i++] = {
-          keyX: binToDataX(x),
-          keyY: binToDataY(y),
-          value: heat.get(x, y)
-        };
+      for (let x = 0; x < hist.size; x++) {
+        changes.insert({
+          key: unbin(x),
+          value: hist.get(x)
+        });
       }
     }
 
-    this.updateView(name, data, base);
+    vgView.change(table, changes).run();
   }
 
-  private updateView<T>(name: V, data: T[], base: boolean = false) {
-    const changeSet = changeset()
-      .remove(truthy)
-      .insert(data);
-
+  private update2DView(name: V, view: View2D<D>, heat: ndarray, base?: true) {
     const vgView = this.vegaViews.get(name)!;
-    vgView.change("table", changeSet);
-    if (base) {
-      vgView.change("base", changeSet);
+    const table = base ? "base" : "table";
+    const data = vgView.data(table);
+
+    const binConfigs = view.dimensions.map(d => d.binConfig!);
+    const [binToDataX, binToDataY] = binConfigs.map(binToData);
+
+    const changes = changeset();
+
+    if (heat.size === data.length) {
+      let i = 0;
+      for (let x = 0; x < heat.shape[0]; x++) {
+        for (let y = 0; y < heat.shape[1]; y++) {
+          const d = data[i++];
+
+          d.keyX = binToDataX(x);
+          d.keyY = binToDataY(y);
+          d.value = heat.get(x, y);
+
+          changes.modify(d);
+        }
+      }
+    } else {
+      changes.remove(truthy);
+
+      for (let x = 0; x < heat.shape[0]; x++) {
+        for (let y = 0; y < heat.shape[1]; y++) {
+          changes.insert({
+            keyX: binToDataX(x),
+            keyY: binToDataY(y),
+            value: heat.get(x, y)
+          });
+        }
+      }
+      vgView.resize();
     }
-    vgView.run();
+
+    vgView.change(table, changes).run();
   }
 
   private async update() {
@@ -848,7 +878,7 @@ export class App<V extends string, D extends string> {
               : hists.get(activeBrushFloor[1]) - hists.get(activeBrushFloor[0])
             : data.noBrush.data[0];
 
-          this.update0DView(name, value, false);
+          this.update0DView(name, value);
         } else if (view.type === "1D") {
           const hist = activeBrushFloat
             ? this.config.interpolate
@@ -866,7 +896,7 @@ export class App<V extends string, D extends string> {
                 )
             : data.noBrush;
 
-          this.update1DView(name, view, hist, false);
+          this.update1DView(name, view, hist);
         } else {
           const heat = activeBrushFloat
             ? this.config.interpolate
@@ -884,7 +914,7 @@ export class App<V extends string, D extends string> {
                 )
             : data.noBrush;
 
-          this.update2DView(name, view, heat, false);
+          this.update2DView(name, view, heat);
         }
       }
     } else {
@@ -938,7 +968,7 @@ export class App<V extends string, D extends string> {
                 hists.get(activeBrushFloorX[0], activeBrushFloorY[0])
             : data.noBrush[0];
 
-          this.update0DView(name, value, false);
+          this.update0DView(name, value);
         } else if (view.type === "1D") {
           const hist = activeBrushFloat
             ? this.config.interpolate
@@ -951,7 +981,7 @@ export class App<V extends string, D extends string> {
                 )
             : data.noBrush;
 
-          this.update1DView(name, view, hist, false);
+          this.update1DView(name, view, hist);
         } else {
           // not yet implemented
           console.warn("not yet implemented");

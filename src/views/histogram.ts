@@ -161,8 +161,7 @@ export function createHistogramView<D extends string>(
                   encode: {
                     enter: {
                       fill: { value: "#000" },
-                      opacity: { value: 0.07 },
-                      key: { field: "key" }
+                      opacity: { value: 0.07 }
                     },
                     update: {
                       ...barEncodeBase
@@ -779,7 +778,7 @@ export function createHistogramView<D extends string>(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer("svg")
+    .renderer(config.renderer)
     .run();
 
   vgView["_spec"] = vgSpec;

@@ -2,7 +2,7 @@ import { Config } from "./../config";
 import { View0D } from "../api";
 import { parse, Spec, View } from "vega-lib";
 
-export function createTextView(el: Element, view: View0D, _config: Config) {
+export function createTextView(el: Element, view: View0D, config: Config) {
   const vgSpec: Spec = {
     padding: 10,
     height: 20,
@@ -11,10 +11,12 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
 
     data: [
       {
-        name: "base"
+        name: "base",
+        values: [{ value: 0 }]
       },
       {
-        name: "table"
+        name: "table",
+        values: [{ value: 0 }]
       }
     ],
 
@@ -42,7 +44,10 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("svg");
+  const vgView = new View(runtime)
+    .initialize(el)
+    .renderer(config.renderer)
+    .run();
 
   vgView["_spec"] = vgSpec;
   return vgView;
