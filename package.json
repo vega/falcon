@@ -41,7 +41,7 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.41"
+    "vega-typings": "^0.3.43"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
