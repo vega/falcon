@@ -6,7 +6,7 @@
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights when connected to MapD.
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights or 1.2B stars when connected to MapD.
 
 ## Demos
 
