@@ -72,10 +72,10 @@ export function createVerticalBarView(
         from: { data: "base" },
         encode: {
           enter: {
-            ...barEncodeBase,
             fill: { value: "#000" },
             opacity: { value: 0.07 }
-          }
+          },
+          update: barEncodeBase
         }
       },
       {
@@ -84,10 +84,10 @@ export function createVerticalBarView(
         name: "bar",
         encode: {
           enter: {
-            ...barEncodeBase,
             fill: { value: darkerBlue }
           },
           update: {
+            ...barEncodeBase,
             opacity: { signal: "approximate ? 0.7 : 1" }
           }
         }
@@ -98,8 +98,10 @@ export function createVerticalBarView(
         name: "dummy",
         encode: {
           enter: {
-            text: { signal: "format(datum.datum.value, 'd')" },
             opacity: { value: 0 }
+          },
+          update: {
+            text: { signal: "format(datum.datum.value, 'd')" }
           }
         }
       },
@@ -108,6 +110,10 @@ export function createVerticalBarView(
         from: { data: "dummy" },
         encode: {
           enter: {
+            baseline: { value: "middle" },
+            angle: { value: -90 }
+          },
+          update: {
             x: { signal: "width / 2" },
             y: {
               signal: `${largeEnough} ? (datum.datum.bounds.y1 + datum.datum.bounds.y2) / 2 : datum.datum.bounds.y1 - 10`
@@ -116,8 +122,6 @@ export function createVerticalBarView(
             align: {
               signal: `${largeEnough} ? 'center' : 'left'`
             },
-            baseline: { value: "middle" },
-            angle: { value: -90 },
             fill: {
               signal: `${largeEnough} ? 'white' : 'black'`
             }

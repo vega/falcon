@@ -128,7 +128,7 @@ export class App<V extends string, D extends string> {
     opt?: {
       config?: Partial<Config>;
       logger?: Logger<V>;
-      cb?: () => void;
+      cb?: (app: App<V, D>) => void;
     }
   ) {
     this.config = { ...DEFAULT_CONFIG, ...((opt && opt.config) || {}) };
@@ -160,9 +160,13 @@ export class App<V extends string, D extends string> {
     this.initialize()
       .then(() => {
         console.info("Initialization finished.");
-        opt && opt.cb && opt.cb();
+        opt && opt.cb && opt.cb(this);
       })
       .catch(console.error);
+  }
+
+  public getVegaView(name: V) {
+    return this.vegaViews.get(name)!;
   }
 
   private async initialize() {
@@ -323,7 +327,7 @@ export class App<V extends string, D extends string> {
   /**
    * The domain has changed so we need to zoom the chart.
    */
-  updateHistogram(domain: Interval<number>) {
+  private updateHistogram(domain: Interval<number>) {
     const view = this.getActiveView() as View1D<D>;
     const vegaView = this.getActiveVegaView();
     const name = this.activeView;
@@ -363,7 +367,7 @@ export class App<V extends string, D extends string> {
   /**
    * Get data for the view so that we can brush in it.
    */
-  private prefetchView(name: V, progressive: boolean) {
+  public prefetchView(name: V, progressive: boolean) {
     if (mouseIsDown) {
       return;
     }
@@ -414,7 +418,7 @@ export class App<V extends string, D extends string> {
       return;
     }
 
-    const vegaView = this.vegaViews.get(name)!;
+    const vegaView = this.getVegaView(name);
     vegaView.container()!.style.cursor = "wait";
     (vegaView
       .container()!
@@ -593,7 +597,7 @@ export class App<V extends string, D extends string> {
   /**
    * Switch which view is active.
    */
-  private async switchActiveView(name: V, approximate = true) {
+  private switchActiveView(name: V, approximate = true) {
     console.info(`Active view ${this.activeView} => ${name}`);
 
     this.activeView = name;
@@ -613,10 +617,14 @@ export class App<V extends string, D extends string> {
   }
 
   private showInterestingness() {
-    const activeView = this.getActiveView();
-    const activeVgView = this.vegaViews.get(name)!;
+    if (!this.config.showInterestingness) {
+      return;
+    }
 
-    if (activeView.type === "1D" && this.config.showInterestingness) {
+    const activeView = this.getActiveView();
+    const activeVgView = this.getVegaView(name);
+
+    if (activeView.type === "1D") {
       // show basic interestingness
       activeVgView
         .change(
@@ -707,9 +715,9 @@ export class App<V extends string, D extends string> {
     return out;
   }
 
-  private async brushMove1D(name: V, dimension: D, value: [number, number]) {
+  private brushMove1D(name: V, dimension: D, value: Interval<number>) {
     if (this.activeView !== name) {
-      await this.switchActiveView(name);
+      this.switchActiveView(name);
     }
 
     // delete or set brush
@@ -722,14 +730,14 @@ export class App<V extends string, D extends string> {
     this.throttledUpdate();
   }
 
-  private async brushMove2D(
+  private brushMove2D(
     name: V,
     dim1: D,
     dim2: D,
     value: Interval<[number, number]>
   ) {
     if (this.activeView !== name) {
-      await this.switchActiveView(name);
+      this.switchActiveView(name);
     }
 
     // delete or set brush
@@ -753,7 +761,7 @@ export class App<V extends string, D extends string> {
   }
 
   private update0DView(name: V, value: number, base?: true) {
-    const vgView = this.vegaViews.get(name)!;
+    const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
 
     vgView
@@ -762,7 +770,7 @@ export class App<V extends string, D extends string> {
   }
 
   private update1DView(name: V, view: View1D<D>, hist: ndarray, base?: true) {
-    const vgView = this.vegaViews.get(name)!;
+    const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
     const data = vgView.data(table);
 
@@ -794,7 +802,7 @@ export class App<V extends string, D extends string> {
   }
 
   private update2DView(name: V, view: View2D<D>, heat: ndarray, base?: true) {
-    const vgView = this.vegaViews.get(name)!;
+    const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
     const data = vgView.data(table);
 

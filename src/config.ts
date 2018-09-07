@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG = {
   //--------------
   // configuration
 
+  /** Renderer for vega charts. */
   renderer: "canvas" as Renderers,
 
   maxInteractiveResolution1D: Infinity,

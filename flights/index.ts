@@ -126,5 +126,32 @@ const db = new ArrowDB(require("../data/flights-10k.arrow"));
 //     : null;
 
 new App(views, db, {
-  cb: () => (document.getElementById("loading")!.style.display = "none")
+  // config: { idleTime: 10e9 },
+  cb: _app => {
+    document.getElementById("loading")!.style.display = "none";
+
+    // function animationframe() {
+    //   return new Promise(resolve => requestAnimationFrame(resolve));
+    // }
+
+    // async function benchmark() {
+    //   _app.prefetchView("AIR_TIME", false);
+
+    //   console.time("Brushes");
+    //   const step = 25;
+    //   for (let start = 0; start < 500; start += step) {
+    //     for (let end = start + step; end < 500 + step; end += step) {
+    //       _app
+    //         .getVegaView("AIR_TIME")
+    //         .signal("brush", [start, end])
+    //         .run();
+
+    //       await animationframe();
+    //     }
+    //   }
+    //   console.timeEnd("Brushes");
+    // }
+
+    // window.setTimeout(benchmark, 1000);
+  }
 });
