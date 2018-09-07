@@ -11,10 +11,10 @@ data
 dist
 flights
 flights-mapd
+gaia-mapd
 movies
 node_modules
 rollup.config.js
 test
 weather
 yarn-error.log
-gaia-mapd
