@@ -403,6 +403,37 @@ export function summedAreaTableLookupInterpolateSlow(
   return out;
 }
 
+export function summedAreaTableLookupInterpolateSlow2D(
+  hists: ndarray,
+  activeBrushFloat: [Interval<number>, Interval<number>]
+) {
+  const [brushX, brushY] = activeBrushFloat;
+  const A = [brushX[1], brushY[1]];
+  const B = [brushX[0], brushY[1]];
+  const C = [brushX[1], brushY[0]];
+  const D = [brushX[0], brushY[0]];
+
+  const width = hists.shape[2];
+  const height = hists.shape[3];
+  const out = ndarray(new HIST_TYPE(width * height), [width, height]);
+
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      const slice = hists.pick(null, null, x, y);
+      out.set(
+        x,
+        y,
+        interp2d(slice, ...A) -
+          interp2d(slice, ...B) -
+          interp2d(slice, ...C) +
+          interp2d(slice, ...D)
+      );
+    }
+  }
+
+  return out;
+}
+
 /**
  * Normalizes an ndarray histogram in place to a pdf.
  */

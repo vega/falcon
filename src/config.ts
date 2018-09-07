@@ -17,7 +17,7 @@ export const DEFAULT_CONFIG = {
   /** Show interestingness indicator. */
   showInterestingness: false,
   /** Load high resolution interactions later. */
-  progressiveInteractions: false,
+  progressiveInteractions: false as boolean | "only2D",
   /** Interpolate while we have low resolution data. */
   interpolate: false,
   /** Zoom in 1D charts. */

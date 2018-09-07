@@ -80,7 +80,7 @@ export class MapDDB<V extends string, D extends string>
     return {
       select: `floor(
         (${field} - cast(${binConfig.start} as float))
-        / cast(${binConfig.step} as float) + 1
+        / cast(${binConfig.step} as float)
       )`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };

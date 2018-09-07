@@ -20,7 +20,8 @@ import {
   subInterpolated,
   summedAreaTableLookup,
   summedAreaTableLookupInterpolateSlow,
-  throttle
+  throttle,
+  summedAreaTableLookupInterpolateSlow2D
 } from "./util";
 import {
   createHeatmapView,
@@ -212,6 +213,8 @@ export class App<V extends string, D extends string> {
 
       this.update0DView(name, await this.db.length(), true);
       this.update0DView(name, await this.db.length());
+
+      vegaView.resize().run();
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
@@ -242,7 +245,7 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchView(name, this.config.progressiveInteractions);
+        this.prefetchView(name, this.config.progressiveInteractions === true);
       };
 
       if (this.config.zoom) {
@@ -291,6 +294,8 @@ export class App<V extends string, D extends string> {
       if (this.logger) {
         this.logger.attach(name, vegaView);
       }
+
+      vegaView.resize().run();
     } else {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
@@ -319,8 +324,10 @@ export class App<V extends string, D extends string> {
       });
 
       el.onmouseenter = () => {
-        this.prefetchView(name, this.config.progressiveInteractions);
+        this.prefetchView(name, !!this.config.progressiveInteractions);
       };
+
+      vegaView.resize().run();
     }
   }
 
@@ -575,21 +582,14 @@ export class App<V extends string, D extends string> {
       if (n !== this.activeView) {
         v.runAfter(view => {
           // When the active view is 2D, we shold remove the interestingness data
-          if (this.views.get(this.activeView)!.type === "2D") {
+          if (
+            this.views.get(this.activeView)!.type === "2D" &&
+            this.views.get(n)!.type === "1D"
+          ) {
             view.remove("interesting", truthy).resize();
           }
           view.signal("ready", false).run();
         });
-      }
-    }
-  }
-
-  private markApproximate(name: V) {
-    if (this.config.interpolate && this.config.progressiveInteractions) {
-      for (const [n, vgView] of this.vegaViews) {
-        if (n !== name) {
-          vgView.signal("approximate", true).run();
-        }
       }
     }
   }
@@ -604,13 +604,25 @@ export class App<V extends string, D extends string> {
 
     const data = this.prefetchedData.get(name)!;
 
-    if (approximate && !data.hasHighRes()) {
-      this.markApproximate(name);
-    }
+    if (
+      this.config.progressiveInteractions === true ||
+      (this.config.progressiveInteractions === "only2D" &&
+        this.getActiveView().type === "2D")
+    ) {
+      if (approximate && !data.hasHighRes()) {
+        if (this.config.interpolate) {
+          for (const [n, vgView] of this.vegaViews) {
+            if (n !== name) {
+              vgView.signal("approximate", true).run();
+            }
+          }
+        }
+      }
 
-    if (this.config.progressiveInteractions && !this.db.blocking) {
-      // we are not using a blocking db and now this dimension is active so let's get high resolution data now
-      this.prefetchedData.get(name)!.fetchHighRes();
+      if (!this.db.blocking) {
+        // we are not using a blocking db and now this dimension is active so let's get high resolution data now
+        this.prefetchedData.get(name)!.fetchHighRes();
+      }
     }
 
     this.showInterestingness();
@@ -991,8 +1003,38 @@ export class App<V extends string, D extends string> {
 
           this.update1DView(name, view, hist);
         } else {
-          // not yet implemented
-          console.warn("not yet implemented");
+          const heat = activeBrushFloat
+            ? this.config.interpolate
+              ? summedAreaTableLookupInterpolateSlow2D(hists, activeBrushFloat)
+              : summedAreaTableLookup(
+                  hists.pick(
+                    activeBrushFloorX[1],
+                    activeBrushFloorY[1],
+                    null,
+                    null
+                  ),
+                  hists.pick(
+                    activeBrushFloorX[1],
+                    activeBrushFloorY[0],
+                    null,
+                    null
+                  ),
+                  hists.pick(
+                    activeBrushFloorX[0],
+                    activeBrushFloorY[1],
+                    null,
+                    null
+                  ),
+                  hists.pick(
+                    activeBrushFloorX[0],
+                    activeBrushFloorY[0],
+                    null,
+                    null
+                  )
+                )
+            : data.noBrush;
+
+          this.update2DView(name, view, heat);
         }
       }
     }

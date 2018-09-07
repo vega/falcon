@@ -107,7 +107,7 @@ export function createHorizontalBarView(
             opacity: { value: 0 }
           },
           update: {
-            text: { signal: "format(datum.datum.value, 'd')" }
+            text: { signal: "format(datum.datum.value, ',d')" }
           }
         }
       },

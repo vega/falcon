@@ -174,7 +174,7 @@ new App(views, db, {
   cb: () => (document.getElementById("loading")!.style.display = "none"),
   config: {
     interpolate: true,
-    progressiveInteractions: true
+    progressiveInteractions: "only2D"
   }
 });
 
