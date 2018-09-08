@@ -2,13 +2,12 @@ import ndarray from "ndarray";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
 
-export type Cubes<V> = Map<
-  V,
-  {
-    hists: ndarray;
-    noBrush: ndarray;
-  }
->;
+export interface Hists {
+  hists: ndarray;
+  noBrush: ndarray;
+}
+
+export type Cubes<V> = Map<V, Hists>;
 
 export type Hist = {
   hist: ndarray;

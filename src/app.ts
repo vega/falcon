@@ -20,8 +20,8 @@ import {
   subInterpolated,
   summedAreaTableLookup,
   summedAreaTableLookupInterpolateSlow,
-  throttle,
-  summedAreaTableLookupInterpolateSlow2D
+  summedAreaTableLookupInterpolateSlow2D,
+  throttle
 } from "./util";
 import {
   createHeatmapView,
@@ -854,189 +854,221 @@ export class App<V extends string, D extends string> {
     vgView.change(table, changes).run();
   }
 
+  private valueFor1D(
+    hists: ndarray<number>,
+    floor: Interval<number>,
+    ceil: Interval<number>,
+    fraction: Interval<number>
+  ) {
+    return this.config.interpolate
+      ? (1 - fraction[1]) * hists.get(floor[1]) +
+          fraction[1] * hists.get(ceil[1]) -
+          ((1 - fraction[0]) * hists.get(floor[0]) +
+            fraction[0] * hists.get(ceil[0]))
+      : hists.get(floor[1]) - hists.get(floor[0]);
+  }
+
+  private histFor1D(
+    hists: ndarray<number>,
+    floor: Interval<number>,
+    ceil: Interval<number>,
+    fraction: Interval<number>
+  ) {
+    return this.config.interpolate
+      ? subInterpolated(
+          hists.pick(floor[0], null),
+          hists.pick(ceil[0], null),
+          hists.pick(floor[1], null),
+          hists.pick(ceil[1], null),
+          fraction[0],
+          fraction[1]
+        )
+      : sub(hists.pick(floor[0], null), hists.pick(floor[1], null));
+  }
+
+  private heatFor1D(
+    hists: ndarray<number>,
+    floor: Interval<number>,
+    ceil: Interval<number>,
+    fraction: Interval<number>
+  ) {
+    return this.config.interpolate
+      ? subInterpolated(
+          hists.pick(floor[0], null, null),
+          hists.pick(ceil[0], null, null),
+          hists.pick(floor[1], null, null),
+          hists.pick(ceil[1], null, null),
+          fraction[0],
+          fraction[1]
+        )
+      : sub(hists.pick(floor[0], null, null), hists.pick(floor[1], null, null));
+  }
+
+  private async update1DActiveView() {
+    const activeVgView = this.getActiveVegaView();
+    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
+
+    let activeBrushFloat: Interval<number> | 0 = activeVgView.signal(
+      "binBrush"
+    );
+
+    let activeBrushFloor: Interval<number> = [-1, -1];
+    let activeBrushCeil: Interval<number> = [-1, -1];
+    let fraction: Interval<number> = [-1, -1];
+
+    if (activeBrushFloat) {
+      activeBrushFloat = extent(activeBrushFloat);
+      activeBrushFloor = [
+        Math.floor(activeBrushFloat[0]),
+        Math.floor(activeBrushFloat[1])
+      ];
+      activeBrushCeil = [
+        Math.ceil(activeBrushFloat[0]),
+        Math.ceil(activeBrushFloat[1])
+      ];
+      fraction = [0, 1].map(
+        i => activeBrushFloat![i] - activeBrushFloor![i]
+      ) as Interval<number>;
+    }
+
+    for (const [name, view] of this.views) {
+      if (name === this.activeView) {
+        continue;
+      }
+
+      const data = cubes.get(name)!;
+      const hists = data.hists;
+
+      if (view.type === "0D") {
+        const value = activeBrushFloat
+          ? this.valueFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
+          : data.noBrush.data[0];
+
+        this.update0DView(name, value);
+      } else if (view.type === "1D") {
+        const hist = activeBrushFloat
+          ? this.histFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
+          : data.noBrush;
+
+        this.update1DView(name, view, hist);
+      } else {
+        const heat = activeBrushFloat
+          ? this.heatFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
+          : data.noBrush;
+
+        this.update2DView(name, view, heat);
+      }
+    }
+  }
+
+  private valueFor2D(
+    hists: ndarray<number>,
+    float: Interval<Interval<number>>,
+    floor: Interval<Interval<number>>
+  ) {
+    return this.config.interpolate
+      ? interp2d(hists, float[0][1], float[1][1]) -
+          interp2d(hists, float[0][1], float[1][0]) -
+          interp2d(hists, float[0][0], float[1][1]) +
+          interp2d(hists, float[0][0], float[1][0])
+      : hists.get(floor[0][1], floor[1][1]) -
+          hists.get(floor[0][1], floor[1][0]) -
+          hists.get(floor[0][0], floor[1][1]) +
+          hists.get(floor[0][0], floor[1][0]);
+  }
+
+  private histFor2D(
+    hists: ndarray<number>,
+    float: Interval<Interval<number>>,
+    floor: Interval<Interval<number>>
+  ) {
+    return this.config.interpolate
+      ? summedAreaTableLookupInterpolateSlow(hists, float)
+      : summedAreaTableLookup(
+          hists.pick(floor[0][1], floor[1][1], null),
+          hists.pick(floor[0][1], floor[1][0], null),
+          hists.pick(floor[0][0], floor[1][1], null),
+          hists.pick(floor[0][0], floor[1][0], null)
+        );
+  }
+
+  private heatFor2D(
+    hists: ndarray<number>,
+    float: Interval<Interval<number>>,
+    floor: Interval<Interval<number>>
+  ) {
+    return this.config.interpolate
+      ? summedAreaTableLookupInterpolateSlow2D(hists, float)
+      : summedAreaTableLookup(
+          hists.pick(floor[0][1], floor[1][1], null, null),
+          hists.pick(floor[0][1], floor[1][0], null, null),
+          hists.pick(floor[0][0], floor[1][1], null, null),
+          hists.pick(floor[0][0], floor[1][0], null, null)
+        );
+  }
+
+  private async update2DActiveView() {
+    const activeVgView = this.getActiveVegaView();
+    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
+
+    let activeBrushFloat: Interval<Interval<number>> | 0 = activeVgView.signal(
+      "binBrush"
+    );
+
+    let activeBrushFloor: Interval<Interval<number>> = [[-1, -1], [-1, -1]];
+
+    if (activeBrushFloat) {
+      activeBrushFloat = [
+        extent(activeBrushFloat[0]),
+        extent(activeBrushFloat[1])
+      ];
+      activeBrushFloor = [
+        [
+          Math.floor(activeBrushFloat[0][0]),
+          Math.floor(activeBrushFloat[0][1])
+        ],
+        [Math.floor(activeBrushFloat[1][0]), Math.floor(activeBrushFloat[1][1])]
+      ];
+    }
+
+    for (const [name, view] of this.views) {
+      if (name === this.activeView) {
+        continue;
+      }
+      const data = cubes.get(name)!;
+      const hists = data.hists;
+
+      if (view.type === "0D") {
+        const value = activeBrushFloat
+          ? this.valueFor2D(hists, activeBrushFloat, activeBrushFloor)
+          : data.noBrush[0];
+
+        this.update0DView(name, value);
+      } else if (view.type === "1D") {
+        const hist = activeBrushFloat
+          ? this.histFor2D(hists, activeBrushFloat, activeBrushFloor)
+          : data.noBrush;
+
+        this.update1DView(name, view, hist);
+      } else {
+        const heat = activeBrushFloat
+          ? this.heatFor2D(hists, activeBrushFloat, activeBrushFloor)
+          : data.noBrush;
+
+        this.update2DView(name, view, heat);
+      }
+    }
+  }
+
   private async update() {
     if (this.prefetchedData.size > 1) {
       this.clearPrefetched();
     }
 
-    const activeView = this.getActiveView();
-    const activeVgView = this.getActiveVegaView();
-
-    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
-
-    if (activeView.type === "1D") {
-      let activeBrushFloat: Interval<number> | 0 = activeVgView.signal(
-        "binBrush"
-      );
-
-      let activeBrushFloor: number[] = [-1];
-      let activeBrushCeil: number[] = [-1];
-      let fraction: number[] = [-1];
-
-      if (activeBrushFloat) {
-        activeBrushFloat = extent(activeBrushFloat);
-        activeBrushFloor = activeBrushFloat.map(Math.floor);
-        activeBrushCeil = activeBrushFloat.map(Math.ceil);
-        fraction = [0, 1].map(i => activeBrushFloat![i] - activeBrushFloor![i]);
-      }
-
-      for (const [name, view] of this.views) {
-        if (name === this.activeView) {
-          continue;
-        }
-
-        const data = cubes.get(name)!;
-        const hists = data.hists;
-
-        if (view.type === "0D") {
-          const value = activeBrushFloat
-            ? this.config.interpolate
-              ? (1 - fraction[1]) * hists.get(activeBrushFloor[1]) +
-                fraction[1] * hists.get(activeBrushCeil[1]) -
-                ((1 - fraction[0]) * hists.get(activeBrushFloor[0]) +
-                  fraction[0] * hists.get(activeBrushCeil[0]))
-              : hists.get(activeBrushFloor[1]) - hists.get(activeBrushFloor[0])
-            : data.noBrush.data[0];
-
-          this.update0DView(name, value);
-        } else if (view.type === "1D") {
-          const hist = activeBrushFloat
-            ? this.config.interpolate
-              ? subInterpolated(
-                  hists.pick(activeBrushFloor[0], null),
-                  hists.pick(activeBrushCeil[0], null),
-                  hists.pick(activeBrushFloor[1], null),
-                  hists.pick(activeBrushCeil[1], null),
-                  fraction[0],
-                  fraction[1]
-                )
-              : sub(
-                  hists.pick(activeBrushFloor[0], null),
-                  hists.pick(activeBrushFloor[1], null)
-                )
-            : data.noBrush;
-
-          this.update1DView(name, view, hist);
-        } else {
-          const heat = activeBrushFloat
-            ? this.config.interpolate
-              ? subInterpolated(
-                  hists.pick(activeBrushFloor[0], null, null),
-                  hists.pick(activeBrushCeil[0], null, null),
-                  hists.pick(activeBrushFloor[1], null, null),
-                  hists.pick(activeBrushCeil[1], null, null),
-                  fraction[0],
-                  fraction[1]
-                )
-              : sub(
-                  hists.pick(activeBrushFloor[0], null, null),
-                  hists.pick(activeBrushFloor[1], null, null)
-                )
-            : data.noBrush;
-
-          this.update2DView(name, view, heat);
-        }
-      }
+    if (this.getActiveView().type === "1D") {
+      await this.update1DActiveView();
     } else {
-      let activeBrushFloat:
-        | Interval<Interval<number>>
-        | 0 = activeVgView.signal("binBrush");
-
-      let activeBrushFloorX: number[] = [-1];
-      let activeBrushFloorY: number[] = [-1];
-
-      if (activeBrushFloat) {
-        activeBrushFloat = [
-          extent(activeBrushFloat[0]),
-          extent(activeBrushFloat[1])
-        ];
-        [activeBrushFloorX, activeBrushFloorY] = [
-          activeBrushFloat[0].map(Math.floor),
-          activeBrushFloat[1].map(Math.floor)
-        ];
-      }
-
-      for (const [name, view] of this.views) {
-        if (name === this.activeView) {
-          continue;
-        }
-        const data = cubes.get(name)!;
-        const hists = data.hists;
-
-        if (view.type === "0D") {
-          const value = activeBrushFloat
-            ? this.config.interpolate
-              ? interp2d(
-                  hists,
-                  activeBrushFloat[0][1],
-                  activeBrushFloat[1][1]
-                ) -
-                interp2d(
-                  hists,
-                  activeBrushFloat[0][1],
-                  activeBrushFloat[1][0]
-                ) -
-                interp2d(
-                  hists,
-                  activeBrushFloat[0][0],
-                  activeBrushFloat[1][1]
-                ) +
-                interp2d(hists, activeBrushFloat[0][0], activeBrushFloat[1][0])
-              : hists.get(activeBrushFloorX[1], activeBrushFloorY[1]) -
-                hists.get(activeBrushFloorX[1], activeBrushFloorY[0]) -
-                hists.get(activeBrushFloorX[0], activeBrushFloorY[1]) +
-                hists.get(activeBrushFloorX[0], activeBrushFloorY[0])
-            : data.noBrush[0];
-
-          this.update0DView(name, value);
-        } else if (view.type === "1D") {
-          const hist = activeBrushFloat
-            ? this.config.interpolate
-              ? summedAreaTableLookupInterpolateSlow(hists, activeBrushFloat)
-              : summedAreaTableLookup(
-                  hists.pick(activeBrushFloorX[1], activeBrushFloorY[1], null),
-                  hists.pick(activeBrushFloorX[1], activeBrushFloorY[0], null),
-                  hists.pick(activeBrushFloorX[0], activeBrushFloorY[1], null),
-                  hists.pick(activeBrushFloorX[0], activeBrushFloorY[0], null)
-                )
-            : data.noBrush;
-
-          this.update1DView(name, view, hist);
-        } else {
-          const heat = activeBrushFloat
-            ? this.config.interpolate
-              ? summedAreaTableLookupInterpolateSlow2D(hists, activeBrushFloat)
-              : summedAreaTableLookup(
-                  hists.pick(
-                    activeBrushFloorX[1],
-                    activeBrushFloorY[1],
-                    null,
-                    null
-                  ),
-                  hists.pick(
-                    activeBrushFloorX[1],
-                    activeBrushFloorY[0],
-                    null,
-                    null
-                  ),
-                  hists.pick(
-                    activeBrushFloorX[0],
-                    activeBrushFloorY[1],
-                    null,
-                    null
-                  ),
-                  hists.pick(
-                    activeBrushFloorX[0],
-                    activeBrushFloorY[0],
-                    null,
-                    null
-                  )
-                )
-            : data.noBrush;
-
-          this.update2DView(name, view, heat);
-        }
-      }
+      await this.update2DActiveView();
     }
   }
 }

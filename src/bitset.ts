@@ -18,8 +18,8 @@ export class BitSet {
 
   public set(i: number, v: boolean) {
     i |= 0;
-    var idx = i >>> 5;
-    var bit = 1 << (i & 31);
+    const idx = i >>> 5;
+    const bit = 1 << (i & 31);
     if (v) {
       this._bits[idx] |= bit;
     } else {
