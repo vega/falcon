@@ -203,8 +203,10 @@ export class App<V extends string, D extends string> {
 
   private async initializeView(name: V, view: View<D>) {
     const el = view.el!;
+    let vegaView: VgView;
+
     if (view.type === "0D") {
-      const vegaView = (this.config.zeroD === "text"
+      vegaView = (this.config.zeroD === "text"
         ? createTextView
         : this.config.zeroD === "hbar"
           ? createHorizontalBarView
@@ -213,8 +215,6 @@ export class App<V extends string, D extends string> {
 
       this.update0DView(name, await this.db.length(), true);
       this.update0DView(name, await this.db.length());
-
-      vegaView.resize().run();
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
@@ -222,12 +222,7 @@ export class App<V extends string, D extends string> {
       );
       view.dimension.binConfig = binConfig;
 
-      const vegaView = createHistogramView(
-        el,
-        view,
-        this.config,
-        !!this.logger
-      );
+      vegaView = createHistogramView(el, view, this.config, !!this.logger);
       this.vegaViews.set(name, vegaView);
 
       const { hist } = await this.db.histogram(view.dimension);
@@ -243,10 +238,6 @@ export class App<V extends string, D extends string> {
           this.brushMove1D(name, view.dimension.name, value);
         }
       });
-
-      el["on" + this.config.prefetchOn] = () => {
-        this.prefetchView(name, this.config.progressiveInteractions === true);
-      };
 
       if (this.config.zoom) {
         const updateHistDebounced = debounce(
@@ -294,8 +285,6 @@ export class App<V extends string, D extends string> {
       if (this.logger) {
         this.logger.attach(name, vegaView);
       }
-
-      vegaView.resize().run();
     } else {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
@@ -305,7 +294,7 @@ export class App<V extends string, D extends string> {
         dimension.binConfig = binConfig;
       }
 
-      const vegaView = createHeatmapView(el, view, this.config);
+      vegaView = createHeatmapView(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
@@ -322,13 +311,22 @@ export class App<V extends string, D extends string> {
           value
         );
       });
+    }
 
+    if (view.type !== "0D") {
       el["on" + this.config.prefetchOn] = () => {
         this.prefetchView(name, !!this.config.progressiveInteractions);
       };
 
-      vegaView.resize().run();
+      if (this.config.prefetchOn === "mousedown") {
+        vegaView.container()!.style.cursor = "pointer";
+        (vegaView
+          .container()!
+          .children.item(0) as HTMLElement).style.pointerEvents = "none";
+      }
     }
+
+    vegaView.resize().run();
   }
 
   /**
@@ -590,6 +588,12 @@ export class App<V extends string, D extends string> {
           }
           view.signal("ready", false).run();
         });
+
+        if (this.config.prefetchOn === "mousedown") {
+          v.container()!.style.cursor = "pointer";
+          (v.container()!.children.item(0) as HTMLElement).style.pointerEvents =
+            "none";
+        }
       }
     }
   }
