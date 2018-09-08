@@ -45,11 +45,23 @@ describe("union", () => {
       .set(4, true);
     const set = union(set1, set2);
 
-    expect(set.check(0)).toBeTruthy();
-    expect(set.check(1)).toBeTruthy();
-    expect(set.check(2)).toBeTruthy();
-    expect(set.check(3)).toBeFalsy();
-    expect(set.check(4)).toBeTruthy();
+    expect(set.get(0)).toBeTruthy();
+    expect(set.get(1)).toBeTruthy();
+    expect(set.get(2)).toBeTruthy();
+    expect(set.get(3)).toBeFalsy();
+    expect(set.get(4)).toBeTruthy();
+
+    expect(set1.get(0)).toBeTruthy();
+    expect(set1.get(1)).toBeTruthy();
+    expect(set1.get(2)).toBeTruthy();
+    expect(set1.get(3)).toBeFalsy();
+    expect(set1.get(4)).toBeFalsy();
+
+    expect(set2.get(0)).toBeFalsy();
+    expect(set2.get(1)).toBeTruthy();
+    expect(set2.get(2)).toBeTruthy();
+    expect(set2.get(3)).toBeFalsy();
+    expect(set2.get(4)).toBeTruthy();
   });
 });
 

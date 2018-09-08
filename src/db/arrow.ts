@@ -67,7 +67,7 @@ export class ArrowDB<V extends string, D extends string>
       if (0 <= key && key < binCount) {
         const idx = hist.index(key);
         noBrush.data[idx]++;
-        if (filterMask && !filterMask.check(i)) {
+        if (filterMask && !filterMask.get(i)) {
           hist.data[idx]++;
         }
       }
@@ -163,7 +163,7 @@ export class ArrowDB<V extends string, D extends string>
         // add data to aggregation matrix
         for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(i)) {
+          if (filterMask && filterMask.get(i)) {
             continue;
           }
 
@@ -193,7 +193,7 @@ export class ArrowDB<V extends string, D extends string>
         // add data to aggregation matrix
         for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(i)) {
+          if (filterMask && filterMask.get(i)) {
             continue;
           }
 
@@ -232,7 +232,7 @@ export class ArrowDB<V extends string, D extends string>
 
         for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(i)) {
+          if (filterMask && filterMask.get(i)) {
             continue;
           }
 
@@ -309,7 +309,7 @@ export class ArrowDB<V extends string, D extends string>
         // add data to aggregation matrix
         for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(i)) {
+          if (filterMask && filterMask.get(i)) {
             continue;
           }
 
@@ -348,7 +348,7 @@ export class ArrowDB<V extends string, D extends string>
         // add data to aggregation matrix
         for (let i = 0; i < this.data.length; i++) {
           // ignore filtered entries
-          if (filterMask && filterMask.check(i)) {
+          if (filterMask && filterMask.get(i)) {
             continue;
           }
 
