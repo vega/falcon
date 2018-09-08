@@ -665,33 +665,6 @@ export function createHistogramView<D extends string>(
     } as Mark);
   }
 
-  if (config.chartCount) {
-    marks.push({
-      type: "text",
-      from: { data: "sum" },
-      encode: {
-        update: {
-          x: { signal: "width", offset: 5 },
-          y: { value: 30 },
-          text: { field: "sum" }
-        }
-      }
-    } as Mark);
-
-    data.push({
-      name: "sum",
-      source: "table",
-      transform: [
-        {
-          type: "aggregate",
-          ops: ["sum"],
-          fields: ["value"],
-          as: ["sum"]
-        }
-      ]
-    } as Data);
-  }
-
   const scales: Scale[] = [
     {
       name: "y",

@@ -6,8 +6,6 @@ export const DEFAULT_CONFIG = {
 
   /** Indicator that shows when you can interact with a view. */
   readyIndicator: false,
-  /** Show a row counter next to each chart. */
-  chartCount: false,
   /** Show the base as a gray background. */
   showBase: true,
   /** Use a bar chart for showing the overall count. */

@@ -1,3 +1,4 @@
+import { BitSet, union } from "./../src/bitset";
 import ndarray from "ndarray";
 import { _chEmd, chEmd, omit, repeatInvisible } from "./../src/util";
 
@@ -27,6 +28,28 @@ describe("emb", () => {
         ndarray([0, 3, 3, 4, 5, 7, 8, 9], [6])
       )
     ).toBe(emd / 6);
+  });
+});
+
+describe("union", () => {
+  test("unions two bitsets", () => {
+    const set1 = new BitSet(5);
+    set1
+      .set(0, true)
+      .set(1, true)
+      .set(2, true);
+    const set2 = new BitSet(5);
+    set2
+      .set(1, true)
+      .set(2, true)
+      .set(4, true);
+    const set = union(set1, set2);
+
+    expect(set.check(0)).toBeTruthy();
+    expect(set.check(1)).toBeTruthy();
+    expect(set.check(2)).toBeTruthy();
+    expect(set.check(3)).toBeFalsy();
+    expect(set.check(4)).toBeTruthy();
   });
 });
 

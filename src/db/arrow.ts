@@ -31,7 +31,7 @@ export class ArrowDB<V extends string, D extends string>
 
     for (let i = 0; i < column.length; i++) {
       const val: number = column.get(i);
-      if (val < extent[0] || val > extent[1]) {
+      if (val < extent[0] || val >= extent[1]) {
         mask.set(i, true);
       }
     }

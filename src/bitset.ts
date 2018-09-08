@@ -16,7 +16,7 @@ export class BitSet {
     return (this._buffer[elemIdx(idx)] & (1 << bitPlace(idx))) !== 0; // tslint:disable-line
   }
 
-  set(idx: number, val: boolean): void {
+  set(idx: number, val: boolean) {
     const existing = this.check(idx);
     if (val === existing) return;
     if (val) {
@@ -24,9 +24,10 @@ export class BitSet {
     } else {
       this._buffer[elemIdx(idx)] &= ~(1 << bitPlace(idx)); // tslint:disable-line
     }
+    return this;
   }
 
-  setAll(val: boolean): void {
+  setAll(val: boolean) {
     if (val) {
       // don't overfill the last element in case we grow (we'd be wrong)
       const numOverhang = this._size % PER_ELEM_BITS;
@@ -41,6 +42,8 @@ export class BitSet {
     } else {
       fill(this._buffer, 0);
     }
+
+    return this;
   }
 
   get size(): number {
@@ -78,7 +81,7 @@ export class BitSet {
     const size = this._size;
     const numElems = numElemsNeeded(size);
     for (let i = 0; i < numElems; i++) {
-      this._buffer[i] = this._buffer[i] | other.buffer[i];
+      this._buffer[i] = this._buffer[i] | other._buffer[i];
     }
   }
 
@@ -103,18 +106,29 @@ function numElemsNeeded(size: number) {
   return Math.ceil(size / PER_ELEM_BITS);
 }
 
+function copy(src: ArrayBuffer): ArrayBuffer {
+  const dst = new ArrayBuffer(src.byteLength);
+  new Uint8Array(dst).set(new Uint8Array(src));
+  return dst;
+}
+
 /**
  * Compute the union of all bit sets. The sets need to have the same length.
+ * If you only pass in a single bit set, this function will not make a copy.
  */
 export function union(...sets: BitSet[]): BitSet | null {
   if (sets.length == 0) {
     return null;
   }
 
-  // copy of first set
-  const out = new BitSet(sets[0].size, sets[0].buffer);
+  if (sets.length == 1) {
+    return sets[0];
+  }
 
-  for (let i = 0; i < sets.length; i++) {
+  // copy of first set
+  const out = new BitSet(sets[0].size, copy(sets[0].buffer));
+
+  for (let i = 1; i < sets.length; i++) {
     const set = sets[i];
     out.union(set);
   }
