@@ -6,7 +6,7 @@ import {
   changeset,
   AreaEncodeEntry
 } from "vega-lib";
-import { Logger, Interval, extent } from "../src";
+import { Logger, Interval, extent } from "..";
 
 function vgSpec(dimensions) {
   const areaEncoding: AreaEncodeEntry = {
@@ -153,7 +153,10 @@ interface Record<V extends string> {
   viewAction: number;
 }
 
-export class VisLogger<V extends string> implements Logger<V> {
+/**
+ * A logger that renders a timeline visualization of the brush interactions.
+ */
+export class TimelineLogger<V extends string> implements Logger<V> {
   private vgView: VgView;
 
   private action: number = 0;
@@ -183,11 +186,12 @@ export class VisLogger<V extends string> implements Logger<V> {
       }
 
       const changes = changeset();
+      const now = new Date();
 
       for (const [n, b] of this.brushes) {
         if (n !== name) {
           changes.insert({
-            time: new Date(),
+            time: now,
             dimension: n,
             start: b[0],
             end: b[1],
@@ -201,7 +205,7 @@ export class VisLogger<V extends string> implements Logger<V> {
       if (brush === 0) {
         const b = this.brushes.get(name)!;
         changes.insert({
-          time: new Date(),
+          time: now,
           dimension: name,
           start: b[0],
           end: b[1],
@@ -216,7 +220,7 @@ export class VisLogger<V extends string> implements Logger<V> {
         this.brushes.set(name, brush);
 
         changes.insert({
-          time: new Date(),
+          time: now,
           dimension: name,
           start: brush[0],
           end: brush[1],
@@ -228,9 +232,5 @@ export class VisLogger<V extends string> implements Logger<V> {
 
       this.vgView.change("logs", changes).run();
     });
-  }
-
-  public hasUnsentData() {
-    return false;
   }
 }

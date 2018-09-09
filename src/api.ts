@@ -80,9 +80,4 @@ export interface Logger<V extends string> {
    * Attach logging to the Vega view.
    */
   attach(name: V, view: VgView): void;
-
-  /**
-   * Returns whether the logger has not flushed all logs yet.
-   */
-  hasUnsentData(): boolean;
 }

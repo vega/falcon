@@ -1,5 +1,5 @@
 import { View } from "vega-lib";
-import { Logger } from "./api";
+import { Logger } from "../api";
 
 /**
  * Simple example logger to demonstarte the approach.
@@ -46,9 +46,5 @@ export class SimpleLogger<V extends string> implements Logger<V> {
         pixBrushEnd: pixBrushRange[1]
       });
     });
-  }
-
-  public hasUnsentData(): boolean {
-    return false;
   }
 }

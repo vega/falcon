@@ -1,5 +1,4 @@
-import { VisLogger } from "./logger";
-import { App, ArrowDB, Views } from "../src";
+import { App, ArrowDB, Views, TimelineLogger, Logger } from "../src";
 import { createElement } from "./utils";
 
 document.getElementById("app")!.innerText = "";
@@ -119,6 +118,11 @@ views.set("DEP_DELAY_ARR_DELAY", {
 
 const db = new ArrowDB(require("../data/flights-10k.arrow"));
 
+let logger: Logger<ViewName>;
+
+//=============
+// timeline vis logger
+
 const histViews: ViewName[] = [];
 for (const [n, v] of views) {
   if (v.type === "1D") {
@@ -126,14 +130,12 @@ for (const [n, v] of views) {
   }
 }
 
-const logger = new VisLogger(createElement("logs"), histViews);
+logger = new TimelineLogger(createElement("logs"), histViews);
 
-// const logger = new SimpleLogger<ViewName>();
+//=============
+// simple logger as demo
 
-// window.onbeforeunload = () =>
-//   logger.hasUnsentData()
-//     ? "We still need to send logs. Try again in a few seconds."
-//     : null;
+// logger = new SimpleLogger<ViewName>();
 
 new App(views, db, {
   config: {
@@ -142,6 +144,9 @@ new App(views, db, {
   logger: logger,
   cb: _app => {
     document.getElementById("loading")!.style.display = "none";
+
+    //=============
+    // benchmark
 
     // function animationframe() {
     //   return new Promise(resolve => requestAnimationFrame(resolve));
