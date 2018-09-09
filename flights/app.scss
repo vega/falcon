@@ -25,4 +25,10 @@
     grid-row: 3;
     grid-column: 1;
   }
+
+  #logs {
+    grid-row: 1;
+    grid-row-end: 4;
+    grid-column: 3;
+  }
 }

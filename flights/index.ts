@@ -1,3 +1,4 @@
+import { VisLogger } from "./logger";
 import { App, ArrowDB, Views } from "../src";
 import { createElement } from "./utils";
 
@@ -118,6 +119,15 @@ views.set("DEP_DELAY_ARR_DELAY", {
 
 const db = new ArrowDB(require("../data/flights-10k.arrow"));
 
+const histViews: ViewName[] = [];
+for (const [n, v] of views) {
+  if (v.type === "1D") {
+    histViews.push(n);
+  }
+}
+
+const logger = new VisLogger(createElement("logs"), histViews);
+
 // const logger = new SimpleLogger<ViewName>();
 
 // window.onbeforeunload = () =>
@@ -129,6 +139,7 @@ new App(views, db, {
   config: {
     // idleTime: 10e9
   },
+  logger: logger,
   cb: _app => {
     document.getElementById("loading")!.style.display = "none";
 
