@@ -52,7 +52,7 @@ Heatmap with colored cells.
 
 <img src="images/color.png" width="460">
 
-### Vertical, horizontal, or text for counts
+### Vertical bar, horizontal bar, or text for counts
 
 Horizontal bar.
 
