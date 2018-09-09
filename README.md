@@ -16,11 +16,61 @@ The largest experiments we have done so far is 10M flights in the browser and ~1
 
 Falcon uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 
-![Falcon demo](cross.gif "Falcon demo")
+![Falcon demo](images/cross.gif "Falcon demo")
 
 ## Usage
 
 Install with `yarn add falcon-vis`. You can use two database backends. First `ArrowDB` that works completely in the browser and scales up to ten million rows. Second, `MapDDB`, which connects to [MapD](http://mapd.com/). Check out the examples to see how to set up an app with your own data. More documentation will follow.
+
+## Features
+
+### Zoom
+
+You can zoom histograms. Falcon automatically re-bins the data.
+
+<img src="images/zoom.gif" width="500">
+
+### Show and hide base
+
+The base data, which are the original counts without filters, can be displayed behind the filtered counts to provide context. Hiding the base shows the relative distribution of the data.
+
+With base.
+
+<img src="images/base.png" width="500">
+
+Without base.
+
+<img src="images/no_base.png" width="500">
+
+### Circles or Color Heatmap
+
+Heatmap with circles (default). Can show the base (data without filters).
+
+<img src="images/circles.png" width="460">
+
+Heatmap with colored cells.
+
+<img src="images/color.png" width="460">
+
+### Vertical, horizontal, or text for counts
+
+Horizontal bar.
+
+<img src="images/hbar.png" width="300">
+
+Vertical bar.
+
+<img src="images/vbar.png" height="300">
+
+Text only.
+
+<img src="images/text.png" width="300">
+
+### Timeline visualization
+
+You can visualize the timeline of brush interactions in Falcon.
+
+<img src="images/timeline.png" width="400">
 
 ## Developers
 
