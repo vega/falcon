@@ -13,12 +13,8 @@
     "noUnusedParameters": true,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "files": [
-    "src/index.ts",
-    "flights/index.ts",
-    "weather/index.ts",
-    "src/json.d.ts"
-  ]
+  "files": ["src/index.ts", "flights/index.ts", "weather/index.ts"]
 }
