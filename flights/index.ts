@@ -123,14 +123,7 @@ let logger: Logger<ViewName> | undefined;
 //=============
 // timeline vis logger
 
-const histViews: ViewName[] = [];
-for (const [n, v] of views) {
-  if (v.type === "1D") {
-    histViews.push(n);
-  }
-}
-
-logger = new TimelineLogger(createElement("logs"), histViews);
+logger = new TimelineLogger(createElement("logs"), views);
 
 //=============
 // simple logger as demo

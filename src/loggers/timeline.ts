@@ -1,12 +1,14 @@
 import {
-  View as VgView,
-  parse,
-  Warn,
-  Spec,
+  AreaEncodeEntry,
   changeset,
-  AreaEncodeEntry
+  parse,
+  Spec,
+  View as VgView,
+  Warn
 } from "vega-lib";
-import { Logger, Interval, extent } from "..";
+import { extent } from "../util";
+import { Logger, Views } from "./../api";
+import { Interval } from "./../basic";
 
 function vgSpec(dimensions) {
   const areaEncoding: AreaEncodeEntry = {
@@ -156,7 +158,8 @@ interface Record<V extends string> {
 /**
  * A logger that renders a timeline visualization of the brush interactions.
  */
-export class TimelineLogger<V extends string> implements Logger<V> {
+export class TimelineLogger<V extends string, D extends string>
+  implements Logger<V> {
   private vgView: VgView;
 
   private action: number = 0;
@@ -164,8 +167,16 @@ export class TimelineLogger<V extends string> implements Logger<V> {
   private active: V;
   private brushes = new Map<V, Interval<number>>();
 
-  constructor(el: Element, views: V[]) {
-    const runtime = parse(vgSpec(views));
+  constructor(el: Element, views: Views<V, D>) {
+    const histViews: V[] = [];
+
+    for (const [n, v] of views) {
+      if (v.type === "1D") {
+        histViews.push(n);
+      }
+    }
+
+    const runtime = parse(vgSpec(histViews));
 
     this.vgView = new VgView(runtime)
       .logLevel(Warn)
