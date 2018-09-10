@@ -1,4 +1,4 @@
-import { App, ArrowDB, Views, TimelineLogger, Logger } from "../src";
+import { App, ArrowDB, Logger, Views } from "../src";
 import { createElement } from "./utils";
 
 document.getElementById("app")!.innerText = "";
