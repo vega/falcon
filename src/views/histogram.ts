@@ -395,7 +395,7 @@ export function createHistogramView<D extends string>(
 
   const onBrush: OnEvent[] = [
     {
-      events: "mouseup",
+      events: "mouseup, touchend",
       update: "span(brush) ? brush : 0"
     },
     {
@@ -409,18 +409,22 @@ export function createHistogramView<D extends string>(
         "clampRange(panLinear(anchor, pan / span(anchor)), invert('x', 0), invert('x', width))"
     },
     {
-      events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+      events:
+        "[@chart:mousedown, window:mouseup] > window:mousemove!," +
+        " [@chart:touchstart, window:touchend] > window:touchmove",
       update: "[down, clamp(snapped, invert('x', 0), invert('x', width))]"
     },
     {
       events:
-        "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!",
+        "[@left:mousedown, window:mouseup] > window:mousemove!, [@left_grabber:mousedown, window:mouseup] > window:mousemove!," +
+        "[@left:touchstart, window:touchend] > window:touchmove, [@left_grabber:touchstart, window:touchend] > window:touchmove",
       update:
         "[clamp(snapped, invert('x', 0), invert('x', width)), scale('snap', brush[1])]"
     },
     {
       events:
-        "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!",
+        "[@right:mousedown, window:mouseup] > window:mousemove!, [@right_grabber:mousedown, window:mouseup] > window:mousemove!," +
+        "[@right:touchstart, window:touchend] > window:touchmove, [@right_grabber:touchstart, window:touchend] > window:touchmove",
       update:
         "[scale('snap', brush[0]), clamp(snapped, invert('x', 0), invert('x', width))]"
     }
@@ -454,7 +458,8 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "window:mousemove",
+          events:
+            "window:mousemove, window:touchstart, window:touchend, window:touchmove",
           update: config.interpolate
             ? "invert('x', x())"
             : "scale('snap', invert('x', x()))"
@@ -466,7 +471,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "mousedown",
+          events: "window:mousedown, window:touchstart",
           update: "snapped"
         }
       ]
@@ -476,7 +481,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "@brush:mousedown",
+          events: "@brush:mousedown, @brush:touchstart",
           update: "[scale('snap', brush[0]), scale('snap', brush[1])]"
         }
       ]
@@ -486,7 +491,8 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "[@brush:mousedown, window:mouseup] > window:mousemove!",
+          events:
+            "[@brush:mousedown, window:mouseup] > window:mousemove!, [@brush:touchstart, window:touchend] > window:touchmove",
           update: "down - snapped"
         }
       ]

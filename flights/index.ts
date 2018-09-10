@@ -123,7 +123,7 @@ let logger: Logger<ViewName> | undefined;
 //=============
 // timeline vis logger
 
-logger = new TimelineLogger(createElement("logs"), views);
+// logger = new TimelineLogger(createElement("logs"), views);
 
 //=============
 // simple logger as demo

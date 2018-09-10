@@ -35,13 +35,17 @@ const interp2d = interpolate.d2;
 
 let mouseIsDown = false;
 
-document.onmousedown = () => {
+const dcb = () => {
   mouseIsDown = true;
 };
+document.onmousedown = dcb;
+document.ontouchstart = dcb;
 
-document.onmouseup = () => {
+const ucb = () => {
   mouseIsDown = false;
 };
+document.onmouseup = ucb;
+document.ontouchend = ucb;
 
 class PendingData<V> {
   private highRes: Cubes<V> | Promise<Cubes<V>>;
@@ -194,9 +198,13 @@ export class App<V extends string, D extends string> {
     }, this.config.idleTime);
 
     // prefetch when the app is idle
-    document.onmousemove = () => {
+    const cb = () => {
       debouncedPreload();
     };
+    document.onmousemove = cb;
+    document.ontouchstart = cb;
+    document.ontouchmove = cb;
+    document.ontouchend = cb;
     debouncedPreload();
   }
 
@@ -313,9 +321,11 @@ export class App<V extends string, D extends string> {
     }
 
     if (view.type !== "0D") {
-      el["on" + this.config.prefetchOn] = () => {
+      const cb = () => {
         this.prefetchView(name, !!this.config.progressiveInteractions);
       };
+      el["on" + this.config.prefetchOn] = cb;
+      el.ontouchstart = cb;
 
       if (this.config.prefetchOn === "mousedown") {
         vegaView.container()!.style.cursor = "pointer";
