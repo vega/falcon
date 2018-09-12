@@ -1,4 +1,5 @@
-import { App, ArrowDB, Views } from "../src";
+import { mean, variance, quantile } from "d3-array";
+import { App, ArrowDB, Views, omit, bin } from "../src";
 import { createElement } from "../flights/utils";
 
 document.getElementById("app")!.innerText = "";
@@ -97,8 +98,79 @@ views.set("SNOW", {
   }
 });
 
-const db = new ArrowDB(require("../data/weather-10k.arrow"));
+const db = new ArrowDB(require("../data/weather-1m.arrow"));
 
-new App(views, db, {
-  cb: () => (document.getElementById("loading")!.style.display = "none")
-});
+async function dbBenchmark() {
+  await db.initialize();
+
+  for (const [_name, view] of views) {
+    if (view.type === "1D") {
+      const binConfig = bin(view.dimension.bins, view.dimension.extent);
+      view.dimension.binConfig = binConfig;
+    } else if (view.type === "2D") {
+      for (const dimension of view.dimensions) {
+        const binConfig = bin(dimension.bins, dimension.extent);
+        dimension.binConfig = binConfig;
+      }
+    }
+  }
+
+  // warmup
+  for (const [name, view] of views) {
+    if (view.type === "1D") {
+      await db.loadData1D(view, 500, omit(views, name), new Map());
+    } else if (view.type === "2D") {
+      await db.loadData2D(view, [100, 100], omit(views, name), new Map());
+    }
+  }
+
+  //*
+  const runs = 10;
+
+  const timings: number[] = [];
+  for (let i = 0; i < runs; i++) {
+    for (const [name, view] of views) {
+      const time = performance.now();
+      if (view.type === "1D") {
+        await db.loadData1D(view, 500, omit(views, name), new Map());
+      } else if (view.type === "2D") {
+        await db.loadData2D(view, [200, 200], omit(views, name), new Map());
+      }
+      await timings.push(performance.now() - time);
+    }
+  }
+  /*/
+  const runs = 10;
+
+  const timings: number[] = [];
+  for (let i = 0; i < runs; i++) {
+    const view = views.get("DISTANCE");
+    const time = performance.now();
+    if (view.type === "1D") {
+      await db.loadData1D(view, 50, omit(views, name), new Map());
+    } else if (view.type === "2D") {
+      await db.loadData2D(view, [200, 200], omit(views, name), new Map());
+    }
+    await timings.push(performance.now() - time);
+  }
+
+  //*/
+
+  timings.sort((a, b) => a - b);
+
+  console.log("Mean", mean(timings));
+  console.log("Median", quantile(timings, 0.5));
+  console.log("95 quantile", quantile(timings, 0.95));
+
+  console.log();
+  console.log("90 quantile", quantile(timings, 0.9));
+  console.log("Stdev", Math.sqrt(variance(timings)!));
+  console.log("Min", timings[0]);
+  console.log("Max", timings[timings.length - 1]);
+}
+
+window.setTimeout(dbBenchmark, 1000);
+
+// new App(views, db, {
+//   cb: () => (document.getElementById("loading")!.style.display = "none")
+// });
