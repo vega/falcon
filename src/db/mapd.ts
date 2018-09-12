@@ -42,7 +42,7 @@ export class MapDDB<V extends string, D extends string>
   }
 
   private async query(q: string): Promise<any[]> {
-    const t0 = Date.now();
+    const t0 = performance.now();
 
     const {
       results,
@@ -64,7 +64,7 @@ export class MapDDB<V extends string, D extends string>
       "ms. Total time:",
       timing.total_time_ms,
       "ms. With network:",
-      Date.now() - t0,
+      performance.now() - t0,
       "ms."
     );
 
@@ -196,7 +196,7 @@ export class MapDDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    const t0 = Date.now();
+    const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
     const cubes: Cubes<V> = new Map();
@@ -336,7 +336,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.info(`Build result cube: ${Date.now() - t0}ms`);
+    console.info(`Build result cube: ${performance.now() - t0}ms`);
 
     return cubes;
   }
@@ -347,7 +347,7 @@ export class MapDDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    const t0 = Date.now();
+    const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
     const cubes: Cubes<V> = new Map();
@@ -498,7 +498,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.info(`Build result cube: ${Date.now() - t0}ms`);
+    console.info(`Build result cube: ${performance.now() - t0}ms`);
 
     return cubes;
   }

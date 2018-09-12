@@ -164,7 +164,9 @@ const db = new MapDDB(
 //     host: "beast-azure.mapd.com",
 //     db: "newflights",
 //     user: "demouser",
-//     password: "HyperInteractive"
+//     password: "HyperInteractive",
+//     protocol: "https",
+//     port: 443
 //   },
 //   "flights",
 //   names
