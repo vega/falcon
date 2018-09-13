@@ -130,9 +130,20 @@ let logger: Logger<ViewName> | undefined;
 
 // logger = new SimpleLogger<ViewName>();
 
+const iPad = !!navigator.userAgent.match(/iPad/i);
+
 new App(views, db, {
   config: {
-    // idleTime: 10e9
+    // idleTime: 10e9,
+    barWidth: 600,
+    ...(iPad
+      ? {
+          barWidth: 450,
+          histogramWidth: 450,
+          histogramHeight: 120,
+          heatmapWidth: 300
+        }
+      : {})
   },
   logger: logger,
   cb: _app => {

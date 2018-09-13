@@ -44,7 +44,7 @@ export const DEFAULT_CONFIG = {
   /** For vertical bar chart. */
   barHeight: 300,
   /** For horizontal bar chart. */
-  barWidth: 300,
+  barWidth: 400,
   histogramWidth: 600,
   histogramHeight: 160,
   heatmapWidth: 400,
