@@ -46,6 +46,7 @@ export const DEFAULT_CONFIG = {
   /** For horizontal bar chart. */
   barWidth: 300,
   histogramWidth: 600,
+  histogramHeight: 160,
   heatmapWidth: 400,
   maxCircleSize: 700,
   yAxisExtent: 50

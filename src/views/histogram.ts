@@ -431,7 +431,7 @@ export function createHistogramView<D extends string>(
   ];
 
   const signals: Signal[] = [
-    { name: "histHeight", value: Math.round(config.histogramWidth / 3.6) },
+    { name: "histHeight", value: config.histogramHeight },
     { name: "ready", value: false },
     { name: "approximate", value: false },
     { name: "bin", value: dimension.binConfig },
