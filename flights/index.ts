@@ -138,10 +138,12 @@ new App(views, db, {
     barWidth: 600,
     ...(iPad
       ? {
+          idleTime: 10e9,
           barWidth: 450,
           histogramWidth: 450,
           histogramHeight: 120,
-          heatmapWidth: 300
+          heatmapWidth: 300,
+          prefetchOn: "mousedown"
         }
       : {})
   },

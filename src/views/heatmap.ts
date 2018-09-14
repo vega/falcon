@@ -321,14 +321,20 @@ export function createHeatmapView<D extends string>(
       {
         name: "showBase",
         value: true,
-        on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
+        on: [
+          {
+            events: "@toggleShowBase:click!, @toggleShowBase:click!",
+            update: "!showBase"
+          }
+        ]
       },
       {
         name: "brushX",
         value: 0,
         on: [
           {
-            events: "@chart:dblclick!, @brush:dblclick!, @reset:click!",
+            events:
+              "@chart:dblclick!, @brush:dblclick!, @reset:click!, @reset:touchstart!",
             update: "0"
           },
           {

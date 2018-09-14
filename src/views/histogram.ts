@@ -400,7 +400,7 @@ export function createHistogramView<D extends string>(
     },
     {
       events:
-        "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!",
+        "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!, @reset:touchstart!",
       update: "0"
     },
     {
@@ -446,7 +446,12 @@ export function createHistogramView<D extends string>(
     {
       name: "showBase",
       value: true,
-      on: [{ events: "@toggleShowBase:click!", update: "!showBase" }]
+      on: [
+        {
+          events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
+          update: "!showBase"
+        }
+      ]
     },
     {
       name: "brush",

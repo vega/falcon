@@ -328,6 +328,7 @@ export class App<V extends string, D extends string> {
       el.ontouchstart = cb;
 
       if (this.config.prefetchOn === "mousedown") {
+        // vegaView.container()!.style.border = "1px solid red";
         vegaView.container()!.style.cursor = "pointer";
         (vegaView
           .container()!
@@ -433,6 +434,7 @@ export class App<V extends string, D extends string> {
     }
 
     const vegaView = this.getVegaView(name);
+    // vegaView.container()!.style.border = "1px solid orange";
     vegaView.container()!.style.cursor = "wait";
     (vegaView
       .container()!
@@ -514,6 +516,7 @@ export class App<V extends string, D extends string> {
         return;
       }
 
+      // vegaView.container()!.style.border = "1px solid green";
       vegaView.container()!.style.cursor = null;
       (vegaView
         .container()!
@@ -585,13 +588,13 @@ export class App<V extends string, D extends string> {
       this.prefetchedData.set(this.activeView, activePrefetched);
     }
 
-    for (const [n, v] of this.vegaViews) {
-      if (n !== this.activeView) {
-        v.runAfter(view => {
+    for (const [name, vegaView] of this.vegaViews) {
+      if (name !== this.activeView) {
+        vegaView.runAfter(view => {
           // When the active view is 2D, we shold remove the interestingness data
           if (
             this.views.get(this.activeView)!.type === "2D" &&
-            this.views.get(n)!.type === "1D"
+            this.views.get(name)!.type === "1D"
           ) {
             view.remove("interesting", truthy).resize();
           }
@@ -599,8 +602,9 @@ export class App<V extends string, D extends string> {
         });
 
         if (this.config.prefetchOn === "mousedown") {
-          v.container()!.style.cursor = "pointer";
-          (v.container()!.children.item(0) as HTMLElement).style.pointerEvents =
+          // vegaView.container()!.style.border = "1px solid red";
+          vegaView.container()!.style.cursor = "pointer";
+          (vegaView.container()!.children.item(0) as HTMLElement).style.pointerEvents =
             "none";
         }
       }
