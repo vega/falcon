@@ -12,9 +12,9 @@ import { Interval } from "./../basic";
 
 function vgSpec(dimensions) {
   const areaEncoding: AreaEncodeEntry = {
-    y: { scale: "yscale", field: "time" },
-    x: { scale: "xscale", field: "start" },
-    x2: { scale: "xscale", field: "end" }
+    y: { scale: "timeScale", field: "time" },
+    x: { scale: "brushScale", field: "start" },
+    x2: { scale: "brushScale", field: "end" }
   };
 
   const spec: Spec = {
@@ -40,13 +40,13 @@ function vgSpec(dimensions) {
 
     scales: [
       {
-        name: "xscale",
+        name: "brushScale",
         type: "linear",
         range: "width",
         domain: [0, 600]
       },
       {
-        name: "yscale",
+        name: "timeScale",
         type: "time",
         range: "height",
         domain: { data: "logs", field: "time" }
@@ -60,8 +60,8 @@ function vgSpec(dimensions) {
     ],
 
     axes: [
-      { orient: "top", scale: "xscale", title: "Brush Location in Pixels" },
-      { orient: "left", scale: "yscale", title: "Time" }
+      { orient: "top", scale: "brushScale", title: "Brush Location in Pixels" },
+      { orient: "left", scale: "timeScale", title: "Time" }
     ],
 
     legends: [{ fill: "color", direction: "horizontal", orient: "bottom" }],
