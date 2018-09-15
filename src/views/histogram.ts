@@ -648,7 +648,7 @@ export function createHistogramView<D extends string>(
           fill: { value: "black" }
         },
         update: {
-          text: { signal: "showBase ? 'Hide Base' : 'Show Base'" }
+          text: { signal: "showBase ? 'Hide Unfiltered' : 'Show Unfiltered'" }
         }
       }
     } as Mark);
