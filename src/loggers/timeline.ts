@@ -188,6 +188,10 @@ export class TimelineLogger<V extends string, D extends string>
   public attach(name: V, view: VgView) {
     this.viewActions[name] = 0;
 
+    view.addSignalListener("down", () => {
+      this.action++;
+    });
+
     view.addSignalListener("pixelBrush", (_, brush) => {
       brush = extent(brush);
 
