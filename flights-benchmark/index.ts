@@ -160,7 +160,7 @@ views.set("DEP_DELAY_ARR_DELAY", {
 //   names
 // );
 
-const db = new ArrowDB(require("../data/flights-3m.arrow"));
+const db = new ArrowDB(require("../data/flights-1m.arrow"));
 
 // BENCHMARK: get switching time
 
@@ -192,14 +192,19 @@ async function dbBenchmark() {
   // run prefetch for all views
   const runs = 5;
 
+  // high res
+  // const [twoDres, oneDres] = [[200, 200] as [number, number], 500];
+  // low res
+  const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
+
   const timings: number[] = [];
   for (let i = 0; i < runs; i++) {
     for (const [name, view] of views) {
       const time = performance.now();
       if (view.type === "1D") {
-        await db.loadData1D(view, 500, omit(views, name), new Map());
+        await db.loadData1D(view, oneDres, omit(views, name), new Map());
       } else if (view.type === "2D") {
-        await db.loadData2D(view, [200, 200], omit(views, name), new Map());
+        await db.loadData2D(view, twoDres, omit(views, name), new Map());
       }
       await timings.push(performance.now() - time);
     }
@@ -235,6 +240,7 @@ async function dbBenchmark() {
   console.log("Max", timings[timings.length - 1]);
 }
 
+// BENCHMARK: test the db only
 window.setTimeout(dbBenchmark, 1000);
 
 // BENCHMARK: get timings for brushing to compare to Square Crossfilter
