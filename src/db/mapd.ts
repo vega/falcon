@@ -6,7 +6,7 @@ import { Interval } from "../basic";
 import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
-import { DataBase, Cubes } from "./db";
+import { DataBase, Index } from "./db";
 
 const connector = new (window as any).MapdCon();
 
@@ -199,7 +199,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
-    const cubes: Cubes<V> = new Map();
+    const cubes: Index<V> = new Map();
 
     const activeDim = activeView.dimension;
     const binActive = this.binSQLPixel(
@@ -336,7 +336,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.info(`Build result cube: ${performance.now() - t0}ms`);
+    console.info(`Build index: ${performance.now() - t0}ms`);
 
     return cubes;
   }
@@ -350,7 +350,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
-    const cubes: Cubes<V> = new Map();
+    const cubes: Index<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const binActiveX = this.binSQLPixel(
@@ -498,7 +498,7 @@ export class MapDDB<V extends string, D extends string>
       })
     );
 
-    console.info(`Build result cube: ${performance.now() - t0}ms`);
+    console.info(`Build index: ${performance.now() - t0}ms`);
 
     return cubes;
   }

@@ -1,4 +1,4 @@
-import { DataBase, Cubes } from "./db";
+import { DataBase, Index } from "./db";
 import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
@@ -16,6 +16,8 @@ export class ArrowDB<V extends string, D extends string>
 
   public constructor(private readonly url: string) {}
 
+  private filterMaskIndex = new Map<string, BitSet>();
+
   public async initialize() {
     const response = await fetch(this.url);
     const buffer = await response.arrayBuffer();
@@ -26,6 +28,13 @@ export class ArrowDB<V extends string, D extends string>
   }
 
   private getFilterMask(dimension: D, extent: Interval<number>) {
+    const key = `${dimension} ${extent}`;
+
+    const m = this.filterMaskIndex.get(key);
+    if (m) {
+      return m;
+    }
+
     const column = this.data.getColumn(dimension)!;
     const mask = new BitSet(column.length);
 
@@ -35,6 +44,8 @@ export class ArrowDB<V extends string, D extends string>
         mask.set(i, true);
       }
     }
+
+    this.filterMaskIndex.set(key, mask);
 
     return mask;
   }
@@ -110,7 +121,12 @@ export class ArrowDB<V extends string, D extends string>
     return heat;
   }
 
-  private getFilterMasks(brushes: Map<D, Interval<number>>) {
+  private getFilterMasks(brushes: Map<D, Interval<number>>): Map<D, BitSet> {
+    if (!brushes.size) {
+      // no brushes => no filters
+      return new Map();
+    }
+
     console.time("Build filter masks");
 
     const filters = new Map<D, BitSet>();
@@ -129,10 +145,10 @@ export class ArrowDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    console.time("Build result cube");
+    console.time("Build index");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const cubes: Cubes<V> = new Map();
+    const cubes: Index<V> = new Map();
 
     const activeDim = activeView.dimension;
     const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
@@ -258,7 +274,7 @@ export class ArrowDB<V extends string, D extends string>
       cubes.set(name, { hists, noBrush: noBrush });
     }
 
-    console.timeEnd("Build result cube");
+    console.timeEnd("Build index");
 
     return cubes;
   }
@@ -269,10 +285,10 @@ export class ArrowDB<V extends string, D extends string>
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ) {
-    console.time("Build result cube");
+    console.time("Build index");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const cubes: Cubes<V> = new Map();
+    const cubes: Index<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const binActiveX = binNumberFunctionBins(activeDimX.binConfig!, pixels[0]);
@@ -381,7 +397,7 @@ export class ArrowDB<V extends string, D extends string>
       cubes.set(name, { hists, noBrush: noBrush });
     }
 
-    console.timeEnd("Build result cube");
+    console.timeEnd("Build index");
 
     return cubes;
   }

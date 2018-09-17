@@ -4,7 +4,7 @@ import { changeset, truthy, View as VgView } from "vega-lib";
 import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
-import { Cubes, DataBase } from "./db";
+import { Index, DataBase } from "./db";
 import {
   bin,
   binTime,
@@ -48,17 +48,17 @@ document.onmouseup = ucb;
 document.ontouchend = ucb;
 
 class PendingData<V> {
-  private highRes: Cubes<V> | Promise<Cubes<V>>;
+  private highRes: Index<V> | Promise<Index<V>>;
 
   private highResPending = true;
 
   constructor(
-    private lowRes: Cubes<V> | Promise<Cubes<V>>,
+    private lowRes: Index<V> | Promise<Index<V>>,
     /**
      * Function to request high res data. Can be resolved later.
      */
-    private fetchHighRes_: () => Cubes<V> | Promise<Cubes<V>>,
-    private highResCallback: (cubes: Cubes<V>) => void
+    private fetchHighRes_: () => Index<V> | Promise<Index<V>>,
+    private highResCallback: (cubes: Index<V>) => void
   ) {}
 
   public fetchHighRes() {
@@ -78,7 +78,7 @@ class PendingData<V> {
     }
   }
 
-  public cubes(): Cubes<V> | Promise<Cubes<V>> {
+  public cubes(): Index<V> | Promise<Index<V>> {
     return this.highResPending ? this.lowRes : this.highRes;
   }
 
@@ -442,7 +442,7 @@ export class App<V extends string, D extends string> {
 
     const view = this.views.get(name)!;
 
-    let cubes: Promise<Cubes<V>> | Cubes<V>;
+    let cubes: Promise<Index<V>> | Index<V>;
     let lowResPixels: number | Interval<number>;
 
     if (view.type === "1D") {

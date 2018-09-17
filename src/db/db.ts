@@ -7,7 +7,7 @@ export interface Hists {
   noBrush: ndarray;
 }
 
-export type Cubes<V> = Map<V, Hists>;
+export type Index<V> = Map<V, Hists>;
 
 export type Hist = {
   hist: ndarray;
@@ -32,12 +32,12 @@ export interface DataBase<V extends string, D extends string> {
     pixels: number,
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
-  ): Promise<Cubes<V>> | Cubes<V>;
+  ): Promise<Index<V>> | Index<V>;
 
   loadData2D(
     activeView: View2D<D>,
     pixels: [number, number],
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
-  ): Promise<Cubes<V>> | Cubes<V>;
+  ): Promise<Index<V>> | Index<V>;
 }
