@@ -1,4 +1,4 @@
-import { DataBase, Index } from "./db";
+import { DataBase, SyncIndex } from "./db";
 import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
 import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
@@ -148,7 +148,7 @@ export class ArrowDB<V extends string, D extends string>
     console.time("Build index");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const cubes: Index<V> = new Map();
+    const cubes: SyncIndex<V> = new Map();
 
     const activeDim = activeView.dimension;
     const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
@@ -288,7 +288,7 @@ export class ArrowDB<V extends string, D extends string>
     console.time("Build index");
 
     const filterMasks = this.getFilterMasks(brushes);
-    const cubes: Index<V> = new Map();
+    const cubes: SyncIndex<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const binActiveX = binNumberFunctionBins(activeDimX.binConfig!, pixels[0]);

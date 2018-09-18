@@ -4,7 +4,7 @@ import { changeset, truthy, View as VgView } from "vega-lib";
 import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
-import { Index, DataBase } from "./db";
+import { Index, DataBase, Hists } from "./db";
 import {
   bin,
   binTime,
@@ -47,43 +47,109 @@ const ucb = () => {
 document.onmouseup = ucb;
 document.ontouchend = ucb;
 
-class PendingData<V> {
-  private highRes: Index<V> | Promise<Index<V>>;
+/**
+ * A simple handler that takes a promise and evaulates the last function it receives on it.
+ * Can be cancelled so that the result of the promise is simply ignored.
+ */
+class Runner<V> {
+  private _data: V;
 
-  private highResPending = true;
+  private func;
 
-  constructor(
-    private lowRes: Index<V> | Promise<Index<V>>,
-    /**
-     * Function to request high res data. Can be resolved later.
-     */
-    private fetchHighRes_: () => Index<V> | Promise<Index<V>>,
-    private highResCallback: (cubes: Index<V>) => void
-  ) {}
+  private cancelled = false;
 
-  public fetchHighRes() {
-    if (!this.highRes) {
-      this.highRes = this.fetchHighRes_();
-
-      const done = cube => {
-        this.highResPending = false;
-        this.highResCallback(cube);
-      };
-
-      if (this.highRes instanceof Promise) {
-        this.highRes.then(done);
+  constructor(private _promise: Promise<V>) {
+    _promise.then(data => {
+      if (!this.cancelled) {
+        this._data = data;
+        this.func && this.func(data);
       } else {
-        done(this.highRes);
+        console.warn("Promise resolved after runner was cancelled.");
       }
+    });
+  }
+
+  /**
+   * Get a promise which may be rejected when the original promise was cancelled.
+   */
+  public async promise(): Promise<V> {
+    return new Promise<V>(resolve => {
+      this._promise.then(value => {
+        if (this.cancelled) {
+          console.info(
+            "Runner has been cancelled so we are dropping the result."
+          );
+        } else {
+          resolve(value);
+        }
+      });
+    });
+  }
+
+  /**
+   * Run the function immediately or when the promise resolves.
+   * Only the last function will be evaluated when then promise resolves.
+   */
+  public run(f: (data: V) => void) {
+    if (this.cancelled) {
+      throw new Error("Runner has been cancelled.");
+    }
+
+    this.func = f;
+
+    if (this._data) {
+      this.func(this._data);
     }
   }
 
-  public cubes(): Index<V> | Promise<Index<V>> {
-    return this.highResPending ? this.lowRes : this.highRes;
+  /**
+   * Override the dataset.
+   */
+  public set data(data: V) {
+    if (!this._data) {
+      throw new Error("Promise has not resolved yet.");
+    }
+    this._data = data;
   }
 
-  public hasHighRes() {
-    return !this.highResPending;
+  /**
+   * Get the resolved dataset or undefined.
+   */
+  public get data() {
+    return this._data;
+  }
+
+  /**
+   * Cancel the promise.
+   */
+  public cancel() {
+    this.cancelled = true;
+  }
+}
+
+/**
+ * Convert a map of promises to a map of runners.
+ */
+function runnerify<T, U>(map: Map<T, Promise<U> | U>): Map<T, Runner<U>> {
+  const out = new Map<T, Runner<U>>();
+
+  for (const [key, value] of map) {
+    if (value instanceof Promise) {
+      out.set(key, new Runner(value));
+    } else {
+      const p = new Promise<U>((resolve, _reject) => {
+        resolve(value);
+      });
+      out.set(key, new Runner(p));
+    }
+  }
+
+  return out;
+}
+
+function cancelAll<T, U>(runners: Map<T, Runner<U>>) {
+  for (const runner of runners.values()) {
+    runner.cancel();
   }
 }
 
@@ -96,12 +162,7 @@ export class App<V extends string, D extends string> {
   /**
    * Prefetched data that can be moved to data when the active view changes.
    */
-  private prefetchedData = new Map<V, PendingData<V>>();
-
-  /**
-   * How many required requests are pending for the view;
-   */
-  private pendingRequests = new Map<V, number>();
+  private prefetchedData = new Map<V, Map<V, Runner<Hists>>>();
 
   private readonly config: Config;
 
@@ -111,14 +172,6 @@ export class App<V extends string, D extends string> {
   private readonly highRes2D: number;
 
   private throttledUpdate: () => void;
-
-  /**
-   * Track which view was last hovered so we can fetch high resolution data.
-   */
-  private lastHovered: {
-    view: V | null;
-    when: number;
-  } = { view: null, when: 0 };
 
   /**
    * Construct the app
@@ -142,6 +195,13 @@ export class App<V extends string, D extends string> {
       console.warn(
         "If you use interpolation, you probably also want to enable progressive interactions."
       );
+    }
+
+    if (this.config.progressiveInteractions && this.db.blocking) {
+      console.error(
+        "Progressive iteractions are not supported with blocking DBs."
+      );
+      this.config.progressiveInteractions = false;
     }
 
     this.highRes1D = Math.min(
@@ -324,15 +384,18 @@ export class App<V extends string, D extends string> {
       const cb = () => {
         this.prefetchView(name, !!this.config.progressiveInteractions);
       };
+
       el["on" + this.config.prefetchOn] = cb;
       el.ontouchstart = cb;
 
-      if (this.config.prefetchOn === "mousedown") {
-        // vegaView.container()!.style.border = "1px solid red";
-        vegaView.container()!.style.cursor = "pointer";
-        (vegaView
-          .container()!
-          .children.item(0) as HTMLElement).style.pointerEvents = "none";
+      const lowResPixels = this.getPixels(
+        view,
+        !!this.config.progressiveInteractions
+      );
+      this.setPixels(name, lowResPixels);
+
+      if (this.config.debugViewInteractions) {
+        vegaView.container()!.style.border = "1px solid green";
       }
     }
 
@@ -379,168 +442,162 @@ export class App<V extends string, D extends string> {
     }
   }
 
-  /**
-   * Get data for the view so that we can brush in it.
-   */
-  public prefetchView(name: V, progressive: boolean) {
-    if (mouseIsDown) {
-      return;
-    }
-
-    if (this.lastHovered.view !== name) {
-      this.lastHovered = {
-        view: name,
-        when: Date.now()
-      };
-    }
-
-    const fetchAfterTimeout = () => {
-      const startTime = Date.now();
-      window.setTimeout(() => {
-        if (this.lastHovered.view !== name) {
-          console.info(
-            `We are hovering over ${
-              this.lastHovered.view
-            } instead of ${name} so we are not going to fetch high resolution data.`
-          );
-          return;
-        }
-
-        if (startTime < this.lastHovered.when) {
-          console.info(
-            `We haven't hovered long enough over ${name} yet to fetch high resolution data.`
-          );
-          return;
-        }
-
-        const data = this.prefetchedData.get(name);
-        if (data) {
-          data.fetchHighRes();
-        } else {
-          console.warn(
-            `Tried to get high resolution data after fetching low res data for ${name} but it is not preloaded.`
-          );
-        }
-      }, this.config.progressiveTimeout);
-    };
-
-    const data = this.prefetchedData.get(name);
-    if (data) {
-      // we might have already prefetched but aborted a previous hover with wait
-      if (!data.hasHighRes() && progressive) {
-        fetchAfterTimeout();
-      }
-      return;
-    }
-
-    const vegaView = this.getVegaView(name);
-    // vegaView.container()!.style.border = "1px solid orange";
-    vegaView.container()!.style.cursor = "wait";
-    (vegaView
-      .container()!
-      .children.item(0) as HTMLElement).style.pointerEvents = "none";
-
-    const view = this.views.get(name)!;
-
-    let cubes: Promise<Index<V>> | Index<V>;
-    let lowResPixels: number | Interval<number>;
-
+  public getPixels(view: View1D<D>, progressive: boolean): number;
+  public getPixels(view: View2D<D>, progressive: boolean): Interval<number>;
+  public getPixels(
+    view: View1D<D> | View2D<D>,
+    progressive: boolean
+  ): number | Interval<number>;
+  public getPixels(
+    view: View1D<D> | View2D<D>,
+    progressive: boolean
+  ): number | Interval<number> {
     if (view.type === "1D") {
       const binConfig = view.dimension.binConfig!;
 
-      lowResPixels = progressive
-        ? numBins(binConfig)
-        : this.highResPixels(binConfig);
-
-      cubes = this.load1DData(name, view, lowResPixels);
+      return progressive ? numBins(binConfig) : this.highResPixels(binConfig);
     } else if (view.type === "2D") {
-      lowResPixels = progressive
+      return progressive
         ? [
             numBins(view.dimensions[0].binConfig!),
             numBins(view.dimensions[1].binConfig!)
           ]
         : [this.highRes2D, this.highRes2D];
+    }
+    throw new Error("0D cannot be an active view.");
+  }
+
+  /**
+   * Get data for the view so that we can brush in it.
+   */
+  public prefetchView(name: V, progressive = true) {
+    if (mouseIsDown) {
+      return;
+    }
+
+    if (this.prefetchedData.has(name)) {
+      // we are already loading this view
+      return;
+    }
+
+    const view = this.views.get(name)!;
+
+    if (progressive) {
+      // refine how progressive we want to be
+      progressive =
+        this.config.progressiveInteractions === true ||
+        (this.config.progressiveInteractions === "only2D" &&
+          view.type === "2D");
+    }
+
+    let cubes: Index<V>;
+
+    if (view.type === "1D") {
+      const lowResPixels = this.getPixels(view, progressive);
+      this.setPixels(name, lowResPixels);
+      cubes = this.load1DData(name, view, lowResPixels);
+    } else if (view.type === "2D") {
+      const lowResPixels = this.getPixels(view, progressive);
+      this.setPixels(name, lowResPixels);
       cubes = this.load2DData(name, view, lowResPixels);
     } else {
       throw new Error("0D cannot be an active view.");
     }
 
-    let highResPixels: number | Interval<number>;
-    const pendingData = new PendingData(
-      cubes,
-      () => {
-        // get high res data
-        if (view.type === "1D") {
-          highResPixels = this.highResPixels(view.dimension.binConfig!);
-          return this.load1DData(name, view, highResPixels);
-        } else {
-          highResPixels = [this.highRes2D, this.highRes2D];
-          return this.load2DData(name, view, highResPixels);
-        }
-      },
-      () => {
-        if (this.prefetchedData.get(name) !== pendingData) {
-          console.warn(
-            `Received outdated high res result for ${name} that was ignored.`
-          );
-          return;
-        }
+    const runners = runnerify(cubes);
+    this.prefetchedData.set(name, runners);
 
-        console.info(
-          `High res data for ${name} available. Pixels: ${highResPixels}`
-        );
-        this.setPixels(name, highResPixels);
+    for (const [n, r] of runners) {
+      r.promise().then(() => {
+        const vegaView = this.getVegaView(n);
+        vegaView
+          .signal("pending", false)
+          .signal("approximate", progressive && this.config.interpolate)
+          .run();
 
-        for (const [n, vgView] of this.vegaViews) {
-          if (n !== name) {
-            vgView.signal("approximate", false).run();
+        if (
+          (this.config.prefetchOn === "mouseenter" ||
+            this.db.blocking === false) &&
+          this.views.get(n)!.type !== "0D"
+        ) {
+          if (this.config.debugViewInteractions) {
+            vegaView.container()!.style.border = "1px solid green";
           }
-        }
-
-        if (name === this.activeView) {
-          if (this.config.interpolate) {
-            this.update();
-          }
-        }
-      }
-    );
-
-    this.prefetchedData.set(name, pendingData);
-
-    // mark view as pending as long as we don't have required data
-    const done = () => {
-      if (this.prefetchedData.get(name) !== pendingData) {
-        console.warn(
-          `Received outdated prefetch result for ${name} that was ignored.`
-        );
-        return;
-      }
-
-      // vegaView.container()!.style.border = "1px solid green";
-      vegaView.container()!.style.cursor = null;
-      (vegaView
-        .container()!
-        .children.item(0) as HTMLElement).style.pointerEvents = "all";
-
-      this.setPixels(name, lowResPixels);
-      vegaView.signal("ready", true).run();
-
-      if (progressive) {
-        fetchAfterTimeout();
-      }
-    };
-
-    if (cubes instanceof Promise) {
-      this.pendingRequests.set(name, this.pendingRequests.get(name) || 0 + 1);
-      cubes.then(() => {
-        const count = this.pendingRequests.get(name)! - 1;
-        this.pendingRequests.set(name, count);
-        if (count === 0) {
-          done();
+          vegaView.container()!.style.cursor = null;
+          (vegaView
+            .container()!
+            .children.item(0) as HTMLElement).style.pointerEvents = "all";
         }
       });
-    } else {
-      done();
+    }
+  }
+
+  private loadHighResData(name: V) {
+    if (this.activeView !== name) {
+      console.info(`Ignored high res request since ${name} is not active.`);
+      return;
+    }
+
+    // the runners for the view so we can later make sure it's still the same
+    const runners = this.prefetchedData.get(name)!;
+
+    const view = this.getActiveView();
+
+    if (
+      this.config.progressiveInteractions === true ||
+      (this.config.progressiveInteractions === "only2D" && view.type === "2D")
+    ) {
+      let highResCubes: Index<V>;
+
+      let highResPixels: number | Interval<number>;
+      if (view.type === "1D") {
+        highResPixels = this.highResPixels(view.dimension.binConfig!);
+        highResCubes = this.load1DData(name, view, highResPixels);
+      } else {
+        highResPixels = [this.highRes2D, this.highRes2D];
+        highResCubes = this.load2DData(name, view, highResPixels);
+      }
+
+      // when we don't use interpolation, let's wait before setting the runners
+      const histsPromises = Array.from<[V, Promise<Hists>]>(
+        highResCubes.entries() as any
+      );
+      Promise.all(histsPromises.map(d => d[1])).then(async hists => {
+        const index = this.prefetchedData.get(name)!;
+        if (index === runners) {
+          this.setPixels(name, highResPixels);
+
+          // replace the prefetched data with high res data
+          for (let i = 0; i < histsPromises.length; i++) {
+            const v = histsPromises[i][0];
+            index.get(v)!.data = hists[i];
+
+            const vegaView = this.getVegaView(v);
+            vegaView
+              .signal("pending", false)
+              .signal("approximate", false)
+              .run();
+
+            if (this.views.get(v)!.type !== "0D") {
+              if (this.config.debugViewInteractions) {
+                vegaView.container()!.style.border = "1px solid green";
+              }
+              vegaView.container()!.style.cursor = null;
+              (vegaView
+                .container()!
+                .children.item(0) as HTMLElement).style.pointerEvents = "all";
+            }
+          }
+
+          this.throttledUpdate();
+
+          console.info(
+            `High res data available for ${name} with ${highResPixels} pixels.`
+          );
+        } else {
+          console.info(`Received outdated high res data for ${name}.`);
+        }
+      });
     }
   }
 
@@ -581,15 +638,16 @@ export class App<V extends string, D extends string> {
   }
 
   private clearPrefetched() {
-    // keep the prefetched data for the active dimension
-    const activePrefetched = this.prefetchedData.get(this.activeView);
-    this.prefetchedData.clear();
-    if (activePrefetched) {
-      this.prefetchedData.set(this.activeView, activePrefetched);
-    }
-
     for (const [name, vegaView] of this.vegaViews) {
       if (name !== this.activeView) {
+        const map = this.prefetchedData.get(name);
+
+        if (map) {
+          cancelAll(map);
+
+          this.prefetchedData.delete(name);
+        }
+
         vegaView.runAfter(view => {
           // When the active view is 2D, we shold remove the interestingness data
           if (
@@ -598,15 +656,7 @@ export class App<V extends string, D extends string> {
           ) {
             view.remove("interesting", truthy).resize();
           }
-          view.signal("ready", false).run();
         });
-
-        if (this.config.prefetchOn === "mousedown") {
-          // vegaView.container()!.style.border = "1px solid red";
-          vegaView.container()!.style.cursor = "pointer";
-          (vegaView.container()!.children.item(0) as HTMLElement).style.pointerEvents =
-            "none";
-        }
       }
     }
   }
@@ -619,30 +669,28 @@ export class App<V extends string, D extends string> {
 
     this.activeView = name;
 
-    const data = this.prefetchedData.get(name)!;
-
-    if (
-      this.config.progressiveInteractions === true ||
-      (this.config.progressiveInteractions === "only2D" &&
-        this.getActiveView().type === "2D")
-    ) {
-      if (approximate && !data.hasHighRes()) {
-        if (this.config.interpolate) {
-          for (const [n, vgView] of this.vegaViews) {
-            if (n !== name) {
-              vgView.signal("approximate", true).run();
-            }
-          }
-        }
-      }
-
-      if (!this.db.blocking) {
-        // we are not using a blocking db and now this dimension is active so let's get high resolution data now
-        this.prefetchedData.get(name)!.fetchHighRes();
-      }
-    }
-
     this.showInterestingness();
+
+    if (approximate) {
+      let runners = this.prefetchedData.get(name)!;
+
+      if (!runners) {
+        // could happen when the suer clicks reset on without preload on hover
+        this.prefetchView(name);
+        runners = this.prefetchedData.get(name)!;
+      }
+
+      Promise.all(runners.values()).then(() => {
+        const index = this.prefetchedData.get(name)!;
+        if (index === runners) {
+          this.loadHighResData(name);
+        } else {
+          console.info(
+            `Won't load high res data for ${name} since the request is outdated.`
+          );
+        }
+      });
+    }
   }
 
   private showInterestingness() {
@@ -683,12 +731,19 @@ export class App<V extends string, D extends string> {
 
     const pixels = this.getActiveVegaView().signal("pixels");
 
-    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
+    const cubes = this.prefetchedData.get(this.activeView)!;
     for (const [name, view] of omit(this.views, this.activeView)) {
       if (view.type !== "0D") {
         let data: Array<any>;
 
-        const { hists } = cubes.get(name)!;
+        const runner = cubes.get(name)!;
+
+        if (runner.data === undefined) {
+          // not yet ready
+          return;
+        }
+
+        const { hists } = runner.data;
 
         if (opt.window !== undefined) {
           const w = Math.floor(opt.window / 2);
@@ -921,9 +976,9 @@ export class App<V extends string, D extends string> {
       : sub(hists.pick(floor[0], null, null), hists.pick(floor[1], null, null));
   }
 
-  private async update1DActiveView() {
+  private update1DActiveView() {
     const activeVgView = this.getActiveVegaView();
-    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
+    const cubes = this.prefetchedData.get(this.activeView)!;
 
     let activeBrushFloat: Interval<number> | 0 = activeVgView.signal(
       "binBrush"
@@ -953,28 +1008,56 @@ export class App<V extends string, D extends string> {
         continue;
       }
 
-      const data = cubes.get(name)!;
-      const hists = data.hists;
+      const runner = cubes.get(name)!;
 
-      if (view.type === "0D") {
-        const value = activeBrushFloat
-          ? this.valueFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
-          : data.noBrush.data[0];
+      if (!runner.data) {
+        const vegaView = this.getVegaView(name);
+        vegaView.signal("pending", true).run();
 
-        this.update0DView(name, value);
-      } else if (view.type === "1D") {
-        const hist = activeBrushFloat
-          ? this.histFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
-          : data.noBrush;
-
-        this.update1DView(name, view, hist);
-      } else {
-        const heat = activeBrushFloat
-          ? this.heatFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
-          : data.noBrush;
-
-        this.update2DView(name, view, heat);
+        if (
+          (this.config.prefetchOn === "mouseenter" ||
+            this.db.blocking === false) &&
+          this.views.get(name)!.type !== "0D"
+        ) {
+          if (this.config.debugViewInteractions) {
+            vegaView.container()!.style.border = "1px solid orange";
+          }
+          vegaView.container()!.style.cursor = "wait";
+          (vegaView
+            .container()!
+            .children.item(0) as HTMLElement).style.pointerEvents = "none";
+        }
       }
+
+      // run when the promise resolves
+      runner.run(data => {
+        const hists = data.hists;
+
+        if (view.type === "0D") {
+          const value = activeBrushFloat
+            ? this.valueFor1D(
+                hists,
+                activeBrushFloor,
+                activeBrushCeil,
+                fraction
+              )
+            : data.noBrush.data[0];
+
+          this.update0DView(name, value);
+        } else if (view.type === "1D") {
+          const hist = activeBrushFloat
+            ? this.histFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
+            : data.noBrush;
+
+          this.update1DView(name, view, hist);
+        } else {
+          const heat = activeBrushFloat
+            ? this.heatFor1D(hists, activeBrushFloor, activeBrushCeil, fraction)
+            : data.noBrush;
+
+          this.update2DView(name, view, heat);
+        }
+      });
     }
   }
 
@@ -1024,9 +1107,9 @@ export class App<V extends string, D extends string> {
         );
   }
 
-  private async update2DActiveView() {
+  private update2DActiveView() {
     const activeVgView = this.getActiveVegaView();
-    const cubes = await this.prefetchedData.get(this.activeView)!.cubes();
+    const cubes = this.prefetchedData.get(this.activeView)!;
 
     let activeBrushFloat: Interval<Interval<number>> | 0 = activeVgView.signal(
       "binBrush"
@@ -1052,40 +1135,68 @@ export class App<V extends string, D extends string> {
       if (name === this.activeView) {
         continue;
       }
-      const data = cubes.get(name)!;
-      const hists = data.hists;
+      const runner = cubes.get(name)!;
 
-      if (view.type === "0D") {
-        const value = activeBrushFloat
-          ? this.valueFor2D(hists, activeBrushFloat, activeBrushFloor)
-          : data.noBrush[0];
+      if (!runner.data) {
+        const vegaView = this.getVegaView(name);
+        vegaView.signal("pending", true).run();
 
-        this.update0DView(name, value);
-      } else if (view.type === "1D") {
-        const hist = activeBrushFloat
-          ? this.histFor2D(hists, activeBrushFloat, activeBrushFloor)
-          : data.noBrush;
-
-        this.update1DView(name, view, hist);
-      } else {
-        const heat = activeBrushFloat
-          ? this.heatFor2D(hists, activeBrushFloat, activeBrushFloor)
-          : data.noBrush;
-
-        this.update2DView(name, view, heat);
+        if (
+          (this.config.prefetchOn === "mouseenter" ||
+            this.db.blocking === false) &&
+          this.views.get(name)!.type !== "0D"
+        ) {
+          if (this.config.debugViewInteractions) {
+            vegaView.container()!.style.border = "1px solid orange";
+          }
+          vegaView.container()!.style.cursor = "wait";
+          (vegaView
+            .container()!
+            .children.item(0) as HTMLElement).style.pointerEvents = "none";
+        }
       }
+
+      // run when the promise resolves
+      runner.run(data => {
+        const hists = data.hists;
+
+        if (view.type === "0D") {
+          const value = activeBrushFloat
+            ? this.valueFor2D(hists, activeBrushFloat, activeBrushFloor)
+            : data.noBrush.data[0];
+
+          this.update0DView(name, value);
+        } else if (view.type === "1D") {
+          const hist = activeBrushFloat
+            ? this.histFor2D(hists, activeBrushFloat, activeBrushFloor)
+            : data.noBrush;
+
+          this.update1DView(name, view, hist);
+        } else {
+          const heat = activeBrushFloat
+            ? this.heatFor2D(hists, activeBrushFloat, activeBrushFloor)
+            : data.noBrush;
+
+          this.update2DView(name, view, heat);
+        }
+      });
     }
   }
 
-  private async update() {
+  private update() {
     if (this.prefetchedData.size > 1) {
       this.clearPrefetched();
     }
 
-    if (this.getActiveView().type === "1D") {
-      await this.update1DActiveView();
-    } else {
-      await this.update2DActiveView();
-    }
+    const cb = async () => {
+      if (this.getActiveView().type === "1D") {
+        await this.update1DActiveView();
+      } else {
+        await this.update2DActiveView();
+      }
+    };
+
+    // TODO: why do we need to to make reset work correctly?
+    this.getActiveVegaView().runAfter(cb);
   }
 }

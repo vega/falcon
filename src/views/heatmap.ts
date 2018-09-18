@@ -1,7 +1,7 @@
 import { parse, Spec, View, Mark, Warn } from "vega-lib";
 import { View2D } from "../api";
 import { Config } from "../config";
-import { darkerBlue } from "./histogram";
+import { darkerBlue, loadingMarks } from "./histogram";
 
 export function createHeatmapView<D extends string>(
   el: Element,
@@ -74,28 +74,6 @@ export function createHeatmapView<D extends string>(
         },
         update: {
           text: { signal: "showBase ? 'Hide Unfiltered' : 'Show Unfiltered'" }
-        }
-      }
-    } as Mark);
-  }
-
-  if (config.readyIndicator) {
-    marks.push({
-      type: "symbol",
-      encode: {
-        enter: {
-          shape: { value: "circle" },
-          stroke: { value: "black" }
-        },
-        update: {
-          fill: {
-            signal: 'ready ? "black" : "transparent"'
-          },
-          x: { signal: "width", offset: 80 },
-          y: { value: 10 },
-          tooltip: {
-            signal: '"View ready: " + ready'
-          }
         }
       }
     } as Mark);
@@ -189,7 +167,6 @@ export function createHeatmapView<D extends string>(
   marks.push({
     type: "group",
     name: "chart",
-    interactive: { signal: "ready" },
     encode: {
       enter: {
         height: { signal: "height" },
@@ -289,6 +266,8 @@ export function createHeatmapView<D extends string>(
     ])
   });
 
+  marks.push(...loadingMarks("height"));
+
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
     width: width,
@@ -309,7 +288,7 @@ export function createHeatmapView<D extends string>(
       }
     ],
     signals: [
-      { name: "ready", value: false },
+      { name: "pending", value: false },
       { name: "approximate", value: false },
       { name: "binX", value: dimensionX.binConfig },
       { name: "binY", value: dimensionY.binConfig },

@@ -1,14 +1,19 @@
 import "@mapd/connector/dist/browser-connector";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
-import { Dimension, View1D, View2D, Views } from "../api";
+import { Dimension, View1D, View2D, Views, View } from "../api";
 import { Interval } from "../basic";
 import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
-import { DataBase, Index } from "./db";
+import { DataBase, Index, AsyncIndex } from "./db";
 
 const connector = new (window as any).MapdCon();
+
+interface Bin {
+  select: string;
+  where: string;
+}
 
 export class MapDDB<V extends string, D extends string>
   implements DataBase<V, D> {
@@ -190,7 +195,136 @@ export class MapDDB<V extends string, D extends string>
     return filters;
   }
 
-  public async loadData1D(
+  public async cubeSlice1D(
+    view: View<D>,
+    filters: Map<D, string>,
+    binActive: Bin,
+    numPixels: number
+  ) {
+    let hists: ndarray;
+    let noBrush: ndarray;
+
+    const relevantFilters = new Map(filters);
+    if (view.type === "0D") {
+      // use all filters
+    } else if (view.type === "1D") {
+      relevantFilters.delete(view.dimension.name);
+    } else {
+      relevantFilters.delete(view.dimensions[0].name);
+      relevantFilters.delete(view.dimensions[1].name);
+    }
+
+    const where = Array.from(relevantFilters.values()).join(" AND ");
+
+    let query: string;
+
+    const select = `CASE
+            WHEN ${binActive.where}
+            THEN ${binActive.select}
+            ELSE -1 END AS keyActive,
+          count(*) AS cnt`;
+
+    if (view.type === "0D") {
+      hists = ndarray(new CUM_ARR_TYPE(numPixels));
+      noBrush = ndarray(new HIST_TYPE(1), [1]);
+
+      query = `
+          SELECT
+            ${select}
+          FROM ${this.table}
+          ${where ? `WHERE ${where}` : ""}
+          GROUP BY keyActive`;
+    } else if (view.type === "1D") {
+      const dim = view.dimension;
+
+      const binConfig = dim.binConfig!;
+      const bin = this.binSQL(dim.name, binConfig);
+      const binCount = numBins(binConfig);
+
+      hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
+        numPixels,
+        binCount
+      ]);
+      noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
+
+      query = `
+          SELECT
+            ${select},
+            ${bin.select} AS key
+          FROM ${this.table}
+          WHERE ${bin.where} ${where ? `AND ${where}` : ""}
+          GROUP BY keyActive, key`;
+    } else {
+      const dimensions = view.dimensions;
+      const binConfigs = dimensions.map(d => d.binConfig!);
+      const [numBinsX, numBinsY] = binConfigs.map(numBins);
+      const [binX, binY] = [0, 1].map(i =>
+        this.binSQL(dimensions[i].name, binConfigs[i])
+      );
+
+      hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
+        numPixels,
+        numBinsX,
+        numBinsY
+      ]);
+      noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
+        numBinsX,
+        numBinsY
+      ]);
+
+      query = `
+          SELECT
+            ${select},
+            ${binX.select} as keyX,
+            ${binY.select} as keyY
+          FROM ${this.table}
+          WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
+          GROUP BY keyActive, keyX, keyY`;
+    }
+
+    const res = await this.query(query);
+
+    if (view.type === "0D") {
+      for (const { keyActive, cnt } of res) {
+        if (keyActive >= 0) {
+          hists.set(keyActive, cnt);
+        }
+        noBrush.data[0] += cnt;
+      }
+
+      prefixSum(hists);
+    } else if (view.type === "1D") {
+      for (const { keyActive, key, cnt } of res) {
+        if (keyActive >= 0) {
+          hists.set(keyActive, key, cnt);
+        }
+        noBrush.data[noBrush.index(key)] += cnt;
+      }
+
+      // compute cumulative sums
+      for (let x = 0; x < hists.shape[1]; x++) {
+        prefixSum(hists.pick(null, x));
+      }
+    } else if (view.type === "2D") {
+      for (const { keyActive, keyX, keyY, cnt } of res) {
+        if (keyActive >= 0) {
+          hists.set(keyActive, keyX, keyY, cnt);
+        }
+        noBrush.data[noBrush.index(keyX, keyY)] += cnt;
+      }
+
+      // compute cumulative sums
+      for (let x = 0; x < hists.shape[1]; x++) {
+        for (let y = 0; y < hists.shape[2]; y++) {
+          prefixSum(hists.pick(null, x, y));
+        }
+      }
+    }
+
+    return { hists, noBrush };
+  }
+
+  public loadData1D(
     activeView: View1D<D>,
     pixels: number,
     views: Views<V, D>,
@@ -199,7 +333,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
-    const cubes: Index<V> = new Map();
+    const cubes: AsyncIndex<V> = new Map();
 
     const activeDim = activeView.dimension;
     const binActive = this.binSQLPixel(
@@ -210,138 +344,159 @@ export class MapDDB<V extends string, D extends string>
 
     const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
-    await Promise.all(
-      Array.from(views.entries()).map(async ([name, view]) => {
-        let hists: ndarray;
-        let noBrush: ndarray;
+    const promises: Promise<any>[] = [];
+    for (const [name, view] of views) {
+      const slice = this.cubeSlice1D(view, filters, binActive, numPixels);
+      promises.push(slice);
+      cubes.set(name, slice);
+    }
 
-        const relevantFilters = new Map(filters);
-        if (view.type === "0D") {
-          // use all filters
-        } else if (view.type === "1D") {
-          relevantFilters.delete(view.dimension.name);
-        } else {
-          relevantFilters.delete(view.dimensions[0].name);
-          relevantFilters.delete(view.dimensions[1].name);
-        }
+    Promise.all(promises).then(() => {
+      console.info(`Build index: ${performance.now() - t0}ms`);
+    });
 
-        const where = Array.from(relevantFilters.values()).join(" AND ");
+    return cubes;
+  }
 
-        let query: string;
+  public async cubeSlice2D(
+    view: View<D>,
+    filters: Map<D, string>,
+    binActiveX: Bin,
+    binActiveY: Bin,
+    numPixelsX: number,
+    numPixelsY: number
+  ) {
+    let hists: ndarray;
+    let noBrush: ndarray;
 
-        const select = `CASE
-            WHEN ${binActive.where}
-            THEN ${binActive.select}
-            ELSE -1 END AS keyActive,
+    const relevantFilters = new Map(filters);
+    if (view.type === "0D") {
+      // use all filters
+    } else if (view.type === "1D") {
+      relevantFilters.delete(view.dimension.name);
+    } else {
+      relevantFilters.delete(view.dimensions[0].name);
+      relevantFilters.delete(view.dimensions[1].name);
+    }
+
+    const where = Array.from(relevantFilters.values()).join(" AND ");
+
+    let query: string;
+
+    const select = `CASE
+            WHEN ${binActiveX.where} AND ${binActiveY.where}
+            THEN ${binActiveX.select}
+            ELSE -1 END AS keyActiveX,
+          CASE
+            WHEN ${binActiveX.where} AND ${binActiveY.where}
+            THEN ${binActiveY.select}
+            ELSE -1 END AS keyActiveY,
           count(*) AS cnt`;
 
-        if (view.type === "0D") {
-          hists = ndarray(new CUM_ARR_TYPE(numPixels));
-          noBrush = ndarray(new HIST_TYPE(1), [1]);
+    if (view.type === "0D") {
+      hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
+        numPixelsX,
+        numPixelsY
+      ]);
+      noBrush = ndarray(new HIST_TYPE(1), [1]);
 
-          query = `
+      query = `
           SELECT
             ${select}
           FROM ${this.table}
           ${where ? `WHERE ${where}` : ""}
-          GROUP BY keyActive`;
-        } else if (view.type === "1D") {
-          const dim = view.dimension;
+          GROUP BY keyActiveX, keyActiveY`;
+    } else if (view.type === "1D") {
+      const dim = view.dimension;
 
-          const binConfig = dim.binConfig!;
-          const bin = this.binSQL(dim.name, binConfig);
-          const binCount = numBins(binConfig);
+      const binConfig = dim.binConfig!;
+      const bin = this.binSQL(dim.name, binConfig);
+      const binCount = numBins(binConfig);
 
-          hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
-            numPixels,
-            binCount
-          ]);
-          noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
+      hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount), [
+        numPixelsX,
+        numPixelsY,
+        binCount
+      ]);
+      noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
-          query = `
+      query = `
           SELECT
             ${select},
             ${bin.select} AS key
           FROM ${this.table}
           WHERE ${bin.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActive, key`;
-        } else {
-          const dimensions = view.dimensions;
-          const binConfigs = dimensions.map(d => d.binConfig!);
-          const [numBinsX, numBinsY] = binConfigs.map(numBins);
-          const [binX, binY] = [0, 1].map(i =>
-            this.binSQL(dimensions[i].name, binConfigs[i])
-          );
+          GROUP BY keyActiveX, keyActiveY, key`;
+    } else {
+      const dimensions = view.dimensions;
+      const binConfigs = dimensions.map(d => d.binConfig!);
+      const [numBinsX, numBinsY] = binConfigs.map(numBins);
+      const [binX, binY] = [0, 1].map(i =>
+        this.binSQL(dimensions[i].name, binConfigs[i])
+      );
 
-          hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
-            numPixels,
-            numBinsX,
-            numBinsY
-          ]);
-          noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
-            numBinsX,
-            numBinsY
-          ]);
+      hists = ndarray(
+        new CUM_ARR_TYPE(numPixelsX * numPixelsY * numBinsX * numBinsY),
+        [numPixelsX, numPixelsY, numBinsX, numBinsY]
+      );
+      noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
+        numBinsX,
+        numBinsY
+      ]);
 
-          query = `
+      query = `
           SELECT
             ${select},
-            ${binX.select} as keyX,
-            ${binY.select} as keyY
+            ${binX.select} AS keyX,
+            ${binY.select} AS keyY
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActive, keyX, keyY`;
+          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
+    }
+
+    const res = await this.query(query);
+
+    if (view.type === "0D") {
+      for (const { keyActiveX, keyActiveY, cnt } of res) {
+        if (keyActiveX >= 0 && keyActiveY >= 0) {
+          hists.set(keyActiveX, keyActiveY, cnt);
         }
+        noBrush.data[0] += cnt;
+      }
 
-        const res = await this.query(query);
-
-        if (view.type === "0D") {
-          for (const { keyActive, cnt } of res) {
-            if (keyActive >= 0) {
-              hists.set(keyActive, cnt);
-            }
-            noBrush.data[0] += cnt;
-          }
-
-          prefixSum(hists);
-        } else if (view.type === "1D") {
-          for (const { keyActive, key, cnt } of res) {
-            if (keyActive >= 0) {
-              hists.set(keyActive, key, cnt);
-            }
-            noBrush.data[noBrush.index(key)] += cnt;
-          }
-
-          // compute cumulative sums
-          for (let x = 0; x < hists.shape[1]; x++) {
-            prefixSum(hists.pick(null, x));
-          }
-        } else if (view.type === "2D") {
-          for (const { keyActive, keyX, keyY, cnt } of res) {
-            if (keyActive >= 0) {
-              hists.set(keyActive, keyX, keyY, cnt);
-            }
-            noBrush.data[noBrush.index(keyX, keyY)] += cnt;
-          }
-
-          // compute cumulative sums
-          for (let x = 0; x < hists.shape[1]; x++) {
-            for (let y = 0; y < hists.shape[2]; y++) {
-              prefixSum(hists.pick(null, x, y));
-            }
-          }
+      prefixSum(hists);
+    } else if (view.type === "1D") {
+      for (const { keyActiveX, keyActiveY, key, cnt } of res) {
+        if (keyActiveX >= 0 && keyActiveY >= 0) {
+          hists.set(keyActiveX, keyActiveY, key, cnt);
         }
+        noBrush.data[noBrush.index(key)] += cnt;
+      }
 
-        cubes.set(name, { hists, noBrush });
-      })
-    );
+      // compute cumulative sums
+      for (let x = 0; x < hists.shape[2]; x++) {
+        prefixSum(hists.pick(null, null, x));
+      }
+    } else if (view.type === "2D") {
+      for (const { keyActiveX, keyActiveY, keyX, keyY, cnt } of res) {
+        if (keyActiveX >= 0 && keyActiveY >= 0) {
+          hists.set(keyActiveX, keyActiveY, keyX, keyY, cnt);
+        }
+        noBrush.data[noBrush.index(keyX, keyY)] += cnt;
+      }
 
-    console.info(`Build index: ${performance.now() - t0}ms`);
+      // compute cumulative sums
+      for (let x = 0; x < hists.shape[2]; x++) {
+        for (let y = 0; y < hists.shape[3]; y++) {
+          prefixSum(hists.pick(null, null, x, y));
+        }
+      }
+    }
 
-    return cubes;
+    return { hists, noBrush };
   }
 
-  public async loadData2D(
+  public loadData2D(
     activeView: View2D<D>,
     pixels: [number, number],
     views: Views<V, D>,
@@ -350,7 +505,7 @@ export class MapDDB<V extends string, D extends string>
     const t0 = performance.now();
 
     const filters = this.getWhereClauses(brushes);
-    const cubes: Index<V> = new Map();
+    const cubes: AsyncIndex<V> = new Map();
 
     const [activeDimX, activeDimY] = activeView.dimensions;
     const binActiveX = this.binSQLPixel(
@@ -366,139 +521,25 @@ export class MapDDB<V extends string, D extends string>
 
     const [numPixelsX, numPixelsY] = [pixels[0] + 1, pixels[1] + 1];
 
-    await Promise.all(
-      Array.from(views.entries()).map(async ([name, view]) => {
-        let hists: ndarray;
-        let noBrush: ndarray;
+    const promises: Promise<any>[] = [];
+    for (const [name, view] of views) {
+      const slice = this.cubeSlice2D(
+        view,
+        filters,
+        binActiveX,
+        binActiveY,
+        numPixelsX,
+        numPixelsY
+      );
+      promises.push(slice);
+      cubes.set(name, slice);
+    }
 
-        const relevantFilters = new Map(filters);
-        if (view.type === "0D") {
-          // use all filters
-        } else if (view.type === "1D") {
-          relevantFilters.delete(view.dimension.name);
-        } else {
-          relevantFilters.delete(view.dimensions[0].name);
-          relevantFilters.delete(view.dimensions[1].name);
-        }
+    Promise.all(promises).then(() => {
+      console.info(`Build index: ${performance.now() - t0}ms`);
+    });
 
-        const where = Array.from(relevantFilters.values()).join(" AND ");
-
-        let query: string;
-
-        const select = `CASE
-            WHEN ${binActiveX.where} AND ${binActiveY.where}
-            THEN ${binActiveX.select}
-            ELSE -1 END AS keyActiveX,
-          CASE
-            WHEN ${binActiveX.where} AND ${binActiveY.where}
-            THEN ${binActiveY.select}
-            ELSE -1 END AS keyActiveY,
-          count(*) AS cnt`;
-
-        if (view.type === "0D") {
-          hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
-            numPixelsX,
-            numPixelsY
-          ]);
-          noBrush = ndarray(new HIST_TYPE(1), [1]);
-
-          query = `
-          SELECT
-            ${select}
-          FROM ${this.table}
-          ${where ? `WHERE ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY`;
-        } else if (view.type === "1D") {
-          const dim = view.dimension;
-
-          const binConfig = dim.binConfig!;
-          const bin = this.binSQL(dim.name, binConfig);
-          const binCount = numBins(binConfig);
-
-          hists = ndarray(
-            new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount),
-            [numPixelsX, numPixelsY, binCount]
-          );
-          noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
-
-          query = `
-          SELECT
-            ${select},
-            ${bin.select} AS key
-          FROM ${this.table}
-          WHERE ${bin.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY, key`;
-        } else {
-          const dimensions = view.dimensions;
-          const binConfigs = dimensions.map(d => d.binConfig!);
-          const [numBinsX, numBinsY] = binConfigs.map(numBins);
-          const [binX, binY] = [0, 1].map(i =>
-            this.binSQL(dimensions[i].name, binConfigs[i])
-          );
-
-          hists = ndarray(
-            new CUM_ARR_TYPE(numPixelsX * numPixelsY * numBinsX * numBinsY),
-            [numPixelsX, numPixelsY, numBinsX, numBinsY]
-          );
-          noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
-            numBinsX,
-            numBinsY
-          ]);
-
-          query = `
-          SELECT
-            ${select},
-            ${binX.select} AS keyX,
-            ${binY.select} AS keyY
-          FROM ${this.table}
-          WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
-        }
-
-        const res = await this.query(query);
-
-        if (view.type === "0D") {
-          for (const { keyActiveX, keyActiveY, cnt } of res) {
-            if (keyActiveX >= 0 && keyActiveY >= 0) {
-              hists.set(keyActiveX, keyActiveY, cnt);
-            }
-            noBrush.data[0] += cnt;
-          }
-
-          prefixSum(hists);
-        } else if (view.type === "1D") {
-          for (const { keyActiveX, keyActiveY, key, cnt } of res) {
-            if (keyActiveX >= 0 && keyActiveY >= 0) {
-              hists.set(keyActiveX, keyActiveY, key, cnt);
-            }
-            noBrush.data[noBrush.index(key)] += cnt;
-          }
-
-          // compute cumulative sums
-          for (let x = 0; x < hists.shape[2]; x++) {
-            prefixSum(hists.pick(null, null, x));
-          }
-        } else if (view.type === "2D") {
-          for (const { keyActiveX, keyActiveY, keyX, keyY, cnt } of res) {
-            if (keyActiveX >= 0 && keyActiveY >= 0) {
-              hists.set(keyActiveX, keyActiveY, keyX, keyY, cnt);
-            }
-            noBrush.data[noBrush.index(keyX, keyY)] += cnt;
-          }
-
-          // compute cumulative sums
-          for (let x = 0; x < hists.shape[2]; x++) {
-            for (let y = 0; y < hists.shape[3]; y++) {
-              prefixSum(hists.pick(null, null, x, y));
-            }
-          }
-        }
-
-        cubes.set(name, { hists, noBrush });
-      })
-    );
-
-    console.info(`Build index: ${performance.now() - t0}ms`);
+    return cubes;
 
     return cubes;
   }

@@ -8,7 +8,7 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
     height: 20,
 
     signals: [
-      { name: "ready", value: false },
+      { name: "pending", value: false },
       { name: "approximate", value: false }
     ],
 
@@ -37,9 +37,9 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
           },
           update: {
             text: {
-              signal: `'${
+              signal: `pending ? 'Loading View...' : '${
                 view.title
-              }: ' + format(datum.value, ',d') + ' / ' + format(data('base')[0].value, ',d') + ' (' + format(datum.value / data('base')[0].value, '.0%') + ')'`
+              }: ' + approximate ? ' ~ ' : '' + format(datum.value, ',d') + ' / ' + format(data('base')[0].value, ',d') + ' (' + format(datum.value / data('base')[0].value, '.0%') + ')'`
             }
           }
         }

@@ -1,7 +1,7 @@
 import { Config } from "./../config";
 import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
 import { View0D } from "../api";
-import { darkerBlue } from "./histogram";
+import { darkerBlue, loadingMarks } from "./histogram";
 
 export function createVerticalBarView(
   el: Element,
@@ -25,7 +25,7 @@ export function createVerticalBarView(
     padding: 5,
 
     signals: [
-      { name: "ready", value: false },
+      { name: "pending", value: false },
       { name: "approximate", value: false }
     ],
 
@@ -127,7 +127,8 @@ export function createVerticalBarView(
             }
           }
         }
-      }
+      },
+      ...loadingMarks("height", true)
     ],
 
     config: { axisY: { minExtent: config.yAxisExtent } }

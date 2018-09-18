@@ -17,6 +17,46 @@ import { extent, repeatInvisible } from "../util";
 
 export const darkerBlue = "#4c78a8";
 
+export function loadingMarks(heightSignal: string, rotate = false) {
+  return [
+    {
+      type: "rect",
+      interactive: false,
+      encode: {
+        enter: {
+          x: { value: 0 },
+          y: { value: 0 },
+          x2: { signal: "width" },
+          y2: { signal: heightSignal },
+          fill: { value: "white" }
+        },
+        update: {
+          opacity: { signal: "pending ? '0.9' : '0'" }
+        }
+      }
+    },
+    {
+      type: "text",
+      interactive: false,
+      encode: {
+        enter: {
+          text: { value: "Loading View..." },
+          baseline: { value: "middle" },
+          align: { value: "center" },
+          x: { signal: "width", mult: 0.5 },
+          y: { signal: heightSignal, mult: 0.5 },
+          fill: { value: "grey" },
+          fontSize: { value: 18 },
+          ...(rotate ? { angle: { value: -90 } } : {})
+        },
+        update: {
+          opacity: { signal: "pending ? '1' : '0'" }
+        }
+      }
+    }
+  ] as Mark[];
+}
+
 export function createHistogramView<D extends string>(
   el: Element,
   view: View1D<D>,
@@ -104,7 +144,7 @@ export function createHistogramView<D extends string>(
             },
             update: {
               text: {
-                signal: `brush ? '[' + ${
+                signal: `span(brush) ? '[' + ${
                   dimension.time ? "timeFormat" : "format"
                 }(brush[reverseBrush ? 1 : 0], '${dimension.format}') + ',' + ${
                   dimension.time ? "timeFormat" : "format"
@@ -118,7 +158,6 @@ export function createHistogramView<D extends string>(
         {
           type: "group",
           name: "chart",
-          interactive: { signal: "ready" },
           encode: {
             enter: {
               height: { field: { group: "height" } },
@@ -306,7 +345,8 @@ export function createHistogramView<D extends string>(
               ]
             }
           ]
-        }
+        },
+        ...loadingMarks("histHeight")
       ],
 
       axes: [
@@ -432,7 +472,7 @@ export function createHistogramView<D extends string>(
 
   const signals: Signal[] = [
     { name: "histHeight", value: config.histogramHeight },
-    { name: "ready", value: false },
+    { name: "pending", value: false },
     { name: "approximate", value: false },
     { name: "bin", value: dimension.binConfig },
     {
@@ -555,66 +595,70 @@ export function createHistogramView<D extends string>(
   ];
 
   if (config.zoom) {
-    [].push.apply(signals, [
-      {
-        name: "zoomAnchor",
-        value: 0,
-        on: [
-          {
-            events:
-              "@chart:wheel, @brush:wheel, @left:wheel, @left_grabber:wheel, @right:wheel, @right_grabber:wheel",
-            update: dimension.time
-              ? "time(invert('x', x()))"
-              : "invert('x', x())"
-          }
-        ]
-      },
-      {
-        name: "zoom",
-        value: 0,
-        on: [
-          {
-            events:
-              "@chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
-            force: true,
-            update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
-          }
-        ]
-      }
-    ] as Signal[]);
+    signals.push(
+      ...([
+        {
+          name: "zoomAnchor",
+          value: 0,
+          on: [
+            {
+              events:
+                "@chart:wheel, @brush:wheel, @left:wheel, @left_grabber:wheel, @right:wheel, @right_grabber:wheel",
+              update: dimension.time
+                ? "time(invert('x', x()))"
+                : "invert('x', x())"
+            }
+          ]
+        },
+        {
+          name: "zoom",
+          value: 0,
+          on: [
+            {
+              events:
+                "@chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
+              force: true,
+              update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+            }
+          ]
+        }
+      ] as Signal[])
+    );
   }
 
   if (config.showInterestingness) {
-    [].push.apply(signals, [
-      {
-        name: "brushSingleStart",
-        value: null,
-        on: [
-          {
-            events: "@chart:mousedown",
-            update: "x()"
-          },
-          {
-            events: "@left:mousedown, @left_grabber:mousedown",
-            update: "brush[1]"
-          },
-          {
-            events: "@right:mousedown, @right_grabber:mousedown",
-            update: "brush[0]"
-          }
-        ]
-      },
-      {
-        name: "brushMoveStart",
-        value: null,
-        on: [
-          {
-            events: "@brush:mousedown",
-            update: "abs(span(brush))"
-          }
-        ]
-      }
-    ] as Signal[]);
+    signals.push(
+      ...([
+        {
+          name: "brushSingleStart",
+          value: null,
+          on: [
+            {
+              events: "@chart:mousedown",
+              update: "x()"
+            },
+            {
+              events: "@left:mousedown, @left_grabber:mousedown",
+              update: "brush[1]"
+            },
+            {
+              events: "@right:mousedown, @right_grabber:mousedown",
+              update: "brush[0]"
+            }
+          ]
+        },
+        {
+          name: "brushMoveStart",
+          value: null,
+          on: [
+            {
+              events: "@brush:mousedown",
+              update: "abs(span(brush))"
+            }
+          ]
+        }
+      ] as Signal[])
+    );
   }
 
   if (logging) {
@@ -649,28 +693,6 @@ export function createHistogramView<D extends string>(
         },
         update: {
           text: { signal: "showBase ? 'Hide Unfiltered' : 'Show Unfiltered'" }
-        }
-      }
-    } as Mark);
-  }
-
-  if (config.readyIndicator) {
-    marks.push({
-      type: "symbol",
-      encode: {
-        enter: {
-          shape: { value: "circle" },
-          stroke: { value: "black" }
-        },
-        update: {
-          fill: {
-            signal: 'ready ? "black" : "transparent"'
-          },
-          x: { signal: "width", offset: 10 },
-          y: { value: 10 },
-          tooltip: {
-            signal: '"View ready: " + ready'
-          }
         }
       }
     } as Mark);

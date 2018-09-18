@@ -190,7 +190,6 @@ new App(views, db, {
     barWidth: 600,
     interpolate: true,
     progressiveInteractions: "only2D",
-    idleTime: 60000,
     prefetchOn: "mousedown"
   },
   cb: () => (document.getElementById("loading")!.style.display = "none")

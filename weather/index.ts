@@ -100,5 +100,6 @@ views.set("SNOW", {
 const db = new ArrowDB(require("../data/weather-10k.arrow"));
 
 new App(views, db, {
+  config: { idleTime: 8000 },
   cb: () => (document.getElementById("loading")!.style.display = "none")
 });
