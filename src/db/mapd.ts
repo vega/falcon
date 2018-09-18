@@ -6,7 +6,7 @@ import { Interval } from "../basic";
 import { numBins, stepSize } from "../util";
 import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
-import { DataBase, Index, AsyncIndex } from "./db";
+import { DataBase, AsyncIndex } from "./db";
 
 const connector = new (window as any).MapdCon();
 
