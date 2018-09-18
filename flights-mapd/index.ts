@@ -150,6 +150,9 @@ names.set("AIR_TIME", "airtime");
 //*  <- add or remove / to toggle
 names.set("DEP_TS", "extract(epoch from dep_timestamp) * 1000");
 
+// FIXME: the time view does not update correctly for the small dataset
+views.delete("DEP_TS");
+
 const db = new MapDDB(
   {
     host: "metis.mapd.com",
