@@ -10,6 +10,7 @@ type ViewName =
   | "AIR_TIME"
   | "ARR_DELAY"
   | "DEP_DELAY"
+  | "FL_DATE"
   | "DEP_DELAY_ARR_DELAY"
   | "COUNT";
 
@@ -19,7 +20,8 @@ type DimensionName =
   | "DISTANCE"
   | "DEP_DELAY"
   | "AIR_TIME"
-  | "DEP_TIME";
+  | "DEP_TIME"
+  | "FL_DATE";
 
 const views: Views<ViewName, DimensionName> = new Map();
 
@@ -27,6 +29,21 @@ views.set("COUNT", {
   title: "Flights selected",
   type: "0D",
   el: createElement("count")
+});
+views.set("FL_DATE", {
+  title: "Flight Date",
+  type: "1D",
+  el: createElement("date"),
+  dimension: {
+    name: "FL_DATE",
+    bins: 25,
+    // note that months start at 0!
+    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+    // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
+    // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
+    format: "%Y-%m-%d",
+    time: true
+  }
 });
 views.set("DISTANCE", {
   title: "Distance in Miles",
@@ -130,9 +147,22 @@ let logger: Logger<ViewName> | undefined;
 
 // logger = new SimpleLogger<ViewName>();
 
+const iPad = !!navigator.userAgent.match(/iPad/i);
+
 new App(views, db, {
   config: {
-    // idleTime: 10e9
+    idleTime: 8000,
+    barWidth: 600,
+    ...(iPad
+      ? {
+          idleTime: 10e9,
+          barWidth: 450,
+          histogramWidth: 450,
+          histogramHeight: 120,
+          heatmapWidth: 300,
+          prefetchOn: "mousedown"
+        }
+      : {})
   },
   logger: logger,
   cb: _app => {

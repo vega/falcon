@@ -12,6 +12,7 @@ dist
 flights
 flights-mapd
 gaia-mapd
+images
 movies
 node_modules
 rollup.config.js

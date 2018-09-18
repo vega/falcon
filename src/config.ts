@@ -4,8 +4,6 @@ export const DEFAULT_CONFIG = {
   //---------
   // features
 
-  /** Indicator that shows when you can interact with a view. */
-  readyIndicator: false,
   /** Show the base as a gray background. */
   showBase: true,
   /** Use a bar chart for showing the overall count. */
@@ -32,23 +30,24 @@ export const DEFAULT_CONFIG = {
 
   maxInteractiveResolution1D: Infinity,
   maxInteractiveResolution2D: 80,
-  /**
-   * How long to wait before requesting high resolution data.
-   * There is no delay for asynchronous databases when the dimension is activated.
-   */
-  progressiveTimeout: 2000,
 
   /** When the user does not move their mouse for this timeout, we prefetch all views. */
-  idleTime: 8000,
+  idleTime: 10e9,
 
   /** For vertical bar chart. */
   barHeight: 300,
   /** For horizontal bar chart. */
-  barWidth: 300,
+  barWidth: 400,
   histogramWidth: 600,
+  histogramHeight: 160,
   heatmapWidth: 400,
   maxCircleSize: 700,
-  yAxisExtent: 50
+  yAxisExtent: 50,
+
+  //----------
+  // debugging
+
+  debugViewInteractions: false
 };
 
 export type Config = typeof DEFAULT_CONFIG;

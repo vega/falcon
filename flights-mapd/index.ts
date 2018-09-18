@@ -52,25 +52,27 @@ views.set("ARR_TIME", {
     format: ".1~f"
   }
 });
-// views.set("DEP_TIME", {
-//   title: "Departure Time",
-//   type: "1D",
-//   el: createElement("departure"),
-//   dimension: {
-//     name: "DEP_TIME",
-//     bins: 24,
-//     extent: [0, 24],
-//     format: ".1~f"
-//   }
-// });
-views.set("DEP_TS", {
-  title: "Departure",
+views.set("DEP_TIME", {
+  title: "Departure Time",
   type: "1D",
   el: createElement("departure"),
   dimension: {
+    name: "DEP_TIME",
+    bins: 24,
+    extent: [0, 24],
+    format: ".1~f"
+  }
+});
+views.set("DEP_TS", {
+  title: "Departure Date",
+  type: "1D",
+  el: createElement("date"),
+  dimension: {
     name: "DEP_TS",
     bins: 24,
-    extent: [1199145660000, 1230767940000],
+    // note that months start at 0!
+    // extent: [new Date(2007, 11, 31).getTime(), new Date(2009, 0, 1).getTime()], /// 7M
+    extent: [new Date(1987, 0, 1).getTime(), Date.now()], // 180M
     format: "%Y-%m-%d %H:%M",
     time: true
   }
@@ -144,7 +146,12 @@ names.set(
 names.set("DISTANCE", "distance");
 names.set("DEP_DELAY", "depdelay");
 names.set("AIR_TIME", "airtime");
+
+//*  <- add or remove / to toggle
 names.set("DEP_TS", "extract(epoch from dep_timestamp) * 1000");
+
+// FIXME: the time view does not update correctly for the small dataset
+views.delete("DEP_TS");
 
 const db = new MapDDB(
   {
@@ -159,25 +166,36 @@ const db = new MapDDB(
   names
 );
 
-// const db = new MapDDB(
-//   {
-//     host: "beast-azure.mapd.com",
-//     db: "newflights",
-//     user: "demouser",
-//     password: "HyperInteractive",
-//     protocol: "https",
-//     port: 443
-//   },
-//   "flights",
-//   names
-// );
+/*/
+
+names.set("DEP_TS", "extract(epoch from actual_dep_time_stamp) * 1000");
+
+const db = new MapDDB(
+  {
+    host: "beast-azure.mapd.com",
+    db: "newflights",
+    user: "demouser",
+    password: "HyperInteractive",
+    protocol: "https",
+    port: 443
+  },
+  "flights",
+  names
+);
+
+//**/
 
 new App(views, db, {
-  cb: () => (document.getElementById("loading")!.style.display = "none"),
   config: {
+    histogramHeight: 130,
+    heatmapWidth: 320,
+    maxCircleSize: 500,
+    barWidth: 600,
     interpolate: true,
-    progressiveInteractions: "only2D"
-  }
+    progressiveInteractions: "only2D",
+    prefetchOn: "mousedown"
+  },
+  cb: () => (document.getElementById("loading")!.style.display = "none")
 });
 
 // field names in flights_donotmodify:

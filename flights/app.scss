@@ -2,8 +2,9 @@
 
 #app {
   #count {
-    grid-row: 3;
+    grid-row: 4;
     grid-column: 2;
+    padding-left: 63px;
   }
   #arrival {
     grid-row: 1;
@@ -30,8 +31,14 @@
     grid-column: 2;
   }
   #delay {
+    text-align: center;
     grid-row: 3;
+    grid-row-end: 5;
     grid-column: 1;
+  }
+  #date {
+    grid-row: 3;
+    grid-column: 2;
   }
 
   #logs {
