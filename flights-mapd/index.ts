@@ -147,7 +147,7 @@ names.set("DISTANCE", "distance");
 names.set("DEP_DELAY", "depdelay");
 names.set("AIR_TIME", "airtime");
 
-/*  <- add or remove / to toggle
+//*  <- add or remove / to toggle
 names.set("DEP_TS", "extract(epoch from dep_timestamp) * 1000");
 
 const db = new MapDDB(
