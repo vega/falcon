@@ -44,7 +44,7 @@
     "vega-typings": "^0.3.46"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.1",
+    "@babel/core": "^7.1.0",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.2",
     "@types/ndarray": "1.0.6",
