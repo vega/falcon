@@ -1,5 +1,5 @@
 import { MapDDB } from "./../src/db/mapd";
-import { App, ArrowDB, Logger, Views, omit, bin } from "../src";
+import { App, ArrowDB, Logger, Views, omit, bin, Hists } from "../src";
 import { createElement } from "../flights/utils";
 import { mean, variance, quantile } from "d3-array";
 
@@ -119,20 +119,20 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
-// const names = new Map<DimensionName, string>();
+const names = new Map<DimensionName, string>();
 
-// names.set("ARR_DELAY", "arrdelay");
-// names.set(
-//   "ARR_TIME",
-//   "(floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60)"
-// );
-// names.set(
-//   "DEP_TIME",
-//   "(floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60)"
-// );
-// names.set("DISTANCE", "distance");
-// names.set("DEP_DELAY", "depdelay");
-// names.set("AIR_TIME", "airtime");
+names.set("ARR_DELAY", "arrdelay");
+names.set(
+  "ARR_TIME",
+  "(floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60)"
+);
+names.set(
+  "DEP_TIME",
+  "(floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60)"
+);
+names.set("DISTANCE", "distance");
+names.set("DEP_DELAY", "depdelay");
+names.set("AIR_TIME", "airtime");
 
 // const db = new MapDDB(
 //   {
@@ -160,7 +160,7 @@ views.set("DEP_DELAY_ARR_DELAY", {
 //   names
 // );
 
-const db = new ArrowDB(require("../data/flights-1m.arrow"));
+const db = new ArrowDB(require("../data/flights-10m.arrow"));
 
 // BENCHMARK: get switching time
 
@@ -182,10 +182,28 @@ async function dbBenchmark() {
   // warmup
   for (const [name, view] of views) {
     if (view.type === "1D") {
-      await db.loadData1D(view, 500, omit(views, name), new Map());
+      await Promise.all(
+        db.loadData1D(view, 200, omit(views, name), new Map()).values()
+      );
     } else if (view.type === "2D") {
-      await db.loadData2D(view, [100, 100], omit(views, name), new Map());
+      await Promise.all(
+        db.loadData2D(view, [30, 30], omit(views, name), new Map()).values()
+      );
     }
+  }
+
+  function print(timings: number[]) {
+    timings.sort((a, b) => a - b);
+
+    console.log("Mean", mean(timings));
+    console.log("Median", quantile(timings, 0.5));
+    console.log("95 quantile", quantile(timings, 0.95));
+
+    console.log();
+    console.log("90 quantile", quantile(timings, 0.9));
+    console.log("Stdev", Math.sqrt(variance(timings)));
+    console.log("Min", timings[0]);
+    console.log("Max", timings[timings.length - 1]);
   }
 
   //*
@@ -197,18 +215,37 @@ async function dbBenchmark() {
   // low res
   const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
 
-  const timings: number[] = [];
+  const raceTimings: number[] = [];
+  const allTimings: number[] = [];
   for (let i = 0; i < runs; i++) {
     for (const [name, view] of views) {
       const time = performance.now();
+      let promises: (Promise<Hists> | Hists)[];
       if (view.type === "1D") {
-        await db.loadData1D(view, oneDres, omit(views, name), new Map());
+        promises = Array.from(
+          db.loadData1D(view, oneDres, omit(views, name), new Map()).values()
+        );
       } else if (view.type === "2D") {
-        await db.loadData2D(view, twoDres, omit(views, name), new Map());
+        promises = Array.from(
+          db.loadData2D(view, twoDres, omit(views, name), new Map()).values()
+        );
+      } else {
+        continue;
       }
-      await timings.push(performance.now() - time);
+
+      await Promise.race(promises);
+      raceTimings.push(performance.now() - time);
+
+      await Promise.all(promises);
+
+      allTimings.push(performance.now() - time);
     }
   }
+  console.log("Race");
+  print(raceTimings);
+  console.log("All");
+  print(allTimings);
+
   /*/
   // compare resolutions
   const runs = 10;
@@ -222,22 +259,14 @@ async function dbBenchmark() {
     } else if (view.type === "2D") {
       await db.loadData2D(view, [200, 200], omit(views, name), new Map());
     }
-    await timings.push(performance.now() - time);
+    timings.push(performance.now() - time);
   }
+
+  print(timings);
 
   //*/
 
-  timings.sort((a, b) => a - b);
-
-  console.log("Mean", mean(timings));
-  console.log("Median", quantile(timings, 0.5));
-  console.log("95 quantile", quantile(timings, 0.95));
-
-  console.log();
-  console.log("90 quantile", quantile(timings, 0.9));
-  console.log("Stdev", Math.sqrt(variance(timings)));
-  console.log("Min", timings[0]);
-  console.log("Max", timings[timings.length - 1]);
+  alert("done");
 }
 
 // BENCHMARK: test the db only

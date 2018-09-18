@@ -118,27 +118,53 @@ async function dbBenchmark() {
   // warmup
   for (const [name, view] of views) {
     if (view.type === "1D") {
-      await db.loadData1D(view, 500, omit(views, name), new Map());
+      db.loadData1D(view, 200, omit(views, name), new Map()).values();
     } else if (view.type === "2D") {
-      await db.loadData2D(view, [100, 100], omit(views, name), new Map());
+      db.loadData2D(view, [30, 30], omit(views, name), new Map()).values();
     }
   }
 
+  function print(timings: number[]) {
+    timings.sort((a, b) => a - b);
+
+    console.log("Mean", mean(timings));
+    console.log("Median", quantile(timings, 0.5));
+    console.log("95 quantile", quantile(timings, 0.95));
+
+    console.log();
+    console.log("90 quantile", quantile(timings, 0.9));
+    console.log("Stdev", Math.sqrt(variance(timings)!));
+    console.log("Min", timings[0]);
+    console.log("Max", timings[timings.length - 1]);
+  }
+
   //*
-  const runs = 10;
+  const runs = 5;
+
+  // high res
+  const [twoDres, oneDres] = [[200, 200] as [number, number], 500];
+  // low res
+  // const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
 
   const timings: number[] = [];
   for (let i = 0; i < runs; i++) {
     for (const [name, view] of views) {
       const time = performance.now();
       if (view.type === "1D") {
-        await db.loadData1D(view, 500, omit(views, name), new Map());
+        db.loadData1D(view, oneDres, omit(views, name), new Map());
       } else if (view.type === "2D") {
-        await db.loadData2D(view, [200, 200], omit(views, name), new Map());
+        db.loadData2D(view, twoDres, omit(views, name), new Map());
+      } else {
+        continue;
       }
-      await timings.push(performance.now() - time);
+
+      timings.push(performance.now() - time);
     }
   }
+
+  console.log("Timings");
+  print(timings);
+
   /*/
   const runs = 10;
 
@@ -154,19 +180,9 @@ async function dbBenchmark() {
     await timings.push(performance.now() - time);
   }
 
+  print(timings);
+
   //*/
-
-  timings.sort((a, b) => a - b);
-
-  console.log("Mean", mean(timings));
-  console.log("Median", quantile(timings, 0.5));
-  console.log("95 quantile", quantile(timings, 0.95));
-
-  console.log();
-  console.log("90 quantile", quantile(timings, 0.9));
-  console.log("Stdev", Math.sqrt(variance(timings)!));
-  console.log("Min", timings[0]);
-  console.log("Max", timings[timings.length - 1]);
 }
 
 window.setTimeout(dbBenchmark, 1000);
