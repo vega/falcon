@@ -38,7 +38,8 @@ views.set("FL_DATE", {
     name: "FL_DATE",
     bins: 25,
     // note that months start at 0!
-    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+    // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
     // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
     // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
     format: "%Y-%m-%d",
