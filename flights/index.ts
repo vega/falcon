@@ -1,5 +1,6 @@
-import { App, ArrowDB, Logger, Views } from "../src";
-import { createElement } from "./utils";
+import { App, ArrowDB, MapDDB, Logger, Views, omit, bin, Hists } from "../src";
+import { createElement } from "../flights/utils";
+import { mean, variance, quantile } from "d3-array";
 
 document.getElementById("app")!.innerText = "";
 
@@ -20,8 +21,8 @@ type DimensionName =
   | "DISTANCE"
   | "DEP_DELAY"
   | "AIR_TIME"
-  | "DEP_TIME"
   | "FL_DATE";
+  | "DEP_TIME";
 
 const views: Views<ViewName, DimensionName> = new Map();
 
@@ -45,6 +46,7 @@ views.set("FL_DATE", {
     time: true
   }
 });
+
 views.set("DISTANCE", {
   title: "Distance in Miles",
   type: "1D",
@@ -52,7 +54,7 @@ views.set("DISTANCE", {
   dimension: {
     name: "DISTANCE",
     bins: 25,
-    extent: [0, 4000],
+    extent: [0, 2000],   // [0, 4000] if we don't compare with square
     format: "d"
   }
 });
@@ -96,7 +98,7 @@ views.set("DEP_TIME", {
 //   dimension: {
 //     name: "ARR_DELAY",
 //     bins: 25,
-//     extent: [-20, 60],
+//     extent: [-60, 140],  // was [-20, 60]
 //     format: ".1f"
 //   }
 // });
@@ -133,66 +135,222 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
-const db = new ArrowDB(require("../data/flights-10k.arrow"));
+const names = new Map<DimensionName, string>();
 
-let logger: Logger<ViewName> | undefined;
+names.set("ARR_DELAY", "arrdelay");
+names.set(
+  "ARR_TIME",
+  "(floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60)"
+);
+names.set(
+  "DEP_TIME",
+  "(floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60)"
+);
+names.set("DISTANCE", "distance");
+names.set("DEP_DELAY", "depdelay");
+names.set("AIR_TIME", "airtime");
 
-//=============
-// timeline vis logger
+// const db = new MapDDB(
+//   {
+//     host: "metis.mapd.com",
+//     db: "mapd",
+//     user: "mapd",
+//     password: "HyperInteractive",
+//     protocol: "https",
+//     port: 443
+//   },
+//   "flights_donotmodify",
+//   names
+// );
 
-// logger = new TimelineLogger(createElement("logs"), views);
+// const db = new MapDDB(
+//   {
+//     host: "beast-azure.mapd.com",
+//     db: "newflights",
+//     user: "demouser",
+//     password: "HyperInteractive",
+//     protocol: "https",
+//     port: 443
+//   },
+//   "flights",
+//   names
+// );
 
-//=============
-// simple logger as demo
+const db = new ArrowDB(require("../data/flights-10m.arrow"));
 
-// logger = new SimpleLogger<ViewName>();
+// BENCHMARK: get switching time
 
-const iPad = !!navigator.userAgent.match(/iPad/i);
+async function dbBenchmark() {
+  await db.initialize();
 
-new App(views, db, {
-  config: {
-    idleTime: 8000,
-    barWidth: 600,
-    ...(iPad
-      ? {
-          idleTime: 10e9,
-          barWidth: 450,
-          histogramWidth: 450,
-          histogramHeight: 120,
-          heatmapWidth: 300,
-          prefetchOn: "mousedown"
-        }
-      : {})
-  },
-  logger: logger,
-  cb: _app => {
-    document.getElementById("loading")!.style.display = "none";
-
-    //=============
-    // benchmark
-
-    // function animationframe() {
-    //   return new Promise(resolve => requestAnimationFrame(resolve));
-    // }
-
-    // async function benchmark() {
-    //   _app.prefetchView("AIR_TIME", false);
-
-    //   console.time("Brushes");
-    //   const step = 25;
-    //   for (let start = 0; start < 500; start += step) {
-    //     for (let end = start + step; end < 500 + step; end += step) {
-    //       _app
-    //         .getVegaView("AIR_TIME")
-    //         .signal("brush", [start, end])
-    //         .run();
-
-    //       await animationframe();
-    //     }
-    //   }
-    //   console.timeEnd("Brushes");
-    // }
-
-    // window.setTimeout(benchmark, 1000);
+  for (const [_name, view] of views) {
+    if (view.type === "1D") {
+      const binConfig = bin(view.dimension.bins, view.dimension.extent);
+      view.dimension.binConfig = binConfig;
+    } else if (view.type === "2D") {
+      for (const dimension of view.dimensions) {
+        const binConfig = bin(dimension.bins, dimension.extent);
+        dimension.binConfig = binConfig;
+      }
+    }
   }
-});
+
+  // warmup
+  for (const [name, view] of views) {
+    if (view.type === "1D") {
+      await Promise.all(
+        db.loadData1D(view, 200, omit(views, name), new Map()).values()
+      );
+    } else if (view.type === "2D") {
+      await Promise.all(
+        db.loadData2D(view, [30, 30], omit(views, name), new Map()).values()
+      );
+    }
+  }
+
+  function print(timings: number[]) {
+    timings.sort((a, b) => a - b);
+
+    console.log("Mean", mean(timings));
+    console.log("Median", quantile(timings, 0.5));
+    console.log("95 quantile", quantile(timings, 0.95));
+
+    console.log();
+    console.log("90 quantile", quantile(timings, 0.9));
+    console.log("Stdev", Math.sqrt(variance(timings)));
+    console.log("Min", timings[0]);
+    console.log("Max", timings[timings.length - 1]);
+  }
+
+  //*
+  // run prefetch for all views
+  const runs = 5;
+
+  // high res
+  // const [twoDres, oneDres] = [[200, 200] as [number, number], 500];
+  // low res
+  const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
+
+  const raceTimings: number[] = [];
+  const allTimings: number[] = [];
+  for (let i = 0; i < runs; i++) {
+    for (const [name, view] of views) {
+      const time = performance.now();
+      let promises: (Promise<Hists> | Hists)[];
+      if (view.type === "1D") {
+        promises = Array.from(
+          db.loadData1D(view, oneDres, omit(views, name), new Map()).values()
+        );
+      } else if (view.type === "2D") {
+        promises = Array.from(
+          db.loadData2D(view, twoDres, omit(views, name), new Map()).values()
+        );
+      } else {
+        continue;
+      }
+
+      await Promise.race(promises);
+      raceTimings.push(performance.now() - time);
+
+      await Promise.all(promises);
+
+      allTimings.push(performance.now() - time);
+    }
+  }
+  console.log("Race");
+  print(raceTimings);
+  console.log("All");
+  print(allTimings);
+
+  /*/
+  // compare resolutions
+  const runs = 10;
+
+  const timings: number[] = [];
+  for (let i = 0; i < runs; i++) {
+    const view = views.get("DISTANCE");
+    const time = performance.now();
+    if (view.type === "1D") {
+      await db.loadData1D(view, 50, omit(views, name), new Map());
+    } else if (view.type === "2D") {
+      await db.loadData2D(view, [200, 200], omit(views, name), new Map());
+    }
+    timings.push(performance.now() - time);
+  }
+
+  print(timings);
+
+  //*/
+
+  alert("done");
+}
+
+// BENCHMARK: test the db only
+window.setTimeout(dbBenchmark, 1000);
+
+// BENCHMARK: get timings for brushing to compare to Square Crossfilter
+
+// new App(views, db, {
+//   config: {
+//     idleTime: 10e9,
+//     histogramWidth: 400
+//   },
+//   cb: _app => {
+//     document.getElementById("loading")!.style.display = "none";
+
+//     //=============
+//     // benchmark
+
+//     function animationframe() {
+//       return new Promise(resolve => requestAnimationFrame(resolve));
+//     }
+//     function timeout() {
+//       return new Promise(resolve => setTimeout(resolve, 0));
+//     }
+
+//     async function benchmark() {
+//       _app.prefetchView("ARR_DELAY", false);
+
+//       const timings = new Float32Array(210);
+//       const step = 10;
+
+//       // warmup
+//       for (let start = -60; start < 140; start += step) {
+//         for (let end = start + step; end < 140 + step; end += step) {
+//           _app
+//             .getVegaView("ARR_DELAY")
+//             .signal("brush", [start, end])
+//             .run();
+
+//           await animationframe();
+//         }
+//       }
+
+//       const runs = 5;
+
+//       for (let i = 0; i < runs; i++) {
+//         let j = 0;
+//         for (let start = -60; start < 140; start += step) {
+//           for (let end = start + step; end < 140 + step; end += step) {
+//             await animationframe();
+//             const time = performance.now();
+//             _app
+//               .getVegaView("ARR_DELAY")
+//               .signal("brush", [start, end])
+//               .run();
+//             await animationframe();
+//             timings[j++] += performance.now() - time;
+//           }
+//         }
+//       }
+
+//       for (let i = 0; i < timings.length; i++) {
+//         timings[i] /= runs;
+//       }
+
+//       console.log(JSON.stringify(Array.from(timings.values())));
+//     }
+
+//     window.setTimeout(benchmark, 1000);
+//   }
+// });

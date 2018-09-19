@@ -98,7 +98,7 @@ views.set("SNOW", {
   }
 });
 
-const db = new ArrowDB(require("../data/weather-1m.arrow"));
+const db = new ArrowDB(require("../data/weather-10m.arrow"));
 
 async function dbBenchmark() {
   await db.initialize();
@@ -142,9 +142,9 @@ async function dbBenchmark() {
   const runs = 5;
 
   // high res
-  const [twoDres, oneDres] = [[200, 200] as [number, number], 500];
+  // const [twoDres, oneDres] = [[200, 200] as [number, number], 500];
   // low res
-  // const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
+  const [twoDres, oneDres] = [[25, 25] as [number, number], 25];
 
   const timings: number[] = [];
   for (let i = 0; i < runs; i++) {
