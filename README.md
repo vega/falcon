@@ -74,7 +74,7 @@ You can visualize the timeline of brush interactions in Falcon.
 
 ## Falcon with 1.2 billion stars from the GAIA dataset
 
-The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. The dataset collected is available online. Below, we show it in Falcon.
+The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. It collected about 1 billion objects, mainly stars, but also planets, comets, asteroids and quasars among others. Below, we show the dataset loaded in Falcon (with MapD).
 
 <span id="gaia"></span>
 
