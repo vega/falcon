@@ -6,7 +6,7 @@
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights or ~1.2B stars when connected to [MapD](https://www.mapd.com/).
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.2B stars](#gaia) when connected to [MapD](https://www.mapd.com/).
 
 ## Demos
 
@@ -71,6 +71,14 @@ Text only.
 You can visualize the timeline of brush interactions in Falcon.
 
 <img src="images/timeline.png" width="400">
+
+## Falcon with 1.2 billion stars from the GAIA dataset
+
+The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. The dataset collected is available online. Below, we show it in Falcon.
+
+<span id="gaia"></span>
+
+<img src="images/gaia.png" width="600">
 
 ## Developers
 
