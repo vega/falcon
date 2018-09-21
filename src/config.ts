@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG = {
   histogramWidth: 600,
   histogramHeight: 160,
   heatmapWidth: 400,
+  heatmapHeight: null,
   maxCircleSize: 700,
   yAxisExtent: 50,
 

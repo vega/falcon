@@ -12,7 +12,7 @@ export function createHeatmapView<D extends string>(
 
   const [width, height] = view.chartSize || [
     config.heatmapWidth,
-    config.heatmapWidth
+    config.heatmapHeight || config.heatmapWidth
   ];
 
   const marks: Mark[] = [
