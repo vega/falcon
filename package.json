@@ -31,7 +31,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.10.1",
+    "@types/node": "^10.10.2",
     "cwise": "^1.0.10",
     "d3": "^5.7.0",
     "ndarray": "^1.0.18",
@@ -53,11 +53,11 @@
     "node-sass": "^4.9.3",
     "parcel-bundler": "1.9.7",
     "prettier": "^1.14.3",
-    "rollup": "^0.66.1",
+    "rollup": "^0.66.2",
     "rollup-plugin-commonjs": "^9.1.8",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
-    "ts-jest": "^23.10.0",
+    "ts-jest": "^23.10.1",
     "typescript": "next"
   },
   "jest": {
