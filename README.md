@@ -1,10 +1,12 @@
+<p align="center">
+   <img src="logo/logo.png" width="200">
+</p>
+
 # Falcon: Interactive Visual Analysis for Big Data
 
 [![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis)
 [![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
-
-<img src="logo/logo.png" width="200">
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
