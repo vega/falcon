@@ -13,6 +13,7 @@ flights
 flights-mapd
 gaia-mapd
 images
+logo
 movies
 node_modules
 rollup.config.js
