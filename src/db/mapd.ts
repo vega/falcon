@@ -83,10 +83,10 @@ export class MapDDB<V extends string, D extends string>
   private binSQL(dimension: D, binConfig: BinConfig) {
     const field = this.getName(dimension);
     return {
-      select: `floor(
+      select: `cast(
         (${field} - cast(${binConfig.start} as float))
         / cast(${binConfig.step} as float)
-      )`,
+      as int)`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
   }

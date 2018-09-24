@@ -137,11 +137,11 @@ const names = new Map<DimensionName, string>();
 names.set("ARR_DELAY", "arrdelay");
 names.set(
   "ARR_TIME",
-  "(floor(cast(arrtime as float) / 100) + mod(arrtime, 100) / 60)"
+  "(cast(cast(arrtime as float) / 100 as int) + mod(arrtime, 100) / 60)"
 );
 names.set(
   "DEP_TIME",
-  "(floor(cast(deptime as float) / 100) + mod(deptime, 100) / 60)"
+  "(cast(cast(deptime as float) / 100 as int) + mod(deptime, 100) / 60)"
 );
 names.set("DISTANCE", "distance");
 names.set("DEP_DELAY", "depdelay");
