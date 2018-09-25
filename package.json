@@ -41,17 +41,18 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.2.0",
     "vega-statistics": "^1.2.1",
-    "vega-typings": "^0.3.46"
+    "vega-typings": "^0.3.47"
   },
   "devDependencies": {
     "@babel/core": "^7.1.0",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.2",
     "@types/ndarray": "1.0.6",
+    "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.0.0",
     "jest": "^23.6.0",
     "node-sass": "^4.9.3",
-    "parcel-bundler": "1.9.7",
+    "parcel-bundler": "1.10.0",
     "prettier": "^1.14.3",
     "rollup": "^0.66.2",
     "rollup-plugin-commonjs": "^9.1.8",
