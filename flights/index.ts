@@ -152,11 +152,9 @@ const iPad = !!navigator.userAgent.match(/iPad/i);
 
 new App(views, db, {
   config: {
-    idleTime: 8000,
     barWidth: 600,
     ...(iPad
       ? {
-          idleTime: 10e9,
           barWidth: 450,
           histogramWidth: 450,
           histogramHeight: 120,

@@ -7543,9 +7543,9 @@ trim-right@^1.0.1:
   dependencies:
     glob "^7.1.2"
 
-ts-jest@^23.10.1:
-  version "23.10.1"
-  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-23.10.1.tgz#ad0196f7b81f08888897004d9ed870c1a901511a"
+ts-jest@^23.10.2:
+  version "23.10.2"
+  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-23.10.2.tgz#10212ec4aba3cb6c75578b09460589ee80cf527a"
   dependencies:
     bs-logger "0.x"
     buffer-from "1.x"
@@ -7595,9 +7595,9 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript@next:
-  version "3.1.0-dev.20180925"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.0-dev.20180925.tgz#e2c8ce5cd70219a489904328efea87f81168dfa0"
+typescript@rc:
+  version "3.1.0-rc.20180911"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.0-rc.20180911.tgz#73654821f9064dfe75a0440899ff0e2238338584"
 
 typical@^2.6.1:
   version "2.6.1"

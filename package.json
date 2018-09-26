@@ -58,8 +58,8 @@
     "rollup-plugin-commonjs": "^9.1.8",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
-    "ts-jest": "^23.10.1",
-    "typescript": "next"
+    "ts-jest": "^23.10.2",
+    "typescript": "rc"
   },
   "jest": {
     "testURL": "http://localhost/",
