@@ -19,11 +19,11 @@ export class ArrowDB<V extends string, D extends string>
   private filterMaskIndex = new Map<string, BitSet>();
 
   public async initialize() {
-    let buffer;
+    let buffer: ArrayBuffer;
 
     if (typeof this.urlOrArrayBuffer === "string") {
       const response = await fetch(this.urlOrArrayBuffer);
-      buffer =  await response.arrayBuffer();
+      buffer = await response.arrayBuffer();
     } else {
       buffer = this.urlOrArrayBuffer
     }
