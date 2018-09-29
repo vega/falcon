@@ -31,7 +31,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.11.0",
+    "@types/node": "^10.11.3",
     "cwise": "^1.0.10",
     "d3": "^5.7.0",
     "ndarray": "^1.0.18",
@@ -44,7 +44,7 @@
     "vega-typings": "^0.3.47"
   },
   "devDependencies": {
-    "@babel/core": "^7.1.0",
+    "@babel/core": "^7.1.2",
     "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.2",
     "@types/ndarray": "1.0.6",
@@ -52,7 +52,7 @@
     "gh-pages": "^2.0.0",
     "jest": "^23.6.0",
     "node-sass": "^4.9.3",
-    "parcel-bundler": "1.10.0",
+    "parcel-bundler": "1.10.1",
     "prettier": "^1.14.3",
     "rollup": "^0.66.2",
     "rollup-plugin-commonjs": "^9.1.8",
