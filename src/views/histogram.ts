@@ -516,7 +516,8 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "window:mousedown, window:touchstart",
+          events:
+            "@chart:mousedown, @chart:touchstart, @brush:mousedown, @brush:touchstart",
           update: "snapped"
         }
       ]

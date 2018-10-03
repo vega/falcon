@@ -395,7 +395,7 @@ export function createHeatmapView<D extends string>(
         value: [0, 0],
         on: [
           {
-            events: "mousedown",
+            events: "@chart:mousedown, @brush:mousedown",
             update: "[snappedX, snappedY]"
           }
         ]
