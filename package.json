@@ -31,7 +31,7 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
     "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.11.3",
+    "@types/node": "^10.11.4",
     "cwise": "^1.0.10",
     "d3": "^5.7.0",
     "ndarray": "^1.0.18",
@@ -46,19 +46,19 @@
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@types/d3": "^5.0.0",
-    "@types/jest": "^23.3.2",
+    "@types/jest": "^23.3.3",
     "@types/ndarray": "1.0.6",
     "babel-preset-env": "^1.7.0",
-    "gh-pages": "^2.0.0",
+    "gh-pages": "^2.0.1",
     "jest": "^23.6.0",
     "node-sass": "^4.9.3",
     "parcel-bundler": "1.10.1",
     "prettier": "^1.14.3",
-    "rollup": "^0.66.2",
+    "rollup": "^0.66.4",
     "rollup-plugin-commonjs": "^9.1.8",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
-    "ts-jest": "^23.10.3",
+    "ts-jest": "^23.10.4",
     "typescript": "^3.1.1"
   },
   "jest": {
