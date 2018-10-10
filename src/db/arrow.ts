@@ -407,4 +407,23 @@ export class ArrowDB<V extends string, D extends string>
 
     return cubes;
   }
+
+  public getDimensionExtent(dimension: Dimension<D>): Interval<number> {
+
+    const column = this.data.getColumn(dimension.name)!;
+    let max = column.get(0);
+    let min = max;
+
+    for (let value of column) {
+      if (value > max) {
+        max = value;
+      }
+      else if (value < min) {
+        min = value;
+      }
+    }
+
+    return [min, max];
+  }
+
 }
