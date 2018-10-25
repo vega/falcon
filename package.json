@@ -41,12 +41,12 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.3.0",
     "vega-statistics": "^1.2.2",
-    "vega-typings": "^0.3.47"
+    "vega-typings": "^0.3.48"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
-    "@types/d3": "^5.0.0",
-    "@types/jest": "^23.3.5",
+    "@types/d3": "^5.0.1",
+    "@types/jest": "^23.3.7",
     "@types/ndarray": "1.0.6",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.0.1",
