@@ -644,10 +644,10 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@mapd/connector@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-4.0.1.tgz#6040d08d933a84958b326a6384fedae778bab7df"
-  integrity sha512-S8KP8RmDiR7ZVHRnTxRqE7y/5FIO6y3u8S7dgIbjHgSReFfpz4PbDN2vQv6LKdt7nIgT6NvSwuw0wh2hXwjO4g==
+"@mapd/connector@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-4.2.0.tgz#84350655c6a0c1f4d054d1fb49344ece688caf37"
+  integrity sha512-JK6mknzkw+0DYVpmZmKr+V5zT82fzgVAzbXMNx3YlwC1yC+aubbXDGEViV+sYC8UfnmikhTre03M0zzGPK9JYg==
   dependencies:
     codecov "^2.2.0"
     script-loader "^0.7.0"
@@ -897,17 +897,17 @@
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.4.tgz#4e049756383c3f055dd8f3d24e63fb543e98eb07"
   integrity sha512-MHmwBtCb7OCv1DSivz2UNJXPGU/1btAWRKlqJ2saEhVJkpkvqHMMaOpKg0v4sAbDWSQekHGvPVMM8nQ+Jen03Q==
 
-"@types/jest@^23.3.7":
-  version "23.3.7"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-23.3.7.tgz#77f9a4332ccf8db680a31818ade3ee454c831a79"
-  integrity sha512-N0p6mHrS0RHC3A9hHN4QH1RM2fGSb2E8rt6ONEK5xKSnyKtn/JAhr1VritkCn6cdyDBephVB80THqJGWzK8FAw==
+"@types/jest@^23.3.9":
+  version "23.3.9"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-23.3.9.tgz#c16b55186ee73ae65e001fbee69d392c51337ad1"
+  integrity sha512-wNMwXSUcwyYajtbayfPp55tSayuDVU6PfY5gzvRSj80UvxdXEJOVPnUVajaOp7NgXLm+1e2ZDLULmpsU9vDvQw==
 
 "@types/ndarray@1.0.6":
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.6.tgz#47d716dce58b51bf26496f042df2d22a3a860fb7"
   integrity sha512-io2nhBWE7J1fOZswmey3MmkCnuyqGcZZfJYo0MnQ9XY56J2YbIm2I0qONoLGgHGkYTzhkWy7de6A0W45pPlv9w==
 
-"@types/node@*", "@types/node@^10.11.7", "@types/node@^10.12.0":
+"@types/node@*", "@types/node@^10.11.7":
   version "10.12.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.0.tgz#ea6dcbddbc5b584c83f06c60e82736d8fbb0c235"
   integrity sha512-3TUHC3jsBAB7qVRGxT6lWyYo2v96BMmD2PTcl47H25Lu7UXtFH/2qqmKiVrnel6Ne//0TFYf6uvNX+HW2FRkLQ==
@@ -916,6 +916,11 @@
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.3.0.tgz#3a129cda7c4e5df2409702626892cb4b96546dd5"
   integrity sha512-wNBfvNjzsJl4tswIZKXCFQY0lss9nKUyJnG6T94X/eqjRgI2jHZ4evdjhQYBSan/vGtF6XVXPApOmNH2rf0KKw==
+
+"@types/node@^10.12.2":
+  version "10.12.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.2.tgz#d77f9faa027cadad9c912cd47f4f8b07b0fb0864"
+  integrity sha512-53ElVDSnZeFUUFIYzI8WLQ25IhWzb6vbddNp8UHlXQyU0ET2RhV5zg0NfubzU7iNMh5bBXb0htCzfvrSVNgzaQ==
 
 "@types/semver@^5.5.0":
   version "5.5.0"
@@ -8714,10 +8719,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.1.3:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.3.tgz#01b70247a6d3c2467f70c45795ef5ea18ce191d5"
-  integrity sha512-+81MUSyX+BaSo+u2RbozuQk/UWx6hfG0a5gHu4ANEM4sU96XbuIyAB+rWBW1u70c6a5QuZfuYICn3s2UjuHUpA==
+typescript@^3.1.6:
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.6.tgz#b6543a83cfc8c2befb3f4c8fba6896f5b0c9be68"
+  integrity sha512-tDMYfVtvpb96msS1lDX9MEdHrW4yOuZ4Kdc4Him9oU796XldPYF/t2+uKoX0BBa0hXXwDlqYQbXY5Rzjzc5hBA==
 
 typical@^2.6.1:
   version "2.6.1"
@@ -9085,10 +9090,10 @@ vega-typings@*:
   dependencies:
     vega-util "^1.7.0"
 
-vega-typings@^0.3.48:
-  version "0.3.48"
-  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.48.tgz#3da160c27cfc8338e3ffb682bccd9cd73ad3e3de"
-  integrity sha512-88dMuJuDzUyvqI0M2Vhzwl5QfWwXXXG8W1/sTtHTpQspPb+oJ1sKHKQ5ke2cUE24273nPgl+7JbaV8EAW7vxgw==
+vega-typings@^0.3.50:
+  version "0.3.50"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.50.tgz#6bb1581392acd8ebb6c9af3726d9c646a1c4f0af"
+  integrity sha512-a5ZeO5HKrlo6ky5RLpbAVBZLpyPjDVfEzXVgArTdYlxES7+zPH/kBNczKl2w0+9WJT2ZdmFlHRUZlGXNVZO/xw==
   dependencies:
     vega-util "^1.7.0"
 

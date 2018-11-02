@@ -30,8 +30,8 @@
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.3.1",
-    "@mapd/connector": "^4.0.1",
-    "@types/node": "^10.12.0",
+    "@mapd/connector": "^4.2.0",
+    "@types/node": "^10.12.2",
     "cwise": "^1.0.10",
     "d3": "^5.7.0",
     "ndarray": "^1.0.18",
@@ -41,12 +41,12 @@
     "ndarray-prefix-sum": "^1.0.0",
     "vega-lib": "^4.3.0",
     "vega-statistics": "^1.2.2",
-    "vega-typings": "^0.3.48"
+    "vega-typings": "^0.3.50"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@types/d3": "^5.0.1",
-    "@types/jest": "^23.3.7",
+    "@types/jest": "^23.3.9",
     "@types/ndarray": "1.0.6",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.0.1",
@@ -59,7 +59,7 @@
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "ts-jest": "^23.10.4",
-    "typescript": "^3.1.3"
+    "typescript": "^3.1.6"
   },
   "jest": {
     "testURL": "http://localhost/",
