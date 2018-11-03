@@ -113,7 +113,7 @@ export function createHistogramView<D extends string>(
           name: "reset",
           encode: {
             enter: {
-              x: config.showBase
+              x: config.toggleBase
                 ? {
                     signal: "width",
                     mult: 0.5,
@@ -121,7 +121,7 @@ export function createHistogramView<D extends string>(
                   }
                 : { signal: "width" },
               y: { value: -8 },
-              align: config.showBase ? { value: "left" } : { value: "right" },
+              align: config.toggleBase ? { value: "left" } : { value: "right" },
               cursor: { value: "pointer" },
               fontWeight: { value: "bold" },
               fill: { value: "black" }
@@ -135,7 +135,7 @@ export function createHistogramView<D extends string>(
           type: "text",
           encode: {
             enter: {
-              x: config.showBase
+              x: config.toggleBase
                 ? { signal: "width", mult: 0.5, offset: -5 }
                 : { signal: "width", offset: -80 },
               y: { value: -8 },
@@ -485,7 +485,7 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "showBase",
-      value: true,
+      value: config.showBase,
       on: [
         {
           events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
@@ -679,7 +679,7 @@ export function createHistogramView<D extends string>(
     });
   }
 
-  if (config.showBase) {
+  if (config.toggleBase) {
     marks.push({
       type: "text",
       name: "toggleShowBase",

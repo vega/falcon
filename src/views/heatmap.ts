@@ -59,7 +59,7 @@ export function createHeatmapView<D extends string>(
     }
   ];
 
-  if (config.circleHeatmap && config.showBase) {
+  if (config.circleHeatmap && config.toggleBase) {
     marks.push({
       type: "text",
       name: "toggleShowBase",
@@ -299,10 +299,10 @@ export function createHeatmapView<D extends string>(
       },
       {
         name: "showBase",
-        value: true,
+        value: config.showBase,
         on: [
           {
-            events: "@toggleShowBase:click!, @toggleShowBase:click!",
+            events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
             update: "!showBase"
           }
         ]

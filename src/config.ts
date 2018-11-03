@@ -4,8 +4,10 @@ export const DEFAULT_CONFIG = {
   //---------
   // features
 
-  /** Show the base as a gray background. */
+  /** SBu default, show the base as a gray background. */
   showBase: true,
+  /** Allow users to toggle between showing and hiding the base. */
+  toggleBase: true,
   /** Use a bar chart for showing the overall count. */
   zeroD: "hbar" as "vbar" | "hbar" | "text",
   /** Use circles instead of colored rectangles. Supports showing base. */
