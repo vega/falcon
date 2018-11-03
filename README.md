@@ -39,11 +39,11 @@ The original counts without filters, can be displayed behind the filtered counts
 
 With unfiltered data.
 
-<img src="images/filtered.png" width="500">
+<img src="images/unfiltered.png" width="500">
 
 Without unfiltered data.
 
-<img src="images/no_filtered.png" width="500">
+<img src="images/no_unfiltered.png" width="500">
 
 ### Circles or Color Heatmap
 
