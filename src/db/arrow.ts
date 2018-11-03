@@ -25,7 +25,7 @@ export class ArrowDB<V extends string, D extends string>
       const response = await fetch(this.urlOrArrayBuffer);
       buffer = await response.arrayBuffer();
     } else {
-      buffer = this.urlOrArrayBuffer
+      buffer = this.urlOrArrayBuffer;
     }
 
     this.data = Table.from(new Uint8Array(buffer));

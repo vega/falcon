@@ -33,21 +33,21 @@ You can zoom histograms. Falcon automatically re-bins the data.
 
 <img src="images/zoom.gif" width="500">
 
-### Show and hide base
+### Show and hide unfiltered data
 
-The base data, which are the original counts without filters, can be displayed behind the filtered counts to provide context. Hiding the base shows the relative distribution of the data.
+The original counts without filters, can be displayed behind the filtered counts to provide context. Hiding the unfiltered data shows the relative distribution of the data.
 
-With base.
+With unfiltered data.
 
-<img src="images/base.png" width="500">
+<img src="images/filtered.png" width="500">
 
-Without base.
+Without unfiltered data.
 
-<img src="images/no_base.png" width="500">
+<img src="images/no_filtered.png" width="500">
 
 ### Circles or Color Heatmap
 
-Heatmap with circles (default). Can show the base (data without filters).
+Heatmap with circles (default). Can show the data without filters.
 
 <img src="images/circles.png" width="460">
 

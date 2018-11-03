@@ -14,6 +14,7 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
 
     data: [
       {
+        // base = unfiltered data
         name: "base",
         values: [{ value: 1 }]
       },

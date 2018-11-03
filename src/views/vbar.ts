@@ -31,6 +31,7 @@ export function createVerticalBarView(
 
     data: [
       {
+        // base = unfiltered data
         name: "base",
         values: [{ value: 0 }]
       },

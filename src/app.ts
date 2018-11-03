@@ -294,7 +294,7 @@ export class App<V extends string, D extends string> {
 
       const { hist } = await this.db.histogram(view.dimension);
 
-      if (this.config.showBase || this.config.toggleBase) {
+      if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
         this.update1DView(name, view, hist, true);
       }
       this.update1DView(name, view, hist);
@@ -365,7 +365,7 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
-      if (this.config.showBase || this.config.toggleBase) {
+      if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
         this.update2DView(name, view, data, true);
       }
       this.update2DView(name, view, data);
@@ -427,7 +427,7 @@ export class App<V extends string, D extends string> {
       this.prefetchView(name, false);
 
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
-        if (this.config.showBase || this.config.toggleBase) {
+        if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
           const { hist, noBrush } = await this.db.histogram(
             view.dimension,
             omit(this.brushes, view.dimension.name)

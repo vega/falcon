@@ -59,7 +59,7 @@ export function createHeatmapView<D extends string>(
     }
   ];
 
-  if (config.circleHeatmap && config.toggleBase) {
+  if (config.circleHeatmap && config.toggleUnfiltered) {
     marks.push({
       type: "text",
       name: "toggleShowBase",
@@ -275,6 +275,7 @@ export function createHeatmapView<D extends string>(
     padding: 5,
     data: [
       {
+        // base = unfiltered data
         name: "base",
         transform: [
           {
@@ -299,7 +300,7 @@ export function createHeatmapView<D extends string>(
       },
       {
         name: "showBase",
-        value: config.showBase,
+        value: config.showUnfiltered,
         on: [
           {
             events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
