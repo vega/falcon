@@ -1,6 +1,7 @@
 .cache
 .rpt2_cache*
 .vscode/tags
+/package-lock.json
 build
 data/.ipynb_checkpoints
 data/altair-data-*
@@ -13,4 +14,3 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/package-lock.json
