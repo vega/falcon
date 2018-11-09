@@ -25,8 +25,8 @@ export interface Dimension<D> {
   /** A title for the dimension */
   title?: string;
 
-  /** Initial domain for the dimension. */
-  extent: Interval<number>;
+  /** Initial domain for the dimension.  If it's not supplied, will be inferred from the extent of the data. */
+  extent?: Interval<number>;
 
   /** D3 format specifier. If time is true, this has to be a D3 date format. Otherwise it should be a number format. */
   format: string;

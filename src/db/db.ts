@@ -42,4 +42,6 @@ export interface DataBase<V extends string, D extends string> {
     views: Views<V, D>,
     brushes: Map<D, Interval<number>>
   ): Index<V>;
+
+  getDimensionExtent(dimension: Dimension<D>): Promise<Interval<number>> | Interval<number>;
 }
