@@ -43,5 +43,5 @@ export interface DataBase<V extends string, D extends string> {
     brushes: Map<D, Interval<number>>
   ): Index<V>;
 
-  getDimensionExtent(dimension: Dimension<D>): Interval<number>;
+  getDimensionExtent(dimension: Dimension<D>): Promise<Interval<number>> | Interval<number>;
 }

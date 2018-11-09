@@ -285,7 +285,7 @@ export class App<V extends string, D extends string> {
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
-        view.dimension.extent || this.db.getDimensionExtent(view.dimension)
+        view.dimension.extent || await this.db.getDimensionExtent(view.dimension)
       );
       view.dimension.binConfig = binConfig;
 
@@ -356,7 +356,7 @@ export class App<V extends string, D extends string> {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
           dimension.bins,
-          dimension.extent || this.db.getDimensionExtent(dimension)
+          dimension.extent || await this.db.getDimensionExtent(dimension)
         );
         dimension.binConfig = binConfig;
       }
