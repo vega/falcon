@@ -95,7 +95,8 @@ export function createHistogramView<D extends string>(
       signal: `datum.key + bin.step`
     },
     y: { scale: "y", field: "value" },
-    y2: { scale: "y", value: 0 }
+    y2: { scale: "y", value: 0 },
+    tooltip: { field: "value" }
   };
 
   const marks: Mark[] = [
@@ -198,7 +199,6 @@ export function createHistogramView<D extends string>(
               marks: [
                 {
                   type: "rect",
-                  interactive: false,
                   from: { data: "base" },
                   encode: {
                     enter: {
@@ -208,11 +208,11 @@ export function createHistogramView<D extends string>(
                     update: {
                       ...barEncodeBase
                     }
-                  }
+                  },
+                  name: "bars"
                 },
                 {
                   type: "rect",
-                  interactive: false,
                   from: { data: "table" },
                   encode: {
                     enter: {
@@ -443,7 +443,7 @@ export function createHistogramView<D extends string>(
     },
     {
       events:
-        "@chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!, @reset:touchstart!",
+        "@bars:dblclick!, @chart:dblclick!, @brush:dblclick!, @left_grabber:dblclick!, @left:dblclick!, @right_grabber:dblclick!, @right:dblclick!, @reset:click!, @reset:touchstart!",
       update: "0"
     },
     {
@@ -454,7 +454,9 @@ export function createHistogramView<D extends string>(
     {
       events:
         "[@chart:mousedown, window:mouseup] > window:mousemove!," +
-        " [@chart:touchstart, window:touchend] > window:touchmove",
+        " [@chart:touchstart, window:touchend] > window:touchmove, " +
+        " [@bars:mousedown, window:mouseup] > window:mousemove!," +
+        " [@bars:touchstart, window:touchend] > window:touchmove",
       update: "[down, clamp(snapped, invert('x', 0), invert('x', width))]"
     },
     {
@@ -520,7 +522,7 @@ export function createHistogramView<D extends string>(
       on: [
         {
           events:
-            "@chart:mousedown, @chart:touchstart, @brush:mousedown, @brush:touchstart",
+            "@bars:mousedown, @bars:touchstart, @chart:mousedown, @chart:touchstart, @brush:mousedown, @brush:touchstart",
           update: "snapped"
         }
       ]
@@ -574,7 +576,8 @@ export function createHistogramView<D extends string>(
           update: "'ew-resize'"
         },
         {
-          events: "[@chart:mousedown, window:mouseup] > window:mousemove!",
+          events:
+            "[@chart:mousedown, window:mouseup] > window:mousemove!, [@bars:mousedown, window:mouseup] > window:mousemove!",
           update: "'crosshair'"
         },
         {
@@ -607,7 +610,7 @@ export function createHistogramView<D extends string>(
           on: [
             {
               events:
-                "@chart:wheel, @brush:wheel, @left:wheel, @left_grabber:wheel, @right:wheel, @right_grabber:wheel",
+                "@bars:wheel, @chart:wheel, @brush:wheel, @left:wheel, @left_grabber:wheel, @right:wheel, @right_grabber:wheel",
               update: dimension.time
                 ? "time(invert('x', x()))"
                 : "invert('x', x())"
@@ -620,7 +623,7 @@ export function createHistogramView<D extends string>(
           on: [
             {
               events:
-                "@chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
+                "@bars:wheel!, @chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
               force: true,
               update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
             }
@@ -638,7 +641,7 @@ export function createHistogramView<D extends string>(
           value: null,
           on: [
             {
-              events: "@chart:mousedown",
+              events: "@bars:mousedown, @chart:mousedown",
               update: "x()"
             },
             {
@@ -671,7 +674,7 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "@chart:mousedown",
+          events: "@bars:mousedown, @chart:mousedown",
           update: "1"
         },
         {

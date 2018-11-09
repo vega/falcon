@@ -105,7 +105,8 @@ export function createHeatmapView<D extends string>(
             size: {
               scale: "size",
               field: "value"
-            }
+            },
+            tooltip: { field: "value" }
           }
         }
       },
@@ -131,7 +132,8 @@ export function createHeatmapView<D extends string>(
               scale: "size",
               field: "value"
             },
-            opacity: { signal: "approximate ? 0.7 : 1" }
+            opacity: { signal: "approximate ? 0.7 : 1" },
+            tooltip: { field: "value" }
           }
         }
       }
@@ -157,7 +159,8 @@ export function createHeatmapView<D extends string>(
             fill: {
               signal:
                 "datum.value === 0 ? 'white' : scale('color', datum.value)"
-            }
+            },
+            tooltip: { field: "value" }
           }
         }
       }
