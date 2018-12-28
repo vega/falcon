@@ -542,8 +542,9 @@ export class MapDDB<V extends string, D extends string>
     return cubes;
   }
 
-  public async getDimensionExtent(dimension: Dimension<D>): Promise<Interval<number>> {
-
+  public async getDimensionExtent(
+    dimension: Dimension<D>
+  ): Promise<Interval<number>> {
     const field = this.getName(dimension.name);
     const result = await this.query(`
     SELECT
@@ -555,5 +556,4 @@ export class MapDDB<V extends string, D extends string>
 
     return [_min, _max];
   }
-
 }

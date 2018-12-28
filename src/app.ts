@@ -276,8 +276,8 @@ export class App<V extends string, D extends string> {
       vegaView = (this.config.zeroD === "text"
         ? createTextView
         : this.config.zeroD === "hbar"
-          ? createHorizontalBarView
-          : createVerticalBarView)(el, view, this.config);
+        ? createHorizontalBarView
+        : createVerticalBarView)(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);
@@ -285,7 +285,8 @@ export class App<V extends string, D extends string> {
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
-        view.dimension.extent || await this.db.getDimensionExtent(view.dimension)
+        view.dimension.extent ||
+          (await this.db.getDimensionExtent(view.dimension))
       );
       view.dimension.binConfig = binConfig;
 
@@ -356,7 +357,7 @@ export class App<V extends string, D extends string> {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
           dimension.bins,
-          dimension.extent || await this.db.getDimensionExtent(dimension)
+          dimension.extent || (await this.db.getDimensionExtent(dimension))
         );
         dimension.binConfig = binConfig;
       }
