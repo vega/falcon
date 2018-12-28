@@ -11,7 +11,6 @@ type ViewName =
   | "AIR_TIME"
   | "ARR_DELAY"
   | "DEP_DELAY"
-  | "FL_DATE"
   | "DEP_DELAY_ARR_DELAY"
   | "COUNT";
 
@@ -21,7 +20,6 @@ type DimensionName =
   | "DISTANCE"
   | "DEP_DELAY"
   | "AIR_TIME"
-  | "FL_DATE"
   | "DEP_TIME";
 
 const views: Views<ViewName, DimensionName> = new Map();
@@ -30,22 +28,6 @@ views.set("COUNT", {
   title: "Flights selected",
   type: "0D",
   el: createElement("count")
-});
-views.set("FL_DATE", {
-  title: "Flight Date",
-  type: "1D",
-  el: createElement("date"),
-  dimension: {
-    name: "FL_DATE",
-    bins: 25,
-    // note that months start at 0!
-    // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
-    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
-    // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
-    // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
-    format: "%Y-%m-%d",
-    time: true
-  }
 });
 
 views.set("DISTANCE", {
@@ -136,6 +118,11 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
+// print types
+for (const [_name, view] of views) {
+  console.log(view.type);
+}
+
 const names = new Map<DimensionName, string>();
 
 names.set("ARR_DELAY", "arrdelay");
@@ -164,20 +151,20 @@ names.set("AIR_TIME", "airtime");
 //   names
 // );
 
-// const db = new MapDDB(
-//   {
-//     host: "beast-azure.mapd.com",
-//     db: "newflights",
-//     user: "demouser",
-//     password: "HyperInteractive",
-//     protocol: "https",
-//     port: 443
-//   },
-//   "flights",
-//   names
-// );
+const db = new MapDDB(
+  {
+    host: "beast-azure.mapd.com",
+    db: "newflights",
+    user: "demouser",
+    password: "HyperInteractive",
+    protocol: "https",
+    port: 443
+  },
+  "flights",
+  names
+);
 
-const db = new ArrowDB(require("../data/flights-10m.arrow"));
+// const db = new ArrowDB(require("../data/flights-10m.arrow"));
 
 // BENCHMARK: get switching time
 

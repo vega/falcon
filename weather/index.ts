@@ -105,11 +105,11 @@ async function dbBenchmark() {
 
   for (const [_name, view] of views) {
     if (view.type === "1D") {
-      const binConfig = bin(view.dimension.bins, view.dimension.extent);
+      const binConfig = bin(view.dimension.bins, view.dimension.extent!);
       view.dimension.binConfig = binConfig;
     } else if (view.type === "2D") {
       for (const dimension of view.dimensions) {
-        const binConfig = bin(dimension.bins, dimension.extent);
+        const binConfig = bin(dimension.bins, dimension.extent!);
         dimension.binConfig = binConfig;
       }
     }
