@@ -1,9 +1,10 @@
 language: node_js
 node_js:
-- '10'
+  - "11"
 script:
-- yarn test
-- yarn build
+  - yarn test
+  - yarn lint
+  - yarn build
 cache: yarn
 deploy:
   provider: npm

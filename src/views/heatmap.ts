@@ -12,7 +12,7 @@ export function createHeatmapView<D extends string>(
 
   const [width, height] = view.chartSize || [
     config.heatmapWidth,
-    config.heatmapWidth
+    config.heatmapHeight || config.heatmapWidth
   ];
 
   const marks: Mark[] = [
@@ -59,7 +59,7 @@ export function createHeatmapView<D extends string>(
     }
   ];
 
-  if (config.circleHeatmap && config.showBase) {
+  if (config.circleHeatmap && config.toggleUnfiltered) {
     marks.push({
       type: "text",
       name: "toggleShowBase",
@@ -275,6 +275,7 @@ export function createHeatmapView<D extends string>(
     padding: 5,
     data: [
       {
+        // base = unfiltered data
         name: "base",
         transform: [
           {
@@ -299,10 +300,10 @@ export function createHeatmapView<D extends string>(
       },
       {
         name: "showBase",
-        value: true,
+        value: config.showUnfiltered,
         on: [
           {
-            events: "@toggleShowBase:click!, @toggleShowBase:click!",
+            events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
             update: "!showBase"
           }
         ]
@@ -395,7 +396,7 @@ export function createHeatmapView<D extends string>(
         value: [0, 0],
         on: [
           {
-            events: "mousedown",
+            events: "@chart:mousedown, @brush:mousedown",
             update: "[snappedX, snappedY]"
           }
         ]

@@ -4,11 +4,13 @@ export const DEFAULT_CONFIG = {
   //---------
   // features
 
-  /** Show the base as a gray background. */
-  showBase: true,
+  /** SBu default, show the unfiltered data as a gray background. */
+  showUnfiltered: true,
+  /** Allow users to toggle between showing and hiding the unfiltered data. */
+  toggleUnfiltered: true,
   /** Use a bar chart for showing the overall count. */
   zeroD: "hbar" as "vbar" | "hbar" | "text",
-  /** Use circles instead of colored rectangles. Supports showing base. */
+  /** Use circles instead of colored rectangles. Supports showing unfiltered data. */
   circleHeatmap: true,
   /** Show interestingness indicator. */
   showInterestingness: false,
@@ -41,6 +43,7 @@ export const DEFAULT_CONFIG = {
   histogramWidth: 600,
   histogramHeight: 160,
   heatmapWidth: 400,
+  heatmapHeight: null,
   maxCircleSize: 700,
   yAxisExtent: 50,
 

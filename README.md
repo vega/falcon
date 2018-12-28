@@ -1,26 +1,26 @@
+<p align="center">
+  <img src="logo/logo.png" width="200">
+</p>
+
 # Falcon: Interactive Visual Analysis for Big Data
 
-[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis)
-[![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
+[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) [![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier) [![Greenkeeper badge](https://badges.greenkeeper.io/uwdata/falcon.svg)](https://greenkeeper.io/)
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights or ~1.2B stars when connected to [MapD](https://www.mapd.com/).
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.2B stars](#falcon-with-12-billion-stars-from-the-gaia-dataset) when connected to [OmniSci Core](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
 ## Demos
 
 - 1M flights in the browser: https://uwdata.github.io/falcon/flights/
-- 7M flights in [MapD](https://www.mapd.com/): https://uwdata.github.io/falcon/flights-mapd/
+- 7M flights in [OmniSci Core](https://www.omnisci.com/platform/core/): https://uwdata.github.io/falcon/flights-mapd/
 - 500k weather records: https://uwdata.github.io/falcon/weather/
-
-Falcon uses [Apache Arrow](https://arrow.apache.org/) and [ndarray](https://github.com/scijs/ndarray).
 
 ![Falcon demo](images/cross.gif "Falcon demo")
 
 ## Usage
 
-Install with `yarn add falcon-vis`. You can use two database backends. First `ArrowDB` that works completely in the browser and scales up to ten million rows. Second, `MapDDB`, which connects to [MapD](http://mapd.com/). Check out the examples to see how to set up an app with your own data. More documentation will follow.
+Install with `yarn add falcon-vis`. You can use two query engines. First `ArrowDB` reading data from [Apache Arrow](https://arrow.apache.org/). This engine works completely in the browser and scales up to ten million rows. Second, `MapDDB`, which connects to OmniSci Core. The indexes are created as [ndarrays](https://github.com/scijs/ndarray). Check out the examples to see how to set up an app with your own data. More documentation will follow.
 
 ## Features
 
@@ -30,21 +30,21 @@ You can zoom histograms. Falcon automatically re-bins the data.
 
 <img src="images/zoom.gif" width="500">
 
-### Show and hide base
+### Show and hide unfiltered data
 
-The base data, which are the original counts without filters, can be displayed behind the filtered counts to provide context. Hiding the base shows the relative distribution of the data.
+The original counts without filters, can be displayed behind the filtered counts to provide context. Hiding the unfiltered data shows the relative distribution of the data.
 
-With base.
+With unfiltered data.
 
-<img src="images/base.png" width="500">
+<img src="images/unfiltered.png" width="500">
 
-Without base.
+Without unfiltered data.
 
-<img src="images/no_base.png" width="500">
+<img src="images/no_unfiltered.png" width="500">
 
 ### Circles or Color Heatmap
 
-Heatmap with circles (default). Can show the base (data without filters).
+Heatmap with circles (default). Can show the data without filters.
 
 <img src="images/circles.png" width="460">
 
@@ -71,6 +71,12 @@ Text only.
 You can visualize the timeline of brush interactions in Falcon.
 
 <img src="images/timeline.png" width="400">
+
+## Falcon with 1.2 Billion Stars from the GAIA Dataset
+
+The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. It collected about 1.2 billion objects, mainly stars, but also planets, comets, asteroids and quasars among others. Below, we show the dataset loaded in Falcon (with OmniSci Core).
+
+<img src="images/gaia.png">
 
 ## Developers
 

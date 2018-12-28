@@ -9,4 +9,7 @@ gaia-mapd/app.scss
 gaia-mapd/index.html
 gaia-mapd/index.ts
 node_modules
-yarn-error.log
+npm-debug.log*
+package-lock.json
+yarn-debug.log*
+yarn-error.log*

@@ -14,13 +14,19 @@ export class ArrowDB<V extends string, D extends string>
 
   public readonly blocking: boolean = true;
 
-  public constructor(private readonly url: string) {}
+  public constructor(private readonly urlOrArrayBuffer: string | ArrayBuffer) {}
 
   private filterMaskIndex = new Map<string, BitSet>();
 
   public async initialize() {
-    const response = await fetch(this.url);
-    const buffer = await response.arrayBuffer();
+    let buffer: ArrayBuffer;
+
+    if (typeof this.urlOrArrayBuffer === "string") {
+      const response = await fetch(this.urlOrArrayBuffer);
+      buffer = await response.arrayBuffer();
+    } else {
+      buffer = this.urlOrArrayBuffer;
+    }
 
     this.data = Table.from(new Uint8Array(buffer));
 
@@ -400,5 +406,21 @@ export class ArrowDB<V extends string, D extends string>
     console.timeEnd("Build index");
 
     return cubes;
+  }
+
+  public getDimensionExtent(dimension: Dimension<D>): Interval<number> {
+    const column = this.data.getColumn(dimension.name)!;
+    let max = column.get(0);
+    let min = max;
+
+    for (let value of column) {
+      if (value > max) {
+        max = value;
+      } else if (value < min) {
+        min = value;
+      }
+    }
+
+    return [min, max];
   }
 }

@@ -34,6 +34,7 @@ export function createHorizontalBarView(
 
     data: [
       {
+        // base = unfiltered data
         name: "base",
         values: [{ value: 0 }]
       },

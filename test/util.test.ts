@@ -43,7 +43,7 @@ describe("union", () => {
       .set(1, true)
       .set(2, true)
       .set(4, true);
-    const set = union(set1, set2);
+    const set = union(set1, set2)!;
 
     expect(set.get(0)).toBeTruthy();
     expect(set.get(1)).toBeTruthy();
@@ -73,10 +73,8 @@ describe("omit", () => {
     original.set(3, 3);
     original.set(4, 4);
     const copy = omit(original, 2, 3);
-    expect(Array.from(original.keys())).toEqual(
-      expect.arrayContaining([1, 2, 3, 4])
-    );
-    expect(Array.from(original.keys())).toEqual(expect.arrayContaining([2, 3]));
+    expect(Array.from(original.keys())).toEqual([1, 2, 3, 4]);
+    expect(Array.from(copy.keys())).toEqual([1, 4]);
   });
 });
 

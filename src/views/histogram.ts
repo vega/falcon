@@ -67,6 +67,7 @@ export function createHistogramView<D extends string>(
 
   const data = [
     {
+      // base = unfiltered data
       name: "base",
       transform: [
         {
@@ -113,7 +114,7 @@ export function createHistogramView<D extends string>(
           name: "reset",
           encode: {
             enter: {
-              x: config.showBase
+              x: config.toggleUnfiltered
                 ? {
                     signal: "width",
                     mult: 0.5,
@@ -121,7 +122,9 @@ export function createHistogramView<D extends string>(
                   }
                 : { signal: "width" },
               y: { value: -8 },
-              align: config.showBase ? { value: "left" } : { value: "right" },
+              align: config.toggleUnfiltered
+                ? { value: "left" }
+                : { value: "right" },
               cursor: { value: "pointer" },
               fontWeight: { value: "bold" },
               fill: { value: "black" }
@@ -135,7 +138,7 @@ export function createHistogramView<D extends string>(
           type: "text",
           encode: {
             enter: {
-              x: config.showBase
+              x: config.toggleUnfiltered
                 ? { signal: "width", mult: 0.5, offset: -5 }
                 : { signal: "width", offset: -80 },
               y: { value: -8 },
@@ -485,7 +488,7 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "showBase",
-      value: true,
+      value: config.showUnfiltered,
       on: [
         {
           events: "@toggleShowBase:click!, @toggleShowBase:touchstart!",
@@ -516,7 +519,8 @@ export function createHistogramView<D extends string>(
       value: 0,
       on: [
         {
-          events: "window:mousedown, window:touchstart",
+          events:
+            "@chart:mousedown, @chart:touchstart, @brush:mousedown, @brush:touchstart",
           update: "snapped"
         }
       ]
@@ -678,7 +682,7 @@ export function createHistogramView<D extends string>(
     });
   }
 
-  if (config.showBase) {
+  if (config.toggleUnfiltered) {
     marks.push({
       type: "text",
       name: "toggleShowBase",

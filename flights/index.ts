@@ -21,7 +21,7 @@ type DimensionName =
   | "DISTANCE"
   | "DEP_DELAY"
   | "AIR_TIME"
-  | "FL_DATE";
+  | "FL_DATE"
   | "DEP_TIME";
 
 const views: Views<ViewName, DimensionName> = new Map();
@@ -39,7 +39,8 @@ views.set("FL_DATE", {
     name: "FL_DATE",
     bins: 25,
     // note that months start at 0!
-    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+    // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
     // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
     // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
     format: "%Y-%m-%d",
@@ -54,7 +55,7 @@ views.set("DISTANCE", {
   dimension: {
     name: "DISTANCE",
     bins: 25,
-    extent: [0, 2000],   // [0, 4000] if we don't compare with square
+    extent: [0, 2000], // [0, 4000] if we don't compare with square
     format: "d"
   }
 });
@@ -185,11 +186,11 @@ async function dbBenchmark() {
 
   for (const [_name, view] of views) {
     if (view.type === "1D") {
-      const binConfig = bin(view.dimension.bins, view.dimension.extent);
+      const binConfig = bin(view.dimension.bins, view.dimension.extent!);
       view.dimension.binConfig = binConfig;
     } else if (view.type === "2D") {
       for (const dimension of view.dimensions) {
-        const binConfig = bin(dimension.bins, dimension.extent);
+        const binConfig = bin(dimension.bins, dimension.extent!);
         dimension.binConfig = binConfig;
       }
     }
@@ -217,7 +218,7 @@ async function dbBenchmark() {
 
     console.log();
     console.log("90 quantile", quantile(timings, 0.9));
-    console.log("Stdev", Math.sqrt(variance(timings)));
+    console.log("Stdev", Math.sqrt(variance(timings)!));
     console.log("Min", timings[0]);
     console.log("Max", timings[timings.length - 1]);
   }

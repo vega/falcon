@@ -276,8 +276,8 @@ export class App<V extends string, D extends string> {
       vegaView = (this.config.zeroD === "text"
         ? createTextView
         : this.config.zeroD === "hbar"
-          ? createHorizontalBarView
-          : createVerticalBarView)(el, view, this.config);
+        ? createHorizontalBarView
+        : createVerticalBarView)(el, view, this.config);
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);
@@ -285,7 +285,8 @@ export class App<V extends string, D extends string> {
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
-        view.dimension.extent
+        view.dimension.extent ||
+          (await this.db.getDimensionExtent(view.dimension))
       );
       view.dimension.binConfig = binConfig;
 
@@ -294,7 +295,7 @@ export class App<V extends string, D extends string> {
 
       const { hist } = await this.db.histogram(view.dimension);
 
-      if (this.config.showBase) {
+      if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
         this.update1DView(name, view, hist, true);
       }
       this.update1DView(name, view, hist);
@@ -356,7 +357,7 @@ export class App<V extends string, D extends string> {
       for (const dimension of view.dimensions) {
         const binConfig = (dimension.time ? binTime : bin)(
           dimension.bins,
-          dimension.extent
+          dimension.extent || (await this.db.getDimensionExtent(dimension))
         );
         dimension.binConfig = binConfig;
       }
@@ -365,7 +366,7 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);
-      if (this.config.showBase) {
+      if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
         this.update2DView(name, view, data, true);
       }
       this.update2DView(name, view, data);
@@ -427,7 +428,7 @@ export class App<V extends string, D extends string> {
       this.prefetchView(name, false);
 
       vegaView.signal("bin", newBinConfig).runAfter(async () => {
-        if (this.config.showBase) {
+        if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
           const { hist, noBrush } = await this.db.histogram(
             view.dimension,
             omit(this.brushes, view.dimension.name)

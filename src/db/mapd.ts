@@ -83,10 +83,10 @@ export class MapDDB<V extends string, D extends string>
   private binSQL(dimension: D, binConfig: BinConfig) {
     const field = this.getName(dimension);
     return {
-      select: `floor(
+      select: `cast(
         (${field} - cast(${binConfig.start} as float))
         / cast(${binConfig.step} as float)
-      )`,
+      as int)`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
   }
@@ -540,7 +540,20 @@ export class MapDDB<V extends string, D extends string>
     });
 
     return cubes;
+  }
 
-    return cubes;
+  public async getDimensionExtent(
+    dimension: Dimension<D>
+  ): Promise<Interval<number>> {
+    const field = this.getName(dimension.name);
+    const result = await this.query(`
+    SELECT
+      MIN(${field}) AS _min, MAX(${field}) AS _max
+    FROM ${this.table}
+    `);
+
+    const { _min, _max } = result[0];
+
+    return [_min, _max];
   }
 }

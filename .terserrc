@@ -1,0 +1,11 @@
+{
+  "compress": {
+    "ecma": 8,
+    "keep_fargs": false,
+    "passes": 2,
+    "unsafe": true,
+    "warnings": true,
+    // need to disable so we don't break mapd
+    "unused": "keep_assign"
+  }
+}
