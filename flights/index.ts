@@ -37,7 +37,7 @@ views.set("DISTANCE", {
   dimension: {
     name: "DISTANCE",
     bins: 25,
-    extent: [0, 2000], // [0, 4000] if we don't compare with square
+    extent: [0, 4000], // [0, 2000] if we compare with square, [0, 4000] if we don't compare with square
     format: "d"
   }
 });
