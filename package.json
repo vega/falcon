@@ -48,21 +48,21 @@
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
-    "@types/d3": "^5.5.0",
-    "@types/jest": "^23.3.11",
+    "@types/d3": "^5.7.0",
+    "@types/jest": "^23.3.13",
     "@types/ndarray": "1.0.6",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.0.1",
     "jest": "^23.6.0",
     "node-sass": "^4.11.0",
     "parcel-bundler": "^1.11.0",
-    "prettier": "^1.15.3",
-    "rollup": "^1.0.0",
+    "prettier": "^1.16.0",
+    "rollup": "^1.1.1",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "ts-jest": "^23.10.5",
-    "typescript": "^3.2.2"
+    "typescript": "^3.2.4"
   },
   "jest": {
     "testURL": "http://localhost/",
