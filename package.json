@@ -19,7 +19,7 @@
     "test": "jest",
     "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
     "format": "npm run prettierbase -- --write",
-    "lint": "npm run prettierbase -- --list-different"
+    "lint": "npm run prettierbase -- --check"
   },
   "repository": {
     "type": "git",
