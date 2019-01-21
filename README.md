@@ -8,7 +8,7 @@
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.2B stars](#falcon-with-12-billion-stars-from-the-gaia-dataset) when connected to [OmniSci Core](https://www.omnisci.com/platform/core/) (formerly known as MapD).
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSci Core](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
 ## Demos
 
@@ -72,9 +72,9 @@ You can visualize the timeline of brush interactions in Falcon.
 
 <img src="images/timeline.png" width="400">
 
-## Falcon with 1.2 Billion Stars from the GAIA Dataset
+## Falcon with 1.7 Billion Stars from the GAIA Dataset
 
-The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. It collected about 1.2 billion objects, mainly stars, but also planets, comets, asteroids and quasars among others. Below, we show the dataset loaded in Falcon (with OmniSci Core).
+The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measured the positions and distances of stars with unprecedented precision. It collected about 1.7 billion objects, mainly stars, but also planets, comets, asteroids and quasars among others. Below, we show the dataset loaded in Falcon (with OmniSci Core). There is also a [video of me interacting with the dataset through Falcon](images/gaia.mp4).
 
 <img src="images/gaia.png">
 
