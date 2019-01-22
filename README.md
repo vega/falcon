@@ -10,6 +10,19 @@ Crossfilter millions of records without latencies. This project is work in progr
 
 The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSci Core](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
+We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication. 
+
+```bib
+@inproceedings{Moritz2019,
+  doi = {10.1145/3290605},
+  year  = {2019},
+  publisher = {{ACM} Press},
+  author = {Dominik Moritz and Bill Howe and Jeffrey Heer},
+  title = {Falcon: Balancing Interactive Latency and Resolution Sensitivity for Scalable Linked Visualizations},
+  booktitle = {Proceedings of the 2019 {CHI} Conference on Human Factors in Computing Systems  - {CHI} {\textquotesingle}19}
+}
+```
+
 ## Demos
 
 - 1M flights in the browser: https://uwdata.github.io/falcon/flights/
