@@ -36,7 +36,7 @@
     "@mapd/connector": "^4.4.0",
     "@types/node": "^10.12.21",
     "cwise": "^1.0.10",
-    "d3": "^5.8.2",
+    "d3": "^5.9.0",
     "ndarray": "^1.0.18",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
@@ -62,7 +62,7 @@
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "ts-jest": "^23.10.5",
-    "typescript": "^3.3.1"
+    "typescript": "^3.3.3"
   },
   "jest": {
     "testURL": "http://localhost/",
