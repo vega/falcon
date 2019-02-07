@@ -10,7 +10,7 @@ import { binNumberFunction, numBins, binNumberFunctionBins } from "../util";
 
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
-  private data: Table<{ [key in D]: DataType }>;
+  private data: Table;
 
   public readonly blocking: boolean = true;
 
@@ -45,7 +45,7 @@ export class ArrowDB<V extends string, D extends string>
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
-      const val = column.get(i) as number;
+      const val = column.get(i);
       if (val < extent[0] || val >= extent[1]) {
         mask.set(i, true);
       }
