@@ -1,12 +1,12 @@
-import { DataBase, SyncIndex } from "./db";
-import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
-import { Table, DataType } from "@apache-arrow/es2015-esm";
+import { Table } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
 import { BitSet, union } from "../bitset";
-import { binNumberFunction, numBins, binNumberFunctionBins } from "../util";
+import { CUM_ARR_TYPE, HIST_TYPE } from "../consts";
+import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
+import { DataBase, SyncIndex } from "./db";
 
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
