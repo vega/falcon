@@ -1,6 +1,6 @@
 import { DataBase, SyncIndex } from "./db";
 import { HIST_TYPE, CUM_ARR_TYPE } from "../consts";
-import { Table } from "@apache-arrow/es2015-esm";
+import { Table, DataType } from "@apache-arrow/es2015-esm";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
@@ -10,7 +10,7 @@ import { binNumberFunction, numBins, binNumberFunctionBins } from "../util";
 
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
-  private data: Table;
+  private data: Table<{ [key in D]: DataType }>;
 
   public readonly blocking: boolean = true;
 
@@ -45,7 +45,7 @@ export class ArrowDB<V extends string, D extends string>
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
-      const val: number = column.get(i);
+      const val = column.get(i) as number;
       if (val < extent[0] || val >= extent[1]) {
         mask.set(i, true);
       }

@@ -134,7 +134,7 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
-const db = new ArrowDB(require("../data/flights-10k.arrow"));
+const db = new ArrowDB<ViewName, DimensionName>(require("../data/flights-10k.arrow"));
 
 let logger: Logger<ViewName> | undefined;
 
