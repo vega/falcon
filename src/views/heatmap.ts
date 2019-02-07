@@ -26,7 +26,7 @@ export function createHeatmapView<D extends string>(
           align: { value: "left" },
           cursor: { value: "pointer" },
           fontWeight: { value: "bold" },
-          fill: { value: "black" }
+          fill: { value: "white" }
         },
         update: {
           text: { signal: "span(brushX) && span(brushY) ? 'Reset Brush' : ''" }
@@ -70,7 +70,7 @@ export function createHeatmapView<D extends string>(
           align: { value: "right" },
           cursor: { value: "pointer" },
           fontWeight: { value: "bold" },
-          fill: { value: "black" }
+          fill: { value: "white" }
         },
         update: {
           text: { signal: "showBase ? 'Hide Unfiltered' : 'Show Unfiltered'" }
@@ -187,7 +187,8 @@ export function createHeatmapView<D extends string>(
             y: { value: 0 },
             height: { field: { group: "height" } },
             fill: { value: "rgba(0,0,0,0.05)" },
-            stroke: { value: "firebrick" },
+            stroke: { value: "#f00" },
+            strokeWidth: { value: 3 },
             opacity: { value: 1 },
             cursor: { value: "move" }
           },
@@ -582,7 +583,29 @@ export function createHeatmapView<D extends string>(
         }
       }
     ],
-    config: { axisY: { minExtent: config.yAxisExtent } }
+    config: {
+      axisY: { minExtent: config.yAxisExtent },
+      mark: {
+        fill: "#5DA2FC"
+      },
+      background: "#414141",
+      title: { color: "#fff" },
+      style: {
+        title: { fill: "#fff", fontSize: 16 },
+        "guide-label": { fill: "#fff", fontSize: 11, font: "FiraGo" },
+        "guide-title": {
+          fill: "#fff",
+          fontSize: 14,
+          font: "FiraGo",
+          fontWeight: 500
+        }
+      },
+      axis: { domainColor: "#fff", gridColor: "#666", tickColor: "#fff" },
+      legend: { padding: 0, rowPadding: 6, titlePadding: 10 },
+      view: {
+        stroke: "#666"
+      }
+    }
   };
 
   const runtime = parse(vgSpec);

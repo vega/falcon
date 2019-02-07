@@ -20,6 +20,28 @@ export function createVerticalBarView(
     "(datum.datum.bounds.y2 - datum.datum.bounds.y1) > (datum.bounds.x2 - datum.bounds.x1) * 1.2";
 
   const vgSpec: Spec = {
+    config: {
+      mark: {
+        fill: "#5DA2FC"
+      },
+      background: "#414141",
+      title: { color: "#fff" },
+      style: {
+        title: { fill: "#fff", fontSize: 16 },
+        "guide-label": { fill: "#fff", fontSize: 11, font: "FiraGo" },
+        "guide-title": {
+          fill: "#fff",
+          fontSize: 14,
+          font: "FiraGo",
+          fontWeight: 500
+        }
+      },
+      axis: { domainColor: "#fff", gridColor: "#666", tickColor: "#fff" },
+      legend: { padding: 0, rowPadding: 6, titlePadding: 10 },
+      view: {
+        stroke: "#666"
+      }
+    },
     height: config.barHeight,
     width: 28,
     padding: 5,
@@ -73,8 +95,8 @@ export function createVerticalBarView(
         from: { data: "base" },
         encode: {
           enter: {
-            fill: { value: "#000" },
-            opacity: { value: 0.07 }
+            fill: { value: "#fff" },
+            opacity: { value: 0.3 }
           },
           update: barEncodeBase
         }
@@ -124,15 +146,13 @@ export function createVerticalBarView(
               signal: `${largeEnough} ? 'center' : 'left'`
             },
             fill: {
-              signal: `${largeEnough} ? 'white' : 'black'`
+              signal: `${largeEnough} ? 'white' : 'white'`
             }
           }
         }
       },
       ...loadingMarks("height", true)
-    ],
-
-    config: { axisY: { minExtent: config.yAxisExtent } }
+    ]
   };
 
   const runtime = parse(vgSpec);

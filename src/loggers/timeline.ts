@@ -55,7 +55,7 @@ function vgSpec(dimensions) {
         name: "color",
         type: "ordinal",
         domain: dimensions,
-        range: "category"
+        range: ["#A7D1A8", "#FBA35C", "#D6ACD6"]
       }
     ],
 
@@ -139,7 +139,29 @@ function vgSpec(dimensions) {
           }
         ]
       }
-    ]
+    ],
+    config: {
+      mark: {
+        fill: "#5DA2FC"
+      },
+      background: "#414141",
+      title: { color: "#fff" },
+      style: {
+        title: { fill: "#fff", fontSize: 16 },
+        "guide-label": { fill: "#fff", fontSize: 11, font: "FiraGo" },
+        "guide-title": {
+          fill: "#fff",
+          fontSize: 14,
+          font: "FiraGo",
+          fontWeight: 500
+        }
+      },
+      axis: { domainColor: "#fff", gridColor: "#666", tickColor: "#fff" },
+      legend: { padding: 0, rowPadding: 6, titlePadding: 10 },
+      view: {
+        stroke: "#666"
+      }
+    }
   };
 
   return spec;

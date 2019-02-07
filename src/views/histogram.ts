@@ -15,7 +15,7 @@ import { View1D } from "../api";
 import { Config } from "../config";
 import { extent, repeatInvisible } from "../util";
 
-export const darkerBlue = "#4c78a8";
+export const darkerBlue = "#5DA2FC";
 
 export function loadingMarks(heightSignal: string, rotate = false) {
   return [
@@ -28,7 +28,7 @@ export function loadingMarks(heightSignal: string, rotate = false) {
           y: { value: 0 },
           x2: { signal: "width" },
           y2: { signal: heightSignal },
-          fill: { value: "white" }
+          fill: { value: "#666" }
         },
         update: {
           opacity: { signal: "pending ? '0.9' : '0'" }
@@ -45,7 +45,7 @@ export function loadingMarks(heightSignal: string, rotate = false) {
           align: { value: "center" },
           x: { signal: "width", mult: 0.5 },
           y: { signal: heightSignal, mult: 0.5 },
-          fill: { value: "grey" },
+          fill: { value: "white" },
           fontSize: { value: 18 },
           ...(rotate ? { angle: { value: -90 } } : {})
         },
@@ -110,55 +110,6 @@ export function createHistogramView<D extends string>(
       },
       marks: [
         {
-          type: "text",
-          name: "reset",
-          encode: {
-            enter: {
-              x: config.toggleUnfiltered
-                ? {
-                    signal: "width",
-                    mult: 0.5,
-                    offset: 5
-                  }
-                : { signal: "width" },
-              y: { value: -8 },
-              align: config.toggleUnfiltered
-                ? { value: "left" }
-                : { value: "right" },
-              cursor: { value: "pointer" },
-              fontWeight: { value: "bold" },
-              fill: { value: "black" }
-            },
-            update: {
-              text: { signal: "span(brush) ? 'Reset Brush' : ''" }
-            }
-          }
-        },
-        {
-          type: "text",
-          encode: {
-            enter: {
-              x: config.toggleUnfiltered
-                ? { signal: "width", mult: 0.5, offset: -5 }
-                : { signal: "width", offset: -80 },
-              y: { value: -8 },
-              align: { value: "right" },
-              fill: { value: "#666" }
-            },
-            update: {
-              text: {
-                signal: `span(brush) ? '[' + ${
-                  dimension.time ? "timeFormat" : "format"
-                }(brush[reverseBrush ? 1 : 0], '${dimension.format}') + ',' + ${
-                  dimension.time ? "timeFormat" : "format"
-                }(brush[reverseBrush ? 0 : 1], '${
-                  dimension.format
-                }') + ']' : ''`
-              }
-            }
-          }
-        },
-        {
           type: "group",
           name: "chart",
           encode: {
@@ -182,7 +133,7 @@ export function createHistogramView<D extends string>(
                 enter: {
                   y: { value: 0 },
                   height: { field: { group: "height" } },
-                  fill: { value: "#000" },
+                  fill: { value: "#fff" },
                   opacity: { value: 0.05 },
                   cursor: { value: "move" }
                 },
@@ -202,8 +153,8 @@ export function createHistogramView<D extends string>(
                   from: { data: "base" },
                   encode: {
                     enter: {
-                      fill: { value: "#000" },
-                      opacity: { value: 0.07 }
+                      fill: { value: "#fff" },
+                      opacity: { value: 0.3 }
                     },
                     update: {
                       ...barEncodeBase
@@ -265,9 +216,9 @@ export function createHistogramView<D extends string>(
                     enter: {
                       y: { value: 0 },
                       height: { field: { group: "height" } },
-                      fill: { value: "firebrick" },
+                      fill: { value: "#f00" },
                       x: { value: 0 },
-                      width: { value: 1 }
+                      width: { value: 3 }
                     }
                   }
                 },
@@ -326,8 +277,9 @@ export function createHistogramView<D extends string>(
                     enter: {
                       y: { value: 0 },
                       height: { field: { group: "height" } },
-                      fill: { value: "firebrick" },
-                      width: { value: 1 }
+                      fill: { value: "#f00" },
+                      width: { value: 3 },
+                      x: { value: -2 }
                     }
                   }
                 },
@@ -693,7 +645,7 @@ export function createHistogramView<D extends string>(
           align: { value: "right" },
           cursor: { value: "pointer" },
           fontWeight: { value: "bold" },
-          fill: { value: "black" }
+          fill: { value: "white" }
         },
         update: {
           text: { signal: "showBase ? 'Hide Unfiltered' : 'Show Unfiltered'" }
@@ -751,7 +703,7 @@ export function createHistogramView<D extends string>(
       anchor: "start",
       frame: "group",
       fontSize: 14,
-      offset: -12
+      offset: 10
     },
 
     layout: {
@@ -765,7 +717,29 @@ export function createHistogramView<D extends string>(
 
     scales: scales,
 
-    config: { axisY: { minExtent: config.yAxisExtent } }
+    config: {
+      axisY: { minExtent: config.yAxisExtent },
+      mark: {
+        fill: "#5DA2FC"
+      },
+      background: "#414141",
+      title: { color: "#fff" },
+      style: {
+        title: { fill: "#fff", fontSize: 16 },
+        "guide-label": { fill: "#fff", fontSize: 11, font: "FiraGo" },
+        "guide-title": {
+          fill: "#fff",
+          fontSize: 14,
+          font: "FiraGo",
+          fontWeight: 500
+        }
+      },
+      axis: { domainColor: "#fff", gridColor: "#666", tickColor: "#fff" },
+      legend: { padding: 0, rowPadding: 6, titlePadding: 10 },
+      view: {
+        stroke: "#666"
+      }
+    }
   };
 
   // function to replace invisible steps with visible ones
