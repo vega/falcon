@@ -958,10 +958,10 @@
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-24.0.0.tgz#848492026c327b3548d92be0352a545c36a21e8a"
   integrity sha512-kOafJnUTnMd7/OfEO/x3I47EHswNjn+dbz9qk3mtonr1RvKT+1FGVxnxAx08I9K8Tl7j9hpoJRE7OCf+t10fng==
 
-"@types/ndarray@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.6.tgz#47d716dce58b51bf26496f042df2d22a3a860fb7"
-  integrity sha512-io2nhBWE7J1fOZswmey3MmkCnuyqGcZZfJYo0MnQ9XY56J2YbIm2I0qONoLGgHGkYTzhkWy7de6A0W45pPlv9w==
+"@types/ndarray@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.7.tgz#046c4391220b61557b0779790c556018608d890d"
+  integrity sha512-PdCzZlZPWB4D467RrDIz79WbthmH8miN/rY8zrlKyX0IejKtGcMUpfQTrJI8jvrazGPNmRuo+qbim1HUHSUhEQ==
 
 "@types/node@*", "@types/node@^10.11.7", "@types/node@^10.12.18":
   version "10.12.21"
