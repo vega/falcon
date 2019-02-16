@@ -10,7 +10,7 @@ import { DataBase, SyncIndex } from "./db";
 
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D> {
-  private data: Table;
+  private data: Table<{ [key in D]: any }>;
 
   public readonly blocking: boolean = true;
 
@@ -45,7 +45,7 @@ export class ArrowDB<V extends string, D extends string>
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
-      const val = column.get(i);
+      const val: number = column.get(i)!;
       if (val < extent[0] || val >= extent[1]) {
         mask.set(i, true);
       }
@@ -79,7 +79,7 @@ export class ArrowDB<V extends string, D extends string>
     const noBrush = ndarray(new HIST_TYPE(binCount));
     const hist = filterMask ? ndarray(new HIST_TYPE(binCount)) : noBrush;
     for (let i = 0; i < this.data.length; i++) {
-      const value = column.get(i);
+      const value: number = column.get(i)!;
       const key = bin(value);
       if (0 <= key && key < binCount) {
         const idx = hist.index(key);
@@ -114,8 +114,8 @@ export class ArrowDB<V extends string, D extends string>
     ]);
 
     for (let i = 0; i < this.data.length; i++) {
-      const keyX = binX(columnX.get(i));
-      const keyY = binY(columnY.get(i));
+      const keyX = binX(columnX.get(i)!);
+      const keyY = binY(columnY.get(i)!);
 
       if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
         heat.data[heat.index(keyX, keyY)]++;
@@ -189,7 +189,7 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const keyActive = binActive(activeCol.get(i)) + 1;
+          const keyActive = binActive(activeCol.get(i)!) + 1;
           if (0 <= keyActive && keyActive < numPixels) {
             hists.data[hists.index(keyActive)]++;
           }
@@ -219,8 +219,8 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const key = bin(column.get(i));
-          const keyActive = binActive(activeCol.get(i)) + 1;
+          const key = bin(column.get(i)!);
+          const keyActive = binActive(activeCol.get(i)!) + 1;
           if (0 <= key && key < binCount) {
             if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, key)]++;
@@ -258,9 +258,9 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const keyX = binX(columnX.get(i));
-          const keyY = binY(columnY.get(i));
-          const keyActive = binActive(activeCol.get(i)) + 1;
+          const keyX = binX(columnX.get(i)!);
+          const keyY = binY(columnY.get(i)!);
+          const keyActive = binActive(activeCol.get(i)!) + 1;
           if (0 <= keyX && keyX < numBinsX && 0 <= keyY && keyY < numBinsY) {
             if (0 <= keyActive && keyActive < numPixels) {
               hists.data[hists.index(keyActive, keyX, keyY)]++;
@@ -335,8 +335,8 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const keyActiveX = binActiveX(activeColX.get(i)) + 1;
-          const keyActiveY = binActiveY(activeColY.get(i)) + 1;
+          const keyActiveX = binActiveX(activeColX.get(i)!) + 1;
+          const keyActiveY = binActiveY(activeColY.get(i)!) + 1;
           if (
             0 <= keyActiveX &&
             keyActiveX < numPixelsX &&
@@ -374,9 +374,9 @@ export class ArrowDB<V extends string, D extends string>
             continue;
           }
 
-          const key = bin(column.get(i));
-          const keyActiveX = binActiveX(activeColX.get(i)) + 1;
-          const keyActiveY = binActiveY(activeColY.get(i)) + 1;
+          const key = bin(column.get(i)!);
+          const keyActiveX = binActiveX(activeColX.get(i)!) + 1;
+          const keyActiveY = binActiveY(activeColY.get(i)!) + 1;
           if (0 <= key && key < binCount) {
             if (
               0 <= keyActiveX &&
@@ -410,14 +410,14 @@ export class ArrowDB<V extends string, D extends string>
 
   public getDimensionExtent(dimension: Dimension<D>): Interval<number> {
     const column = this.data.getColumn(dimension.name)!;
-    let max = column.get(0);
+    let max: number = column.get(0)!;
     let min = max;
 
     for (let value of column) {
-      if (value > max) {
-        max = value;
-      } else if (value < min) {
-        min = value;
+      if (value! > max) {
+        max = value!;
+      } else if (value! < min) {
+        min = value!;
       }
     }
 
