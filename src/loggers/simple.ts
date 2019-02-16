@@ -7,7 +7,14 @@ import { Logger } from "../api";
 export class SimpleLogger<V extends string> implements Logger<V> {
   public attach(name: V, view: View) {
     console.log(view["_spec"]);
-    console.log(view.origin(), view.width(), view.height(), view.container());
+    console.log({
+      origin: view.origin(),
+      width: view.width(),
+      height: view.height(),
+      clientWidth: view.container()!.clientWidth,
+      clientHeight: view.container()!.clientHeight,
+      container: view.container()
+    });
 
     view.addEventListener("mouseenter", _ => {
       console.log({
