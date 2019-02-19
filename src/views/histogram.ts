@@ -787,8 +787,8 @@ export function createHistogramView<D extends string>(
 
   const vgView = new View(runtime)
     .logLevel(Warn)
-    .initialize(el)
-    .renderer(config.renderer);
+    .renderer(config.renderer)
+    .initialize(el);
 
   vgView["_spec"] = vgSpec;
   return vgView;

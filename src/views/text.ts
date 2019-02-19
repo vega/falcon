@@ -50,7 +50,7 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime).initialize(el).renderer("svg");
+  const vgView = new View(runtime).renderer("svg").initialize(el);
 
   vgView["_spec"] = vgSpec;
   return vgView;
