@@ -1,4 +1,4 @@
-import { View as VgView } from "vega-lib";
+import { View as VgView } from "vega";
 import { Interval } from "./basic";
 
 /**

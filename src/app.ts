@@ -1,6 +1,6 @@
 import ndarray from "ndarray";
 import interpolate from "ndarray-linear-interpolate";
-import { changeset, truthy, View as VgView } from "vega-lib";
+import { changeset, truthy, View as VgView } from "vega";
 import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
@@ -278,6 +278,8 @@ export class App<V extends string, D extends string> {
         : this.config.zeroD === "hbar"
         ? createHorizontalBarView
         : createVerticalBarView)(el, view, this.config);
+
+      await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);
@@ -291,6 +293,8 @@ export class App<V extends string, D extends string> {
       view.dimension.binConfig = binConfig;
 
       vegaView = createHistogramView(el, view, this.config, !!this.logger);
+
+      await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
       const { hist } = await this.db.histogram(view.dimension);
@@ -363,6 +367,8 @@ export class App<V extends string, D extends string> {
       }
 
       vegaView = createHeatmapView(el, view, this.config);
+
+      await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
       const data = await this.db.heatmap(view.dimensions);

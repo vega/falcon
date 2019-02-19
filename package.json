@@ -42,9 +42,7 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega-lib": "^4.4.0",
-    "vega-statistics": "^1.2.3",
-    "vega-typings": "^0.3.53"
+    "vega": "^5.0.0-rc1"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",

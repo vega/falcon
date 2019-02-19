@@ -1,5 +1,5 @@
 import { Config } from "./../config";
-import { EncodeEntry, parse, Spec, View, Warn } from "vega-lib";
+import { EncodeEntry, parse, Spec, View, Warn } from "vega";
 import { View0D } from "../api";
 import { darkerBlue, loadingMarks } from "./histogram";
 
@@ -143,8 +143,7 @@ export function createHorizontalBarView(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer(config.renderer)
-    .run();
+    .renderer(config.renderer);
 
   vgView["_spec"] = vgSpec;
   return vgView;

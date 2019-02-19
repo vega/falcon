@@ -10,7 +10,7 @@ import {
   Spec,
   View,
   Warn
-} from "vega-lib";
+} from "vega";
 import { View1D } from "../api";
 import { Config } from "../config";
 import { extent, repeatInvisible } from "../util";
@@ -788,8 +788,7 @@ export function createHistogramView<D extends string>(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer(config.renderer)
-    .run();
+    .renderer(config.renderer);
 
   vgView["_spec"] = vgSpec;
   return vgView;

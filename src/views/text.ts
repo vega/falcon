@@ -1,6 +1,6 @@
 import { Config } from "./../config";
 import { View0D } from "../api";
-import { parse, Spec, View } from "vega-lib";
+import { parse, Spec, View } from "vega";
 
 export function createTextView(el: Element, view: View0D, _config: Config) {
   const vgSpec: Spec = {
@@ -50,10 +50,7 @@ export function createTextView(el: Element, view: View0D, _config: Config) {
 
   const runtime = parse(vgSpec);
 
-  const vgView = new View(runtime)
-    .initialize(el)
-    .renderer("svg")
-    .run();
+  const vgView = new View(runtime).initialize(el).renderer("svg");
 
   vgView["_spec"] = vgSpec;
   return vgView;

@@ -5,7 +5,7 @@ import {
   Spec,
   View as VgView,
   Warn
-} from "vega-lib";
+} from "vega";
 import { extent } from "../util";
 import { Logger, Views } from "./../api";
 import { Interval } from "./../basic";

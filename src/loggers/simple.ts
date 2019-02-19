@@ -1,4 +1,4 @@
-import { View } from "vega-lib";
+import { View } from "vega";
 import { Logger } from "../api";
 
 /**

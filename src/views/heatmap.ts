@@ -1,4 +1,4 @@
-import { parse, Spec, View, Mark, Warn } from "vega-lib";
+import { parse, Spec, View, Mark, Warn } from "vega";
 import { View2D } from "../api";
 import { Config } from "../config";
 import { darkerBlue, loadingMarks } from "./histogram";
@@ -503,20 +503,25 @@ export function createHeatmapView<D extends string>(
     scales: [
       {
         name: "x",
-        type: "bin-linear",
+        type: "linear",
         domain: {
+          signal: "[binX.start, binX.stop]"
+        },
+        bins: {
           signal: "sequence(binX.start, binX.stop + binX.step, binX.step)"
         },
         range: "width"
       },
       {
         name: "y",
-        type: "bin-linear",
+        type: "linear",
         domain: {
+          signal: "[binX.start, binX.stop]"
+        },
+        bins: {
           signal: "sequence(binY.start, binY.stop + binY.step, binY.step)"
         },
-        range: "height",
-        reverse: true
+        range: "height"
       },
       config.circleHeatmap
         ? {
@@ -590,8 +595,7 @@ export function createHeatmapView<D extends string>(
   const vgView = new View(runtime)
     .logLevel(Warn)
     .initialize(el)
-    .renderer(config.renderer)
-    .run();
+    .renderer(config.renderer);
 
   vgView["_spec"] = vgSpec;
   return vgView;
