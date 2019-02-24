@@ -10,16 +10,17 @@
     "start:flights-mapd": "parcel flights-mapd/index.html",
     "start:weather": "parcel weather/index.html",
     "start:gaia-mapd": "parcel gaia-mapd/index.html",
-    "start": "npm run start:flights",
+    "start": "yarn start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
     "build": "tsc && rollup -c",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "yarn build",
     "build:demos": "parcel build --public-url '/falcon/' flights/index.html flights-mapd/index.html weather/index.html --detailed-report",
-    "deploy:demos": "npm run clean && npm run build:demos && gh-pages -d dist",
+    "deploy:demos": "yarn clean && yarn build:demos && gh-pages -d dist",
     "test": "jest",
     "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
-    "format": "npm run prettierbase -- --write",
-    "lint": "npm run prettierbase -- --check"
+    "format": "yarn prettierbase --write",
+    "lint": "yarn prettierbase --check",
+    "preversion": "yarn lint && yarn test"
   },
   "repository": {
     "type": "git",
