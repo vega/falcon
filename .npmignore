@@ -3,6 +3,7 @@
 .editorconfig
 .prettierrc
 .rpt2_cache*
+.terserrc
 .travis.yml
 .vscode
 /src
@@ -18,5 +19,6 @@ movies
 node_modules
 rollup.config.js
 test
+tsconfig.json
 weather
 yarn-error.log
