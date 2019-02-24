@@ -449,37 +449,6 @@ export function normalizeChf(a: ndarray) {
   divseq(a, a.get(a.size - 1));
 }
 
-export const _chEmd = cwise({
-  args: ["array", "array", "scalar", "scalar"],
-  pre: function(_0, _1, _2, _3) {
-    this.sum = 0.0;
-  },
-  body: function(a, b, al, bl) {
-    this.sum += Math.abs(a / al - b / bl);
-  },
-  post: function(_0, _1, _2, _3) {
-    return this.sum;
-  },
-  funcName: "_chEmd"
-});
-
-/**
- * Compute the Earth mover's distance from two cumulative histograms.
- */
-export function chEmd(a: ndarray, b: ndarray) {
-  // compute the sum of absolute differences between CDFs, and normalize it by the number of bins
-
-  if (a.get(a.size - 1) === 0 || b.get(b.size - 1) === 0) {
-    if (a.get(a.size - 1) === 0 && b.get(b.size - 1) === 0) {
-      // return 0;
-    } else {
-      return 1;
-    }
-  }
-
-  return _chEmd(a, b, a.get(a.size - 1) || 1, b.get(b.size - 1) || 1) / a.size;
-}
-
 /**
  * Return a map without a particular key.
  */

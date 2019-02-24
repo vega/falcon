@@ -9,7 +9,6 @@ import {
   bin,
   binTime,
   binToData,
-  chEmd,
   debounce,
   equal,
   extent,
@@ -243,7 +242,7 @@ export class App<V extends string, D extends string> {
       )
     );
 
-    const debouncedPreload = debounce(() => {
+    const debouncedPreload = debounce(async () => {
       if (mouseIsDown) {
         return;
       }
@@ -252,7 +251,7 @@ export class App<V extends string, D extends string> {
 
       for (const [name, view] of this.views) {
         if (view.type !== "0D") {
-          this.prefetchView(name, false);
+          await this.prefetchView(name, false);
         }
       }
     }, this.config.idleTime);
@@ -283,7 +282,7 @@ export class App<V extends string, D extends string> {
       this.vegaViews.set(name, vegaView);
 
       this.update0DView(name, await this.db.length(), true);
-      this.update0DView(name, await this.db.length());
+      await this.update0DView(name, await this.db.length());
     } else if (view.type === "1D") {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
@@ -300,15 +299,18 @@ export class App<V extends string, D extends string> {
       const { hist } = await this.db.histogram(view.dimension);
 
       if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
-        this.update1DView(name, view, hist, true);
+        await this.update1DView(name, view, hist, true);
       }
-      this.update1DView(name, view, hist);
+      await this.update1DView(name, view, hist);
 
       vegaView.addSignalListener("brush", (_name, value) => {
-        const brush = this.brushes.get(view.dimension.name);
-        if (!brush || !equal(value, brush)) {
-          this.brushMove1D(name, view.dimension.name, value);
-        }
+        // wait for dataflow evaluation to finish
+        vegaView.runAfter(() => {
+          const brush = this.brushes.get(view.dimension.name);
+          if (!brush || !equal(value, brush)) {
+            this.brushMove1D(name, view.dimension.name, value);
+          }
+        });
       });
 
       if (this.config.zoom) {
@@ -317,40 +319,16 @@ export class App<V extends string, D extends string> {
           500
         );
 
-        vegaView.addSignalListener("domain", async (__dirname, value) => {
-          // if you zoom, we activate the view
-          if (this.activeView !== name) {
-            await this.switchActiveView(name, false);
-          }
+        vegaView.addSignalListener("domain", (__dirname, value) => {
+          // wait for dataflow evaluation to finish
+          vegaView.runAfter(async () => {
+            // if you zoom, we activate the view
+            if (this.activeView !== name) {
+              await this.switchActiveView(name, false);
+            }
 
-          updateHistDebounced(value);
-        });
-      }
-
-      if (this.config.showInterestingness) {
-        vegaView.addSignalListener(
-          "brushSingleStart",
-          (_name, value: number) => {
-            vegaView
-              .change(
-                "interesting",
-                changeset()
-                  .remove(truthy)
-                  .insert(this.calculateInterestingness({ start: value }))
-              )
-              .run();
-          }
-        );
-
-        vegaView.addSignalListener("brushMoveStart", (_name, value: number) => {
-          vegaView
-            .change(
-              "interesting",
-              changeset()
-                .remove(truthy)
-                .insert(this.calculateInterestingness({ window: value }))
-            )
-            .run();
+            updateHistDebounced(value);
+          });
         });
       }
 
@@ -373,23 +351,26 @@ export class App<V extends string, D extends string> {
 
       const data = await this.db.heatmap(view.dimensions);
       if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
-        this.update2DView(name, view, data, true);
+        await this.update2DView(name, view, data, true);
       }
-      this.update2DView(name, view, data);
+      await this.update2DView(name, view, data);
 
       vegaView.addSignalListener("dataBrush", (_name, value) => {
-        this.brushMove2D(
-          name,
-          view.dimensions[0].name,
-          view.dimensions[1].name,
-          value
-        );
+        // wait for dataflow evaluation to finish
+        vegaView.runAfter(() => {
+          this.brushMove2D(
+            name,
+            view.dimensions[0].name,
+            view.dimensions[1].name,
+            value
+          );
+        });
       });
     }
 
     if (view.type !== "0D") {
-      const cb = () => {
-        this.prefetchView(name, !!this.config.progressiveInteractions);
+      const cb = async () => {
+        await this.prefetchView(name, !!this.config.progressiveInteractions);
       };
 
       el["on" + this.config.prefetchOn] = cb;
@@ -399,20 +380,20 @@ export class App<V extends string, D extends string> {
         view,
         !!this.config.progressiveInteractions
       );
-      this.setPixels(name, lowResPixels);
+      await this.setPixels(name, lowResPixels);
 
       if (this.config.debugViewInteractions) {
         vegaView.container()!.style.border = "1px solid green";
       }
     }
 
-    vegaView.resize().run();
+    vegaView.resize().runAsync();
   }
 
   /**
    * The domain has changed so we need to zoom the chart.
    */
-  private updateHistogram(domain: Interval<number>) {
+  private async updateHistogram(domain: Interval<number>) {
     const view = this.getActiveView() as View1D<D>;
     const vegaView = this.getActiveVegaView();
     const name = this.activeView;
@@ -431,21 +412,21 @@ export class App<V extends string, D extends string> {
       view.dimension.binConfig = newBinConfig;
 
       this.prefetchedData.delete(name);
-      this.prefetchView(name, false);
+      await this.prefetchView(name, false);
 
-      vegaView.signal("bin", newBinConfig).runAfter(async () => {
-        if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
-          const { hist, noBrush } = await this.db.histogram(
-            view.dimension,
-            omit(this.brushes, view.dimension.name)
-          );
-          this.update1DView(name, view, noBrush, true);
-          this.update1DView(name, view, hist);
-        } else {
-          const { hist } = await this.db.histogram(view.dimension);
-          this.update1DView(name, view, hist);
-        }
-      });
+      await vegaView.signal("bin", newBinConfig).runAsync();
+
+      if (this.config.showUnfiltered || this.config.toggleUnfiltered) {
+        const { hist, noBrush } = await this.db.histogram(
+          view.dimension,
+          omit(this.brushes, view.dimension.name)
+        );
+        this.update1DView(name, view, noBrush, true);
+        await this.update1DView(name, view, hist);
+      } else {
+        const { hist } = await this.db.histogram(view.dimension);
+        await this.update1DView(name, view, hist);
+      }
     }
   }
 
@@ -477,7 +458,7 @@ export class App<V extends string, D extends string> {
   /**
    * Get data for the view so that we can brush in it.
    */
-  public prefetchView(name: V, progressive = true) {
+  public async prefetchView(name: V, progressive = true) {
     if (mouseIsDown) {
       return;
     }
@@ -501,11 +482,11 @@ export class App<V extends string, D extends string> {
 
     if (view.type === "1D") {
       const lowResPixels = this.getPixels(view, progressive);
-      this.setPixels(name, lowResPixels);
+      await this.setPixels(name, lowResPixels);
       cubes = this.load1DData(name, view, lowResPixels);
     } else if (view.type === "2D") {
       const lowResPixels = this.getPixels(view, progressive);
-      this.setPixels(name, lowResPixels);
+      await this.setPixels(name, lowResPixels);
       cubes = this.load2DData(name, view, lowResPixels);
     } else {
       throw new Error("0D cannot be an active view.");
@@ -515,12 +496,12 @@ export class App<V extends string, D extends string> {
     this.prefetchedData.set(name, runners);
 
     for (const [n, r] of runners) {
-      r.promise().then(() => {
+      r.promise().then(async () => {
         const vegaView = this.getVegaView(n);
-        vegaView
+        await vegaView
           .signal("pending", false)
           .signal("approximate", progressive && this.config.interpolate)
-          .run();
+          .runAsync();
 
         if (
           (this.config.prefetchOn === "mouseenter" ||
@@ -572,7 +553,7 @@ export class App<V extends string, D extends string> {
       Promise.all(histsPromises.map(d => d[1])).then(async hists => {
         const index = this.prefetchedData.get(name)!;
         if (index === runners) {
-          this.setPixels(name, highResPixels);
+          await this.setPixels(name, highResPixels);
 
           // replace the prefetched data with high res data
           for (let i = 0; i < histsPromises.length; i++) {
@@ -580,10 +561,10 @@ export class App<V extends string, D extends string> {
             index.get(v)!.data = hists[i];
 
             const vegaView = this.getVegaView(v);
-            vegaView
+            await vegaView
               .signal("pending", false)
               .signal("approximate", false)
-              .run();
+              .runAsync();
 
             if (this.views.get(v)!.type !== "0D") {
               if (this.config.debugViewInteractions) {
@@ -619,11 +600,11 @@ export class App<V extends string, D extends string> {
     return this.highRes1D;
   }
 
-  private setPixels(name: V, pixels: number | Interval<number>) {
-    this.vegaViews
+  private async setPixels(name: V, pixels: number | Interval<number>) {
+    return await this.vegaViews
       .get(name)!
       .signal("pixels", pixels)
-      .run();
+      .runAsync();
   }
 
   private load1DData(name: V, view: View1D<D>, pixels: number) {
@@ -645,7 +626,7 @@ export class App<V extends string, D extends string> {
   }
 
   private clearPrefetched() {
-    for (const [name, vegaView] of this.vegaViews) {
+    for (const name of this.vegaViews.keys()) {
       if (name !== this.activeView) {
         const map = this.prefetchedData.get(name);
 
@@ -654,16 +635,6 @@ export class App<V extends string, D extends string> {
 
           this.prefetchedData.delete(name);
         }
-
-        vegaView.runAfter(view => {
-          // When the active view is 2D, we shold remove the interestingness data
-          if (
-            this.views.get(this.activeView)!.type === "2D" &&
-            this.views.get(name)!.type === "1D"
-          ) {
-            view.remove("interesting", truthy).resize();
-          }
-        });
       }
     }
   }
@@ -671,19 +642,17 @@ export class App<V extends string, D extends string> {
   /**
    * Switch which view is active.
    */
-  private switchActiveView(name: V, approximate = true) {
+  private async switchActiveView(name: V, approximate = true) {
     console.info(`Active view ${this.activeView} => ${name}`);
 
     this.activeView = name;
-
-    this.showInterestingness();
 
     if (approximate) {
       let runners = this.prefetchedData.get(name)!;
 
       if (!runners) {
-        // could happen when the suer clicks reset on without preload on hover
-        this.prefetchView(name);
+        // could happen when the user clicks reset without preload on hover
+        await this.prefetchView(name);
         runners = this.prefetchedData.get(name)!;
       }
 
@@ -698,112 +667,6 @@ export class App<V extends string, D extends string> {
         }
       });
     }
-  }
-
-  private showInterestingness() {
-    if (!this.config.showInterestingness) {
-      return;
-    }
-
-    const activeView = this.getActiveView();
-    const activeVgView = this.getVegaView(name);
-
-    if (activeView.type === "1D") {
-      // show basic interestingness
-      activeVgView
-        .change(
-          "interesting",
-          changeset()
-            .remove(truthy)
-            .insert(this.calculateInterestingness())
-        )
-        .resize()
-        .run();
-    }
-  }
-
-  /**
-   * Compute an interestingness metric.
-   */
-  private async calculateInterestingness(
-    opt: { start?: number; window?: number } = {}
-  ) {
-    let out: {
-      view: V;
-      x: number;
-      value: any;
-    }[] = [];
-
-    console.time("Compute interestingness");
-
-    const pixels = this.getActiveVegaView().signal("pixels");
-
-    const cubes = this.prefetchedData.get(this.activeView)!;
-    for (const [name, view] of omit(this.views, this.activeView)) {
-      if (view.type !== "0D") {
-        let data: Array<any>;
-
-        const runner = cubes.get(name)!;
-
-        if (runner.data === undefined) {
-          // not yet ready
-          return;
-        }
-
-        const { hists } = runner.data;
-
-        if (opt.window !== undefined) {
-          const w = Math.floor(opt.window / 2);
-
-          data = new Array(pixels - opt.window);
-
-          for (let pixel = w; pixel < pixels - w; pixel++) {
-            const distance = chEmd(
-              hists.pick(pixel - w, null, null),
-              hists.pick(pixel + w, null, null)
-            );
-
-            data[pixel - w] = {
-              view: name,
-              x: pixel,
-              value: Math.log(distance + 1e-6)
-            };
-          }
-        } else {
-          data = new Array(pixels);
-
-          // cache the start cumulative histogram
-          let startChf: ndarray = ndarray([]);
-          if (opt.start !== undefined) {
-            startChf = hists.pick(opt.start, null, null);
-          }
-
-          for (let pixel = 0; pixel < pixels; pixel++) {
-            let distance: number;
-
-            if (opt.start !== undefined) {
-              distance = chEmd(startChf, hists.pick(pixel, null, null));
-            } else {
-              distance = chEmd(
-                hists.pick(pixel, null, null),
-                hists.pick(pixel + 1, null, null)
-              );
-            }
-
-            data[pixel] = {
-              view: name,
-              x: pixel,
-              value: Math.log(distance + 1e-6)
-            };
-          }
-        }
-
-        out = out.concat(data);
-      }
-    }
-    console.timeEnd("Compute interestingness");
-
-    return out;
   }
 
   private brushMove1D(name: V, dimension: D, value: Interval<number>) {
@@ -851,16 +714,27 @@ export class App<V extends string, D extends string> {
     return this.vegaViews.get(this.activeView)!;
   }
 
-  private update0DView(name: V, value: number, base?: true) {
+  private async update0DView(name: V, value: number, base?: true) {
     const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
 
-    vgView
-      .change(table, changeset().modify(vgView.data(table)[0], "value", value))
-      .run();
+    vgView.change(
+      table,
+      changeset().modify(vgView.data(table)[0], "value", value)
+    );
+
+    if (!base) {
+      // we will run the dataflow when we update the filtered data
+      await vgView.runAsync();
+    }
   }
 
-  private update1DView(name: V, view: View1D<D>, hist: ndarray, base?: true) {
+  private async update1DView(
+    name: V,
+    view: View1D<D>,
+    hist: ndarray,
+    base?: true
+  ) {
     const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
     const data = vgView.data(table);
@@ -889,10 +763,19 @@ export class App<V extends string, D extends string> {
       }
     }
 
-    vgView.change(table, changes).run();
+    vgView.change(table, changes);
+    if (!base) {
+      // we will run the dataflow when we update the filtered data
+      await vgView.runAsync();
+    }
   }
 
-  private update2DView(name: V, view: View2D<D>, heat: ndarray, base?: true) {
+  private async update2DView(
+    name: V,
+    view: View2D<D>,
+    heat: ndarray,
+    base?: true
+  ) {
     const vgView = this.getVegaView(name);
     const table = base ? "base" : "table";
     const data = vgView.data(table);
@@ -930,7 +813,11 @@ export class App<V extends string, D extends string> {
       vgView.resize();
     }
 
-    vgView.change(table, changes).run();
+    vgView.change(table, changes);
+    if (!base) {
+      // we will run the dataflow when we update the filtered data
+      await vgView.runAsync();
+    }
   }
 
   private valueFor1D(
@@ -983,7 +870,7 @@ export class App<V extends string, D extends string> {
       : sub(hists.pick(floor[0], null, null), hists.pick(floor[1], null, null));
   }
 
-  private update1DActiveView() {
+  private async update1DActiveView() {
     const activeVgView = this.getActiveVegaView();
     const cubes = this.prefetchedData.get(this.activeView)!;
 
@@ -1019,7 +906,7 @@ export class App<V extends string, D extends string> {
 
       if (!runner.data) {
         const vegaView = this.getVegaView(name);
-        vegaView.signal("pending", true).run();
+        await vegaView.signal("pending", true).runAsync();
 
         if (
           (this.config.prefetchOn === "mouseenter" ||
@@ -1114,7 +1001,7 @@ export class App<V extends string, D extends string> {
         );
   }
 
-  private update2DActiveView() {
+  private async update2DActiveView() {
     const activeVgView = this.getActiveVegaView();
     const cubes = this.prefetchedData.get(this.activeView)!;
 
@@ -1146,7 +1033,7 @@ export class App<V extends string, D extends string> {
 
       if (!runner.data) {
         const vegaView = this.getVegaView(name);
-        vegaView.signal("pending", true).run();
+        await vegaView.signal("pending", true).runAsync();
 
         if (
           (this.config.prefetchOn === "mouseenter" ||
@@ -1190,20 +1077,18 @@ export class App<V extends string, D extends string> {
     }
   }
 
-  private update() {
+  private async update() {
     if (this.prefetchedData.size > 1) {
-      this.clearPrefetched();
+      await this.clearPrefetched();
     }
 
-    const cb = async () => {
-      if (this.getActiveView().type === "1D") {
-        await this.update1DActiveView();
-      } else {
-        await this.update2DActiveView();
-      }
-    };
-
     // TODO: why do we need to to make reset work correctly?
-    this.getActiveVegaView().runAfter(cb);
+    // this.getActiveVegaView().runAsync();
+
+    if (this.getActiveView().type === "1D") {
+      await this.update1DActiveView();
+    } else {
+      await this.update2DActiveView();
+    }
   }
 }

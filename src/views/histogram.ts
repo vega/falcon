@@ -78,9 +78,6 @@ export function createHistogramView<D extends string>(
     },
     {
       name: "table"
-    },
-    {
-      name: "interesting"
     }
   ] as Data[];
 
@@ -380,62 +377,6 @@ export function createHistogramView<D extends string>(
     }
   ];
 
-  if (config.showInterestingness) {
-    marks.push({
-      type: "group",
-      marks: [
-        {
-          type: "rect",
-          from: { data: "interesting" },
-          encode: {
-            enter: {
-              x: { field: "x", scale: "xPix" },
-              width: { scale: "xPix", band: 1 },
-              y: { field: "view", scale: "y" },
-              height: { scale: "y", band: 1 },
-              fill: { field: "value", scale: "color" }
-            }
-          }
-        }
-      ],
-      scales: [
-        {
-          name: "xPix",
-          type: "band",
-          domain: { signal: "sequence(pixels)" },
-          range: "width",
-          padding: 0,
-          round: false
-        },
-        {
-          name: "y",
-          type: "band",
-          domain: { data: "interesting", field: "view" },
-          range: { step: 10 },
-          paddingInner: 0.1,
-          paddingOuter: 0
-        },
-        {
-          name: "color",
-          type: "sequential",
-          range: { scheme: "viridis" },
-          domain: { data: "interesting", field: "value" }
-        }
-      ],
-      axes: [
-        {
-          scale: "y",
-          orient: "left",
-          ticks: false,
-          labelPadding: 5,
-          labelLimit: 60,
-          domain: false,
-          labelFontSize: 8
-        }
-      ]
-    } as Mark);
-  }
-
   const onBrush: OnEvent[] = [
     {
       events: "mouseup, touchend",
@@ -623,41 +564,6 @@ export function createHistogramView<D extends string>(
                 "@chart:wheel!, @brush:wheel!, @left:wheel!, @left_grabber:wheel!, @right:wheel!, @right_grabber:wheel!",
               force: true,
               update: "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
-            }
-          ]
-        }
-      ] as Signal[])
-    );
-  }
-
-  if (config.showInterestingness) {
-    signals.push(
-      ...([
-        {
-          name: "brushSingleStart",
-          value: null,
-          on: [
-            {
-              events: "@chart:mousedown",
-              update: "x()"
-            },
-            {
-              events: "@left:mousedown, @left_grabber:mousedown",
-              update: "brush[1]"
-            },
-            {
-              events: "@right:mousedown, @right_grabber:mousedown",
-              update: "brush[0]"
-            }
-          ]
-        },
-        {
-          name: "brushMoveStart",
-          value: null,
-          on: [
-            {
-              events: "@brush:mousedown",
-              update: "abs(span(brush))"
             }
           ]
         }

@@ -12,8 +12,6 @@ export const DEFAULT_CONFIG = {
   zeroD: "hbar" as "vbar" | "hbar" | "text",
   /** Use circles instead of colored rectangles. Supports showing unfiltered data. */
   circleHeatmap: true,
-  /** Show interestingness indicator. */
-  showInterestingness: false,
   /** Load high resolution interactions later. */
   progressiveInteractions: false as boolean | "only2D",
   /** Interpolate while we have low resolution data. */
