@@ -303,14 +303,13 @@ export class App<V extends string, D extends string> {
       }
       await this.update1DView(name, view, hist);
 
-      vegaView.addSignalListener("brush", (_name, value) => {
-        // wait for dataflow evaluation to finish
-        vegaView.runAfter(() => {
-          const brush = this.brushes.get(view.dimension.name);
-          if (!brush || !equal(value, brush)) {
-            this.brushMove1D(name, view.dimension.name, value);
-          }
-        });
+      vegaView.addSignalListener("brush", async (_name, value) => {
+        await vegaView.runAsync();
+
+        const brush = this.brushes.get(view.dimension.name);
+        if (!brush || !equal(value, brush)) {
+          this.brushMove1D(name, view.dimension.name, value);
+        }
       });
 
       if (this.config.zoom) {
@@ -319,16 +318,14 @@ export class App<V extends string, D extends string> {
           500
         );
 
-        vegaView.addSignalListener("domain", (__dirname, value) => {
-          // wait for dataflow evaluation to finish
-          vegaView.runAfter(async () => {
-            // if you zoom, we activate the view
-            if (this.activeView !== name) {
-              await this.switchActiveView(name, false);
-            }
+        vegaView.addSignalListener("domain", async (__dirname, value) => {
+          await vegaView.runAsync();
+          // if you zoom, we activate the view
+          if (this.activeView !== name) {
+            await this.switchActiveView(name, false);
+          }
 
-            updateHistDebounced(value);
-          });
+          updateHistDebounced(value);
         });
       }
 
@@ -355,16 +352,15 @@ export class App<V extends string, D extends string> {
       }
       await this.update2DView(name, view, data);
 
-      vegaView.addSignalListener("dataBrush", (_name, value) => {
-        // wait for dataflow evaluation to finish
-        vegaView.runAfter(() => {
-          this.brushMove2D(
-            name,
-            view.dimensions[0].name,
-            view.dimensions[1].name,
-            value
-          );
-        });
+      vegaView.addSignalListener("dataBrush", async (_name, value) => {
+        await vegaView.runAsync();
+
+        this.brushMove2D(
+          name,
+          view.dimensions[0].name,
+          view.dimensions[1].name,
+          value
+        );
       });
     }
 
