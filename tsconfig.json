@@ -14,7 +14,8 @@
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "incremental": true
   },
   "files": ["src/index.ts", "flights/index.ts", "weather/index.ts"]
 }
