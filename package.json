@@ -45,22 +45,22 @@
     "vega": "^5.3.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.3",
+    "@babel/core": "^7.4.4",
     "@types/d3": "^5.7.2",
-    "@types/jest": "^24.0.11",
+    "@types/jest": "^24.0.12",
     "@types/ndarray": "1.0.7",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.0.1",
     "jest": "^24.7.1",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.12.0",
     "parcel-bundler": "^1.12.3",
-    "prettier": "^1.16.4",
-    "rollup": "^1.10.0",
+    "prettier": "^1.17.0",
+    "rollup": "^1.11.2",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^4.2.3",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.4.3"
+    "typescript": "^3.4.5"
   },
   "jest": {
     "testURL": "http://localhost/",
