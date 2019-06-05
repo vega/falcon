@@ -507,7 +507,7 @@ export class App<V extends string, D extends string> {
           if (this.config.debugViewInteractions) {
             vegaView.container()!.style.border = "1px solid green";
           }
-          vegaView.container()!.style.cursor = null;
+          vegaView.container()!.style.cursor = "";
           (vegaView
             .container()!
             .children.item(0) as HTMLElement).style.pointerEvents = "all";
@@ -566,7 +566,7 @@ export class App<V extends string, D extends string> {
               if (this.config.debugViewInteractions) {
                 vegaView.container()!.style.border = "1px solid green";
               }
-              vegaView.container()!.style.cursor = null;
+              vegaView.container()!.style.cursor = "";
               (vegaView
                 .container()!
                 .children.item(0) as HTMLElement).style.pointerEvents = "all";
