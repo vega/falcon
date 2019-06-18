@@ -4,6 +4,7 @@
     "target": "es2017",
     "outDir": "build",
     "moduleResolution": "node",
+    "declaration": true,
     "esModuleInterop": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
