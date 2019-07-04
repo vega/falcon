@@ -2,20 +2,20 @@
 # yarn lockfile v1
 
 
-"@apache-arrow/es2015-esm@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.13.0.tgz#61d1a2833719f18d79e8c0cabe26dc801701afea"
-  integrity sha512-JLAXxk+ML5kusRt1GG/uHvkEkBGpEOByYwSA6FAMuEw9Dk8pbnVK+vD1gPAAlhnjE8pbMUXy/606Ho8CS2jA8w==
+"@apache-arrow/es2015-esm@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.14.0.tgz#3e41ef7ace25c5ce1b991ac6deaa3b10e02094f2"
+  integrity sha512-ut8GVfKUaSss+2ucu1OrPceaBc54wIEGpPxqp1AjXMOblZO78FId8ZHgXpV2j59yep28RN5Rb8Ap/DrQBhiDzA==
   dependencies:
-    "@types/flatbuffers" "^1.9.0"
-    "@types/node" "^10.12.18"
+    "@types/flatbuffers" "^1.9.1"
+    "@types/node" "^12.0.4"
     "@types/text-encoding-utf-8" "^1.0.1"
     command-line-args "5.0.2"
     command-line-usage "5.0.5"
-    flatbuffers "^1.10.2"
-    json-bignum "0.0.3"
-    pad-left "2.1.0"
-    text-encoding-utf-8 "1.0.2"
+    flatbuffers "1.11.0"
+    json-bignum "^0.0.3"
+    pad-left "^2.1.0"
+    text-encoding-utf-8 "^1.0.2"
     tslib "^1.9.3"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.0.0 <7.4.0":
@@ -1214,7 +1214,7 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
 
-"@types/flatbuffers@^1.9.0":
+"@types/flatbuffers@^1.9.1":
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/@types/flatbuffers/-/flatbuffers-1.9.1.tgz#1910bebfc15c8f67a287fae07bfc061f94e9d291"
   integrity sha512-TC3X0Nkj5wgvuY217VkodBtjbD3Yr0JNApDY1GW9IU5Mzm5ie1IJErqe4vRm+wy08IRz3bemaDATrdEw1CJlVQ==
@@ -1266,10 +1266,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
   integrity sha512-b8bbUOTwzIY3V5vDTY1fIJ+ePKDUBqt2hC2woVGotdQQhG/2Sh62HOKHrT7ab+VerXAcPyAiTEipPu/FsreUtg==
 
-"@types/node@^10.12.18":
-  version "10.14.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.9.tgz#2e8d678039d27943ce53a1913386133227fd9066"
-  integrity sha512-NelG/dSahlXYtSoVPErrp06tYFrvzj8XLWmKA+X8x0W//4MqbUyZu++giUG/v0bjAT6/Qxa8IjodrfdACyb0Fg==
+"@types/node@^12.0.4":
+  version "12.0.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.12.tgz#cc791b402360db1eaf7176479072f91ee6c6c7ca"
+  integrity sha512-Uy0PN4R5vgBUXFoJrKryf5aTk3kJ8Rv3PdlHjl6UaX+Cqp1QE0yPQ68MPXGrZOfG7gZVNDIJZYyot0B9ubXUrQ==
 
 "@types/q@^1.5.1":
   version "1.5.2"
@@ -3997,7 +3997,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-flatbuffers@^1.10.2:
+flatbuffers@1.11.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-1.11.0.tgz#90a47e584dd7851ad7a913f5a0ee99c1d76ce59f"
   integrity sha512-0PqFKtXI4MjxomI7jO4g5XfLPm/15g2R+5WGCHBGYGh0ihQiypnHlJ6bMmkkrAe0GzZ4d7PDAfCONKIPUxNF+A==
@@ -5407,7 +5407,7 @@ jsesc@~0.5.0:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-0.5.0.tgz#e7dee66e35d6fc16f710fe91d5cf69f70f08911d"
   integrity sha1-597mbjXW/Bb3EP6R1c9p9w8IkR0=
 
-json-bignum@0.0.3:
+json-bignum@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/json-bignum/-/json-bignum-0.0.3.tgz#41163b50436c773d82424dbc20ed70db7604b8d7"
   integrity sha1-QRY7UENsdz2CQk28IO1w23YEuNc=
@@ -6457,7 +6457,7 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/package/-/package-1.0.1.tgz#d25a1f99e2506dcb27d6704b83dca8a312e4edcc"
   integrity sha1-0lofmeJQbcsn1nBLg9yooxLk7cw=
 
-pad-left@2.1.0:
+pad-left@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/pad-left/-/pad-left-2.1.0.tgz#16e6a3b2d44a8e138cb0838cc7cb403a4fc9e994"
   integrity sha1-FuajstRKjhOMsIOMx8tAOk/J6ZQ=
@@ -8425,7 +8425,7 @@ test-value@^3.0.0:
     array-back "^2.0.0"
     typical "^2.6.1"
 
-text-encoding-utf-8@1.0.2:
+text-encoding-utf-8@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/text-encoding-utf-8/-/text-encoding-utf-8-1.0.2.tgz#585b62197b0ae437e3c7b5d0af27ac1021e10d13"
   integrity sha512-8bw4MY9WjdsD2aMtO0OzOCY3pXGYNx2d2FfHRVUKkiCPDWjKuOlhLVASS+pD7VkLTVjW268LYJHwsnPFlBpbAg==
