@@ -13,7 +13,7 @@ The largest experiments we have done so far is 10M flights in the browser and ~1
 We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication. 
 
 ```bib
-@inproceedings{Moritz2019,
+@inproceedings{moritz2019falcon,
   doi = {10.1145/3290605},
   year  = {2019},
   publisher = {{ACM} Press},
