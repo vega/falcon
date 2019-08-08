@@ -1,6 +1,6 @@
 {
   "name": "falcon-vis",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "description": "Big data crossfilter",
   "main": "build/falcon.js",
   "module": "build/src/index",
@@ -32,11 +32,11 @@
   },
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
-    "@apache-arrow/es2015-esm": "^0.13.0",
-    "@mapd/connector": "^4.6.1",
-    "@types/node": "^12.0.8",
+    "@apache-arrow/es2015-esm": "^0.14.1",
+    "@mapd/connector": "^4.7.2",
+    "@types/node": "^12.6.9",
     "cwise": "^1.0.10",
-    "d3": "^5.9.2",
+    "d3": "^5.9.7",
     "ndarray": "^1.0.18",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
@@ -45,22 +45,22 @@
     "vega": "^5.4.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
+    "@babel/core": "^7.5.5",
     "@types/d3": "^5.7.2",
-    "@types/jest": "^24.0.14",
+    "@types/jest": "^24.0.17",
     "@types/ndarray": "1.0.7",
     "babel-preset-env": "^1.7.0",
-    "gh-pages": "^2.0.1",
+    "gh-pages": "^2.1.0",
     "jest": "^24.8.0",
     "node-sass": "^4.12.0",
     "parcel-bundler": "^1.12.3",
     "prettier": "^1.18.2",
-    "rollup": "^1.15.3",
-    "rollup-plugin-commonjs": "^10.0.0",
+    "rollup": "^1.19.2",
+    "rollup-plugin-commonjs": "^10.0.2",
     "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.0.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "jest": {
     "testURL": "http://localhost/",

@@ -8,12 +8,12 @@
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSci Core](https://www.omnisci.com/platform/core/) (formerly known as MapD).
+The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSciDB](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
 We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication. 
 
 ```bib
-@inproceedings{Moritz2019,
+@inproceedings{moritz2019falcon,
   doi = {10.1145/3290605},
   year  = {2019},
   publisher = {{ACM} Press},
