@@ -29,6 +29,7 @@ import {
   createVerticalBarView
 } from "./views";
 // import imshow from "ndarray-imshow";
+import * as resizeDetector from 'resize-detector';
 
 const interp2d = interpolate.d2;
 
@@ -271,13 +272,23 @@ export class App<V extends string, D extends string> {
     const el = view.el!;
     let vegaView: VgView;
 
+    if (this.config.responsive) {
+      resizeDetector.addListener(el, () => {
+        vegaView.width(el.offsetWidth - 10);
+        vegaView.height(el.offsetHeight - 20);
+        vegaView.runAsync();
+      });
+    }
+
     if (view.type === "0D") {
       vegaView = (this.config.zeroD === "text"
         ? createTextView
         : this.config.zeroD === "hbar"
-        ? createHorizontalBarView
-        : createVerticalBarView)(el, view, this.config);
+          ? createHorizontalBarView
+          : createVerticalBarView)(el, view, this.config);
 
+      vegaView.width(el.offsetWidth - 10);
+      vegaView.height(el.offsetHeight - 20);
       await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
@@ -287,12 +298,14 @@ export class App<V extends string, D extends string> {
       const binConfig = (view.dimension.time ? binTime : bin)(
         view.dimension.bins,
         view.dimension.extent ||
-          (await this.db.getDimensionExtent(view.dimension))
+        (await this.db.getDimensionExtent(view.dimension))
       );
       view.dimension.binConfig = binConfig;
 
       vegaView = createHistogramView(el, view, this.config, !!this.logger);
 
+      vegaView.width(el.offsetWidth - 10);
+      vegaView.height(el.offsetHeight - 20);
       await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
@@ -343,6 +356,8 @@ export class App<V extends string, D extends string> {
 
       vegaView = createHeatmapView(el, view, this.config);
 
+      vegaView.width(el.offsetWidth - 10);
+      vegaView.height(el.offsetHeight - 20);
       await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
 
@@ -443,9 +458,9 @@ export class App<V extends string, D extends string> {
     } else if (view.type === "2D") {
       return progressive
         ? [
-            numBins(view.dimensions[0].binConfig!),
-            numBins(view.dimensions[1].binConfig!)
-          ]
+          numBins(view.dimensions[0].binConfig!),
+          numBins(view.dimensions[1].binConfig!)
+        ]
         : [this.highRes2D, this.highRes2D];
     }
     throw new Error("0D cannot be an active view.");
@@ -824,9 +839,9 @@ export class App<V extends string, D extends string> {
   ) {
     return this.config.interpolate
       ? (1 - fraction[1]) * hists.get(floor[1]) +
-          fraction[1] * hists.get(ceil[1]) -
-          ((1 - fraction[0]) * hists.get(floor[0]) +
-            fraction[0] * hists.get(ceil[0]))
+      fraction[1] * hists.get(ceil[1]) -
+      ((1 - fraction[0]) * hists.get(floor[0]) +
+        fraction[0] * hists.get(ceil[0]))
       : hists.get(floor[1]) - hists.get(floor[0]);
   }
 
@@ -838,13 +853,13 @@ export class App<V extends string, D extends string> {
   ) {
     return this.config.interpolate
       ? subInterpolated(
-          hists.pick(floor[0], null),
-          hists.pick(ceil[0], null),
-          hists.pick(floor[1], null),
-          hists.pick(ceil[1], null),
-          fraction[0],
-          fraction[1]
-        )
+        hists.pick(floor[0], null),
+        hists.pick(ceil[0], null),
+        hists.pick(floor[1], null),
+        hists.pick(ceil[1], null),
+        fraction[0],
+        fraction[1]
+      )
       : sub(hists.pick(floor[0], null), hists.pick(floor[1], null));
   }
 
@@ -856,13 +871,13 @@ export class App<V extends string, D extends string> {
   ) {
     return this.config.interpolate
       ? subInterpolated(
-          hists.pick(floor[0], null, null),
-          hists.pick(ceil[0], null, null),
-          hists.pick(floor[1], null, null),
-          hists.pick(ceil[1], null, null),
-          fraction[0],
-          fraction[1]
-        )
+        hists.pick(floor[0], null, null),
+        hists.pick(ceil[0], null, null),
+        hists.pick(floor[1], null, null),
+        hists.pick(ceil[1], null, null),
+        fraction[0],
+        fraction[1]
+      )
       : sub(hists.pick(floor[0], null, null), hists.pick(floor[1], null, null));
   }
 
@@ -926,11 +941,11 @@ export class App<V extends string, D extends string> {
         if (view.type === "0D") {
           const value = activeBrushFloat
             ? this.valueFor1D(
-                hists,
-                activeBrushFloor,
-                activeBrushCeil,
-                fraction
-              )
+              hists,
+              activeBrushFloor,
+              activeBrushCeil,
+              fraction
+            )
             : data.noBrush.data[0];
 
           this.update0DView(name, value);
@@ -958,13 +973,13 @@ export class App<V extends string, D extends string> {
   ) {
     return this.config.interpolate
       ? interp2d(hists, float[0][1], float[1][1]) -
-          interp2d(hists, float[0][1], float[1][0]) -
-          interp2d(hists, float[0][0], float[1][1]) +
-          interp2d(hists, float[0][0], float[1][0])
+      interp2d(hists, float[0][1], float[1][0]) -
+      interp2d(hists, float[0][0], float[1][1]) +
+      interp2d(hists, float[0][0], float[1][0])
       : hists.get(floor[0][1], floor[1][1]) -
-          hists.get(floor[0][1], floor[1][0]) -
-          hists.get(floor[0][0], floor[1][1]) +
-          hists.get(floor[0][0], floor[1][0]);
+      hists.get(floor[0][1], floor[1][0]) -
+      hists.get(floor[0][0], floor[1][1]) +
+      hists.get(floor[0][0], floor[1][0]);
   }
 
   private histFor2D(
@@ -975,11 +990,11 @@ export class App<V extends string, D extends string> {
     return this.config.interpolate
       ? summedAreaTableLookupInterpolateSlow(hists, float)
       : summedAreaTableLookup(
-          hists.pick(floor[0][1], floor[1][1], null),
-          hists.pick(floor[0][1], floor[1][0], null),
-          hists.pick(floor[0][0], floor[1][1], null),
-          hists.pick(floor[0][0], floor[1][0], null)
-        );
+        hists.pick(floor[0][1], floor[1][1], null),
+        hists.pick(floor[0][1], floor[1][0], null),
+        hists.pick(floor[0][0], floor[1][1], null),
+        hists.pick(floor[0][0], floor[1][0], null)
+      );
   }
 
   private heatFor2D(
@@ -990,11 +1005,11 @@ export class App<V extends string, D extends string> {
     return this.config.interpolate
       ? summedAreaTableLookupInterpolateSlow2D(hists, float)
       : summedAreaTableLookup(
-          hists.pick(floor[0][1], floor[1][1], null, null),
-          hists.pick(floor[0][1], floor[1][0], null, null),
-          hists.pick(floor[0][0], floor[1][1], null, null),
-          hists.pick(floor[0][0], floor[1][0], null, null)
-        );
+        hists.pick(floor[0][1], floor[1][1], null, null),
+        hists.pick(floor[0][1], floor[1][0], null, null),
+        hists.pick(floor[0][0], floor[1][1], null, null),
+        hists.pick(floor[0][0], floor[1][0], null, null)
+      );
   }
 
   private async update2DActiveView() {
