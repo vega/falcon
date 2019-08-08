@@ -6,6 +6,7 @@
   "module": "build/src/index",
   "types": "build/src/index.d.ts",
   "scripts": {
+    "start:flights-responsive": "parcel flights-responsive/index.html",
     "start:flights": "parcel flights/index.html",
     "start:flights-mapd": "parcel flights-mapd/index.html",
     "start:weather": "parcel weather/index.html",
@@ -42,6 +43,7 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
+    "resize-detector": "^0.2.0",
     "vega": "^5.4.0"
   },
   "devDependencies": {
