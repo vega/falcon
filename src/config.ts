@@ -44,6 +44,8 @@ export const DEFAULT_CONFIG = {
   heatmapHeight: null,
   maxCircleSize: 700,
   yAxisExtent: 50,
+  fillColor: '#4c78a8',
+  responsive: false,
 
   //----------
   // debugging
