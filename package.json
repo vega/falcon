@@ -34,7 +34,6 @@
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.14.1",
     "@mapd/connector": "^4.7.2",
-    "@types/node": "^12.6.9",
     "cwise": "^1.0.10",
     "d3": "^5.9.7",
     "ndarray": "^1.0.18",
@@ -55,7 +54,7 @@
     "node-sass": "^4.12.0",
     "parcel-bundler": "^1.12.3",
     "prettier": "^1.18.2",
-    "rollup": "^1.19.2",
+    "rollup": "^1.19.4",
     "rollup-plugin-commonjs": "^10.0.2",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
