@@ -15,8 +15,6 @@ import { View1D } from "../api";
 import { Config } from "../config";
 import { extent, repeatInvisible } from "../util";
 
-export const darkerBlue = "#4c78a8";
-
 export function loadingMarks(heightSignal: string, rotate = false) {
   return [
     {
@@ -113,10 +111,10 @@ export function createHistogramView<D extends string>(
             enter: {
               x: config.toggleUnfiltered
                 ? {
-                    signal: "width",
-                    mult: 0.5,
-                    offset: 5
-                  }
+                  signal: "width",
+                  mult: 0.5,
+                  offset: 5
+                }
                 : { signal: "width" },
               y: { value: -8 },
               align: config.toggleUnfiltered
@@ -146,11 +144,11 @@ export function createHistogramView<D extends string>(
               text: {
                 signal: `span(brush) ? '[' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[reverseBrush ? 1 : 0], '${dimension.format}') + ',' + ${
+                  }(brush[reverseBrush ? 1 : 0], '${dimension.format}') + ',' + ${
                   dimension.time ? "timeFormat" : "format"
-                }(brush[reverseBrush ? 0 : 1], '${
+                  }(brush[reverseBrush ? 0 : 1], '${
                   dimension.format
-                }') + ']' : ''`
+                  }') + ']' : ''`
               }
             }
           }
@@ -213,7 +211,7 @@ export function createHistogramView<D extends string>(
                   from: { data: "table" },
                   encode: {
                     enter: {
-                      fill: { value: darkerBlue }
+                      fill: { value: config.fillColor }
                     },
                     update: {
                       opacity: { signal: "approximate ? 0.7 : 1" },
@@ -364,14 +362,14 @@ export function createHistogramView<D extends string>(
           labelOverlap: true,
           ...(dimension.time
             ? {
-                tickCount: dimension.bins
-              }
+              tickCount: dimension.bins
+            }
             : {
-                values: {
-                  signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
-                },
-                tickCount: { signal: "ceil(width/20)" }
-              })
+              values: {
+                signal: "sequence(bin.start, bin.stop + bin.step, bin.step)"
+              },
+              tickCount: { signal: "ceil(width/20)" }
+            })
         }
       ]
     }
@@ -415,7 +413,8 @@ export function createHistogramView<D extends string>(
   ];
 
   const signals: Signal[] = [
-    { name: "histHeight", value: config.histogramHeight },
+    // { name: "width", value: "", on: [{ events: { source: "window", type: "resize" }, update: "containerSize()[0]" }] },
+    { name: "height", value: config.histogramHeight, on: [{ events: { source: "window", type: "resize" }, update: "containerSize()[1]" }] },
     { name: "pending", value: false },
     { name: "approximate", value: false },
     { name: "bin", value: dimension.binConfig },
@@ -529,15 +528,25 @@ export function createHistogramView<D extends string>(
       value: [dimension.binConfig!.start, dimension.binConfig!.stop],
       on: config.zoom
         ? [
-            {
-              events: { signal: "zoom" },
-              update:
-                "keepWithin([zoomAnchor + (domain[0] - zoomAnchor) * zoom, zoomAnchor + (domain[1] - zoomAnchor) * zoom], brush)"
-            }
-          ]
+          {
+            events: { signal: "zoom" },
+            update:
+              "keepWithin([zoomAnchor + (domain[0] - zoomAnchor) * zoom, zoomAnchor + (domain[1] - zoomAnchor) * zoom], brush)"
+          }
+        ]
         : []
     }
   ];
+
+  if (config.responsive) {
+    signals.push(
+      { name: "histHeight", value: config.histogramHeight, update: "height - 20" }
+    );
+  } else {
+    signals.push(
+      { name: "histHeight", value: config.histogramHeight }
+    );
+  }
 
   if (config.zoom) {
     signals.push(
@@ -646,8 +655,9 @@ export function createHistogramView<D extends string>(
 
   const vgSpec: Spec = {
     $schema: "https://vega.github.io/schema/vega/v4.0.json",
-    autosize: "pad",
+    autosize: "fit",
     width: config.histogramWidth,
+    height: config.histogramHeight,
     padding: 5,
     data: data,
     signals: signals,

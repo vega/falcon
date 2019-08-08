@@ -1,7 +1,7 @@
 import { Config } from "./../config";
 import { EncodeEntry, parse, Spec, View, Warn } from "vega";
 import { View0D } from "../api";
-import { darkerBlue, loadingMarks } from "./histogram";
+import { loadingMarks } from "./histogram";
 
 export function createVerticalBarView(
   el: Element,
@@ -85,7 +85,7 @@ export function createVerticalBarView(
         name: "bar",
         encode: {
           enter: {
-            fill: { value: darkerBlue }
+            fill: { value: config.fillColor }
           },
           update: {
             ...barEncodeBase,
