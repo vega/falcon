@@ -46,13 +46,13 @@ export function createHeatmapView<D extends string>(
           text: {
             signal: `dataBrush ? 'X: [' + ${
               dimensionX.time ? "timeFormat" : "format"
-              }(dataBrush[0][0], '${dimensionX.format}') + ',' + ${
+            }(dataBrush[0][0], '${dimensionX.format}') + ',' + ${
               dimensionX.time ? "timeFormat" : "format"
-              }(dataBrush[0][1], '${dimensionX.format}') + '] Y: [' + ${
+            }(dataBrush[0][1], '${dimensionX.format}') + '] Y: [' + ${
               dimensionY.time ? "timeFormat" : "format"
-              }(dataBrush[1][0], '${dimensionY.format}') + ',' + ${
+            }(dataBrush[1][0], '${dimensionY.format}') + ',' + ${
               dimensionY.time ? "timeFormat" : "format"
-              }(dataBrush[1][1], '${dimensionY.format}') + ']' : ''`
+            }(dataBrush[1][1], '${dimensionY.format}') + ']' : ''`
           }
         }
       }
@@ -457,11 +457,11 @@ export function createHeatmapView<D extends string>(
           dimensionX.time
             ? "[time(invert('x', brushX[0])), time(invert('x', brushX[1]))]"
             : "invert('x', brushX)"
-          }, ${
+        }, ${
           dimensionY.time
             ? "[time(invert('y', brushY[0])), time(invert('y', brushY[1]))]"
             : "invert('y', brushY)"
-          }] : 0`
+        }] : 0`
       },
       {
         name: "binBrush",
@@ -525,24 +525,24 @@ export function createHeatmapView<D extends string>(
       },
       config.circleHeatmap
         ? {
-          name: "size",
-          type: "linear",
-          range: [0, config.maxCircleSize],
-          domain: {
-            fields: [
-              { data: "base", field: "value" },
-              { data: "table", field: "value" }
-            ]
-          },
-          nice: true
-        }
+            name: "size",
+            type: "linear",
+            range: [0, config.maxCircleSize],
+            domain: {
+              fields: [
+                { data: "base", field: "value" },
+                { data: "table", field: "value" }
+              ]
+            },
+            nice: true
+          }
         : {
-          name: "color",
-          type: "sequential",
-          range: { scheme: "greenblue" },
-          domain: { data: "table", field: "value" },
-          nice: true
-        }
+            name: "color",
+            type: "sequential",
+            range: { scheme: "greenblue" },
+            domain: { data: "table", field: "value" },
+            nice: true
+          }
     ],
     axes: [
       {
@@ -569,15 +569,15 @@ export function createHeatmapView<D extends string>(
 
         ...(config.circleHeatmap
           ? {
-            size: "size",
-            symbolFillColor: config.fillColor,
-            symbolStrokeWidth: 0
-          }
+              size: "size",
+              symbolFillColor: config.fillColor,
+              symbolStrokeWidth: 0
+            }
           : {
-            fill: "color",
-            type: "gradient",
-            gradientLength: { signal: "height - 16" }
-          }),
+              fill: "color",
+              type: "gradient",
+              gradientLength: { signal: "height - 16" }
+            }),
         encode: {
           legend: {
             enter: {

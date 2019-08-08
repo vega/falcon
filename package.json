@@ -14,7 +14,7 @@
     "start": "yarn start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
     "build": "tsc --declaration && rollup -c",
-    "build:demos": "parcel build --public-url '/falcon/' flights/index.html flights-mapd/index.html weather/index.html --detailed-report",
+    "build:demos": "parcel build --public-url '/falcon/' flights/index.html flights-responsive/index.html flights-mapd/index.html weather/index.html --detailed-report",
     "deploy:demos": "yarn clean && yarn build:demos && gh-pages -d dist",
     "test": "jest",
     "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
