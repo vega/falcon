@@ -1,6 +1,6 @@
 {
   "name": "shapelets-falcon",
-  "version": "0.14.4",
+  "version": "0.14.5",
   "description": "Big data crossfilter fork from falcon",
   "main": "build/falcon.js",
   "module": "build/src/index",
