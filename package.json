@@ -1,7 +1,7 @@
 {
-  "name": "falcon-vis",
-  "version": "0.14.3",
-  "description": "Big data crossfilter",
+  "name": "shapelets-falcon",
+  "version": "0.14.4",
+  "description": "Big data crossfilter fork from falcon",
   "main": "build/falcon.js",
   "module": "build/src/index",
   "types": "build/src/index.d.ts",
@@ -24,14 +24,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uwdata/falcon.git"
+    "url": "git+https://github.com/shapelets/falcon"
   },
-  "author": "Dominik Moritz",
+  "author": "José Sánchez Aranda",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/uwdata/falcon/issues"
+    "url": "https://github.com/shapelets/falcon/issues"
   },
-  "homepage": "https://github.com/uwdata/falcon#readme",
+  "homepage": "https://github.com/shapelets/falcon#readme",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^0.14.1",
     "@mapd/connector": "^4.7.2",
