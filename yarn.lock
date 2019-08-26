@@ -922,9 +922,9 @@
     "@types/yargs" "^13.0.0"
 
 "@mapd/connector@^4.7.2":
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-4.7.2.tgz#9cfa32d98b19f333ea9754fff6b8f148d563a640"
-  integrity sha512-zdIFweoItIi68FDGjxDmsdayRv47BwFA+voasu8+I9LN91Ck12RpEvcc/NHgulm2jGiSbvj+qbt1vHIcQZ8icg==
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-4.8.0.tgz#b745a22dc7484b5bc3148958b2b4f23386935145"
+  integrity sha512-mzzhIIYeaDtqbM3GU0zhTFzpXBG2fYJ+jIwErTTUjJcF3lZ5k8oi4+/rvEFSx//DX+JYCFtJYnHj7Lv18dIY4w==
   dependencies:
     codecov "^2.2.0"
     eventemitter3 "^3.1.0"
