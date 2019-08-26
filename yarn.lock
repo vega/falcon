@@ -3347,9 +3347,9 @@ d3-zoom@1:
     d3-transition "1"
 
 d3@^5.9.7:
-  version "5.10.0"
-  resolved "https://registry.yarnpkg.com/d3/-/d3-5.10.0.tgz#fcf51fa8d67740bcfb21dcc0908efc379c0d5071"
-  integrity sha512-BFYD1rZk0dYR5/aYLv5P9sB0Ta1COZXAqwj+mb/8Xp9WDJTIY2h9OMGHtKW36QsDEQmx+adA2+C++K7YmlyQWA==
+  version "5.11.0"
+  resolved "https://registry.yarnpkg.com/d3/-/d3-5.11.0.tgz#d5ffc84f930eeb895d88699195d2d852778ab158"
+  integrity sha512-LXgMVUAEAzQh6WfEEOa8tJX4RA64ZJ6twC3CJ+Xzid+fXWLTZkkglagXav/eOoQgzQi5rzV0xC4Sfspd6hFDHA==
   dependencies:
     d3-array "1"
     d3-axis "1"
