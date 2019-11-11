@@ -1005,7 +1005,10 @@ export class App<V extends string, D extends string> {
       "binBrush"
     );
 
-    let activeBrushFloor: Interval<Interval<number>> = [[-1, -1], [-1, -1]];
+    let activeBrushFloor: Interval<Interval<number>> = [
+      [-1, -1],
+      [-1, -1]
+    ];
 
     if (activeBrushFloat) {
       activeBrushFloat = [

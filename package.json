@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
-    "@apache-arrow/es2015-esm": "^0.15.0",
+    "@apache-arrow/es2015-esm": "^0.15.1",
     "@mapd/connector": "^4.8.0",
     "cwise": "^1.0.10",
     "d3": "^5.12.0",
@@ -41,25 +41,25 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.7.2"
+    "vega": "^5.7.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.3",
+    "@babel/core": "^7.7.2",
     "@types/d3": "^5.7.2",
-    "@types/jest": "^24.0.18",
+    "@types/jest": "^24.0.22",
     "@types/ndarray": "1.0.7",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^2.1.1",
     "jest": "^24.9.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.0",
     "parcel-bundler": "^1.12.4",
-    "prettier": "^1.18.2",
-    "rollup": "^1.23.1",
+    "prettier": "^1.19.1",
+    "rollup": "^1.26.5",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "ts-jest": "^24.1.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   },
   "jest": {
     "testURL": "http://localhost/",
