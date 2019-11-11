@@ -3,9 +3,9 @@
 
 
 "@apache-arrow/es2015-esm@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.15.0.tgz#f206532efc065d3b1e0585d2c059ed507856f601"
-  integrity sha512-Ns+fV+FqkT89ZuTjoV2Ag1qMJMXAz4c6CfXxJcsiPehomHt93td1688SLL4wjFHkaX3KqlLlBunc0CLdyOgN9A==
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.15.1.tgz#b9b3d82bcf8c69fab404ee27939d6f73f8d686ad"
+  integrity sha512-2YUaOSFzp+oQmHB++CSbpuSfBD/VUT6awq8AAw9+2PUs/oe6rpyzpDcjfIi33qZ3qdLije0svBORoGEw4bpVFw==
   dependencies:
     "@types/flatbuffers" "^1.9.1"
     "@types/node" "^12.0.4"
