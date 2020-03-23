@@ -56,7 +56,7 @@
     "jest": "^25.1.0",
     "node-sass": "^4.13.1",
     "parcel-bundler": "^1.12.4",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.1",
     "rollup": "^2.0.5",
     "ts-jest": "^25.2.1",
     "typescript": "^3.8.3"
