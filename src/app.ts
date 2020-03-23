@@ -597,10 +597,7 @@ export class App<V extends string, D extends string> {
   }
 
   private async setPixels(name: V, pixels: number | Interval<number>) {
-    return await this.vegaViews
-      .get(name)!
-      .signal("pixels", pixels)
-      .runAsync();
+    return await this.vegaViews.get(name)!.signal("pixels", pixels).runAsync();
   }
 
   private load1DData(name: V, view: View1D<D>, pixels: number) {

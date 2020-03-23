@@ -120,7 +120,7 @@ export function throttle<A extends (...args: any[]) => any>(
 ): A {
   let inThrottle;
 
-  return function(this: any, ...args: any[]) {
+  return function (this: any, ...args: any[]) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -143,7 +143,7 @@ export function debounce<A extends (...args: any[]) => any>(
   delay: number
 ): A {
   let tid;
-  return function(this: any, ...args: any[]) {
+  return function (this: any, ...args: any[]) {
     if (tid) clearTimeout(tid);
 
     tid = setTimeout(() => {
@@ -178,7 +178,7 @@ export function sub(a: ndarray, b: ndarray) {
 
 const subInterpolate_ = cwise({
   args: ["array", "array", "array", "array", "array", "scalar", "scalar"],
-  body: function(_, a, a2, b, b2, fa, fb) {
+  body: function (_, a, a2, b, b2, fa, fb) {
     _ = (1 - fb) * b + fb * b2 - ((1 - fa) * a + fa * a2);
   },
   funcName: "subi"
@@ -202,7 +202,7 @@ export function subInterpolated(
 
 const satl = cwise({
   args: ["array", "array", "array", "array", "array"],
-  body: function(_, a, b, c, d) {
+  body: function (_, a, b, c, d) {
     _ = a - b - c + d;
   },
   funcName: "satl"
@@ -261,7 +261,7 @@ const satli = cwise({
     "scalar",
     "scalar"
   ],
-  body: function(
+  body: function (
     _,
     a1,
     a2,

@@ -44,7 +44,7 @@
     "vega": "^5.10.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.7",
+    "@babel/core": "^7.9.0",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-json": "^4.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
@@ -56,8 +56,8 @@
     "jest": "^25.1.0",
     "node-sass": "^4.13.1",
     "parcel-bundler": "^1.12.4",
-    "prettier": "^1.19.1",
-    "rollup": "^2.0.5",
+    "prettier": "^2.0.1",
+    "rollup": "^2.1.0",
     "ts-jest": "^25.2.1",
     "typescript": "^3.8.3"
   },
