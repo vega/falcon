@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@apache-arrow/es2015-esm@^0.16.0":
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.16.0.tgz#eb671de1eb0d35e8f025b144caab5dec3755cfe1"
-  integrity sha512-Zp+mY8AutM7661r/6IG66759T6sqMtp4HxJ13eHUaeyoY5IXQJBkldq/MWgBLeScNAjBGbNV+3BlBG1EeBOrNg==
+"@apache-arrow/es2015-esm@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@apache-arrow/es2015-esm/-/es2015-esm-0.17.0.tgz#daa4d968ff5c538dffe77a6ca4ecc09e6f4aef9d"
+  integrity sha512-CcKx4/zz4Mg2GZSzFx+1q9EcKKskuquLFZvvKuy5W76dtWzf5PSHwicFPWZwL4KW2OUE3J4TgjGWrsT9Qh3gYg==
   dependencies:
     "@types/flatbuffers" "^1.9.1"
     "@types/node" "^12.0.4"
