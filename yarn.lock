@@ -1038,15 +1038,15 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapd/connector@~5.1.0":
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.1.2.tgz#1be5c5b220d96ec341b48b25f6a410d6a2f8b2bb"
-  integrity sha512-+CM+NEL5a75In0lpOsuEWm537HvOdOnUy5GsOk+MJEJeVRA5aTU2l2IfUGV18AwDzjkDlOtEA/kWnUY+wE0g0Q==
+"@mapd/connector@~5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.2.0.tgz#5725631fa31452ac0ea428ed06a7c7a648e2ac4e"
+  integrity sha512-Npln56f1XpaMk5mKt7rDCo5DAUF3fh6piWl6N577m2USRxN0TfT5zU9hXOMb2PRJPZlnXN4EEGWz5ipV8vSkqA==
   dependencies:
     eventemitter3 "^3.1.0"
     ramda.clone "^0.26.1"
     script-loader "^0.7.0"
-    thrift apache/thrift#v0.13.0
+    thrift "github:apache/thrift#v0.13.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
