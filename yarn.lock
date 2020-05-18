@@ -1465,10 +1465,10 @@
     jest-diff "^25.2.1"
     pretty-format "^25.2.1"
 
-"@types/ndarray@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.7.tgz#046c4391220b61557b0779790c556018608d890d"
-  integrity sha512-PdCzZlZPWB4D467RrDIz79WbthmH8miN/rY8zrlKyX0IejKtGcMUpfQTrJI8jvrazGPNmRuo+qbim1HUHSUhEQ==
+"@types/ndarray@1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.8.tgz#16bf33233108840eb775b0ef4e430f9b26261d20"
+  integrity sha512-8wGb5DXyo822V6MOdcbCDL6FLIYSUTonPpoL62pl78Kosnz5VChQAavPtMIftlWk6IIIaZyWq+eYhe2yG+QKXQ==
 
 "@types/node@*":
   version "13.13.5"
