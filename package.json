@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.9.6",
-    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-commonjs": "^14.0.0",
     "@rollup/plugin-json": "^4.0.3",
     "@rollup/plugin-node-resolve": "^8.0.0",
     "@types/d3": "^5.7.2",
