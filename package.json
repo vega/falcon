@@ -41,25 +41,25 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.11.1"
+    "vega": "^5.14.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
+    "@babel/core": "^7.11.1",
     "@rollup/plugin-commonjs": "^15.0.0",
-    "@rollup/plugin-json": "^4.0.3",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@types/d3": "^5.7.2",
-    "@types/jest": "^26.0.0",
+    "@types/jest": "^26.0.10",
     "@types/ndarray": "1.0.8",
     "babel-preset-env": "^1.7.0",
-    "gh-pages": "^3.0.0",
-    "jest": "^26.0.1",
+    "gh-pages": "^3.1.0",
+    "jest": "^26.4.0",
     "node-sass": "^4.14.1",
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.0.5",
-    "rollup": "^2.8.2",
-    "ts-jest": "^26.0.0",
-    "typescript": "^3.8.3"
+    "rollup": "^2.26.3",
+    "ts-jest": "^26.2.0",
+    "typescript": "^3.9.7"
   },
   "jest": {
     "testURL": "http://localhost/",
