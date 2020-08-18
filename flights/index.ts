@@ -30,44 +30,44 @@ views.set("COUNT", {
   type: "0D",
   el: createElement("count")
 });
-views.set("FL_DATE", {
-  title: "Flight Date",
-  type: "1D",
-  el: createElement("date"),
-  dimension: {
-    name: "FL_DATE",
-    bins: 25,
-    // note that months start at 0!
-    // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
-    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
-    // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
-    // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
-    format: "%Y-%m-%d",
-    time: true
-  }
-});
+// views.set("FL_DATE", {
+//   title: "Flight Date",
+//   type: "1D",
+//   el: createElement("date"),
+//   dimension: {
+//     name: "FL_DATE",
+//     bins: 25,
+//     // note that months start at 0!
+//     // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
+//     extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
+//     // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
+//     // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
+//     format: "%Y-%m-%d",
+//     time: true
+//   }
+// });
 views.set("DISTANCE", {
   title: "Distance in Miles",
   type: "1D",
   el: createElement("distance"),
   dimension: {
     name: "DISTANCE",
-    bins: 25,
+    bins: 40,
     extent: [0, 4000],
     format: "d"
   }
 });
-views.set("ARR_TIME", {
-  title: "Arrival Time",
-  type: "1D",
-  el: createElement("arrival"),
-  dimension: {
-    name: "ARR_TIME",
-    bins: 24,
-    extent: [0, 24],
-    format: ".1f"
-  }
-});
+// views.set("ARR_TIME", {
+//   title: "Arrival Time",
+//   type: "1D",
+//   el: createElement("arrival"),
+//   dimension: {
+//     name: "ARR_TIME",
+//     bins: 24,
+//     extent: [0, 24],
+//     format: ".1f"
+//   }
+// });
 views.set("DEP_TIME", {
   title: "Departure Time",
   type: "1D",
@@ -90,51 +90,51 @@ views.set("DEP_TIME", {
 //     format: ".1f"
 //   }
 // });
-// views.set("ARR_DELAY", {
-//   title: "Arrival Delay in Minutes",
-//   type: "1D",
-//   el: createElement("arr_delay"),
-//   dimension: {
-//     name: "ARR_DELAY",
-//     bins: 25,
-//     extent: [-20, 60],
-//     format: ".1f"
-//   }
-// });
-views.set("AIR_TIME", {
-  title: "Airtime in Minutes",
+views.set("ARR_DELAY", {
+  title: "Arrival Delay in Minutes",
   type: "1D",
-  el: createElement("airtime"),
+  el: createElement("arr_delay"),
   dimension: {
-    name: "AIR_TIME",
+    name: "ARR_DELAY",
     bins: 25,
-    extent: [0, 500],
-    format: "d"
+    extent: [-60, 180],
+    format: ".1f"
   }
 });
-views.set("DEP_DELAY_ARR_DELAY", {
-  title: "Arrival and Departure Delay in Minutes",
-  type: "2D",
-  el: createElement("delay"),
-  dimensions: [
-    {
-      title: "Departure Delay",
-      name: "DEP_DELAY",
-      bins: 25,
-      extent: [-20, 60],
-      format: "d"
-    },
-    {
-      title: "Arrival Delay",
-      name: "ARR_DELAY",
-      bins: 25,
-      extent: [-20, 60],
-      format: "d"
-    }
-  ]
+// views.set("AIR_TIME", {
+//   title: "Airtime in Minutes",
+//   type: "1D",
+//   el: createElement("airtime"),
+//   dimension: {
+//     name: "AIR_TIME",
+//     bins: 25,
+//     extent: [0, 500],
+//     format: "d"
+//   }
+// });
+// views.set("DEP_DELAY_ARR_DELAY", {
+//   title: "Arrival and Departure Delay in Minutes",
+//   type: "2D",
+//   el: createElement("delay"),
+//   dimensions: [
+//     {
+//       title: "Departure Delay",
+//       name: "DEP_DELAY",
+//       bins: 25,
+//       extent: [-20, 60],
+//       format: "d"
+//     },
+//     {
+//       title: "Arrival Delay",
+//       name: "ARR_DELAY",
+//       bins: 25,
+//       extent: [-20, 60],
+//       format: "d"
+//     }
+//   ]
 });
 
-const url = require("../data/flights-10k.arrow");
+const url = require("../data/flights-1m.arrow");
 // const url =
 //   "https://media.githubusercontent.com/media/uwdata/flights-arrow/master/flights-10m.arrow";
 const db = new ArrowDB<ViewName, DimensionName>(url);
@@ -155,7 +155,12 @@ const iPad = !!navigator.userAgent.match(/iPad/i);
 
 new App(views, db, {
   config: {
-    barWidth: 600,
+    barWidth: 800,
+    showUnfiltered: false,
+    zeroD: "vbar",
+    barHeight: 600,
+    toggleUnfiltered: false,
+    renderer: "svg",
     ...(iPad
       ? {
           barWidth: 450,
