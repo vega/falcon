@@ -7997,9 +7997,9 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     inherits "^2.0.1"
 
 rollup@^2.26.9:
-  version "2.26.9"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.26.9.tgz#4b6ce4e9044dd257d7314d8ed9b4d4d8a7d166c9"
-  integrity sha512-XIiWYLayLqV+oY4S2Lub/shJq4uk/QQLwWToYCL4LjZbYHbFK3czea4UDVRUJu+zNmKmxq5Zb/OG7c5HSvH2TQ==
+  version "2.26.10"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.26.10.tgz#0ffe0390d35f07af850382f22f1b8525c7f57f07"
+  integrity sha512-dUnjCWOA0h9qNX6qtcHidyatz8FAFZxVxt1dbcGtKdlJkpSxGK3G9+DLCYvtZr9v94D129ij9zUhG+xbRoqepw==
   optionalDependencies:
     fsevents "~2.1.2"
 
@@ -8811,8 +8811,9 @@ text-encoding-utf-8@^1.0.2:
   resolved "https://registry.yarnpkg.com/text-encoding-utf-8/-/text-encoding-utf-8-1.0.2.tgz#585b62197b0ae437e3c7b5d0af27ac1021e10d13"
   integrity sha512-8bw4MY9WjdsD2aMtO0OzOCY3pXGYNx2d2FfHRVUKkiCPDWjKuOlhLVASS+pD7VkLTVjW268LYJHwsnPFlBpbAg==
 
-"thrift@github:apache/thrift#v0.13.0":
+thrift@apache/thrift#v0.13.0:
   version "0.13.0"
+  uid cecee50308fc7e6f77f55b3fd906c1c6c471fa2f
   resolved "https://codeload.github.com/apache/thrift/tar.gz/cecee50308fc7e6f77f55b3fd906c1c6c471fa2f"
   dependencies:
     node-int64 "^0.4.0"
