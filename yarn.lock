@@ -1166,15 +1166,15 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapd/connector@~5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.2.0.tgz#5725631fa31452ac0ea428ed06a7c7a648e2ac4e"
-  integrity sha512-Npln56f1XpaMk5mKt7rDCo5DAUF3fh6piWl6N577m2USRxN0TfT5zU9hXOMb2PRJPZlnXN4EEGWz5ipV8vSkqA==
+"@mapd/connector@~5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.3.0.tgz#9a4b60c0ad7751656a2c1c584fbff4288e6e6451"
+  integrity sha512-D0fm/X1ZEsKnXA/3sbPTUmR5pHekPmR6zKErajxDvoX6cT6uJ8q7ZQG8EnQaBqMQkzco6Fg+gq8jmHgaPvwdPQ==
   dependencies:
     eventemitter3 "^3.1.0"
     ramda.clone "^0.26.1"
     script-loader "^0.7.0"
-    thrift apache/thrift#v0.13.0
+    thrift "github:apache/thrift#v0.13.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -8875,7 +8875,7 @@ text-encoding-utf-8@^1.0.2:
   resolved "https://registry.yarnpkg.com/text-encoding-utf-8/-/text-encoding-utf-8-1.0.2.tgz#585b62197b0ae437e3c7b5d0af27ac1021e10d13"
   integrity sha512-8bw4MY9WjdsD2aMtO0OzOCY3pXGYNx2d2FfHRVUKkiCPDWjKuOlhLVASS+pD7VkLTVjW268LYJHwsnPFlBpbAg==
 
-thrift@apache/thrift#v0.13.0:
+"thrift@github:apache/thrift#v0.13.0":
   version "0.13.0"
   uid cecee50308fc7e6f77f55b3fd906c1c6c471fa2f
   resolved "https://codeload.github.com/apache/thrift/tar.gz/cecee50308fc7e6f77f55b3fd906c1c6c471fa2f"

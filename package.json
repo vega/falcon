@@ -33,7 +33,7 @@
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^2.0.0",
-    "@mapd/connector": "~5.2.0",
+    "@mapd/connector": "~5.3.0",
     "cwise": "^1.0.10",
     "d3": "^6.1.1",
     "ndarray": "^1.0.19",
