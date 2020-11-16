@@ -1440,9 +1440,9 @@
     "@types/d3-selection" "*"
 
 "@types/d3@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@types/d3/-/d3-6.0.0.tgz#ec7f9b917f26182def58c0b4c9b3f30c523575a3"
-  integrity sha512-nggAKM2OHRm2M+ZOfnU0i6AWJ6P77DsyNJhBGvDo1h/WPrlVsltAw6oqLrb2R6V/yFNGaNKWL2hCfYs2Nh5+ig==
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@types/d3/-/d3-6.1.0.tgz#d5a12e0678dacef38c9c18a5ffb8a0643e921b98"
+  integrity sha512-Jh5tF7TxM9cBTDcTBFUH9nJfUIvzc4OnkyKXzh7X/4z46vPrp2GEzX2KD2I6l/CubtLtHxMiDKNkaqkOSORM1g==
   dependencies:
     "@types/d3-array" "*"
     "@types/d3-axis" "*"
