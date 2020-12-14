@@ -1107,15 +1107,16 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapd/connector@~5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.3.0.tgz#9a4b60c0ad7751656a2c1c584fbff4288e6e6451"
-  integrity sha512-D0fm/X1ZEsKnXA/3sbPTUmR5pHekPmR6zKErajxDvoX6cT6uJ8q7ZQG8EnQaBqMQkzco6Fg+gq8jmHgaPvwdPQ==
+"@mapd/connector@~5.5.0":
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.0.tgz#b50f30196ab93f70e52a7bd40e8febca0f7a6ae0"
+  integrity sha512-Q5Ac5p86J6eAoCAsyF+BHjN1RxGuUKykoAYCDDmEceN8KorRigi0ySN4yFh+k9ycHEZA5HH/I0iwVoi/bJtsnw==
   dependencies:
+    apache-arrow "^2.0.0"
     eventemitter3 "^3.1.0"
-    ramda.clone "^0.26.1"
+    lodash.clonedeep "~4.5.0"
     script-loader "^0.7.0"
-    thrift apache/thrift#v0.13.0
+    thrift "github:apache/thrift#v0.13.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -1730,6 +1731,22 @@ anymatch@^3.0.3:
   dependencies:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
+
+apache-arrow@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-2.0.0.tgz#f0c7b717a8ea8fdd07ec39715ab3cdd14285976c"
+  integrity sha512-VSGJZepkdlT9yTTACmIAFBCXClw53F6jFa/7iRCoK84ia3TD6oQ8vDqeIUKajp8TfCV2i3NQI7uTmbtJKA4C9w==
+  dependencies:
+    "@types/flatbuffers" "^1.9.1"
+    "@types/node" "^12.0.4"
+    "@types/text-encoding-utf-8" "^1.0.1"
+    command-line-args "5.0.2"
+    command-line-usage "5.0.5"
+    flatbuffers "1.11.0"
+    json-bignum "^0.0.3"
+    pad-left "^2.1.0"
+    text-encoding-utf-8 "^1.0.2"
+    tslib "^1.12.0"
 
 apply-colormap@^1.0.1:
   version "1.0.1"
@@ -6055,6 +6072,11 @@ lodash.clone@^4.5.0:
   resolved "https://registry.yarnpkg.com/lodash.clone/-/lodash.clone-4.5.0.tgz#195870450f5a13192478df4bc3d23d2dea1907b6"
   integrity sha1-GVhwRQ9aExkkeN9Lw9I9LeoZB7Y=
 
+lodash.clonedeep@~4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
+  integrity sha1-4j8/nE+Pvd6HJSnBBxhXoIblzO8=
+
 lodash.memoize@4.x, lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -7613,11 +7635,6 @@ quote-stream@~0.0.0:
     minimist "0.0.8"
     through2 "~0.4.1"
 
-ramda.clone@^0.26.1:
-  version "0.26.1"
-  resolved "https://registry.yarnpkg.com/ramda.clone/-/ramda.clone-0.26.1.tgz#c1dc3770ff3949598ca2d4ac3638bf5bdb68122e"
-  integrity sha512-cv5/cFu93d33JYIzSeIb3qiGa1bcDeSmNw2GrSNJeO1G9IBnYvEP07S+egvo/MWoST7RB/JX9UeVXVt4sRB6BQ==
-
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
@@ -8813,7 +8830,7 @@ text-encoding-utf-8@^1.0.2:
   resolved "https://registry.yarnpkg.com/text-encoding-utf-8/-/text-encoding-utf-8-1.0.2.tgz#585b62197b0ae437e3c7b5d0af27ac1021e10d13"
   integrity sha512-8bw4MY9WjdsD2aMtO0OzOCY3pXGYNx2d2FfHRVUKkiCPDWjKuOlhLVASS+pD7VkLTVjW268LYJHwsnPFlBpbAg==
 
-thrift@apache/thrift#v0.13.0:
+"thrift@github:apache/thrift#v0.13.0":
   version "0.13.0"
   uid cecee50308fc7e6f77f55b3fd906c1c6c471fa2f
   resolved "https://codeload.github.com/apache/thrift/tar.gz/cecee50308fc7e6f77f55b3fd906c1c6c471fa2f"
