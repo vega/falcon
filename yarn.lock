@@ -1108,9 +1108,9 @@
     chalk "^4.0.0"
 
 "@mapd/connector@~5.5.0":
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.0.tgz#b50f30196ab93f70e52a7bd40e8febca0f7a6ae0"
-  integrity sha512-Q5Ac5p86J6eAoCAsyF+BHjN1RxGuUKykoAYCDDmEceN8KorRigi0ySN4yFh+k9ycHEZA5HH/I0iwVoi/bJtsnw==
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.1.tgz#1115e79e6151b59aa9a1b493d34793b692dec2c8"
+  integrity sha512-RFVZGwIivPX6Xb1XjxaoGnJ75Hsrnism86g7enw8T+M7vHpSxdmitevqh1qB3++WfT6TaX98usC0BCoSKkD5eA==
   dependencies:
     apache-arrow "^2.0.0"
     eventemitter3 "^3.1.0"
