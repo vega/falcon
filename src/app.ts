@@ -369,7 +369,7 @@ export class App<V extends string, D extends string> {
         await this.prefetchView(name, !!this.config.progressiveInteractions);
       };
 
-      el["on" + this.config.prefetchOn] = cb;
+      el[`on${this.config.prefetchOn}`] = cb;
       el.ontouchstart = cb;
 
       const lowResPixels = this.getPixels(

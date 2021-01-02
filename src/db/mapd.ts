@@ -60,7 +60,7 @@ export class MapDDB<V extends string, D extends string>
     q = q.replace(/\s\s+/g, " ").trim();
 
     console.info(
-      "%c" + q,
+      `%c${q}`,
       "color: #bbb",
       "\nRows:",
       results.length,
