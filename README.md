@@ -4,13 +4,13 @@
 
 # Falcon: Interactive Visual Analysis for Big Data
 
-[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) [![Build Status](https://travis-ci.com/uwdata/falcon.svg?branch=master)](https://travis-ci.com/uwdata/falcon) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
+[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/uwdata/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
 The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSciDB](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
-We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication. 
+We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication.
 
 ```bib
 @inproceedings{moritz2019falcon,
