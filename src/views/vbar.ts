@@ -1,6 +1,6 @@
-import { Config } from "./../config";
 import { EncodeEntry, parse, Spec, View, Warn } from "vega";
 import { View0D } from "../api";
+import { Config } from "./../config";
 import { darkerBlue, loadingMarks } from "./histogram";
 
 export function createVerticalBarView(

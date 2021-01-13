@@ -4,7 +4,7 @@ import { changeset, truthy, View as VgView } from "vega";
 import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
 import { Interval } from "./basic";
 import { Config, DEFAULT_CONFIG } from "./config";
-import { Index, DataBase, Hists } from "./db";
+import { DataBase, Hists, Index } from "./db";
 import {
   bin,
   binTime,

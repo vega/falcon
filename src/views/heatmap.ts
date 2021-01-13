@@ -1,4 +1,4 @@
-import { parse, Spec, View, Mark, Warn } from "vega";
+import { Mark, parse, Spec, View, Warn } from "vega";
 import { View2D } from "../api";
 import { Config } from "../config";
 import { darkerBlue, loadingMarks } from "./histogram";

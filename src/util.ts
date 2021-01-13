@@ -1,12 +1,12 @@
 import cwise from "cwise";
 import { scaleTime } from "d3";
 import ndarray from "ndarray";
+import interpolate from "ndarray-linear-interpolate";
 import { divseq, sub as sub_, sum } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
-import interpolate from "ndarray-linear-interpolate";
 
 const interp2d = interpolate.d2;
 

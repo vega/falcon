@@ -1,6 +1,6 @@
-import { Config } from "./../config";
-import { View0D } from "../api";
 import { parse, Spec, View } from "vega";
+import { View0D } from "../api";
+import { Config } from "./../config";
 
 export function createTextView(el: Element, view: View0D, _config: Config) {
   const vgSpec: Spec = {
