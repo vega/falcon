@@ -1082,10 +1082,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapd/connector@~5.5.1":
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.1.tgz#1115e79e6151b59aa9a1b493d34793b692dec2c8"
-  integrity sha512-RFVZGwIivPX6Xb1XjxaoGnJ75Hsrnism86g7enw8T+M7vHpSxdmitevqh1qB3++WfT6TaX98usC0BCoSKkD5eA==
+"@mapd/connector@5.5.2-rc5":
+  version "5.5.2-rc5"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.2-rc5.tgz#d632d61c6038efeb25f051e7a67087a4009739a7"
+  integrity sha512-2oZGTACmhZADDg5929A1oUbpuW55pfhZD4R9EbrFCq4daDmN46dP2mYsAlQ6tMhhWcSRFsKF1vXa/MDS2++tIg==
   dependencies:
     apache-arrow "^2.0.0"
     eventemitter3 "^3.1.0"

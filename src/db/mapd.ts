@@ -1,4 +1,5 @@
-import "@mapd/connector/dist/browser-connector";
+import { Table } from "@apache-arrow/es2015-esm";
+import MapdCon from "@mapd/connector";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View, View1D, View2D, Views } from "../api";
@@ -8,7 +9,7 @@ import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
 import { AsyncIndex, DataBase } from "./db";
 
-const connector = new (window as any).MapdCon();
+const connector = new MapdCon();
 
 interface Bin {
   select: string;
@@ -46,16 +47,22 @@ export class MapDDB<V extends string, D extends string>
     this.session = await connection.connectAsync();
   }
 
-  private async query(q: string): Promise<any[]> {
+  private async query(q: string): Promise<Table> {
     const t0 = performance.now();
 
-    const {
-      results,
-      timing
-      // fields
-    } = await this.session.queryAsync(q, {
-      returnTiming: true
-    });
+    // const {
+    //   results,
+    //   timing
+    //   // fields
+    // } = await this.session.queryAsync(q, {
+    //   returnTiming: true
+    // });
+
+    const timing = {
+      execution_time_ms: 0,
+      total_time_ms: 0
+    }
+    const df: Table = await this.session.queryDFAsync(q)
 
     q = q.replace(/\s\s+/g, " ").trim();
 
@@ -63,7 +70,7 @@ export class MapDDB<V extends string, D extends string>
       `%c${q}`,
       "color: #bbb",
       "\nRows:",
-      results.length,
+      df.length,
       "Execution time:",
       timing.execution_time_ms,
       "ms. Total time:",
@@ -73,7 +80,7 @@ export class MapDDB<V extends string, D extends string>
       "ms."
     );
 
-    return results;
+    return df;
   }
 
   private getName(dimension: D) {
@@ -103,7 +110,7 @@ export class MapDDB<V extends string, D extends string>
       `SELECT count(*) AS cnt FROM ${this.table}`
     );
 
-    return result[0].cnt;
+    return result.getColumn('cnt').get(0);
   }
 
   public async histogram(
