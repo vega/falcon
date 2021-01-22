@@ -50,19 +50,13 @@ export class MapDDB<V extends string, D extends string>
   private async query(q: string): Promise<Table> {
     const t0 = performance.now();
 
-    // const {
-    //   results,
-    //   timing
-    //   // fields
-    // } = await this.session.queryAsync(q, {
-    //   returnTiming: true
-    // });
-
-    const timing = {
-      execution_time_ms: 0,
-      total_time_ms: 0
-    }
-    const df: Table = await this.session.queryDFAsync(q)
+    const {
+      results,
+      timing
+      // fields
+    } = await this.session.queryDFAsync(q, {
+      returnTiming: true
+    });
 
     q = q.replace(/\s\s+/g, " ").trim();
 
@@ -70,17 +64,15 @@ export class MapDDB<V extends string, D extends string>
       `%c${q}`,
       "color: #bbb",
       "\nRows:",
-      df.length,
+      results.length,
       "Execution time:",
       timing.execution_time_ms,
-      "ms. Total time:",
-      timing.total_time_ms,
       "ms. With network:",
       performance.now() - t0,
       "ms."
     );
 
-    return df;
+    return results;
   }
 
   private getName(dimension: D) {
