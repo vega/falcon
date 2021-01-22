@@ -1,4 +1,4 @@
-import { Table } from "@apache-arrow/es2015-esm";
+import { Table } from "apache-arrow";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
