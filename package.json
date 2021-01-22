@@ -32,7 +32,6 @@
   },
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
-    "@apache-arrow/es2015-esm": "^2.0.0",
     "@mapd/connector": "5.5.2",
     "apache-arrow": "^2.0.0",
     "cwise": "^1.0.10",
