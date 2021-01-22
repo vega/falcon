@@ -1,4 +1,5 @@
-import "@mapd/connector/dist/browser-connector";
+import { Table } from "@apache-arrow/es2015-esm";
+import MapdCon from "@mapd/connector";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View, View1D, View2D, Views } from "../api";
@@ -8,7 +9,7 @@ import { BinConfig } from "./../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
 import { AsyncIndex, DataBase } from "./db";
 
-const connector = new (window as any).MapdCon();
+const connector = new MapdCon();
 
 interface Bin {
   select: string;
@@ -46,14 +47,14 @@ export class MapDDB<V extends string, D extends string>
     this.session = await connection.connectAsync();
   }
 
-  private async query(q: string): Promise<any[]> {
+  private async query(q: string): Promise<Table> {
     const t0 = performance.now();
 
     const {
       results,
       timing
       // fields
-    } = await this.session.queryAsync(q, {
+    } = await this.session.queryDFAsync(q, {
       returnTiming: true
     });
 
@@ -66,8 +67,6 @@ export class MapDDB<V extends string, D extends string>
       results.length,
       "Execution time:",
       timing.execution_time_ms,
-      "ms. Total time:",
-      timing.total_time_ms,
       "ms. With network:",
       performance.now() - t0,
       "ms."
@@ -103,7 +102,7 @@ export class MapDDB<V extends string, D extends string>
       `SELECT count(*) AS cnt FROM ${this.table}`
     );
 
-    return result[0].cnt;
+    return result.getColumn('cnt').get(0);
   }
 
   public async histogram(

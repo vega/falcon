@@ -1082,12 +1082,11 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapd/connector@~5.5.1":
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.1.tgz#1115e79e6151b59aa9a1b493d34793b692dec2c8"
-  integrity sha512-RFVZGwIivPX6Xb1XjxaoGnJ75Hsrnism86g7enw8T+M7vHpSxdmitevqh1qB3++WfT6TaX98usC0BCoSKkD5eA==
+"@mapd/connector@5.5.2":
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@mapd/connector/-/connector-5.5.2.tgz#0487d178a0c4b48b78640f9f96d4016d17b57913"
+  integrity sha512-aBgGxuMAns5uhtaYUw5uT+bHKx36eA463ICXAZ9VN+pbUh7/4N8bul0pVCcY6vJJCyEDkXUSuLSLnFowaFUoZg==
   dependencies:
-    apache-arrow "^2.0.0"
     eventemitter3 "^3.1.0"
     lodash.clonedeep "~4.5.0"
     script-loader "^0.7.0"
