@@ -33,23 +33,23 @@
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@mapd/connector": "5.5.2",
-    "apache-arrow": "^3.0.0",
+    "apache-arrow": "^4.0.0",
     "cwise": "^1.0.10",
-    "d3": "^6.5.0",
+    "d3": "^6.7.0",
     "ndarray": "^1.0.19",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.19.1"
+    "vega": "^5.20.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.13",
+    "@babel/core": "^7.13.16",
     "@rollup/plugin-commonjs": "^18.0.0",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^11.1.1",
+    "@rollup/plugin-node-resolve": "^11.2.1",
     "@types/d3": "^6.3.0",
-    "@types/jest": "^26.0.20",
+    "@types/jest": "^26.0.23",
     "@types/ndarray": "1.0.8",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^3.1.0",
@@ -57,9 +57,9 @@
     "node-sass": "^5.0.0",
     "parcel": "^1.12.4",
     "prettier": "^2.2.1",
-    "rollup": "^2.38.5",
-    "ts-jest": "^26.5.1",
-    "typescript": "^4.1.5"
+    "rollup": "^2.45.2",
+    "ts-jest": "^26.5.5",
+    "typescript": "^4.2.4"
   },
   "jest": {
     "testURL": "http://localhost/",

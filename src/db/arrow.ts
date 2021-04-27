@@ -28,7 +28,9 @@ export class ArrowDB<V extends string, D extends string>
       buffer = this.urlOrArrayBuffer;
     }
 
+    console.time("Load Apache Arrow")
     this.data = Table.from(new Uint8Array(buffer));
+    console.timeEnd("Load Apache Arrow")
 
     return;
   }

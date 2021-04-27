@@ -134,7 +134,7 @@ views.set("DEP_DELAY_ARR_DELAY", {
   ]
 });
 
-const url = require("../data/flights-10k.arrow");
+const url = require("../data/flights-1m.arrow");
 // const url =
 //   "https://media.githubusercontent.com/media/uwdata/flights-arrow/master/flights-10m.arrow";
 const db = new ArrowDB<ViewName, DimensionName>(url);
