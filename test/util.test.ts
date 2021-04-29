@@ -37,8 +37,8 @@ describe("omit", () => {
     original.set(3, 3);
     original.set(4, 4);
     const copy = omit(original, 2, 3);
-    expect(Array.from(original.keys())).toEqual([1, 2, 3, 4]);
-    expect(Array.from(copy.keys())).toEqual([1, 4]);
+    expect([...original.keys()]).toEqual([1, 2, 3, 4]);
+    expect([...copy.keys()]).toEqual([1, 4]);
   });
 });
 

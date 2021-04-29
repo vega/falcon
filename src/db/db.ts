@@ -11,15 +11,15 @@ export type SyncIndex<V> = Map<V, Hists>;
 export type AsyncIndex<V> = Map<V, Promise<Hists>>;
 export type Index<V> = SyncIndex<V> | AsyncIndex<V>;
 
-export type Hist = {
+export interface Hist {
   hist: ndarray;
   noBrush: ndarray;
-};
+}
 
 export interface DataBase<V extends string, D extends string> {
   initialize(): Promise<void> | void;
 
-  /** Are database requests blocking or asyncronous. */
+  /** Are database requests blocking or asynchronous. */
   readonly blocking: boolean;
 
   length(): Promise<number> | number;

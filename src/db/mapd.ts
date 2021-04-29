@@ -102,7 +102,7 @@ export class MapDDB<V extends string, D extends string>
       `SELECT count(*) AS cnt FROM ${this.table}`
     );
 
-    return result.getColumn('cnt').get(0);
+    return result.getColumn("cnt").get(0);
   }
 
   public async histogram(
@@ -131,9 +131,7 @@ export class MapDDB<V extends string, D extends string>
     }
 
     if (hasBrushes) {
-      const where = Array.from(this.getWhereClauses(brushes!).values()).join(
-        " AND "
-      );
+      const where = [...this.getWhereClauses(brushes!).values()].join(" AND ");
       const result = await this.query(`
         SELECT
           ${bSql.select} AS key,
@@ -213,7 +211,7 @@ export class MapDDB<V extends string, D extends string>
       relevantFilters.delete(view.dimensions[1].name);
     }
 
-    const where = Array.from(relevantFilters.values()).join(" AND ");
+    const where = [...relevantFilters.values()].join(" AND ");
 
     let query: string;
 
@@ -378,7 +376,7 @@ export class MapDDB<V extends string, D extends string>
       relevantFilters.delete(view.dimensions[1].name);
     }
 
-    const where = Array.from(relevantFilters.values()).join(" AND ");
+    const where = [...relevantFilters.values()].join(" AND ");
 
     let query: string;
 

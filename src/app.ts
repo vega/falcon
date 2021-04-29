@@ -237,7 +237,7 @@ export class App<V extends string, D extends string> {
     await this.db.initialize();
 
     await Promise.all(
-      Array.from(this.views.entries()).map(([name, view]) =>
+      [...this.views.entries()].map(([name, view]) =>
         this.initializeView(name, view)
       )
     );
