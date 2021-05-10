@@ -47,7 +47,7 @@
     "@babel/core": "^7.13.16",
     "@rollup/plugin-commonjs": "^18.0.0",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-node-resolve": "^13.0.0",
     "@types/d3": "^6.3.0",
     "@types/jest": "^26.0.23",
     "@types/ndarray": "1.0.8",
