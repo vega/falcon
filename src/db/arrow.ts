@@ -1,5 +1,5 @@
 import { Table } from "apache-arrow";
-import ndarray from "ndarray";
+import ndarray, { NdArray } from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
@@ -9,7 +9,8 @@ import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
 import { DataBase, SyncIndex } from "./db";
 
 export class ArrowDB<V extends string, D extends string>
-  implements DataBase<V, D> {
+  implements DataBase<V, D>
+{
   private data: Table<{ [key in D]: any }>;
 
   public readonly blocking: boolean = true;
@@ -165,8 +166,8 @@ export class ArrowDB<V extends string, D extends string>
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
-      let hists: ndarray;
-      let noBrush: ndarray;
+      let hists: NdArray;
+      let noBrush: NdArray;
 
       // get union of all filter masks that don't contain the dimension(s) for the current view
       const relevantMasks = new Map(filterMasks);
@@ -308,8 +309,8 @@ export class ArrowDB<V extends string, D extends string>
 
     for (const [name, view] of views) {
       // array for histograms with last histogram being the complete histogram
-      let hists: ndarray;
-      let noBrush: ndarray;
+      let hists: NdArray;
+      let noBrush: NdArray;
 
       // get union of all filter masks that don't contain the dimension(s) for the current view
       const relevantMasks = new Map(filterMasks);

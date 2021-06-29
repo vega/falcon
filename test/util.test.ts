@@ -7,7 +7,7 @@ describe("union", () => {
     set1.set(0, true).set(1, true).set(2, true);
     const set2 = new BitSet(5);
     set2.set(1, true).set(2, true).set(4, true);
-    const set = union(set1, set2)!;
+    const set = union(set1, set2);
 
     expect(set.get(0)).toBeTruthy();
     expect(set.get(1)).toBeTruthy();
@@ -45,15 +45,7 @@ describe("omit", () => {
 describe("repeatInvisible", () => {
   test("simple case", () => {
     expect(repeatInvisible([1, 2, 3, 4, 5, 6, 7, 8, 9], 3.5, 8.5)).toEqual([
-      4,
-      4,
-      4,
-      4,
-      5,
-      6,
-      7,
-      8,
-      8
+      4, 4, 4, 4, 5, 6, 7, 8, 8
     ]);
   });
 });

@@ -1,10 +1,10 @@
-import ndarray from "ndarray";
+import { NdArray } from "ndarray";
 import { Dimension, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
 
 export interface Hists {
-  hists: ndarray;
-  noBrush: ndarray;
+  hists: NdArray;
+  noBrush: NdArray;
 }
 
 export type SyncIndex<V> = Map<V, Hists>;
@@ -12,8 +12,8 @@ export type AsyncIndex<V> = Map<V, Promise<Hists>>;
 export type Index<V> = SyncIndex<V> | AsyncIndex<V>;
 
 export interface Hist {
-  hist: ndarray;
-  noBrush: ndarray;
+  hist: NdArray;
+  noBrush: NdArray;
 }
 
 export interface DataBase<V extends string, D extends string> {
@@ -27,7 +27,7 @@ export interface DataBase<V extends string, D extends string> {
     dimension: Dimension<D>,
     brushes?: Map<D, Interval<number>>
   ): Promise<Hist> | Hist;
-  heatmap(dimensions: [Dimension<D>, Dimension<D>]): Promise<ndarray> | ndarray;
+  heatmap(dimensions: [Dimension<D>, Dimension<D>]): Promise<NdArray> | NdArray;
 
   loadData1D(
     activeView: View1D<D>,

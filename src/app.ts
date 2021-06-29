@@ -1,4 +1,4 @@
-import ndarray from "ndarray";
+import { NdArray } from "ndarray";
 import interpolate from "ndarray-linear-interpolate";
 import { changeset, truthy, View as VgView } from "vega";
 import { BinConfig, Logger, View, View1D, View2D, Views } from "./api";
@@ -272,11 +272,13 @@ export class App<V extends string, D extends string> {
     let vegaView: VgView;
 
     if (view.type === "0D") {
-      vegaView = (this.config.zeroD === "text"
-        ? createTextView
-        : this.config.zeroD === "hbar"
-        ? createHorizontalBarView
-        : createVerticalBarView)(el, view, this.config);
+      vegaView = (
+        this.config.zeroD === "text"
+          ? createTextView
+          : this.config.zeroD === "hbar"
+          ? createHorizontalBarView
+          : createVerticalBarView
+      )(el, view, this.config);
 
       await vegaView.runAsync();
       this.vegaViews.set(name, vegaView);
@@ -508,9 +510,9 @@ export class App<V extends string, D extends string> {
             vegaView.container()!.style.border = "1px solid green";
           }
           vegaView.container()!.style.cursor = "";
-          (vegaView
-            .container()!
-            .children.item(0) as HTMLElement).style.pointerEvents = "all";
+          (
+            vegaView.container()!.children.item(0) as HTMLElement
+          ).style.pointerEvents = "all";
         }
       });
     }
@@ -567,9 +569,9 @@ export class App<V extends string, D extends string> {
                 vegaView.container()!.style.border = "1px solid green";
               }
               vegaView.container()!.style.cursor = "";
-              (vegaView
-                .container()!
-                .children.item(0) as HTMLElement).style.pointerEvents = "all";
+              (
+                vegaView.container()!.children.item(0) as HTMLElement
+              ).style.pointerEvents = "all";
             }
           }
 
@@ -725,7 +727,7 @@ export class App<V extends string, D extends string> {
   private async update1DView(
     name: V,
     view: View1D<D>,
-    hist: ndarray,
+    hist: NdArray,
     base?: true
   ) {
     const vgView = this.getVegaView(name);
@@ -766,7 +768,7 @@ export class App<V extends string, D extends string> {
   private async update2DView(
     name: V,
     view: View2D<D>,
-    heat: ndarray,
+    heat: NdArray,
     base?: true
   ) {
     const vgView = this.getVegaView(name);
@@ -814,7 +816,7 @@ export class App<V extends string, D extends string> {
   }
 
   private valueFor1D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -828,7 +830,7 @@ export class App<V extends string, D extends string> {
   }
 
   private histFor1D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -846,7 +848,7 @@ export class App<V extends string, D extends string> {
   }
 
   private heatFor1D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -867,9 +869,8 @@ export class App<V extends string, D extends string> {
     const activeVgView = this.getActiveVegaView();
     const cubes = this.prefetchedData.get(this.activeView)!;
 
-    let activeBrushFloat: Interval<number> | 0 = activeVgView.signal(
-      "binBrush"
-    );
+    let activeBrushFloat: Interval<number> | 0 =
+      activeVgView.signal("binBrush");
 
     let activeBrushFloor: Interval<number> = [-1, -1];
     let activeBrushCeil: Interval<number> = [-1, -1];
@@ -910,9 +911,9 @@ export class App<V extends string, D extends string> {
             vegaView.container()!.style.border = "1px solid orange";
           }
           vegaView.container()!.style.cursor = "wait";
-          (vegaView
-            .container()!
-            .children.item(0) as HTMLElement).style.pointerEvents = "none";
+          (
+            vegaView.container()!.children.item(0) as HTMLElement
+          ).style.pointerEvents = "none";
         }
       }
 
@@ -949,7 +950,7 @@ export class App<V extends string, D extends string> {
   }
 
   private valueFor2D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {
@@ -965,7 +966,7 @@ export class App<V extends string, D extends string> {
   }
 
   private histFor2D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {
@@ -980,7 +981,7 @@ export class App<V extends string, D extends string> {
   }
 
   private heatFor2D(
-    hists: ndarray<number>,
+    hists: NdArray<number>,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {
@@ -998,9 +999,8 @@ export class App<V extends string, D extends string> {
     const activeVgView = this.getActiveVegaView();
     const cubes = this.prefetchedData.get(this.activeView)!;
 
-    let activeBrushFloat: Interval<Interval<number>> | 0 = activeVgView.signal(
-      "binBrush"
-    );
+    let activeBrushFloat: Interval<Interval<number>> | 0 =
+      activeVgView.signal("binBrush");
 
     let activeBrushFloor: Interval<Interval<number>> = [
       [-1, -1],
@@ -1040,9 +1040,9 @@ export class App<V extends string, D extends string> {
             vegaView.container()!.style.border = "1px solid orange";
           }
           vegaView.container()!.style.cursor = "wait";
-          (vegaView
-            .container()!
-            .children.item(0) as HTMLElement).style.pointerEvents = "none";
+          (
+            vegaView.container()!.children.item(0) as HTMLElement
+          ).style.pointerEvents = "none";
         }
       }
 

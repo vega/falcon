@@ -1,6 +1,6 @@
 import MapdCon from "@mapd/connector";
 import { Table } from "apache-arrow";
-import ndarray from "ndarray";
+import ndarray, { NdArray } from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
@@ -17,7 +17,8 @@ interface Bin {
 }
 
 export class MapDDB<V extends string, D extends string>
-  implements DataBase<V, D> {
+  implements DataBase<V, D>
+{
   private session: any;
 
   public readonly blocking: boolean = false;
@@ -198,8 +199,8 @@ export class MapDDB<V extends string, D extends string>
     binActive: Bin,
     numPixels: number
   ) {
-    let hists: ndarray;
-    let noBrush: ndarray;
+    let hists: NdArray;
+    let noBrush: NdArray;
 
     const relevantFilters = new Map(filters);
     if (view.type === "0D") {
@@ -363,8 +364,8 @@ export class MapDDB<V extends string, D extends string>
     numPixelsX: number,
     numPixelsY: number
   ) {
-    let hists: ndarray;
-    let noBrush: ndarray;
+    let hists: NdArray;
+    let noBrush: NdArray;
 
     const relevantFilters = new Map(filters);
     if (view.type === "0D") {
