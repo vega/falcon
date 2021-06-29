@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime";
 import pkg from "../package.json";
 
 export * from "./api";
