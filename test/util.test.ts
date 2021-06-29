@@ -45,15 +45,7 @@ describe("omit", () => {
 describe("repeatInvisible", () => {
   test("simple case", () => {
     expect(repeatInvisible([1, 2, 3, 4, 5, 6, 7, 8, 9], 3.5, 8.5)).toEqual([
-      4,
-      4,
-      4,
-      4,
-      5,
-      6,
-      7,
-      8,
-      8
+      4, 4, 4, 4, 5, 6, 7, 8, 8
     ]);
   });
 });

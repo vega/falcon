@@ -1,6 +1,6 @@
 import cwise from "cwise";
 import { scaleTime } from "d3";
-import ndarray from "ndarray";
+import ndarray, { NdArray } from "ndarray";
 import interpolate from "ndarray-linear-interpolate";
 import { divseq, sub as sub_, sum } from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
@@ -11,10 +11,7 @@ import { HIST_TYPE } from "./consts";
 const interp2d = interpolate.d2;
 
 export function extent(e: Interval<number>): Interval<number> {
-  if (e[0] > e[1]) {
-    return [e[1], e[0]];
-  }
-  return e;
+  return e[0] > e[1] ? [e[1], e[0]] : e;
 }
 
 export function bin(maxbins: number, extent: Interval<number>): BinConfig {
@@ -170,7 +167,7 @@ export function flatten(data) {
   return out;
 }
 
-export function sub(a: ndarray, b: ndarray) {
+export function sub(a: NdArray, b: NdArray) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
   sub_(out, b, a);
   return out;
@@ -188,10 +185,10 @@ const subInterpolate_ = cwise({
  * Like sub but interpolates histograms.
  */
 export function subInterpolated(
-  a: ndarray,
-  a2: ndarray,
-  b: ndarray,
-  b2: ndarray,
+  a: NdArray,
+  a2: NdArray,
+  b: NdArray,
+  b2: NdArray,
   fa: number,
   fb: number
 ) {
@@ -221,10 +218,10 @@ const satl = cwise({
  *
  */
 export function summedAreaTableLookup(
-  a: ndarray,
-  b: ndarray,
-  c: ndarray,
-  d: ndarray
+  a: NdArray,
+  b: NdArray,
+  c: NdArray,
+  d: NdArray
 ) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
 
@@ -311,22 +308,22 @@ const satli = cwise({
 });
 
 export function summedAreaTableLookupInterpolate(
-  a1: ndarray,
-  a2: ndarray,
-  a3: ndarray,
-  a4: ndarray,
-  b1: ndarray,
-  b2: ndarray,
-  b3: ndarray,
-  b4: ndarray,
-  c1: ndarray,
-  c2: ndarray,
-  c3: ndarray,
-  c4: ndarray,
-  d1: ndarray,
-  d2: ndarray,
-  d3: ndarray,
-  d4: ndarray,
+  a1: NdArray,
+  a2: NdArray,
+  a3: NdArray,
+  a4: NdArray,
+  b1: NdArray,
+  b2: NdArray,
+  b3: NdArray,
+  b4: NdArray,
+  c1: NdArray,
+  c2: NdArray,
+  c3: NdArray,
+  c4: NdArray,
+  d1: NdArray,
+  d2: NdArray,
+  d3: NdArray,
+  d4: NdArray,
   fax: number,
   fay: number,
   fbx: number,
@@ -377,7 +374,7 @@ export function summedAreaTableLookupInterpolate(
  * 0
  */
 export function summedAreaTableLookupInterpolateSlow(
-  hists: ndarray,
+  hists: NdArray,
   activeBrushFloat: [Interval<number>, Interval<number>]
 ) {
   const [brushX, brushY] = activeBrushFloat;
@@ -404,7 +401,7 @@ export function summedAreaTableLookupInterpolateSlow(
 }
 
 export function summedAreaTableLookupInterpolateSlow2D(
-  hists: ndarray,
+  hists: NdArray,
   activeBrushFloat: [Interval<number>, Interval<number>]
 ) {
   const [brushX, brushY] = activeBrushFloat;
@@ -437,7 +434,7 @@ export function summedAreaTableLookupInterpolateSlow2D(
 /**
  * Normalizes an ndarray histogram in place to a pdf.
  */
-export function normalizePdf(a: ndarray) {
+export function normalizePdf(a: NdArray) {
   const s = sum(a);
   divseq(a, s);
 }
@@ -445,7 +442,7 @@ export function normalizePdf(a: ndarray) {
 /**
  * Normalizes the underlying histogram to a pdf of a cumulative histogram in place. This simply divides the data by the last value.
  */
-export function normalizeChf(a: ndarray) {
+export function normalizeChf(a: NdArray) {
   divseq(a, a.get(a.size - 1));
 }
 

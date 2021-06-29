@@ -159,7 +159,8 @@ interface Record<V extends string> {
  * A logger that renders a timeline visualization of the brush interactions.
  */
 export class TimelineLogger<V extends string, D extends string>
-  implements Logger<V> {
+  implements Logger<V>
+{
   private vgView: VgView;
 
   private action: number = 0;
