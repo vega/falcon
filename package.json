@@ -8,6 +8,7 @@
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "start:flights-mapd": "parcel flights-mapd/index.html",
+    "start:flights-http": "parcel flights-http/index.html",
     "start:weather": "parcel weather/index.html",
     "start:gaia-mapd": "parcel gaia-mapd/index.html",
     "start": "yarn start:flights",
