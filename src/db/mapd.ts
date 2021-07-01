@@ -1,5 +1,6 @@
 import MapdCon from "@mapd/connector";
 import { Table } from "apache-arrow";
+import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
 const connector = new MapdCon();
@@ -45,7 +46,7 @@ export class MapDDB<V extends string, D extends string> extends SQLDB<V, D> {
       returnTiming: true
     });
 
-    q = q.replace(/\s\s+/g, " ").trim();
+    q = compactQuery(q);
 
     console.info(
       `%c${q}`,

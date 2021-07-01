@@ -508,3 +508,7 @@ export function equal<T>(a: T[], b: T[]) {
   }
   return true;
 }
+
+export function compactQuery(str: string): string {
+  return str.replace(/\s+/g, " ").trim();
+}

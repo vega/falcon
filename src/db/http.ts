@@ -1,16 +1,13 @@
 import { Table } from "apache-arrow";
+import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
-
-function replaceSpaces(str: string): string {
-  return str.replace(/\s+/g, " ");
-}
 
 export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
   public readonly blocking: boolean = false;
 
   constructor(
     private readonly url: string,
-    private readonly escapeQuery: (query: string) => string = replaceSpaces,
+    private readonly escapeQuery: (query: string) => string = query => query,
     table: string,
     nameMap: Map<D, string>
   ) {
@@ -27,7 +24,7 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
     );
 
     console.info(
-      `%c${replaceSpaces(q)}`,
+      `%c${compactQuery(q)}`,
       "color: #bbb",
       "\nRows:",
       results.length,
