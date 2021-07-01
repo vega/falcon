@@ -1,4 +1,3 @@
-import { Table } from "apache-arrow";
 import ndarray, { NdArray } from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View, View1D, View2D, Views } from "../api";
@@ -25,7 +24,7 @@ export abstract class SQLDB<V extends string, D extends string>
 
   public abstract initialize();
 
-  protected abstract query(q: string): Promise<Table>;
+  protected abstract query(q: string): Promise<Iterable<Record<string, any>>>;
 
   private getName(dimension: D) {
     return this.nameMap.get(dimension) || dimension;
@@ -49,12 +48,12 @@ export abstract class SQLDB<V extends string, D extends string>
     return this.binSQL(dimension, { ...binConfig, start, step });
   }
 
-  public async length() {
+  public async length(): Promise<number> {
     const result = await this.query(
       `SELECT count(*) AS cnt FROM ${this.table}`
     );
 
-    return result.getColumn("cnt").get(0);
+    return result[Symbol.iterator]().next().value["cnt"];
   }
 
   public async histogram(
