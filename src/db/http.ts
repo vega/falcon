@@ -7,9 +7,9 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
 
   constructor(
     private readonly url: string,
-    private readonly escapeQuery: (query: string) => string = query => query,
     table: string,
-    nameMap: Map<D, string>
+    nameMap?: Map<D, string>,
+    private readonly escapeQuery: (query: string) => string = query => query
   ) {
     super(table, nameMap);
   }

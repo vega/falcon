@@ -18,7 +18,7 @@ export class MapDDB<V extends string, D extends string> extends SQLDB<V, D> {
       port: number;
     },
     table: string,
-    nameMap: Map<D, string>
+    nameMap?: Map<D, string>
   ) {
     super(table, nameMap);
   }

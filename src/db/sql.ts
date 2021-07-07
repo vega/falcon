@@ -19,7 +19,7 @@ export abstract class SQLDB<V extends string, D extends string>
 
   constructor(
     private readonly table: string,
-    private readonly nameMap: Map<D, string>
+    private readonly nameMap?: Map<D, string>
   ) {}
 
   public abstract initialize();
@@ -27,7 +27,7 @@ export abstract class SQLDB<V extends string, D extends string>
   protected abstract query(q: string): Promise<Iterable<Record<string, any>>>;
 
   private getName(dimension: D) {
-    return this.nameMap.get(dimension) || dimension;
+    return this.nameMap?.get(dimension) ?? dimension;
   }
 
   private binSQL(dimension: D, binConfig: BinConfig) {
