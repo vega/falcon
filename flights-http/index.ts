@@ -155,7 +155,7 @@ names.set("DEP_TS", "extract(epoch from dep_timestamp) * 1000");
 views.delete("DEP_TS");
 
 const db = new HTTPDB(
-  "http://localhost:5100/api/query?query=",
+  "http://localhost:5100/api/query_arrow?query=",
   "flights_donotmodify",
   names
 );
