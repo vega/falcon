@@ -19,7 +19,7 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
   protected async query(q: string): Promise<Table> {
     const t0 = performance.now();
 
-    const results = await Table.fromAsync(
+    const table = await Table.fromAsync(
       fetch(`${this.url}${this.escapeQuery(q)}`)
     );
 
@@ -27,12 +27,12 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
       `%c${compactQuery(q)}`,
       "color: #bbb",
       "\nRows:",
-      results.length,
+      table.length,
       "Query time:",
       performance.now() - t0,
       "ms."
     );
 
-    return results;
+    return table;
   }
 }
