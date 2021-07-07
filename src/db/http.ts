@@ -9,7 +9,7 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
     private readonly url: string,
     table: string,
     nameMap?: Map<D, string>,
-    private readonly escapeQuery: (query: string) => string = query => query
+    private readonly escapeQuery: (query: string) => string = encodeURIComponent
   ) {
     super(table, nameMap);
   }
