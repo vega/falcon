@@ -4,7 +4,7 @@
 
 # Falcon: Interactive Visual Analysis for Big Data
 
-[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/uwdata/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
+[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/vega/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
@@ -25,9 +25,9 @@ We have written [a paper](https://osf.io/szpqm/) about the research behind Falco
 
 ## Demos
 
-- 1M flights in the browser: https://uwdata.github.io/falcon/flights/
-- 7M flights in [OmniSci Core](https://www.omnisci.com/platform/core/): https://uwdata.github.io/falcon/flights-mapd/
-- 500k weather records: https://uwdata.github.io/falcon/weather/
+- 1M flights in the browser: https://vega.github.io/falcon/flights/
+- 7M flights in [OmniSci Core](https://www.omnisci.com/platform/core/): https://vega.github.io/falcon/flights-mapd/
+- 500k weather records: https://vega.github.io/falcon/weather/
 
 ![Falcon demo](images/cross.gif "Falcon demo")
 
@@ -93,8 +93,8 @@ The [GAIA spacecraft](<https://en.wikipedia.org/wiki/Gaia_(spacecraft)>) measure
 
 ## Developers
 
-Install the dependencies with `yarn`. Then run `yarn start` to start the flight demo with in memory data. Have a look at the other `script` commands in [`package.json`](https://github.com/uwdata/falcon/blob/master/package.json).
+Install the dependencies with `yarn`. Then run `yarn start` to start the flight demo with in memory data. Have a look at the other `script` commands in [`package.json`](https://github.com/vega/falcon/blob/master/package.json).
 
 ## Experiments
 
-First version that turned out to be too complicated is at https://github.com/uwdata/falcon/tree/complex and the client-server version is at https://github.com/uwdata/falcon/tree/client-server.
+First version that turned out to be too complicated is at https://github.com/vega/falcon/tree/complex and the client-server version is at https://github.com/vega/falcon/tree/client-server.
