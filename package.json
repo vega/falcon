@@ -36,7 +36,7 @@
     "@mapd/connector": "5.5.2",
     "apache-arrow": "^4.0.1",
     "cwise": "^1.0.10",
-    "d3": "^6.0.0",
+    "d3": "^7.0.0",
     "ndarray": "^1.0.19",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
@@ -45,14 +45,14 @@
     "vega": "^5.20.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.6",
-    "@babel/preset-typescript": "^7.14.5",
-    "@babel/runtime": "^7.14.6",
+    "@babel/core": "^7.15.0",
+    "@babel/preset-typescript": "^7.15.0",
+    "@babel/runtime": "^7.15.3",
     "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.4",
     "@types/d3": "^7.0.0",
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^27.0.1",
     "@types/ndarray": "1.0.9",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^3.2.3",
@@ -60,8 +60,8 @@
     "node-sass": "^6.0.1",
     "parcel": "^1.12.4",
     "prettier": "^2.3.2",
-    "rollup": "^2.52.3",
-    "typescript": "^4.3.4"
+    "rollup": "^2.56.2",
+    "typescript": "^4.3.5"
   },
   "jest": {
     "testURL": "http://localhost/",
