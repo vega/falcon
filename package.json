@@ -34,7 +34,7 @@
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@mapd/connector": "5.5.2",
-    "apache-arrow": "^4.0.1",
+    "apache-arrow": "^6.0.0",
     "cwise": "^1.0.10",
     "d3": "^6.0.0",
     "ndarray": "^1.0.19",
