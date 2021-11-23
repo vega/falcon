@@ -1,13 +1,10 @@
-module.exports = {
-  presets: [
-    [
-      "env",
-      {
-        targets: {
-          browsers: ["last 2 Chrome versions", "last 2 Firefox versions"]
-        }
+module.exports = api =>
+  // only use babel in jest tests
+  api.env("test")
+    ? {
+        presets: [
+          ["env", { targets: { node: "current" } }],
+          "@babel/preset-typescript"
+        ]
       }
-    ],
-    "@babel/preset-typescript"
-  ]
-};
+    : {};

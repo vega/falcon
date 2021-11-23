@@ -2,9 +2,6 @@
   "name": "falcon-vis",
   "version": "0.16.0",
   "description": "Big data crossfilter",
-  "main": "build/falcon.js",
-  "module": "build/src/index",
-  "types": "build/src/index.d.ts",
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "start:flights-mapd": "parcel flights-mapd/index.html",
@@ -13,10 +10,10 @@
     "start:gaia-mapd": "parcel gaia-mapd/index.html",
     "start": "yarn start:flights",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
-    "build": "tsc && rollup -c",
     "build:demos": "parcel build --public-url '/falcon/' flights/index.html flights-mapd/index.html weather/index.html --detailed-report",
     "deploy:demos": "yarn clean && yarn build:demos && gh-pages -d dist",
-    "test": "jest",
+    "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "yarn jest",
     "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
     "format": "yarn prettierbase --write",
     "lint": "yarn prettierbase --check",
@@ -34,7 +31,7 @@
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
     "@mapd/connector": "5.5.2",
-    "apache-arrow": "^4.0.1",
+    "apache-arrow": "^6.0.1",
     "cwise": "^1.0.10",
     "d3": "^6.0.0",
     "ndarray": "^1.0.19",
@@ -42,42 +39,25 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.20.2"
+    "vega": "^5.21.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/preset-typescript": "^7.15.0",
-    "@babel/runtime": "^7.15.3",
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@types/d3": "^7.0.0",
-    "@types/jest": "^27.0.1",
-    "@types/ndarray": "1.0.9",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-typescript": "^7.16.0",
+    "@babel/runtime": "^7.16.3",
+    "@parcel/config-default": "^2.0.1",
+    "@parcel/transformer-raw": "^2.0.1",
+    "@parcel/transformer-sass": "^2.0.1",
+    "@types/d3": "^7.1.0",
+    "@types/jest": "^27.0.3",
+    "@types/ndarray": "1.0.11",
     "babel-preset-env": "^1.7.0",
     "gh-pages": "^3.2.3",
-    "jest": "^27.0.6",
+    "jest": "^27.3.1",
     "node-sass": "^6.0.1",
-    "parcel": "1.12.4",
-    "prettier": "^2.3.2",
-    "rollup": "^2.56.2",
-    "typescript": "^4.3.5"
+    "parcel": "2.0.1",
+    "prettier": "^2.4.1",
+    "typescript": "^4.5.2"
   },
-  "jest": {
-    "testURL": "http://localhost/",
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ],
-    "testPathIgnorePatterns": [
-      "node_modules",
-      "<rootDir>/build",
-      "src"
-    ]
-  }
+  "browserslist": "last 2 Chrome versions, last 2 Firefox versions"
 }
