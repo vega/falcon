@@ -19,4 +19,5 @@ jobs:
       - name: Install Node dependencies
         run: yarn --frozen-lockfile
       - run: yarn test
-      - run: yarn build
+      - run: yarn tsc
+      - run: yarn build:demos

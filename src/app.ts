@@ -816,7 +816,7 @@ export class App<V extends string, D extends string> {
   }
 
   private valueFor1D(
-    hists: NdArray<number>,
+    hists: NdArray,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -830,7 +830,7 @@ export class App<V extends string, D extends string> {
   }
 
   private histFor1D(
-    hists: NdArray<number>,
+    hists: NdArray,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -848,7 +848,7 @@ export class App<V extends string, D extends string> {
   }
 
   private heatFor1D(
-    hists: NdArray<number>,
+    hists: NdArray,
     floor: Interval<number>,
     ceil: Interval<number>,
     fraction: Interval<number>
@@ -950,7 +950,7 @@ export class App<V extends string, D extends string> {
   }
 
   private valueFor2D(
-    hists: NdArray<number>,
+    hists: NdArray,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {
@@ -966,7 +966,7 @@ export class App<V extends string, D extends string> {
   }
 
   private histFor2D(
-    hists: NdArray<number>,
+    hists: NdArray,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {
@@ -981,7 +981,7 @@ export class App<V extends string, D extends string> {
   }
 
   private heatFor2D(
-    hists: NdArray<number>,
+    hists: NdArray,
     float: Interval<Interval<number>>,
     floor: Interval<Interval<number>>
   ) {

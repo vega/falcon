@@ -2,8 +2,6 @@
   "name": "falcon-vis",
   "version": "0.16.0",
   "description": "Big data crossfilter",
-  "module": "build/src/index.js",
-  "types": "build/src/index.d.ts",
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "start:flights-mapd": "parcel flights-mapd/index.html",
