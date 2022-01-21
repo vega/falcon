@@ -2,13 +2,14 @@ import cwise from "cwise";
 import { scaleTime } from "d3";
 import ndarray, { NdArray } from "ndarray";
 import interpolate from "ndarray-linear-interpolate";
-import { divseq, sub as sub_, sum } from "ndarray-ops";
+import ops from "ndarray-ops";
 import { bin as bin_ } from "vega-statistics";
 import { BinConfig } from "./api";
 import { Interval } from "./basic";
 import { HIST_TYPE } from "./consts";
 
 const interp2d = interpolate.d2;
+const { divseq, sub: sub_, sum } = ops;
 
 export function extent(e: Interval<number>): Interval<number> {
   return e[0] > e[1] ? [e[1], e[0]] : e;
@@ -435,7 +436,7 @@ export function summedAreaTableLookupInterpolateSlow2D(
  * Normalizes an ndarray histogram in place to a pdf.
  */
 export function normalizePdf(a: NdArray) {
-  const s = sum(a);
+  const s = sum(a) as any; // TODO: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/58347
   divseq(a, s);
 }
 
