@@ -35,6 +35,10 @@ export class MapDDB<V extends string, D extends string> extends SQLDB<V, D> {
     this.session = await connection.connectAsync();
   }
 
+  protected castBins(input: number) {
+    return `cast(${input} as float)`;
+  }
+
   protected async query(q: string): Promise<Table> {
     const t0 = performance.now();
 

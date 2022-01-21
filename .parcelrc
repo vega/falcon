@@ -3,6 +3,9 @@
   "transformers": {
     "*.arrow": [
       "@parcel/transformer-raw"
+    ],
+    "*.parquet": [
+      "@parcel/transformer-raw"
     ]
   }
 }
