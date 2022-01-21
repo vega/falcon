@@ -166,7 +166,7 @@ new App(views, db, {
         }
       : {})
   },
-  logger: logger,
+  logger,
   cb: _app => {
     document.getElementById("loading")!.style.display = "none";
 

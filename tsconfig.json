@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "es2017",
+    "target": "es2021",
+    "lib": ["es2021", "dom"],
     "outDir": "build",
     "moduleResolution": "node",
     "declaration": true,

@@ -18,13 +18,17 @@ export abstract class SQLDB<V extends string, D extends string>
   public readonly blocking: boolean = false;
 
   constructor(
-    private readonly table: string,
-    private readonly nameMap?: Map<D, string>
+    protected readonly table: string,
+    protected readonly nameMap?: Map<D, string>
   ) {}
 
-  public abstract initialize();
+  public abstract initialize(): void;
 
   protected abstract query(q: string): Promise<Iterable<Record<string, any>>>;
+
+  protected castBins(input: number) {
+    return `${input}`;
+  }
 
   private getName(dimension: D) {
     return this.nameMap?.get(dimension) ?? dimension;
@@ -34,8 +38,8 @@ export abstract class SQLDB<V extends string, D extends string>
     const field = this.getName(dimension);
     return {
       select: `cast(
-        (${field} - cast(${binConfig.start} as float))
-        / cast(${binConfig.step} as float)
+        (${field} - ${this.castBins(binConfig.start)})
+        / ${this.castBins(binConfig.step)}
       as int)`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
@@ -116,13 +120,13 @@ export abstract class SQLDB<V extends string, D extends string>
 
     const result = await this.query(`
       SELECT
-        ${bSqlX.select} AS keyX,
-        ${bSqlY.select} AS keyY,
+        ${bSqlX.select} AS "keyX",
+        ${bSqlY.select} AS "keyY",
         count(*) AS cnt
       FROM ${this.table}
       WHERE
         ${bSqlX.where} AND ${bSqlY.where}
-      GROUP BY keyX, keyY
+      GROUP BY "keyX", "keyY"
       `);
 
     for (const { keyX, keyY, cnt } of result) {
@@ -169,7 +173,7 @@ export abstract class SQLDB<V extends string, D extends string>
     const select = `CASE
             WHEN ${binActive.where}
             THEN ${binActive.select}
-            ELSE -1 END AS keyActive,
+            ELSE -1 END AS "keyActive",
           count(*) AS cnt`;
 
     if (view.type === "0D") {
@@ -181,7 +185,7 @@ export abstract class SQLDB<V extends string, D extends string>
             ${select}
           FROM ${this.table}
           ${where ? `WHERE ${where}` : ""}
-          GROUP BY keyActive`;
+          GROUP BY "keyActive"`;
     } else if (view.type === "1D") {
       const dim = view.dimension;
 
@@ -201,7 +205,7 @@ export abstract class SQLDB<V extends string, D extends string>
             ${bin.select} AS key
           FROM ${this.table}
           WHERE ${bin.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActive, key`;
+          GROUP BY "keyActive", key`;
     } else {
       const dimensions = view.dimensions;
       const binConfigs = dimensions.map(d => d.binConfig!);
@@ -223,11 +227,11 @@ export abstract class SQLDB<V extends string, D extends string>
       query = `
           SELECT
             ${select},
-            ${binX.select} as keyX,
-            ${binY.select} as keyY
+            ${binX.select} AS "keyX",
+            ${binY.select} AS "keyY"
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActive, keyX, keyY`;
+          GROUP BY "keyActive", "keyX", "keyY"`;
     }
 
     const res = await this.query(query);
@@ -334,11 +338,11 @@ export abstract class SQLDB<V extends string, D extends string>
     const select = `CASE
             WHEN ${binActiveX.where} AND ${binActiveY.where}
             THEN ${binActiveX.select}
-            ELSE -1 END AS keyActiveX,
+            ELSE -1 END AS "keyActiveX",
           CASE
             WHEN ${binActiveX.where} AND ${binActiveY.where}
             THEN ${binActiveY.select}
-            ELSE -1 END AS keyActiveY,
+            ELSE -1 END AS "keyActiveY",
           count(*) AS cnt`;
 
     if (view.type === "0D") {
@@ -353,7 +357,7 @@ export abstract class SQLDB<V extends string, D extends string>
             ${select}
           FROM ${this.table}
           ${where ? `WHERE ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY`;
+          GROUP BY "keyActiveX", "keyActiveY"`;
     } else if (view.type === "1D") {
       const dim = view.dimension;
 
@@ -374,7 +378,7 @@ export abstract class SQLDB<V extends string, D extends string>
             ${bin.select} AS key
           FROM ${this.table}
           WHERE ${bin.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY, key`;
+          GROUP BY "keyActiveX", "keyActiveY", key`;
     } else {
       const dimensions = view.dimensions;
       const binConfigs = dimensions.map(d => d.binConfig!);
@@ -395,11 +399,11 @@ export abstract class SQLDB<V extends string, D extends string>
       query = `
           SELECT
             ${select},
-            ${binX.select} AS keyX,
-            ${binY.select} AS keyY
+            ${binX.select} AS "keyX",
+            ${binY.select} AS "keyY"
           FROM ${this.table}
           WHERE ${binX.where} AND ${binY.where} ${where ? `AND ${where}` : ""}
-          GROUP BY keyActiveX, keyActiveY, keyX, keyY`;
+          GROUP BY "keyActiveX", "keyActiveY", "keyX", "keyY"`;
     }
 
     const res = await this.query(query);

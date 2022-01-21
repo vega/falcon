@@ -8,7 +8,7 @@
 
 Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
 
-The largest experiments we have done so far is 10M flights in the browser and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSciDB](https://www.omnisci.com/platform/core/) (formerly known as MapD).
+The largest experiments we have done so far is 10M flights in the browser, 33M flights in the browser with DuckDB, and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSciDB](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
 We have written [a paper](https://osf.io/szpqm/) about the research behind Falcon. Please cite us if you use Falcon in a publication.
 
@@ -26,6 +26,7 @@ We have written [a paper](https://osf.io/szpqm/) about the research behind Falco
 ## Demos
 
 - 1M flights in the browser: https://vega.github.io/falcon/flights/
+- 10M flights in the browser with [DuckDB-WASM](https://github.com/duckdb/duckdb-wasm): https://vega.github.io/falcon/flights-duckdb/
 - 7M flights in [OmniSci Core](https://www.omnisci.com/platform/core/): https://vega.github.io/falcon/flights-mapd/
 - 500k weather records: https://vega.github.io/falcon/weather/
 
