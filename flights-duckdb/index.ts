@@ -39,8 +39,8 @@ views.set("FL_DATE", {
     bins: 25,
     // note that months start at 0!
     // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 1, 5).getTime()], // 10k
-    // extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
-    extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
+    extent: [new Date(2005, 11, 25).getTime(), new Date(2006, 2, 5).getTime()], // 1m
+    // extent: [new Date(2006, 11, 10).getTime(), new Date(2007, 1, 10).getTime()], // 10m
     // extent: [new Date(2005, 11, 29).getTime(), new Date(2006, 1, 5).getTime()], // 200k
     format: "%Y-%m-%d",
     time: true
@@ -139,7 +139,8 @@ const names = new Map<DimensionName, string>();
 names.set("FL_DATE", "epoch(FL_DATE)*1000");
 
 // get files from https://gist.github.com/domoritz/fd517a3a3a210c24a488e61870e2cf2c
-const url = require("../data/flights-10m.parquet");
+// const url = require("../data/flights-10m.parquet");
+const url = require("../data/flights-1m.parquet");
 const db = new DuckDB<ViewName, DimensionName>(url, names);
 
 new App(views, db, {
