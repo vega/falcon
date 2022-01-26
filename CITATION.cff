@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+url: "https://github.com/vega/falcon"
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: "Moritz"
+      given-names: "Dominik"
+    - family-names: "Howe"
+      given-names: "Bill"
+    - family-names: "Heer"
+      given-names: "Jeffrey"
+  title: "Falcon: Balancing Interactive Latency and Resolution Sensitivity for Scalable Linked Visualizations"
+  doi: 10.1145/3290605
+  year: 2019
+  booktitle: "Proceedings of the 2019 {CHI} Conference on Human Factors in Computing Systems - {CHI} '19"
+  publisher: "{ACM} Press"
