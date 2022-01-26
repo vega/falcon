@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 url: "https://github.com/vega/falcon"
 preferred-citation:
-  type: conference-paper
+  type: article
   authors:
     - family-names: "Moritz"
       given-names: "Dominik"
