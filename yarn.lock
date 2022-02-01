@@ -372,9 +372,9 @@
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
 "@duckdb/duckdb-wasm@^1.13.1-dev67.0":
-  version "1.13.1-dev67.0"
-  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.13.1-dev67.0.tgz#14a9da6e37dd4f31e085b960ce67fa912ef5ee97"
-  integrity sha512-vR0hidoVb2LUMc4H/docEG9ObBDR++L7Dd9V++WYlvhGkrFoYXB2ev0A1MIoEqMEeEEOvwhxG3ZYTU7+13QdaA==
+  version "1.13.1-dev98.0"
+  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.13.1-dev98.0.tgz#e6ea6c75a3e3c6973cc10d80120d517fa77f75ee"
+  integrity sha512-GLJRgF0hUmX2rAwLmqz6ugrFlZ+jYW2DER8G1RYqCb5m8GijkRjJk4ECoPAwxCeAGEDszQmBkKzdkjrHFCvLjQ==
   dependencies:
     "@types/emscripten" "^1.39.6"
     apache-arrow "^6.0.1"
