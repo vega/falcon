@@ -31,25 +31,25 @@
   },
   "homepage": "https://github.com/uwdata/falcon#readme",
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.13.1-dev67.0",
+    "@duckdb/duckdb-wasm": "^1.13.1-dev285.0",
     "@mapd/connector": "5.5.2",
     "apache-arrow": "^6.0.1",
     "cwise": "^1.0.10",
-    "d3": "^7.3.0",
+    "d3": "^7.4.0",
     "ndarray": "^1.0.19",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.21.0"
+    "vega": "^5.22.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.5",
+    "@babel/core": "^7.17.8",
     "@babel/preset-typescript": "^7.16.7",
-    "@babel/runtime": "^7.17.2",
-    "@parcel/config-default": "^2.3.2",
-    "@parcel/transformer-raw": "^2.3.2",
-    "@parcel/transformer-sass": "^2.3.2",
+    "@babel/runtime": "^7.17.8",
+    "@parcel/config-default": "^2.4.1",
+    "@parcel/transformer-raw": "^2.4.1",
+    "@parcel/transformer-sass": "^2.4.1",
     "@types/cwise": "^1.0.4",
     "@types/d3": "^7.1.0",
     "@types/jest": "^27.4.1",
@@ -60,11 +60,11 @@
     "gh-pages": "^3.2.3",
     "jest": "^27.5.1",
     "node-sass": "^7.0.1",
-    "parcel": "2.3.2",
-    "prettier": "^2.5.1",
+    "parcel": "2.4.1",
+    "prettier": "^2.6.1",
     "process": "^0.11.10",
-    "ts-jest": "^27.1.3",
-    "typescript": "^4.6.2"
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
   },
   "browserslist": "last 2 Chrome versions, last 2 Firefox versions"
 }

@@ -1,5 +1,4 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import { Table } from "apache-arrow";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
@@ -27,12 +26,12 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       `CREATE VIEW '${this.table}' AS SELECT * FROM parquet_scan('${this.dataUrl}')`
     );
     const info = await c.query(`PRAGMA table_info('${this.table}')`);
-    console.table([...info].map(Object.fromEntries));
+    console.table((info.toArray() as any).map(Object.fromEntries));
 
     c.close();
   }
 
-  protected async query(q: string): Promise<Table> {
+  protected async query(q: string) {
     const t0 = performance.now();
 
     q = q.replaceAll("count(*)", "count(*)::INT");
@@ -47,12 +46,12 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       `%c${q}`,
       "color: #bbb",
       "\nRows:",
-      results.length,
+      results.numRows,
       "Execution time:",
       performance.now() - t0,
       "ms."
     );
 
-    return results;
+    return results as any;
   }
 }
