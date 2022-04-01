@@ -60,7 +60,7 @@
     "gh-pages": "^3.2.3",
     "jest": "^27.5.1",
     "node-sass": "^7.0.1",
-    "parcel": "2.3.2",
+    "parcel": "2.4.1",
     "prettier": "^2.5.1",
     "process": "^0.11.10",
     "ts-jest": "^27.1.3",
