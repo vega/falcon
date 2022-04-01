@@ -1,5 +1,4 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import { Table } from "apache-arrow";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
@@ -32,7 +31,7 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
     c.close();
   }
 
-  protected async query(q: string): Promise<Table> {
+  protected async query(q: string) {
     const t0 = performance.now();
 
     q = q.replaceAll("count(*)", "count(*)::INT");
@@ -47,12 +46,13 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       `%c${q}`,
       "color: #bbb",
       "\nRows:",
-      results.length,
+      results.numRows,
       "Execution time:",
       performance.now() - t0,
       "ms."
     );
 
-    return results;
+    // TODO: remove as any when Arrow Tables support iterator (https://issues.apache.org/jira/browse/ARROW-16098)
+    return results as any;
   }
 }
