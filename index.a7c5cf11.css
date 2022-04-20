@@ -1,0 +1,83 @@
+body {
+  font-family: sans-serif;
+}
+
+#app {
+  grid-gap: 10px;
+  grid-template-columns: min-content;
+  grid-auto-rows: min-content;
+  justify-content: start;
+  display: grid;
+}
+
+#version {
+  color: #666;
+  background-color: #ffffffb3;
+  padding: 5px;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+}
+
+#version a {
+  color: #666;
+}
+
+#version a:hover {
+  color: #000;
+}
+
+#loading {
+  color: #666;
+  background-color: #d2d2d2cc;
+  padding: 20px;
+  font-weight: bold;
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%)translateY(-50%);
+}
+
+#app #count {
+  grid-area: 4 / 2;
+  padding-left: 63px;
+}
+
+#app #arrival {
+  grid-area: 1 / 2;
+}
+
+#app #departure {
+  grid-area: 1 / 1;
+}
+
+#app #distance {
+  grid-area: 2 / 1;
+}
+
+#app #airtime {
+  grid-area: 2 / 2;
+}
+
+#app #dep_delay {
+  grid-area: 3 / 1;
+}
+
+#app #arr_delay {
+  grid-area: 3 / 2;
+}
+
+#app #delay {
+  text-align: center;
+  grid-area: 3 / 1 / 5;
+}
+
+#app #date {
+  grid-area: 3 / 2;
+}
+
+#app #logs {
+  grid-area: 1 / 3 / 4;
+}
+
+/*# sourceMappingURL=index.a7c5cf11.css.map */
