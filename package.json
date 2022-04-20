@@ -1,6 +1,6 @@
 {
   "name": "falcon-vis",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Big data crossfilter",
   "scripts": {
     "start:flights": "parcel flights/index.html",
@@ -11,8 +11,9 @@
     "start:gaia-mapd": "parcel gaia-mapd/index.html",
     "start": "yarn start:flights",
     "clean": "rm -rf dist && rm -rf .parcel-cache && rm -rf build",
-    "build:demos": "parcel build --public-url '/falcon/' flights/index.html flights-mapd/index.html flights-duckdb/index.html weather/index.html --detailed-report",
-    "deploy:demos": "yarn clean && yarn build:demos && gh-pages -d dist",
+    "build": "parcel build --public-url '/falcon/' flights/index.html flights-mapd/index.html flights-duckdb/index.html weather/index.html --detailed-report && yarn build:flights-mapd",
+    "build:flights-mapd": "parcel build --public-url '/falcon/' flights-mapd/index.html --no-optimize --detailed-report",
+    "deploy": "yarn clean && yarn build && gh-pages -d dist",
     "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test": "yarn jest",
     "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
