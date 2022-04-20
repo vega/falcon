@@ -12,7 +12,7 @@
     "start": "yarn start:flights",
     "clean": "rm -rf dist && rm -rf .parcel-cache",
     "build": "parcel build --public-url '/falcon/' flights/index.html flights-duckdb/index.html weather/index.html --detailed-report && yarn build:flights-mapd",
-    "build:flights-mapd": "parcel build --public-url '/falcon/' flights-mapd/index.html --no-optimize --detailed-report --dist-dir 'dist/flights-mapd'",
+    "build:flights-mapd": "parcel build --public-url '/falcon/flights-mapd/' flights-mapd/index.html --no-optimize --detailed-report --dist-dir 'dist/flights-mapd'",
     "deploy": "yarn clean && yarn build && gh-pages -d dist",
     "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test": "yarn jest",
