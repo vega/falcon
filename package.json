@@ -1,6 +1,6 @@
 {
   "name": "falcon-vis",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "Big data crossfilter",
   "scripts": {
     "start:flights": "parcel flights/index.html",
