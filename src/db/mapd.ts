@@ -1,4 +1,4 @@
-import MapdCon from "@mapd/connector";
+import MapdCon from "@heavyai/connector";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
