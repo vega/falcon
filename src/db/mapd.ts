@@ -1,5 +1,4 @@
-import MapdCon from "@mapd/connector";
-import { Table } from "apache-arrow";
+import MapdCon from "@heavyai/connector";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
@@ -39,7 +38,7 @@ export class MapDDB<V extends string, D extends string> extends SQLDB<V, D> {
     return `cast(${input} as float)`;
   }
 
-  protected async query(q: string): Promise<Table> {
+  protected async query(q: string) {
     const t0 = performance.now();
 
     const {

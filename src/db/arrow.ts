@@ -1,4 +1,4 @@
-import { Table } from "apache-arrow";
+import { Table, tableFromIPC } from "apache-arrow";
 import ndarray, { NdArray } from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
@@ -30,7 +30,7 @@ export class ArrowDB<V extends string, D extends string>
     }
 
     console.time("Load Apache Arrow");
-    this.data = Table.from(new Uint8Array(buffer));
+    this.data = tableFromIPC(buffer);
     console.timeEnd("Load Apache Arrow");
 
     return;
@@ -44,7 +44,7 @@ export class ArrowDB<V extends string, D extends string>
       return m;
     }
 
-    const column = this.data.getColumn(dimension)!;
+    const column = this.data.getChild(dimension)!;
     const mask = new BitSet(column.length);
 
     for (let i = 0; i < column.length; i++) {
@@ -60,7 +60,7 @@ export class ArrowDB<V extends string, D extends string>
   }
 
   public length() {
-    return this.data.length;
+    return this.data.numRows;
   }
 
   public histogram(
@@ -77,11 +77,11 @@ export class ArrowDB<V extends string, D extends string>
     const bin = binNumberFunction(binConfig);
     const binCount = numBins(binConfig);
 
-    const column = this.data.getColumn(dimension.name)!;
+    const column = this.data.getChild(dimension.name)!;
 
     const noBrush = ndarray(new HIST_TYPE(binCount));
     const hist = filterMask ? ndarray(new HIST_TYPE(binCount)) : noBrush;
-    for (let i = 0; i < this.data.length; i++) {
+    for (let i = 0; i < this.data.numRows; i++) {
       const value: number = column.get(i)!;
       const key = bin(value);
       if (0 <= key && key < binCount) {
@@ -107,16 +107,14 @@ export class ArrowDB<V extends string, D extends string>
     const binConfigs = dimensions.map(d => d.binConfig!);
     const [numBinsX, numBinsY] = binConfigs.map(numBins);
     const [binX, binY] = binConfigs.map(binNumberFunction);
-    const [columnX, columnY] = dimensions.map(
-      d => this.data.getColumn(d.name)!
-    );
+    const [columnX, columnY] = dimensions.map(d => this.data.getChild(d.name)!);
 
     const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
       numBinsX,
       numBinsY
     ]);
 
-    for (let i = 0; i < this.data.length; i++) {
+    for (let i = 0; i < this.data.numRows; i++) {
       const keyX = binX(columnX.get(i)!);
       const keyY = binY(columnY.get(i)!);
 
@@ -161,7 +159,7 @@ export class ArrowDB<V extends string, D extends string>
 
     const activeDim = activeView.dimension;
     const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
-    const activeCol = this.data.getColumn(activeDim.name)!;
+    const activeCol = this.data.getChild(activeDim.name)!;
     const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
     for (const [name, view] of views) {
@@ -186,7 +184,7 @@ export class ArrowDB<V extends string, D extends string>
         noBrush = ndarray(new HIST_TYPE(1), [1]);
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.numRows; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.get(i)) {
             continue;
@@ -213,10 +211,10 @@ export class ArrowDB<V extends string, D extends string>
         ]);
         noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
-        const column = this.data.getColumn(dim.name)!;
+        const column = this.data.getChild(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.numRows; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.get(i)) {
             continue;
@@ -242,7 +240,7 @@ export class ArrowDB<V extends string, D extends string>
         const [numBinsX, numBinsY] = binConfigs.map(numBins);
         const [binX, binY] = binConfigs.map(c => binNumberFunction(c));
         const [columnX, columnY] = dimensions.map(
-          d => this.data.getColumn(d.name)!
+          d => this.data.getChild(d.name)!
         );
 
         hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
@@ -255,7 +253,7 @@ export class ArrowDB<V extends string, D extends string>
           numBinsY
         ]);
 
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.numRows; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.get(i)) {
             continue;
@@ -302,8 +300,8 @@ export class ArrowDB<V extends string, D extends string>
     const [activeDimX, activeDimY] = activeView.dimensions;
     const binActiveX = binNumberFunctionBins(activeDimX.binConfig!, pixels[0]);
     const binActiveY = binNumberFunctionBins(activeDimY.binConfig!, pixels[1]);
-    const activeColX = this.data.getColumn(activeDimX.name)!;
-    const activeColY = this.data.getColumn(activeDimY.name)!;
+    const activeColX = this.data.getChild(activeDimX.name)!;
+    const activeColY = this.data.getChild(activeDimY.name)!;
 
     const [numPixelsX, numPixelsY] = [pixels[0] + 1, pixels[1] + 1];
 
@@ -332,7 +330,7 @@ export class ArrowDB<V extends string, D extends string>
         noBrush = ndarray(new HIST_TYPE(1));
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.numRows; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.get(i)) {
             continue;
@@ -368,10 +366,10 @@ export class ArrowDB<V extends string, D extends string>
         ]);
         noBrush = ndarray(new HIST_TYPE(binCount));
 
-        const column = this.data.getColumn(dim.name)!;
+        const column = this.data.getChild(dim.name)!;
 
         // add data to aggregation matrix
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.numRows; i++) {
           // ignore filtered entries
           if (filterMask && filterMask.get(i)) {
             continue;
@@ -412,7 +410,7 @@ export class ArrowDB<V extends string, D extends string>
   }
 
   public getDimensionExtent(dimension: Dimension<D>): Interval<number> {
-    const column = this.data.getColumn(dimension.name)!;
+    const column = this.data.getChild(dimension.name)!;
     let max: number = column.get(0)!;
     let min = max;
 

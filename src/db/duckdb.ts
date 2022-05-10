@@ -52,6 +52,6 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       "ms."
     );
 
-    return results as any;
+    return results;
   }
 }
