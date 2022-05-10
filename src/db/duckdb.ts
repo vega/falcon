@@ -26,7 +26,7 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       `CREATE VIEW '${this.table}' AS SELECT * FROM parquet_scan('${this.dataUrl}')`
     );
     const info = await c.query(`PRAGMA table_info('${this.table}')`);
-    console.table([...info].map(Object.fromEntries));
+    console.table((info.toArray() as any).map(Object.fromEntries));
 
     c.close();
   }
@@ -52,7 +52,6 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
       "ms."
     );
 
-    // TODO: remove as any when Arrow Tables support iterator (https://issues.apache.org/jira/browse/ARROW-16098)
-    return results as any;
+    return results;
   }
 }
