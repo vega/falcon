@@ -58,7 +58,7 @@
     "@types/ndarray-ops": "^1.2.4",
     "babel-preset-env": "^1.7.0",
     "buffer": "^6.0.3",
-    "gh-pages": "^3.2.3",
+    "gh-pages": "^4.0.0",
     "jest": "^28.1.0",
     "node-sass": "^7.0.1",
     "parcel": "2.5.0",
