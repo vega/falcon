@@ -362,9 +362,9 @@
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
 "@duckdb/duckdb-wasm@^1.14.1":
-  version "1.14.1"
-  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.14.1.tgz#752188bb672462ff51d3c8212457d09a28aab27f"
-  integrity sha512-FoMuYbwdv9n4YANIPsvQsuYtw9qq2+kfzgX7gSCY2UEf7Sj+c/73HjymI2++nYHtA21k9wgOFKG4KJUGEp6bFg==
+  version "1.14.4"
+  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.14.4.tgz#805acaf16d62adf9c0d23fa9e6e0a838f15acb71"
+  integrity sha512-MftCJ42GEeM0Hk2QX2QqvhWx9/POjD6gjHnuNfFUPIdfZtybgw71TH0/sB8naVSrSGKHkCdoSh2E40E4gMje/w==
   dependencies:
     apache-arrow "^8.0.0"
 
