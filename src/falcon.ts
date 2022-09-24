@@ -1,19 +1,22 @@
-import type { CrossFilter } from "./crossFilter";
+import type { View } from "./view";
 
+/**
+ * Falcon connects the data to the views. Its basically the data spec.
+ * After views are added here, views are directly interacted with
+ * for the reactive filter count updates. Check out View.ts for more.
+ */
 export class Falcon {
-	crossFilters: CrossFilter[];
+	views: View[];
 	data: any;
 	constructor(data: any) {
-		console.log("Falcon constructed");
-		this.crossFilters = [];
+		this.views = [];
 		this.data = data;
 	}
-	add(...newCrossFilters: CrossFilter[]) {
-		newCrossFilters.forEach((crossFilter) => {
-			this.crossFilters.push(crossFilter);
+	add(...views: View[]) {
+		views.forEach((view) => {
+			// allow each view to access the data from falcon
+			view._connectGlobalFalcon(this);
+			this.views.push(view);
 		});
-	}
-	filter(crossFilter: CrossFilter, ...args) {
-		crossFilter.filter();
 	}
 }

@@ -8,21 +8,32 @@
 		c: ["cat", "dog", "cat", "dog"],
 	};
 
-	// create falcon data source
+	// create falcon global data source from the table
 	const falconTable = new falconVis.Falcon(table);
 
-	// create views that can be cross filtered
-	const aView = new falconVis.CrossFilter("a"); // a column
-	const bView = new falconVis.CrossFilter("b"); // b column
+	// create views and connects them for cross filtering later
+	// onUpdate callbacks are called when counts update on interaction for all views
+	const aView = new falconVis.View({
+		dimensions: [{ name: "a" }],
+		onUpdate: (...args) => {
+			console.log(args);
+		},
+	}); // a column
+	const bView = new falconVis.View({
+		dimensions: [{ name: "b" }],
+		onUpdate: (...args) => {
+			console.log(args);
+		},
+	}); // b column
 
-	// add cross filters views to the data + falcon obj
 	falconTable.add(aView, bView);
 
-	// interact with views
-	aView.filter([1, 2]);
+	// you can prefetch to speed up the interaction if you know you're about to interact with a filter
+	// for example, in the falcon v1, on hover over the chart prefetches, this is the recommended way to do it
+	aView.prefetch();
 
-	// or would this be more intuitive?
-	falconTable.filter(aView, [1, 2]);
+	// you can interact directly with the view and the other view counts update
+	aView.filter([1, 2]);
 </script>
 
 <main>

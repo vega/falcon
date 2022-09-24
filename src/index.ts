@@ -1,2 +1,2 @@
 export * from "./falcon";
-export * from "./crossFilter";
+export * from "./view";
