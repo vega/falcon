@@ -15,7 +15,7 @@ export class Falcon {
 	add(...views: View[]) {
 		views.forEach((view) => {
 			// allow each view to access the data from falcon
-			view._connectGlobalFalcon(this);
+			view._connectFalconViews(this);
 			this.views.push(view);
 		});
 	}
