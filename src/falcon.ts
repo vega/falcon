@@ -6,17 +6,18 @@ import type { View } from "./view";
  * for the reactive filter count updates. Check out View.ts for more.
  */
 export class Falcon {
-	views: View[];
-	data: any;
-	constructor(data: any) {
-		this.views = [];
-		this.data = data;
-	}
-	add(...views: View[]) {
-		views.forEach((view) => {
-			// allow each view to access the data from falcon
-			view._connectFalconViews(this);
-			this.views.push(view);
-		});
-	}
+    views: View[];
+    data: any;
+    constructor(data: any) {
+        this.views = [];
+        this.data = data;
+    }
+    add(...views: View[]) {
+        views.forEach((view) => {
+            // allow each view to access the data from falcon
+            view._connectFalconViews(this);
+            this.views.push(view);
+        });
+        return this;
+    }
 }
