@@ -15,6 +15,8 @@ Crossfilter millions of records without latencies. This is a new version of [Fal
 
 Just so we can take advantage of the old code, right now its in the `old` directory. This will be removed when Falcon 2 is a package. Simply for convenience for now.
 
+Some standards are in the `DEVELOPMENT.md` file if you wish to contribute.
+
 ### Falcon 2 – Getting Started
 
 This one is currently being developed through the example. Not yet compiling to its own package. The ts source for falcon 2 is in the `src` directory. But we'll run an example of its use in the `examples` directory.
