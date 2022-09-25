@@ -6,7 +6,8 @@
   "author": "cmudig",
   "license": "MIT",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "cd examples/flights-in-browser && yarn && yarn dev --open"
   },
   "devDependencies": {
     "@types/jest": "^29.0.3",
