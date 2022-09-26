@@ -11,6 +11,8 @@
 
 Crossfilter millions of records without latencies. This is a new version of [Falcon](https://github.com/vega/falcon) with cleaned up APIs and reusable components.
 
+For current mockups and architecture choices, go to this [Figma Page](https://www.figma.com/file/0fErf0QvmhpgNGrCwFM3hZ/falcon2?node-id=3%3A2). Ask @xnought if you need editing permission.
+
 ### Falcon 2 – Getting Started
 
 `yarn dev` will start the dev server and open the browser.
