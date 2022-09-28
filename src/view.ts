@@ -12,7 +12,7 @@ import type {
  */
 export class View {
     protected mode: ViewMode;
-    protected falcon: Falcon;
+    protected falcon: Falcon | undefined = undefined;
     dimensions?: Dimension[];
     onUpdate?: ViewOnUpdateCallback;
 
@@ -57,8 +57,6 @@ export class View {
     }
 
     get otherViews() {
-        if (this.falcon) {
-            return this.falcon.views.filter((view) => view !== this);
-        }
+        return this.falcon?.views.filter((view) => view !== this);
     }
 }
