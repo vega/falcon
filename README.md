@@ -21,10 +21,10 @@ Then you can modify the code in `src` (falcon 2 code) and see changes in the exa
 
 Under the hood it does the following:
 
-Runs the svelte project in `examples/flights-in-browser` and simply imports the `src` falcon library. To be specific it does this:
+Runs the svelte project in `premade-charts` and simply imports the `src` falcon library. To be specific it does this:
 
 ```bash
-cd examples/flights-in-browser
+cd premade-charts
 yarn # make sure to install dependencies
 yarn dev --open # to start the dev server and open the browser
 ```

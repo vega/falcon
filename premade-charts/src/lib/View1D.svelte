@@ -4,6 +4,7 @@
     export let title = "Sizes";
     export let width: number;
     export let height: number;
+
     export let bins = [
         { binStart: 0, binEnd: 10, count: 100, filteredCount: 100 },
         { binStart: 10, binEnd: 20, count: 420, filteredCount: 400 },
