@@ -1,0 +1,14 @@
+.cache
+.parcel-cache
+.rpt2_cache*
+.vscode/tags
+build
+data/.ipynb_checkpoints
+data/altair-data-*
+dist
+node_modules
+npm-debug.log*
+package-lock.json
+yarn-debug.log*
+yarn-error.log*
+data/flights_2006_2010.csv

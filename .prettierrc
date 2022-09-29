@@ -1,12 +1,5 @@
 {
-  "overrides": [
-    {
-      "files": "*",
-      "options": {
-        "arrowParens": "avoid",
-        "trailingComma": "none",
-        "proseWrap": "never"
-      }
-    }
-  ]
+	"tabWidth": 4,
+	"semi": true,
+	"singleQuote": false
 }

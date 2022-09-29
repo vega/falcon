@@ -1,0 +1,71 @@
+{
+  "name": "falcon-vis",
+  "version": "0.16.2",
+  "description": "Big data crossfilter",
+  "scripts": {
+    "start:flights": "parcel flights/index.html",
+    "start:flights-mapd": "parcel flights-mapd/index.html",
+    "start:flights-duckdb": "parcel flights-duckdb/index.html --https",
+    "start:flights-http": "parcel flights-http/index.html",
+    "start:weather": "parcel weather/index.html",
+    "start:gaia-mapd": "parcel gaia-mapd/index.html",
+    "start": "yarn start:flights",
+    "clean": "rm -rf dist && rm -rf .parcel-cache",
+    "build": "parcel build --public-url '/falcon/' flights/index.html flights-duckdb/index.html weather/index.html --detailed-report && yarn build:flights-mapd",
+    "build:flights-mapd": "parcel build --public-url '/falcon/flights-mapd/' flights-mapd/index.html --no-optimize --detailed-report --dist-dir 'dist/flights-mapd'",
+    "deploy": "yarn clean && yarn build && gh-pages -d dist",
+    "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "yarn jest",
+    "prettierbase": "prettier '{src,test}/**/*.{ts,html,scss}'",
+    "format": "yarn prettierbase --write",
+    "lint": "yarn prettierbase --check",
+    "preversion": "yarn lint && yarn test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uwdata/falcon.git"
+  },
+  "author": "Dominik Moritz",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/uwdata/falcon/issues"
+  },
+  "homepage": "https://github.com/uwdata/falcon#readme",
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "^1.16.0",
+    "@heavyai/connector": "^7.0.0",
+    "apache-arrow": "^9.0.0",
+    "cwise": "^1.0.10",
+    "d3": "^7.6.1",
+    "ndarray": "^1.0.19",
+    "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
+    "ndarray-linear-interpolate": "^1.0.0",
+    "ndarray-ops": "^1.2.2",
+    "ndarray-prefix-sum": "^1.0.0",
+    "vega": "^5.22.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.13",
+    "@babel/preset-typescript": "^7.18.6",
+    "@babel/runtime": "^7.18.9",
+    "@parcel/config-default": "^2.7.0",
+    "@parcel/transformer-raw": "^2.7.0",
+    "@parcel/transformer-sass": "^2.7.0",
+    "@types/cwise": "^1.0.4",
+    "@types/d3": "^7.4.0",
+    "@types/jest": "^28.1.7",
+    "@types/ndarray": "1.0.11",
+    "@types/ndarray-ops": "^1.2.4",
+    "babel-preset-env": "^1.7.0",
+    "buffer": "^6.0.3",
+    "gh-pages": "^4.0.0",
+    "jest": "^28.1.3",
+    "node-sass": "^7.0.1",
+    "parcel": "2.7.0",
+    "prettier": "^2.7.1",
+    "process": "^0.11.10",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.7.4"
+  },
+  "browserslist": "last 2 Chrome versions, last 2 Firefox versions"
+}
