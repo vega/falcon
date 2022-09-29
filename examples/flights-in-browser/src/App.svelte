@@ -1,5 +1,5 @@
 <script lang="ts">
-    import * as falconVis from "../../../src/index";
+    import * as falconVis from "../../../";
     import View1D from "./lib/View1D.svelte";
 
     // raw data: keys are column names, values are column values
