@@ -21,14 +21,16 @@ export interface DataBase {
     initialize(): Promise<void> | void;
 
     /**
-     * Get the total counts for the 1D view
+     * Get the total counts for the 1D view (this is really just called once)
+     * If unspecified, will just default to falcon index and select first active view
      */
-    total1D(dim: Dimension): NdArray;
+    total1D?(dim: Dimension): NdArray;
 
     /**
-     * Get the total counts for the 2D view
+     * Get the total counts for the 2D view (this is really just called once)
+     * If unspecified, will just default to falcon index and select first active view
      */
-    total2D(dims: [Dimension, Dimension]): NdArray;
+    total2D?(dims: [Dimension, Dimension]): NdArray;
 
     /**
      * Get the falcon index for the 1D view
