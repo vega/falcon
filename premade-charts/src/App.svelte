@@ -1,5 +1,5 @@
 <script lang="ts">
-    import View1D from "./lib/View1D.svelte";
+    import BarChart from "./lib/BarChart.svelte";
     import * as falconVis from "../../src/index";
 
     const table = {
@@ -16,11 +16,7 @@
     <p>Interactive visualization of flights with</p>
 
     <div id="views">
-        <View1D
-            width={500}
-            height={175}
-            on:hover={({ detail }) => console.log(detail)}
-        />
+        <BarChart width={500} height={175} />
     </div>
 </main>
 
