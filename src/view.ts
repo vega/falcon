@@ -2,22 +2,22 @@ import type { Falcon } from "./falcon";
 import type {
     ViewMode,
     Dimension,
-    ViewOnUpdateCallback,
-    ViewConstructor,
+    View1DInput,
+    dtype,
+    View1DOnUpdate,
 } from "./api";
 
 /**
  * A cross filterable view that can be directly
  * interacted with by the user.
  */
-export class View {
+export class View1D<DT extends dtype> {
     protected mode: ViewMode;
     protected falcon: Falcon | undefined = undefined;
-    dimensions?: Dimension[];
-    onUpdate?: ViewOnUpdateCallback;
-
-    constructor(config: ViewConstructor) {
-        this.dimensions = config.dimensions;
+    dimension?: Dimension<DT>;
+    onUpdate?: View1DOnUpdate<DT>;
+    constructor(config: View1DInput<DT>) {
+        this.dimension = config.dimension;
         this.onUpdate = config.onUpdate;
         this.mode = "passive";
     }
@@ -40,23 +40,16 @@ export class View {
     /**
      * Filter using the falcon data tiles based on mode (active or passive)
      */
-    filter(...args: any[]) {
-        this.makeActive();
-        console.log("filter()");
+    filter(selection: [number, number]) {
+        this.setActive();
+        console.log(`filter([${selection}])`);
     }
 
-    /**
-     * Make this view active and rest passive
-     */
-    protected makeActive() {
+    setActive() {
+        this.falcon?.setAllViewsPassive();
         this.mode = "active";
-        this.otherViews?.forEach((view) => view.makePassive());
     }
-    protected makePassive() {
+    setPassive() {
         this.mode = "passive";
-    }
-
-    get otherViews() {
-        return this.falcon?.views.filter((view) => view !== this);
     }
 }

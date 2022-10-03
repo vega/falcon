@@ -2,12 +2,38 @@
     import BarChart from "./lib/BarChart.svelte";
     import * as falconVis from "../../src/index";
 
+    function dummyRangeData(length: number, start: number = 0) {
+        return new Array(length).fill(0).map((_, i) => i + start);
+    }
+    const N = 50;
+
+    /**
+     * FALCON EXAMPLE on regular js array
+     */
     const table = new falconVis.VanillaJS({
-        a: [1, 2, 3, 4],
-        b: [3, 4, 5, 6],
-        c: ["cat", "dog", "cat", "dog"],
+        a: dummyRangeData(N, 21),
+        b: dummyRangeData(N, 52),
     });
     const falconTable = new falconVis.Falcon(table);
+
+    const viewA = new falconVis.View1D({
+        dimension: { dtype: "range", name: "a", numBins: 2 },
+        onUpdate: ({ counts, name }) => {
+            console.log(name, counts);
+        },
+    });
+    const viewB = new falconVis.View1D({
+        dimension: { dtype: "range", name: "b", numBins: 3 },
+        onUpdate: ({ counts, name }) => {
+            console.log(name);
+        },
+    });
+
+    falconTable.add(viewA, viewB); // connect the views to the db and with each other
+
+    viewA.filter([1, 2]);
+
+    $: console.log("%cFalcon Table", "color: lime;", falconTable);
 </script>
 
 <main>

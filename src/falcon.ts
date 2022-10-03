@@ -1,4 +1,4 @@
-import type { View } from "./view";
+import type { View1D } from "./view";
 import type { DataBase } from "./db/db";
 
 /**
@@ -6,7 +6,7 @@ import type { DataBase } from "./db/db";
  * and between the views
  */
 export class Falcon {
-    views: View[];
+    views: (View1D<"category"> | View1D<"range">)[];
     db: DataBase;
     constructor(db: DataBase) {
         this.views = [];
@@ -14,12 +14,15 @@ export class Falcon {
 
         this.db.initialize();
     }
-    add(...views: View[]) {
+    add(...views: (View1D<"category"> | View1D<"range">)[]) {
         views.forEach((view) => {
             // allow each view to access the data from falcon
             view._connectFalconViews(this);
             this.views.push(view);
         });
         return this;
+    }
+    setAllViewsPassive() {
+        this.views.forEach((view) => view.setPassive());
     }
 }
