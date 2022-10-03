@@ -2,12 +2,11 @@
     import BarChart from "./lib/BarChart.svelte";
     import * as falconVis from "../../src/index";
 
-    const table = {
+    const table = new falconVis.VanillaJS({
         a: [1, 2, 3, 4],
         b: [3, 4, 5, 6],
         c: ["cat", "dog", "cat", "dog"],
-    };
-
+    });
     const falconTable = new falconVis.Falcon(table);
 </script>
 
