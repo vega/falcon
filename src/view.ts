@@ -38,9 +38,9 @@ export class View1D<DT extends dtype> {
     }
 
     /**
-     * Filter using the falcon data tiles based on mode (active or passive)
+     * Count using the falcon data tiles based on mode (active or passive)
      */
-    filter(selection: [number, number]) {
+    select(selection: [number, number]) {
         this.setActive();
         console.log(`filter([${selection}])`);
     }

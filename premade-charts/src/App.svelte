@@ -17,13 +17,13 @@
     const falconTable = new falconVis.Falcon(table);
 
     const viewA = new falconVis.View1D({
-        dimension: { dtype: "range", name: "a", numBins: 2 },
+        dimension: { dtype: "range", name: "a", numBins: 5 },
         onUpdate: ({ counts, name }) => {
             console.log(name, counts);
         },
     });
     const viewB = new falconVis.View1D({
-        dimension: { dtype: "range", name: "b", numBins: 3 },
+        dimension: { dtype: "range", name: "b", numBins: 5 },
         onUpdate: ({ counts, name }) => {
             console.log(name);
         },
@@ -31,7 +31,7 @@
 
     falconTable.add(viewA, viewB); // connect the views to the db and with each other
 
-    viewA.filter([1, 2]);
+    viewA.select([0, 15]);
 
     $: console.log("%cFalcon Table", "color: lime;", falconTable);
 </script>
