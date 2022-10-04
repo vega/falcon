@@ -1,14 +1,39 @@
 <script lang="ts">
-    import View1D from "./lib/View1D.svelte";
+    import BarChart from "./lib/BarChart.svelte";
     import * as falconVis from "../../src/index";
 
-    const table = {
-        a: [1, 2, 3, 4],
-        b: [3, 4, 5, 6],
-        c: ["cat", "dog", "cat", "dog"],
-    };
+    function dummyRangeData(length: number, start: number = 0) {
+        return new Array(length).fill(0).map((_, i) => i + start);
+    }
+    const N = 50;
 
+    /**
+     * FALCON EXAMPLE on regular js array
+     */
+    const table = new falconVis.VanillaJS({
+        a: dummyRangeData(N, 21),
+        b: dummyRangeData(N, 52),
+    });
     const falconTable = new falconVis.Falcon(table);
+
+    const viewA = new falconVis.View1D({
+        dimension: { dtype: "range", name: "a", bins: 20 },
+        onUpdate: (...args) => {
+            console.log(...args);
+        },
+    });
+    const viewB = new falconVis.View1D({
+        dimension: { dtype: "range", name: "b", bins: 20 },
+        onUpdate: (...args) => {
+            console.log(...args);
+        },
+    });
+
+    falconTable.add(viewA, viewB); // connect the views to the db and with each other
+
+    viewA.select([0, 15]);
+
+    $: console.log("%cFalcon Table", "color: lime;", falconTable);
 </script>
 
 <main>
@@ -16,11 +41,7 @@
     <p>Interactive visualization of flights with</p>
 
     <div id="views">
-        <View1D
-            width={500}
-            height={175}
-            on:hover={({ detail }) => console.log(detail)}
-        />
+        <BarChart width={500} height={175} />
     </div>
 </main>
 

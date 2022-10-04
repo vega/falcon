@@ -1,16 +1,44 @@
-export type ViewMode = "active" | "passive";
+export type Interval<T> = [T, T];
+export interface AbstractView {
+    type: "0D" | "1D" | "2D";
+}
+export interface BinConfig {
+    start: number;
+    stop: number;
+    step: number;
+}
+export type Range = "range";
+export type Category = "category";
+export type DType = Category | Range; // select vs brush
+export interface AbstractDimension<NT, DT extends DType> {
+    name: NT;
+    dtype: DT;
+}
 
-export type Bin = { filteredCount: number; count: number };
-export type Bins = Bin[];
-export interface Dimension {
-    name: string;
+export interface RangeBin {
+    filteredCount: number;
+    count: number;
 }
-export interface UpdateDimension extends Dimension {
-    bins: Bins;
+
+export interface RangeDimension<NT> extends AbstractDimension<NT, Range> {
+    /** Initial domain for the dimension.  If it's not supplied, will be inferred from the extent of the data. */
+    extent?: Interval<number>;
+
+    /** Number of bins for this dimension. We will use this as the resolution at all zoom levels. */
+    bins: number;
+
+    /** Current configuration of bins. */
+    binConfig?: BinConfig;
 }
-export type ViewOnUpdateCallback = (state: UpdateDimension[]) => void; // dimensions x bins
-// update is a callback that will return
-export interface ViewConstructor {
-    dimensions?: Dimension[];
-    onUpdate?: ViewOnUpdateCallback;
+
+export interface CategoryDimension<NT>
+    extends AbstractDimension<NT, Category> {}
+
+export type Dimension<NT extends string> =
+    | RangeDimension<NT>
+    | CategoryDimension<NT>;
+
+export interface View1DInput<NT extends string> {
+    dimension: Dimension<NT>;
+    onUpdate: (state: number[]) => void;
 }
