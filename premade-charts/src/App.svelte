@@ -17,15 +17,15 @@
     const falconTable = new falconVis.Falcon(table);
 
     const viewA = new falconVis.View1D({
-        dimension: { dtype: "range", name: "a", numBins: 5 },
-        onUpdate: ({ counts, name }) => {
-            console.log(name, counts);
+        dimension: { dtype: "range", name: "a", bins: 20 },
+        onUpdate: (...args) => {
+            console.log(...args);
         },
     });
     const viewB = new falconVis.View1D({
-        dimension: { dtype: "range", name: "b", numBins: 5 },
-        onUpdate: ({ counts, name }) => {
-            console.log(name);
+        dimension: { dtype: "range", name: "b", bins: 20 },
+        onUpdate: (...args) => {
+            console.log(...args);
         },
     });
 

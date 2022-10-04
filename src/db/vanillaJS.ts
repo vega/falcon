@@ -5,6 +5,7 @@ export class VanillaJS implements DataBase {
         this.data = data;
     }
     initialize() {}
+    total0D() {}
     total1D() {}
     total2D() {}
     falconIndex1D() {}

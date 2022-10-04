@@ -6,7 +6,7 @@ import type { DataBase } from "./db/db";
  * and between the views
  */
 export class Falcon {
-    views: (View1D<"category"> | View1D<"range">)[];
+    views: View1D<string>[];
     db: DataBase;
     constructor(db: DataBase) {
         this.views = [];
@@ -14,7 +14,7 @@ export class Falcon {
 
         this.db.initialize();
     }
-    add(...views: (View1D<"category"> | View1D<"range">)[]) {
+    add(...views: View1D<string>[]) {
         views.forEach((view) => {
             // allow each view to access the data from falcon
             view._connectFalconViews(this);
