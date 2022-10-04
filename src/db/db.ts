@@ -1,17 +1,11 @@
 // change these later
 type Index = any;
-type Dimension = any;
 type NdArray = any;
+type View = any;
 
 /**
- * The common database needs to
- * 1. Initialize the database (may need extra backend steps)
- * 2. Quickly get the total counts at the start for 1D and 2D Views
- * 3. Compute Indexes for 1D and 2D Views
- * 4. Get total count for 0D Views
- *
- * init is analog to falcon v1 histogram or heatmap
- * falconIndex is analog to falcon v1 load
+ * Defines how to construct the falcon index
+ * and is called in the falcon object
  */
 export interface DataBase {
     /**
@@ -21,24 +15,18 @@ export interface DataBase {
     initialize(): Promise<void> | void;
 
     /**
-     * Get the total counts for the 1D view (this is really just called once)
-     * If unspecified, will just default to falcon index and select first active view
+     * Since too slow to get falcon Index on startup
+     * AND no active index is set yet,
+     * just do total counts quickly here
      */
-    total1D?(dim: Dimension): NdArray;
+    total0D(): NdArray;
+    total1D?(views: View[]): NdArray;
+    total2D?(views: View[]): NdArray;
 
     /**
-     * Get the total counts for the 2D view (this is really just called once)
-     * If unspecified, will just default to falcon index and select first active view
+     * When there is an active view, do the epic
+     * data tiles falcon index strategy
      */
-    total2D?(dims: [Dimension, Dimension]): NdArray;
-
-    /**
-     * Get the falcon index for the 1D view
-     */
-    falconIndex1D(dim: Dimension): Index;
-
-    /**
-     * Get the falcon index for the 2D view
-     */
-    falconIndex2D(dims: [Dimension, Dimension]): Index;
+    falconIndex1D(activeView: View[], passiveViews: View[]): Index;
+    falconIndex2D(activeView: View[], passiveViews: View[]): Index;
 }
