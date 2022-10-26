@@ -37,4 +37,11 @@ Inside of the `old` directory, install the dependencies with `yarn`. Then run `y
 
 Just so we can take advantage of the old code, right now its in the `old` directory. This will be removed when Falcon 2 is a package. Simply for convenience for now.
 
-Some standards are in the `DEVELOPMENT.md` file if you wish to contribute.
+Some standards are in the `CONTRIBUTING.md` file if you wish to contribute.
+
+## Milestones
+
+- [ ] Take the current Falcon and decouple it from the UI
+- [ ] Support Categorical Dimensions 
+- [ ] Update the Live demo with Svelte and some premade charts
+- [ ] TO BE DETERMINED
