@@ -1,5 +1,5 @@
-import { NdArray } from "ndarray";
-import type { View } from "../api";
+import type { Dimension, View } from "../api";
+import { Interval } from "../basic";
 import type { DataBase } from "../db";
 import { binTime, bin } from "../util";
 
@@ -34,7 +34,7 @@ export class FalconGlobal<V extends string, D extends string> {
 
         // connect the view to the data and do initial counts
         view.giveAccessToFalcon(this);
-        await view.initCounts();
+        await view.initialize();
     }
 }
 
@@ -56,39 +56,45 @@ export class FalconView<V extends string, D extends string> {
      * since we have no idea which chart will become the active
      * just show the initial counts to start
      */
-    async initCounts() {
+    async initialize() {
         this.verifyFalconAccess();
 
+        const { db } = this.falcon;
+
+        let data: any = null;
         if (this.spec.type === "1D") {
             const { dimension } = this.spec;
-            const { db } = this.falcon;
 
-            /**
-             * if the extent is not given, infer it and construct bin config
-             */
-            const binningFunc = dimension.time ? binTime : bin;
-            const extent =
+            const inferExtent =
                 dimension.extent ?? (await db.getDimensionExtent(dimension));
-            dimension.binConfig = binningFunc(dimension.bins, extent);
-
-            /**
-             *  get the pure counts from the db directly
-             *  no falcon index going on here, just plain counts
-             */
+            dimension.binConfig = createBinConfig(dimension, inferExtent);
             const { hist } = await db.histogram(dimension);
-
-            // EPIC! now we can update the user with the initial data
-            /**
-             * @TODO send them a nice array of {bin: say the dimensions of the bin, count: num, filteredCount: num}
-             */
-            this.onUpdate({ data: hist });
+            data = hist;
         } else if (this.spec.type === "2D") {
-            // heatmap
-            throw Error("not implemented 2D yet");
+            const { dimensions } = this.spec;
+
+            // bin config on each dimension
+            for (const dimension of dimensions) {
+                const inferExtent =
+                    dimension.extent ??
+                    (await db.getDimensionExtent(dimension));
+                dimension.binConfig = createBinConfig(dimension, inferExtent);
+            }
+
+            const heatmapData = db.heatmap(dimensions);
+            data = heatmapData;
         } else if (this.spec.type === "0D") {
-            const totalCount = this.falcon.db.length();
-            this.onUpdate({ data: totalCount });
+            const totalCount = db.length();
+            data = totalCount;
+        } else {
+            throw Error("Number of dimensions must be 0D 1D or 2D");
         }
+
+        // EPIC! now we can update the user with the initial data
+        /**
+         * @TODO send them a nice array of {bin: the actual bin description, count: num, filteredCount: num}
+         */
+        this.onUpdate({ data });
     }
     giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
         this.falcon = falcon;
@@ -101,4 +107,12 @@ export class FalconView<V extends string, D extends string> {
         }
         return falconDataExists;
     }
+}
+
+function createBinConfig<D extends string>(
+    dimension: Dimension<D>,
+    extent: Interval<number>
+) {
+    const binningFunc = dimension.time ? binTime : bin;
+    return binningFunc(dimension.bins, extent);
 }

@@ -8,7 +8,9 @@
     const data = new falcon.ArrowDB("flights-10k.arrow");
     const falconData = new falcon.FalconGlobal(data);
 
-    // compose dimensions and add to the falconData to synchronize with other views
+    /**
+     * Construct dimensions 0D, 1D, and 2D and add to the falconData
+     */
     const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
         console.log(count);
     });
@@ -25,8 +27,27 @@
             console.log(counts);
         }
     );
-
-    falconData.add(distanceView, totalCount);
+    const departureVsArrivalDelaysView = new falcon.FalconView(
+        {
+            type: "2D",
+            dimensions: [
+                {
+                    name: "DEP_DELAY",
+                    bins: 25,
+                    extent: [-20, 60],
+                },
+                {
+                    name: "ARR_DELAY",
+                    bins: 25,
+                    extent: [-20, 60],
+                },
+            ],
+        },
+        (counts) => {
+            console.log(counts);
+        }
+    );
+    falconData.add(distanceView, totalCount, departureVsArrivalDelaysView);
 </script>
 
 <main>
