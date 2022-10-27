@@ -22,9 +22,8 @@
             console.log(updatedState);
         }
     );
-    falconData.add(distanceView);
 
-    console.log({ falconData, distanceView });
+    falconData.add(distanceView);
 </script>
 
 <main>
