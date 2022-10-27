@@ -8,7 +8,7 @@
     const data = new falcon.ArrowDB("flights-10k.arrow");
     const falconData = new falcon.FalconGlobal(data);
 
-    // compose dimensions and add to the falconData
+    // compose dimensions and add to the falconData to synchronize with other views
     const distanceView = new falcon.FalconView(
         {
             type: "1D",
@@ -18,8 +18,8 @@
                 extent: [0, 4000],
             },
         },
-        () => {
-            console.log("onUpdate");
+        (updatedState) => {
+            console.log(updatedState);
         }
     );
     falconData.add(distanceView);
