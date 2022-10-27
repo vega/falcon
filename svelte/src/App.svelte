@@ -9,6 +9,9 @@
     const falconData = new falcon.FalconGlobal(data);
 
     // compose dimensions and add to the falconData to synchronize with other views
+    const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
+        console.log(count);
+    });
     const distanceView = new falcon.FalconView(
         {
             type: "1D",
@@ -18,12 +21,12 @@
                 extent: [0, 4000],
             },
         },
-        (updatedState) => {
-            console.log(updatedState);
+        (counts) => {
+            console.log(counts);
         }
     );
 
-    falconData.add(distanceView);
+    falconData.add(distanceView, totalCount);
 </script>
 
 <main>

@@ -22,7 +22,12 @@ export class FalconGlobal<V extends string, D extends string> {
             throw Error("Make sure you have loaded the db in the constructor");
         }
     }
-    async add(view: FalconView<V, D>) {
+    async add(...views: FalconView<V, D>[]) {
+        for (const view of views) {
+            await this.addSingleView(view);
+        }
+    }
+    async addSingleView(view: FalconView<V, D>) {
         if (!this.dbReady) {
             await this.initDB();
         }
@@ -81,8 +86,8 @@ export class FalconView<V extends string, D extends string> {
             // heatmap
             throw Error("not implemented 2D yet");
         } else if (this.spec.type === "0D") {
-            // total count
-            throw Error("not implemented 0D yet");
+            const totalCount = this.falcon.db.length();
+            this.onUpdate({ data: totalCount });
         }
     }
     giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
