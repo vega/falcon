@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "dev": "cd premade-charts && yarn && yarn dev --open",
+    "dev": "cd svelte && yarn && yarn dev --open",
     "build": "tsc"
   },
   "dependencies": {
