@@ -2,10 +2,29 @@
     import BarChart from "./lib/BarChart.svelte";
     import * as falcon from "../../src/index";
 
+    /**
+     * Falcon 2 library example
+     */
     const data = new falcon.ArrowDB("flights-10k.arrow");
-    const falconData = new falcon.Falcon(data);
+    const falconData = new falcon.FalconGlobal(data);
 
-    console.log(falconData);
+    // compose dimensions and add to the falconData
+    const distanceView = new falcon.FalconView(
+        {
+            type: "1D",
+            dimension: {
+                name: "DISTANCE",
+                bins: 25,
+                extent: [0, 4000],
+            },
+        },
+        () => {
+            console.log("onUpdate");
+        }
+    );
+    falconData.add(distanceView);
+
+    console.log({ falconData, distanceView });
 </script>
 
 <main>
