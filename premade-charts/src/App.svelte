@@ -1,11 +1,13 @@
 <script lang="ts">
     import BarChart from "./lib/BarChart.svelte";
-    import * as falconVis from "../../src/index";
+    import * as falcon from "../../src/index";
 
     function dummyRangeData(length: number, start: number = 0) {
         return new Array(length).fill(0).map((_, i) => i + start);
     }
     const N = 50;
+
+    const data = new falcon.ArrowDB("flights-10k.arrow");
 </script>
 
 <main>
