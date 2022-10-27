@@ -36,6 +36,12 @@ export class FalconGlobal<V extends string, D extends string> {
         view.giveAccessToFalcon(this);
         await view.initialize();
     }
+    async buildFalconIndex() {
+        //
+    }
+    async updatePassiveCounts() {
+        //
+    }
 }
 
 type OnUpdate<T> = (updatedState: T) => void;
@@ -48,9 +54,11 @@ export class FalconView<V extends string, D extends string> {
     public falcon: FalconGlobal<V, D>;
     private spec: View<D>;
     public onUpdate: OnUpdate<object>;
+    private isActive: boolean;
     constructor(spec: View<D>, onUpdate: OnUpdate<object>) {
         this.spec = spec;
         this.onUpdate = onUpdate;
+        this.isActive = false;
     }
     /**
      * since we have no idea which chart will become the active
@@ -96,6 +104,27 @@ export class FalconView<V extends string, D extends string> {
          */
         this.onUpdate({ data });
     }
+
+    /**
+     * Fetches the falcon index where this view is the active one
+     * and rest are passive
+     */
+    async prefetch() {
+        await this.falcon.buildFalconIndex();
+    }
+
+    /**
+     * Filters the data by the specified brush interactively
+     * then calls onUpdate when finished
+     */
+    async interact(brush: number[] | number[][]) {
+        const alreadyPrefetched = false; // update this with something more sophisticated
+        if (!alreadyPrefetched) {
+            await this.prefetch();
+        }
+        await this.falcon.updatePassiveCounts();
+    }
+
     giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
         this.falcon = falcon;
     }
