@@ -37,6 +37,12 @@ export interface Dimension<D> {
 
     /** Current configuration of bins. */
     binConfig?: BinConfig;
+
+    /**
+     * The num pixels to compute bins for in the falcon index computation
+     * @TODO infer the resolution by the extent and bin config
+     */
+    resolution: number;
 }
 
 export interface View0D extends AbstractView {

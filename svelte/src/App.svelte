@@ -21,6 +21,7 @@
                 name: "DISTANCE",
                 bins: 25,
                 extent: [0, 4000],
+                resolution: 500,
             },
         },
         (counts) => {
@@ -35,11 +36,13 @@
                     name: "DEP_DELAY",
                     bins: 25,
                     extent: [-20, 60],
+                    resolution: 500,
                 },
                 {
                     name: "ARR_DELAY",
                     bins: 25,
                     extent: [-20, 60],
+                    resolution: 500,
                 },
             ],
         },
@@ -56,6 +59,11 @@
 
     <div id="views">
         <BarChart width={500} height={175} />
+        <button
+            on:click={async () => {
+                await distanceView.prefetch();
+            }}>Prefetch Index</button
+        >
     </div>
 </main>
 
