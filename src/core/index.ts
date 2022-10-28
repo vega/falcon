@@ -59,11 +59,34 @@ export class FalconView<V extends string, D extends string> {
     private spec: View<D>;
     public onUpdate: OnUpdate<object>;
     private isActive: boolean;
+    public name: V;
     constructor(spec: View<D>, onUpdate: OnUpdate<object>) {
         this.spec = spec;
         this.onUpdate = onUpdate;
         this.isActive = false;
+        this.name = this.createViewNameFromSpec(spec) as V;
     }
+
+    /**
+     * @TODO remove view names altogether
+     * this functions covers up a spandrel of using the old
+     * db code
+     * Might need to use a unique id here given the map
+     */
+    createViewNameFromSpec(spec: View<D>) {
+        if (spec.type === "0D") {
+            return "TOTAL";
+        } else if (spec.type === "1D") {
+            return spec.dimension.name.toString();
+        } else if (spec.type === "2D") {
+            return spec.dimensions.reduce((acc, dimension) => {
+                return `${acc}*${dimension.name.toString()}`;
+            }, "");
+        } else {
+            throw Error("Type is something other than 0D, 1D or 2D");
+        }
+    }
+
     /**
      * since we have no idea which chart will become the active
      * just show the initial counts to start
