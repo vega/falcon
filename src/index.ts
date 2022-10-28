@@ -1,10 +1,6 @@
-import pkg from "../package.json";
-
 export * from "./api";
 export * from "./basic";
 export * from "./config";
-export * from "./db";
+export * from "./db/index";
 export * from "./util";
-export * from "./core";
-
-export const version = pkg.version;
+export * from "./core/index";

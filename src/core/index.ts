@@ -1,6 +1,6 @@
 import type { Dimension, View } from "../api";
 import { Interval } from "../basic";
-import type { DataBase } from "../db";
+import type { DataBase } from "../db/index";
 import { binTime, bin } from "../util";
 
 /**
@@ -51,7 +51,7 @@ type OnUpdate<T> = (updatedState: T) => void;
  * and user interaction
  */
 export class FalconView<V extends string, D extends string> {
-    public falcon: FalconGlobal<V, D>;
+    public falcon!: FalconGlobal<V, D>;
     private spec: View<D>;
     public onUpdate: OnUpdate<object>;
     private isActive: boolean;
