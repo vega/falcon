@@ -10,9 +10,11 @@ import { binTime, bin } from "../util";
 export class FalconGlobal<V extends string, D extends string> {
     public db: DataBase<V, D>;
     dbReady: boolean;
+    views: FalconView<V, D>[];
     constructor(db: DataBase<V, D>) {
         this.db = db;
         this.dbReady = false;
+        this.views = [];
     }
     async initDB() {
         if (this.db) {
@@ -34,6 +36,8 @@ export class FalconGlobal<V extends string, D extends string> {
 
         // connect the view to the data and do initial counts
         view.giveAccessToFalcon(this);
+        // keep track of views on this global object
+        this.views.push(view);
         await view.initialize();
     }
     async buildFalconIndex() {
@@ -110,7 +114,15 @@ export class FalconView<V extends string, D extends string> {
      * and rest are passive
      */
     async prefetch() {
-        await this.falcon.buildFalconIndex();
+        /**
+         * if already an active view, no need to prefetch anything
+         * but, if not active, make active and fetch the index for the falcon magic
+         */
+        // and 0D has no prefetch mechanic
+        if (!this.isActive && this.spec.type !== "0D") {
+            this.makeActiveView();
+            await this.falcon.buildFalconIndex();
+        }
     }
 
     /**
@@ -135,6 +147,13 @@ export class FalconView<V extends string, D extends string> {
             throw Error("View contains no falcon global object");
         }
         return falconDataExists;
+    }
+    makeActiveView() {
+        this.isActive = true;
+        this.otherViews.forEach((view) => (view.isActive = false));
+    }
+    get otherViews(): FalconView<V, D>[] {
+        return this.falcon.views.filter((view) => view !== this);
     }
 }
 
