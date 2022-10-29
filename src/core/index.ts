@@ -197,6 +197,52 @@ export class FalconView<V extends string, D extends string> {
      * then calls onUpdate when finished
      */
     interact(brush: Brush | Brush[]) {
+        //1. set brush for the current view
+        this.setBrush(brush);
+
+        //2. if this was not prefetched, prefetch dummy!
+        if (!this.isActive) {
+            this.prefetch();
+        }
+
+        //3. use the data cube computed in prefetch
+        //   to compute the passive counts
+        this.otherViews.forEach((passive) =>
+            this.countFromDataCube(this, passive)
+        );
+    }
+
+    /**
+     * Gets the counts from the datacube falcon index
+     * @TODO bring in each count function based on the passive and active view types
+     */
+    countFromDataCube(
+        activeView: FalconView<V, D>,
+        passiveView: FalconView<V, D>
+    ) {
+        const passiveTile = this.falcon.dataCube!.get(passiveView.name);
+        const activeType = activeView.spec.type;
+        const passiveType = passiveView.spec.type;
+        if (activeType === "1D") {
+            if (passiveType === "0D") {
+                //
+            } else if (passiveType === "1D") {
+                //
+            } else if (passiveType === "2D") {
+                //
+            }
+        } else if (activeType === "2D") {
+            if (passiveType === "0D") {
+                //
+            } else if (passiveType === "1D") {
+                //
+            } else if (passiveType === "2D") {
+                //
+            }
+        }
+    }
+
+    setBrush(brush: Brush | Brush[]) {
         const { type } = this.spec;
         const firstEntryIsArray = Array.isArray(brush[0]);
         if (type === "1D" && !firstEntryIsArray) {
@@ -209,9 +255,6 @@ export class FalconView<V extends string, D extends string> {
             });
         } else {
             throw Error("either brush passed in is wrong size or type wrong");
-        }
-        if (!this.isActive) {
-            this.prefetch(); //also sets this view as the active view
         }
     }
 
