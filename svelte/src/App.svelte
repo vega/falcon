@@ -21,7 +21,7 @@
                 name: "DISTANCE",
                 bins: 25,
                 extent: [0, 4000],
-                resolution: 500,
+                resolution: 100,
             },
         },
         (counts) => {
@@ -36,13 +36,13 @@
                     name: "DEP_DELAY",
                     bins: 25,
                     extent: [-20, 60],
-                    resolution: 500,
+                    resolution: 100,
                 },
                 {
                     name: "ARR_DELAY",
                     bins: 25,
                     extent: [-20, 60],
-                    resolution: 500,
+                    resolution: 100,
                 },
             ],
         },
@@ -76,14 +76,14 @@
     <div>
         <button
             on:click={async () => {
-                distanceView.interact([0, 10]);
+                distanceView.interact([5, 20]);
             }}>INTERACT 1D</button
         >
         <button
             on:click={async () => {
                 departureVsArrivalDelaysView.interact([
                     [0, 10],
-                    [0, 10],
+                    [20, 30],
                 ]);
             }}>INTERACT 2D</button
         >
