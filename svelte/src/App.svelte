@@ -51,6 +51,7 @@
         }
     );
     falconData.add(distanceView, totalCount, departureVsArrivalDelaysView);
+    console.log(distanceView);
 </script>
 
 <main>
@@ -59,10 +60,39 @@
 
     <div id="views">
         <BarChart width={500} height={175} />
+    </div>
+    <div>
         <button
             on:click={async () => {
                 await distanceView.prefetch();
-            }}>Prefetch Index</button
+            }}>PREFETCH 1D</button
+        >
+        <button
+            on:click={async () => {
+                await departureVsArrivalDelaysView.prefetch();
+            }}>PREFETCH 2D</button
+        >
+    </div>
+    <div>
+        <button
+            on:click={async () => {
+                distanceView.interact([0, 10]);
+            }}>INTERACT 1D</button
+        >
+        <button
+            on:click={async () => {
+                departureVsArrivalDelaysView.interact([
+                    [0, 10],
+                    [0, 10],
+                ]);
+            }}>INTERACT 2D</button
+        >
+    </div>
+    <div>
+        <button
+            on:click={() => {
+                console.log(falconData.dataCube);
+            }}>Log data cube</button
         >
     </div>
 </main>
