@@ -149,7 +149,7 @@ export class FalconView<V extends string, D extends string> {
      * Fetches the falcon index where this view is the active one
      * and rest are passive
      */
-    async prefetch() {
+    prefetch() {
         // and 0D has no prefetch mechanic
 
         /**
@@ -196,7 +196,7 @@ export class FalconView<V extends string, D extends string> {
      * Filters the data by the specified brush interactively
      * then calls onUpdate when finished
      */
-    async interact(brush: Brush | Brush[]) {
+    interact(brush: Brush | Brush[]) {
         const { type } = this.spec;
         const firstEntryIsArray = Array.isArray(brush[0]);
         if (type === "1D" && !firstEntryIsArray) {
@@ -211,9 +211,8 @@ export class FalconView<V extends string, D extends string> {
             throw Error("either brush passed in is wrong size or type wrong");
         }
         if (!this.isActive) {
-            await this.prefetch(); //also sets this view as the active view
+            this.prefetch(); //also sets this view as the active view
         }
-        await this.falcon.updatePassiveCounts();
     }
 
     giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
