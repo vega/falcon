@@ -7,7 +7,8 @@ import type {
 } from "../api";
 import { Interval } from "../basic";
 import type { DataBase, Index } from "../db/index";
-import { binTime, bin } from "../util";
+import { binTime, bin, sub } from "../util";
+import { NdArray } from "ndarray";
 
 /**
  * Falcon object that deals with the data
@@ -351,4 +352,36 @@ function getResFromSpec<D extends string>(spec: ViewSpec<D>) {
     } else if (spec.type === "2D") {
         return [...spec.dimensions.map((d) => d.resolution)];
     }
+}
+
+/**
+ * Functions that compute counts from the data cube index
+ */
+
+/**
+ * Takes active view 1D index and brush and computes passive 0D count
+ * Here we accumulate the counts for every brush interval
+ * Just subtract the accumulation to get total counts
+ */
+function valueFor1D(hists: NdArray, floor: Interval<number>) {
+    return hists.get(floor[1]) - hists.get(floor[0]);
+}
+
+/**
+ * Takes active view 1D index and brush and computes passive 1D counts
+ * Since the Active X Passive accumulates the counts,
+ * for each bin, just subtract the columns at each brush point
+ */
+function histFor1D(hists: NdArray, floor: Interval<number>) {
+    return sub(hists.pick(floor[0], null), hists.pick(floor[1], null));
+}
+
+/**
+ * Takes active view 1D index and brush and computes passive 2D counts
+ */
+function heatFor1D(hists: NdArray, floor: Interval<number>) {
+    return sub(
+        hists.pick(floor[0], null, null),
+        hists.pick(floor[1], null, null)
+    );
 }
