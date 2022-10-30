@@ -7,7 +7,7 @@ import type {
 } from "../api";
 import { Interval } from "../basic";
 import type { DataBase, Index } from "../db/index";
-import { binTime, bin, sub, summedAreaTableLookup } from "../util";
+import { binTime, bin, sub, summedAreaTableLookup, extent } from "../util";
 import { NdArray } from "ndarray";
 
 /**
@@ -208,37 +208,62 @@ export class FalconView<V extends string, D extends string> {
 
         //3. use the data cube computed in prefetch
         //   to compute the passive counts
-        this.otherViews.forEach((passive) =>
-            this.countFromDataCube(this, passive)
-        );
+        if (this.spec.type === "1D") {
+            this.update1DActiveView(
+                this.falcon.dataCube!,
+                this.getBrushes() as Brush
+            );
+        } else if (this.spec.type === "2D") {
+            throw Error("not implemented counting from 2D active view");
+        }
+    }
+
+    getBrushes() {
+        if (this.spec.type === "1D") {
+            return this.brushes.get(this.spec.dimension.name)!;
+        } else if (this.spec.type === "2D") {
+            return this.spec.dimensions.map((dim) => {
+                return this.brushes.get(dim.name)!;
+            });
+        } else {
+            throw Error();
+        }
     }
 
     /**
-     * Gets the counts from the datacube falcon index
-     * @TODO bring in each count function based on the passive and active view types
+     * This function assumes that the active view calls it
      */
-    countFromDataCube(
-        activeView: FalconView<V, D>,
-        passiveView: FalconView<V, D>
-    ) {
-        const passiveTile = this.falcon.dataCube!.get(passiveView.name);
-        const activeType = activeView.spec.type;
-        const passiveType = passiveView.spec.type;
-        if (activeType === "1D") {
+    async update1DActiveView(dataCube: Index<V>, activeBrush: Brush) {
+        if (!this.isActive) {
+            throw Error("Active view can only call this function");
+        }
+
+        // we get the current brush 1D and make sure its in monotonic increasing order
+        const activeBrushFloat = extent(activeBrush);
+        // we floor the 1D brush so its not a repeating fractional value
+        const activeBrushFloor = [
+            Math.floor(activeBrushFloat[0]),
+            Math.floor(activeBrushFloat[1]),
+        ] as Brush;
+
+        // for all the other views (passive views), first figure out type of passive
+        // then get the updated counts for each passive view
+        for (const passiveView of this.otherViews) {
+            const passiveType = passiveView.spec.type;
+            const { hists, noBrush } = await dataCube.get(passiveView.name)!;
+
             if (passiveType === "0D") {
-                //
+                const value = activeBrushFloat
+                    ? valueFor1D(hists, activeBrushFloor)
+                    : noBrush.get(0);
             } else if (passiveType === "1D") {
-                //
+                const hist = activeBrushFloat
+                    ? histFor1D(hists, activeBrushFloor)
+                    : noBrush;
             } else if (passiveType === "2D") {
-                //
-            }
-        } else if (activeType === "2D") {
-            if (passiveType === "0D") {
-                //
-            } else if (passiveType === "1D") {
-                //
-            } else if (passiveType === "2D") {
-                //
+                const heat = activeBrushFloat
+                    ? heatFor1D(hists, activeBrushFloor)
+                    : noBrush;
             }
         }
     }
