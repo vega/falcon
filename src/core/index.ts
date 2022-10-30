@@ -7,7 +7,7 @@ import type {
 } from "../api";
 import { Interval } from "../basic";
 import type { DataBase, Index } from "../db/index";
-import { binTime, bin, sub } from "../util";
+import { binTime, bin, sub, summedAreaTableLookup } from "../util";
 import { NdArray } from "ndarray";
 
 /**
@@ -360,8 +360,6 @@ function getResFromSpec<D extends string>(spec: ViewSpec<D>) {
 
 /**
  * Takes active view 1D index and brush and computes passive 0D count
- * Here we accumulate the counts for every brush interval
- * Just subtract the accumulation to get total counts
  */
 function valueFor1D(hists: NdArray, floor: Interval<number>) {
     return hists.get(floor[1]) - hists.get(floor[0]);
@@ -369,8 +367,6 @@ function valueFor1D(hists: NdArray, floor: Interval<number>) {
 
 /**
  * Takes active view 1D index and brush and computes passive 1D counts
- * Since the Active X Passive accumulates the counts,
- * for each bin, just subtract the columns at each brush point
  */
 function histFor1D(hists: NdArray, floor: Interval<number>) {
     return sub(hists.pick(floor[0], null), hists.pick(floor[1], null));
@@ -383,5 +379,41 @@ function heatFor1D(hists: NdArray, floor: Interval<number>) {
     return sub(
         hists.pick(floor[0], null, null),
         hists.pick(floor[1], null, null)
+    );
+}
+
+/**
+ * Takes active view 2D index and brush and computes passive 0D count
+ */
+function valueFor2D(hists: NdArray, floor: Interval<Interval<number>>) {
+    return (
+        hists.get(floor[0][1], floor[1][1]) -
+        hists.get(floor[0][1], floor[1][0]) -
+        hists.get(floor[0][0], floor[1][1]) +
+        hists.get(floor[0][0], floor[1][0])
+    );
+}
+
+/**
+ * Takes active view 2D index and brush and computes passive 1D counts
+ */
+function histFor2D(hists: NdArray, floor: Interval<Interval<number>>) {
+    return summedAreaTableLookup(
+        hists.pick(floor[0][1], floor[1][1], null),
+        hists.pick(floor[0][1], floor[1][0], null),
+        hists.pick(floor[0][0], floor[1][1], null),
+        hists.pick(floor[0][0], floor[1][0], null)
+    );
+}
+
+/**
+ * Takes active view 2D index and brush and computes passive 2D counts
+ */
+function heatFor2D(hists: NdArray, floor: Interval<Interval<number>>) {
+    return summedAreaTableLookup(
+        hists.pick(floor[0][1], floor[1][1], null, null),
+        hists.pick(floor[0][1], floor[1][0], null, null),
+        hists.pick(floor[0][0], floor[1][1], null, null),
+        hists.pick(floor[0][0], floor[1][0], null, null)
     );
 }
