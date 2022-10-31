@@ -117,6 +117,7 @@ export class FalconView<V extends string, D extends string> {
             const inferExtent =
                 dimension.extent ?? (await db.getDimensionExtent(dimension));
             dimension.binConfig = createBinConfig(dimension, inferExtent);
+            dimension.extent = inferExtent;
             const { hist } = await db.histogram(dimension);
             data = hist;
         } else if (this.spec.type === "2D") {
@@ -128,6 +129,7 @@ export class FalconView<V extends string, D extends string> {
                     dimension.extent ??
                     (await db.getDimensionExtent(dimension));
                 dimension.binConfig = createBinConfig(dimension, inferExtent);
+                dimension.extent = inferExtent;
             }
 
             const heatmapData = db.heatmap(dimensions);
@@ -202,22 +204,42 @@ export class FalconView<V extends string, D extends string> {
         if (this.spec.type === "1D") {
             this.update1DActiveView(
                 this.falcon.dataCube!,
-                this.getBrushes() as Brush
+                this.getActiveBrush() as Brush
             );
         } else if (this.spec.type === "2D") {
             this.update2DActiveView(
                 this.falcon.dataCube!,
-                this.getBrushes() as Brush[]
+                this.getActiveBrush() as Brush[]
             );
         }
     }
 
-    getBrushes() {
+    getDimBrush(dim: Dimension<D>, { convertRes = -1 } = {}) {
+        const valueBrush = this.brushes.get(dim.name);
+        if (convertRes >= 0 && valueBrush) {
+            const pixelSpace = [0, dim.resolution] as Interval<number>;
+            const valueSpace = dim.extent!;
+            console.log(valueSpace, pixelSpace);
+            const valueToPixel = scaleLinear({
+                domain: valueSpace,
+                range: pixelSpace,
+            });
+            const pixelBrush = [
+                valueToPixel(valueBrush[0]),
+                valueToPixel(valueBrush[1]),
+            ];
+            return pixelBrush;
+        }
+        return valueBrush;
+    }
+    getActiveBrush() {
         if (this.spec.type === "1D") {
-            return this.brushes.get(this.spec.dimension.name)!;
+            return this.getDimBrush(this.spec.dimension, {
+                convertRes: this.spec.dimension.resolution,
+            });
         } else if (this.spec.type === "2D") {
             return this.spec.dimensions.map((dim) => {
-                return this.brushes.get(dim.name)!;
+                return this.getDimBrush(dim, { convertRes: dim.resolution });
             });
         } else {
             throw Error();
@@ -478,4 +500,28 @@ function heatFor2D(hists: NdArray, floor: Interval<Interval<number>>) {
         hists.pick(floor[0][0], floor[1][1], null, null),
         hists.pick(floor[0][0], floor[1][0], null, null)
     );
+}
+
+function scaleLinear({
+    domain,
+    range,
+}: {
+    domain: Interval<number>;
+    range: Interval<number>;
+}) {
+    const p1 = { x: domain[0], y: range[0] };
+    const p2 = { x: domain[1], y: range[1] };
+
+    const dy = p2.y - p1.y;
+    const dx = p2.x - p1.x;
+
+    if (dx <= 0) {
+        throw Error("divide by 0 error, pick a non-zero domain");
+    }
+
+    // y = mx + b
+    const m = dy / dx;
+    const b = p2.y - m * p2.x;
+
+    return (x: number) => m * x + b;
 }

@@ -64,26 +64,28 @@
     <div>
         <button
             on:click={async () => {
-                await distanceView.prefetch();
+                distanceView.prefetch();
             }}>PREFETCH 1D</button
         >
         <button
             on:click={async () => {
-                await departureVsArrivalDelaysView.prefetch();
+                departureVsArrivalDelaysView.prefetch();
             }}>PREFETCH 2D</button
         >
     </div>
     <div>
         <button
             on:click={async () => {
-                distanceView.interact([5, 20]);
+                // 3627 count unfiltered
+                distanceView.interact([0, 1000]);
             }}>INTERACT 1D</button
         >
         <button
             on:click={async () => {
+                // 5696 count unfiltered
                 departureVsArrivalDelaysView.interact([
-                    [0, 10],
-                    [20, 30],
+                    [-13, 10],
+                    [6, -20],
                 ]);
             }}>INTERACT 2D</button
         >
