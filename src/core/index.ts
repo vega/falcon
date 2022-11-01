@@ -288,14 +288,39 @@ export class FalconView<V extends string, D extends string> {
                 const value = activeBrushFloat
                     ? valueFor2D(hists, activeBrushFloor)
                     : noBrush.get(0);
+                this.onUpdate({
+                    count: passiveView.totalCounts!,
+                    filteredCount: value,
+                });
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
                     ? histFor2D(hists, activeBrushFloor)
                     : noBrush;
+                const binCounts = format1DBinsOutput(
+                    passiveView.spec.dimension
+                );
+                binCounts.forEach((bin, i) => {
+                    bin.filteredCount = hist.get(i);
+                    bin.count = passiveView.totalCounts!.get(i);
+                });
+
+                this.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
                     ? heatFor2D(hists, activeBrushFloor)
                     : noBrush;
+                const binCounts = format2DBinsOutput(
+                    passiveView.spec.dimensions
+                );
+
+                for (let i = 0; i < binCounts.length; i++) {
+                    for (let j = 0; j < binCounts[0].length; j++) {
+                        const bin = binCounts[i][j];
+                        bin.count = passiveView.totalCounts!.get(i, j);
+                        bin.filteredCount = heat.get(i, j);
+                    }
+                }
+                this.onUpdate(binCounts);
             }
         }
     }
