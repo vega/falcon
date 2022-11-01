@@ -14,13 +14,27 @@
     const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
         console.log(count);
     });
-    const distanceView = new falcon.FalconView(
+    const distance = new falcon.FalconView(
         {
             type: "1D",
             dimension: {
                 name: "DISTANCE",
                 bins: 25,
                 extent: [0, 4000],
+                resolution: 100,
+            },
+        },
+        (counts) => {
+            console.log(counts);
+        }
+    );
+    const departureDelay = new falcon.FalconView(
+        {
+            type: "1D",
+            dimension: {
+                name: "DEP_DELAY",
+                bins: 25,
+                extent: [-20, 60],
                 resolution: 100,
             },
         },
@@ -50,8 +64,8 @@
             console.log(counts);
         }
     );
-    falconData.add(distanceView, totalCount, departureVsArrivalDelaysView);
-    console.log(distanceView);
+    falconData.add(distance, totalCount, departureDelay);
+    console.log(distance);
 </script>
 
 <main>
@@ -64,23 +78,33 @@
     <div>
         <button
             on:click={async () => {
-                distanceView.prefetch();
-            }}>PREFETCH 1D</button
+                distance.prefetch();
+            }}>PREFETCH distance</button
         >
         <button
             on:click={async () => {
+                departureDelay.prefetch();
+            }}>PREFETCH departure delay</button
+        >
+        <!-- <button
+            on:click={async () => {
                 departureVsArrivalDelaysView.prefetch();
             }}>PREFETCH 2D</button
-        >
+        > -->
     </div>
     <div>
         <button
             on:click={async () => {
                 // 3627 count unfiltered
-                distanceView.interact([0, 1000]);
-            }}>INTERACT 1D</button
+                distance.interact([0, 1000]);
+            }}>INTERACT distance</button
         >
         <button
+            on:click={async () => {
+                departureDelay.interact([0, 10]);
+            }}>INTERACT departure delay</button
+        >
+        <!-- <button
             on:click={async () => {
                 // 5696 count unfiltered
                 departureVsArrivalDelaysView.interact([
@@ -88,7 +112,7 @@
                     [6, -20],
                 ]);
             }}>INTERACT 2D</button
-        >
+        > -->
     </div>
     <div>
         <button

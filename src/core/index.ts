@@ -4,10 +4,18 @@ import type {
     Views as ViewsSpecs,
     View1D as ViewSpec1D,
     View2D as ViewSpec2D,
+    BinConfig,
 } from "../api";
 import { Interval } from "../basic";
 import type { DataBase, Index } from "../db/index";
-import { binTime, bin, sub, summedAreaTableLookup, extent } from "../util";
+import {
+    binTime,
+    bin,
+    sub,
+    summedAreaTableLookup,
+    extent,
+    numBins,
+} from "../util";
 import { NdArray } from "ndarray";
 
 /**
@@ -93,12 +101,14 @@ export class FalconView<V extends string, D extends string> {
     isActive: boolean;
     name: V;
     brushes: Brushes<D>;
+    totalCounts: NdArray | null;
     constructor(spec: ViewSpec<D>, onUpdate: OnUpdate<object>) {
         this.spec = spec;
         this.onUpdate = onUpdate;
         this.isActive = false;
         this.name = createViewNameFromSpec(spec) as V;
         this.brushes = new Map();
+        this.totalCounts = null;
     }
 
     /**
@@ -145,6 +155,7 @@ export class FalconView<V extends string, D extends string> {
         /**
          * @TODO send them a nice array of {bin: the actual bin description, count: num, filteredCount: num}
          */
+        this.totalCounts = data; // also keep these total counts
         this.onUpdate({ data });
     }
 
@@ -219,7 +230,6 @@ export class FalconView<V extends string, D extends string> {
         if (convertRes >= 0 && valueBrush) {
             const pixelSpace = [0, dim.resolution] as Interval<number>;
             const valueSpace = dim.extent!;
-            console.log(valueSpace, pixelSpace);
             const valueToPixel = scaleLinear({
                 domain: valueSpace,
                 range: pixelSpace,
@@ -315,14 +325,35 @@ export class FalconView<V extends string, D extends string> {
                 const value = activeBrushFloat
                     ? valueFor1D(hists, activeBrushFloor)
                     : noBrush.get(0);
+                this.onUpdate({ filteredCount: value });
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
                     ? histFor1D(hists, activeBrushFloor)
                     : noBrush;
+                const binCounts = format1DBinsOutput(
+                    passiveView.spec.dimension
+                );
+                binCounts.forEach((bin, i) => {
+                    bin.filteredCount = hist.get(i);
+                    bin.count = passiveView.totalCounts!.get(i);
+                });
+
+                // keep an eye on this
+                console.log(
+                    "see where these are different",
+                    noBrush,
+                    passiveView.totalCounts!
+                );
+
+                this.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
                     ? heatFor1D(hists, activeBrushFloor)
                     : noBrush;
+                const binCounts = format2DBinsOutput(
+                    passiveView.spec.dimensions
+                );
+                this.onUpdate(binCounts);
             }
         }
     }
@@ -524,4 +555,37 @@ function scaleLinear({
     const b = p2.y - m * p2.x;
 
     return (x: number) => m * x + b;
+}
+
+interface UserBin {
+    count?: number;
+    filteredCount?: number;
+}
+interface CategoryBin extends UserBin {
+    bin: string[];
+}
+interface IntervalBin extends UserBin {
+    bin: Interval<number>;
+}
+
+type Bins = CategoryBin[] | IntervalBin[];
+
+/**
+ * This will take the bin config and generate the bins in an array
+ */
+function format1DBinsOutput<D>(dim: Dimension<D>): Bins {
+    const binConfig = dim.binConfig!;
+
+    let interval = binConfig.start;
+    let bins = [];
+    for (let i = 0; i < numBins(binConfig); i++) {
+        let start = interval;
+        interval += binConfig.step;
+        const bin: IntervalBin = { bin: [start, interval] };
+        bins.push(bin);
+    }
+    return bins;
+}
+function format2DBinsOutput<D>(dims: Dimension<D>[]) {
+    return [];
 }
