@@ -325,7 +325,10 @@ export class FalconView<V extends string, D extends string> {
                 const value = activeBrushFloat
                     ? valueFor1D(hists, activeBrushFloor)
                     : noBrush.get(0);
-                this.onUpdate({ filteredCount: value });
+                this.onUpdate({
+                    count: passiveView.totalCounts!,
+                    filteredCount: value,
+                });
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
                     ? histFor1D(hists, activeBrushFloor)
@@ -338,13 +341,6 @@ export class FalconView<V extends string, D extends string> {
                     bin.count = passiveView.totalCounts!.get(i);
                 });
 
-                // keep an eye on this
-                console.log(
-                    "see where these are different",
-                    noBrush,
-                    passiveView.totalCounts!
-                );
-
                 this.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
@@ -353,6 +349,14 @@ export class FalconView<V extends string, D extends string> {
                 const binCounts = format2DBinsOutput(
                     passiveView.spec.dimensions
                 );
+
+                for (let i = 0; i < binCounts.length; i++) {
+                    for (let j = 0; j < binCounts[0].length; j++) {
+                        const bin = binCounts[i][j];
+                        bin.count = passiveView.totalCounts!.get(i, j);
+                        bin.filteredCount = heat.get(i, j);
+                    }
+                }
                 this.onUpdate(binCounts);
             }
         }
@@ -567,8 +571,12 @@ interface CategoryBin extends UserBin {
 interface IntervalBin extends UserBin {
     bin: Interval<number>;
 }
+interface IntervalBin2D extends UserBin {
+    binX: Interval<number>;
+    binY: Interval<number>;
+}
 
-type Bins = CategoryBin[] | IntervalBin[];
+type Bins = CategoryBin[] | IntervalBin[] | IntervalBin2D[];
 
 /**
  * This will take the bin config and generate the bins in an array
@@ -586,6 +594,30 @@ function format1DBinsOutput<D>(dim: Dimension<D>): Bins {
     }
     return bins;
 }
+
+/**
+ * Format the bins into a grid with undefined counts
+ */
 function format2DBinsOutput<D>(dims: Dimension<D>[]) {
-    return [];
+    const dimXConfig = dims[0].binConfig!;
+    const dimYConfig = dims[1].binConfig!;
+
+    let bins2D: Bins[] = [];
+    let xInterval = dimXConfig.start;
+    for (let x_i = 0; x_i < numBins(dimXConfig); x_i++) {
+        let binsY = [];
+        let yInterval = dimYConfig.start;
+        for (let y_i = 0; y_i < numBins(dimYConfig); y_i++) {
+            const bin: IntervalBin2D = {
+                binX: [yInterval, yInterval + dimYConfig.step],
+                binY: [xInterval, xInterval + dimXConfig.step],
+            };
+            yInterval += dimYConfig.step;
+            binsY.push(bin);
+        }
+        xInterval += dimXConfig.step;
+        bins2D.push(binsY);
+    }
+
+    return bins2D;
 }

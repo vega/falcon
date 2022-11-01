@@ -64,7 +64,12 @@
             console.log(counts);
         }
     );
-    falconData.add(distance, totalCount, departureDelay);
+    falconData.add(
+        distance,
+        totalCount,
+        departureDelay,
+        departureVsArrivalDelaysView
+    );
     console.log(distance);
 </script>
 
@@ -101,7 +106,7 @@
         >
         <button
             on:click={async () => {
-                departureDelay.interact([0, 10]);
+                departureDelay.interact([-13, 10]);
             }}>INTERACT departure delay</button
         >
         <!-- <button
