@@ -2,6 +2,8 @@
     import BarChart from "./lib/BarChart.svelte";
     import * as falcon from "../../src/index";
 
+    let totalCountValue: number = 0;
+    let filteredCountValue: number = 0;
     /**
      * Falcon 2 library example
      */
@@ -12,8 +14,11 @@
      * Construct dimensions 0D, 1D, and 2D and add to the falconData
      */
     const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
+        totalCountValue = count["count"];
+        filteredCountValue = count["filteredCount"];
         console.log(count);
     });
+
     const distance = new falcon.FalconView(
         {
             type: "1D",
@@ -131,6 +136,8 @@
             }}>Log data cube</button
         >
     </div>
+    <h1>Total: {totalCountValue}</h1>
+    <h1>Selected: {filteredCountValue}</h1>
 </main>
 
 <style>

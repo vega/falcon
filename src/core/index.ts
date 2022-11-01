@@ -101,7 +101,7 @@ export class FalconView<V extends string, D extends string> {
     isActive: boolean;
     name: V;
     brushes: Brushes<D>;
-    totalCounts: NdArray | null;
+    totalCounts: NdArray | number | null;
     constructor(spec: ViewSpec<D>, onUpdate: OnUpdate<object>) {
         this.spec = spec;
         this.onUpdate = onUpdate;
@@ -129,7 +129,9 @@ export class FalconView<V extends string, D extends string> {
             dimension.binConfig = createBinConfig(dimension, inferExtent);
             dimension.extent = inferExtent;
             const { hist } = await db.histogram(dimension);
-            data = hist;
+            this.totalCounts = hist;
+            const binCounts = this.export1DPassiveView(dimension, hist, hist);
+            this.onUpdate(binCounts);
         } else if (this.spec.type === "2D") {
             const { dimensions } = this.spec;
 
@@ -142,21 +144,22 @@ export class FalconView<V extends string, D extends string> {
                 dimension.extent = inferExtent;
             }
 
-            const heatmapData = db.heatmap(dimensions);
-            data = heatmapData;
+            const heatmapData = await db.heatmap(dimensions);
+            this.totalCounts = heatmapData;
+            const binCounts = this.export2DPassiveView(
+                dimensions,
+                heatmapData,
+                heatmapData
+            );
+            this.onUpdate(binCounts);
         } else if (this.spec.type === "0D") {
-            const totalCount = db.length();
-            data = totalCount;
+            const totalCount = await db.length();
+            this.totalCounts = totalCount;
+            const count = this.export0DPassiveView(totalCount, totalCount);
+            this.onUpdate(count);
         } else {
             throw Error("Number of dimensions must be 0D 1D or 2D");
         }
-
-        // EPIC! now we can update the user with the initial data
-        /**
-         * @TODO send them a nice array of {bin: the actual bin description, count: num, filteredCount: num}
-         */
-        this.totalCounts = data; // also keep these total counts
-        this.onUpdate({ data });
     }
 
     /**
@@ -296,24 +299,31 @@ export class FalconView<V extends string, D extends string> {
     /**
      * This function assumes that the active view calls it
      */
-    async update2DActiveView(dataCube: Index<V>, pixelBrush: Brush[] | undefined) {
+    async update2DActiveView(
+        dataCube: Index<V>,
+        pixelBrush: Brush[] | undefined
+    ) {
         if (!this.isActive) {
             throw Error("Active view can only call this function");
         }
 
         // we get the current brush 2D and make sure its in monotonic increasing order
-        const activeBrushFloat = pixelBrush ? [extent(pixelBrush[0]), extent(pixelBrush[1])] : pixelBrush;
+        const activeBrushFloat = pixelBrush
+            ? [extent(pixelBrush[0]), extent(pixelBrush[1])]
+            : pixelBrush;
         // we floor the 1D brush so its not a repeating fractional value
-        const activeBrushFloor = pixelBrush ? [
-            [
-                Math.floor(activeBrushFloat![0][0]),
-                Math.floor(activeBrushFloat![0][1]),
-            ],
-            [
-                Math.floor(activeBrushFloat![1][0]),
-                Math.floor(activeBrushFloat![1][1]),
-            ],
-        ] as Interval<Interval<number>> : pixelBrush;
+        const activeBrushFloor = pixelBrush
+            ? ([
+                  [
+                      Math.floor(activeBrushFloat![0][0]),
+                      Math.floor(activeBrushFloat![0][1]),
+                  ],
+                  [
+                      Math.floor(activeBrushFloat![1][0]),
+                      Math.floor(activeBrushFloat![1][1]),
+                  ],
+              ] as Interval<Interval<number>>)
+            : pixelBrush;
 
         // for all the other views (passive views), first figure out type of passive
         // then get the updated counts for each passive view
@@ -325,42 +335,35 @@ export class FalconView<V extends string, D extends string> {
                 const value = activeBrushFloat
                     ? valueFor2D(hists, activeBrushFloor!)
                     : noBrush.get(0);
-                this.onUpdate({
-                    count: passiveView.totalCounts!,
-                    filteredCount: value,
-                });
+                const count = this.export0DPassiveView(
+                    passiveView.totalCounts! as number,
+                    value
+                );
+                passiveView.onUpdate(count);
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
                     ? histFor2D(hists, activeBrushFloor!)
                     : noBrush;
-                const binCounts = format1DBinsOutput(
-                    passiveView.spec.dimension
+                const binCounts = this.export1DPassiveView(
+                    passiveView.spec.dimension,
+                    passiveView.totalCounts! as NdArray,
+                    hist
                 );
-                binCounts.forEach((bin, i) => {
-                    bin.filteredCount = hist.get(i);
-                    bin.count = passiveView.totalCounts!.get(i);
-                });
-
-                this.onUpdate(binCounts);
+                passiveView.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
                     ? heatFor2D(hists, activeBrushFloor!)
                     : noBrush;
-                const binCounts = format2DBinsOutput(
-                    passiveView.spec.dimensions
+                const binCounts = this.export2DPassiveView(
+                    passiveView.spec.dimensions,
+                    passiveView.totalCounts! as NdArray,
+                    heat
                 );
-
-                for (let i = 0; i < binCounts.length; i++) {
-                    for (let j = 0; j < binCounts[0].length; j++) {
-                        const bin = binCounts[i][j];
-                        bin.count = passiveView.totalCounts!.get(i, j);
-                        bin.filteredCount = heat.get(i, j);
-                    }
-                }
-                this.onUpdate(binCounts);
+                passiveView.onUpdate(binCounts);
             }
         }
     }
+
     /**
      * This function assumes that the active view calls it
      */
@@ -392,41 +395,68 @@ export class FalconView<V extends string, D extends string> {
                 const value = activeBrushFloat
                     ? valueFor1D(hists, activeBrushFloor!)
                     : noBrush.get(0);
-                this.onUpdate({
-                    count: passiveView.totalCounts!,
-                    filteredCount: value,
-                });
+                const count = this.export0DPassiveView(
+                    passiveView.totalCounts as number,
+                    value
+                );
+                passiveView.onUpdate(count);
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
                     ? histFor1D(hists, activeBrushFloor!)
                     : noBrush;
-                const binCounts = format1DBinsOutput(
-                    passiveView.spec.dimension
+                const binCounts = this.export1DPassiveView(
+                    passiveView.spec.dimension,
+                    passiveView.totalCounts! as NdArray,
+                    hist
                 );
-                binCounts.forEach((bin, i) => {
-                    bin.filteredCount = hist.get(i);
-                    bin.count = passiveView.totalCounts!.get(i);
-                });
 
-                this.onUpdate(binCounts);
+                passiveView.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
                     ? heatFor1D(hists, activeBrushFloor!)
                     : noBrush;
-                const binCounts = format2DBinsOutput(
-                    passiveView.spec.dimensions
+                const binCounts = this.export2DPassiveView(
+                    passiveView.spec.dimensions,
+                    passiveView.totalCounts! as NdArray,
+                    heat
                 );
 
-                for (let i = 0; i < binCounts.length; i++) {
-                    for (let j = 0; j < binCounts[0].length; j++) {
-                        const bin = binCounts[i][j];
-                        bin.count = passiveView.totalCounts!.get(i, j);
-                        bin.filteredCount = heat.get(i, j);
-                    }
-                }
-                this.onUpdate(binCounts);
+                passiveView.onUpdate(binCounts);
             }
         }
+    }
+
+    export0DPassiveView(totalCount: number, filteredCount: number) {
+        return { count: totalCount, filteredCount };
+    }
+    export2DPassiveView(
+        dims: Dimension<D>[],
+        totalCounts: NdArray,
+        filteredCounts: NdArray
+    ) {
+        const binCounts = format2DBinsOutput(dims);
+
+        for (let i = 0; i < binCounts.length; i++) {
+            for (let j = 0; j < binCounts[0].length; j++) {
+                const bin = binCounts[i][j];
+                bin.count = totalCounts.get(i, j);
+                bin.filteredCount = filteredCounts.get(i, j);
+            }
+        }
+        return binCounts;
+    }
+    export1DPassiveView(
+        dim: Dimension<D>,
+        totalCounts: NdArray,
+        filteredCounts: NdArray
+    ) {
+        const binCounts = format1DBinsOutput(dim);
+        binCounts.forEach((bin, i) => {
+            bin.filteredCount = filteredCounts.get(i);
+            bin.count = totalCounts.get(i);
+        });
+
+        return binCounts;
     }
 
     setBrush(brush: Brush | Brush[]) {
