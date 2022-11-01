@@ -101,13 +101,18 @@
         <button
             on:click={async () => {
                 // 3627 count unfiltered
-                distance.interact([0, 1000]);
+                distance.brush([0, 1000]);
             }}>INTERACT distance</button
         >
         <button
             on:click={async () => {
-                departureDelay.interact([-13, 10]);
+                departureDelay.brush([-13, 10]);
             }}>INTERACT departure delay</button
+        >
+        <button
+            on:click={async () => {
+                departureDelay.brush();
+            }}>RESET departure delay</button
         >
         <!-- <button
             on:click={async () => {
