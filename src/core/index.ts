@@ -197,13 +197,36 @@ export class FalconView<V extends string, D extends string> {
         }
     }
 
+    reset() {
+        this.brush(undefined);
+    }
+
+    deleteBrush(dim: Dimension<D>) {
+        this.deleteBrushes([dim]);
+    }
+    deleteBrushes(dims: Dimension<D>[]) {
+        dims.forEach((dim) => {
+            this.brushes.delete(dim.name);
+        });
+    }
+
     /**
      * Filters the data by the specified brush interactively
      * then calls onUpdate when finished
      */
-    interact(brush: Brush | Brush[]) {
-        //1. set brush for the current view
-        this.setBrush(brush);
+    brush(brush?: Brush | Brush[] | undefined) {
+        // reset or interact
+        if (brush === undefined) {
+            // delete brushes for all dimensions recorded
+            if (this.spec.type === "1D") {
+                this.deleteBrush(this.spec.dimension);
+            } else if (this.spec.type === "2D") {
+                this.deleteBrushes(this.spec.dimensions);
+            }
+        } else {
+            //1. set brush for the current view
+            this.setBrush(brush);
+        }
 
         //2. if this was not prefetched, prefetch dummy!
         if (!this.isActive) {
@@ -215,12 +238,12 @@ export class FalconView<V extends string, D extends string> {
         if (this.spec.type === "1D") {
             this.update1DActiveView(
                 this.falcon.dataCube!,
-                this.getActiveBrush() as Brush
+                this.getActiveBrush() as Brush | undefined
             );
         } else if (this.spec.type === "2D") {
             this.update2DActiveView(
                 this.falcon.dataCube!,
-                this.getActiveBrush() as Brush[]
+                this.getActiveBrush() as Brush[] | undefined
             );
         }
     }
@@ -242,15 +265,29 @@ export class FalconView<V extends string, D extends string> {
         }
         return valueBrush;
     }
+
+    /**
+     * if the brush does not exist, returns undefined, otherwise returns the brush
+     */
     getActiveBrush() {
         if (this.spec.type === "1D") {
-            return this.getDimBrush(this.spec.dimension, {
-                convertRes: this.spec.dimension.resolution,
-            });
+            if (this.brushes.has(this.spec.dimension.name)) {
+                return this.getDimBrush(this.spec.dimension, {
+                    convertRes: this.spec.dimension.resolution,
+                });
+            } else {
+                return undefined;
+            }
         } else if (this.spec.type === "2D") {
-            return this.spec.dimensions.map((dim) => {
-                return this.getDimBrush(dim, { convertRes: dim.resolution });
-            });
+            if (this.brushes.has(this.spec.dimensions[0].name)) {
+                return this.spec.dimensions.map((dim) => {
+                    return this.getDimBrush(dim, {
+                        convertRes: dim.resolution,
+                    });
+                });
+            } else {
+                return undefined;
+            }
         } else {
             throw Error();
         }
@@ -259,24 +296,24 @@ export class FalconView<V extends string, D extends string> {
     /**
      * This function assumes that the active view calls it
      */
-    async update2DActiveView(dataCube: Index<V>, pixelBrush: Brush[]) {
+    async update2DActiveView(dataCube: Index<V>, pixelBrush: Brush[] | undefined) {
         if (!this.isActive) {
             throw Error("Active view can only call this function");
         }
 
         // we get the current brush 2D and make sure its in monotonic increasing order
-        const activeBrushFloat = [extent(pixelBrush[0]), extent(pixelBrush[1])];
+        const activeBrushFloat = pixelBrush ? [extent(pixelBrush[0]), extent(pixelBrush[1])] : pixelBrush;
         // we floor the 1D brush so its not a repeating fractional value
-        const activeBrushFloor = [
+        const activeBrushFloor = pixelBrush ? [
             [
-                Math.floor(activeBrushFloat[0][0]),
-                Math.floor(activeBrushFloat[0][1]),
+                Math.floor(activeBrushFloat![0][0]),
+                Math.floor(activeBrushFloat![0][1]),
             ],
             [
-                Math.floor(activeBrushFloat[1][0]),
-                Math.floor(activeBrushFloat[1][1]),
+                Math.floor(activeBrushFloat![1][0]),
+                Math.floor(activeBrushFloat![1][1]),
             ],
-        ] as Interval<Interval<number>>;
+        ] as Interval<Interval<number>> : pixelBrush;
 
         // for all the other views (passive views), first figure out type of passive
         // then get the updated counts for each passive view
@@ -286,7 +323,7 @@ export class FalconView<V extends string, D extends string> {
 
             if (passiveType === "0D") {
                 const value = activeBrushFloat
-                    ? valueFor2D(hists, activeBrushFloor)
+                    ? valueFor2D(hists, activeBrushFloor!)
                     : noBrush.get(0);
                 this.onUpdate({
                     count: passiveView.totalCounts!,
@@ -294,7 +331,7 @@ export class FalconView<V extends string, D extends string> {
                 });
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
-                    ? histFor2D(hists, activeBrushFloor)
+                    ? histFor2D(hists, activeBrushFloor!)
                     : noBrush;
                 const binCounts = format1DBinsOutput(
                     passiveView.spec.dimension
@@ -307,7 +344,7 @@ export class FalconView<V extends string, D extends string> {
                 this.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
-                    ? heatFor2D(hists, activeBrushFloor)
+                    ? heatFor2D(hists, activeBrushFloor!)
                     : noBrush;
                 const binCounts = format2DBinsOutput(
                     passiveView.spec.dimensions
@@ -327,18 +364,23 @@ export class FalconView<V extends string, D extends string> {
     /**
      * This function assumes that the active view calls it
      */
-    async update1DActiveView(dataCube: Index<V>, pixelBrush: Brush) {
+    async update1DActiveView(
+        dataCube: Index<V>,
+        pixelBrush: Brush | undefined
+    ) {
         if (!this.isActive) {
             throw Error("Active view can only call this function");
         }
 
         // we get the current brush 1D and make sure its in monotonic increasing order
-        const activeBrushFloat = extent(pixelBrush);
+        const activeBrushFloat = pixelBrush ? extent(pixelBrush) : pixelBrush;
         // we floor the 1D brush so its not a repeating fractional value
-        const activeBrushFloor = [
-            Math.floor(activeBrushFloat[0]),
-            Math.floor(activeBrushFloat[1]),
-        ] as Brush;
+        const activeBrushFloor = pixelBrush
+            ? ([
+                  Math.floor(activeBrushFloat![0]),
+                  Math.floor(activeBrushFloat![1]),
+              ] as Brush)
+            : pixelBrush;
 
         // for all the other views (passive views), first figure out type of passive
         // then get the updated counts for each passive view
@@ -348,7 +390,7 @@ export class FalconView<V extends string, D extends string> {
 
             if (passiveType === "0D") {
                 const value = activeBrushFloat
-                    ? valueFor1D(hists, activeBrushFloor)
+                    ? valueFor1D(hists, activeBrushFloor!)
                     : noBrush.get(0);
                 this.onUpdate({
                     count: passiveView.totalCounts!,
@@ -356,7 +398,7 @@ export class FalconView<V extends string, D extends string> {
                 });
             } else if (passiveType === "1D") {
                 const hist = activeBrushFloat
-                    ? histFor1D(hists, activeBrushFloor)
+                    ? histFor1D(hists, activeBrushFloor!)
                     : noBrush;
                 const binCounts = format1DBinsOutput(
                     passiveView.spec.dimension
@@ -369,7 +411,7 @@ export class FalconView<V extends string, D extends string> {
                 this.onUpdate(binCounts);
             } else if (passiveType === "2D") {
                 const heat = activeBrushFloat
-                    ? heatFor1D(hists, activeBrushFloor)
+                    ? heatFor1D(hists, activeBrushFloor!)
                     : noBrush;
                 const binCounts = format2DBinsOutput(
                     passiveView.spec.dimensions
