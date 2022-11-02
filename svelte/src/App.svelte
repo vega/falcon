@@ -1,9 +1,17 @@
 <script lang="ts">
-    import BarChart from "./lib/BarChart.svelte";
+    import VegaLiteHistogram from "./components/VegaLiteHistogram.svelte";
     import * as falcon from "../../src/index";
 
-    let totalCountValue: number = 0;
-    let filteredCountValue: number = 0;
+    type Bin = {
+        filteredCount: number;
+        count: number;
+        bin: number;
+    };
+    // svelte variables
+    let countValue = {};
+    let distanceValues = [];
+    let departureDelayValues = [];
+
     /**
      * Falcon 2 library example
      */
@@ -11,12 +19,10 @@
     const falconData = new falcon.FalconGlobal(data);
 
     /**
-     * Construct dimensions 0D, 1D, and 2D and add to the falconData
+     * View definitions
      */
     const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
-        totalCountValue = count["count"];
-        filteredCountValue = count["filteredCount"];
-        console.log(count);
+        countValue = count as Bin;
     });
 
     const distance = new falcon.FalconView(
@@ -26,13 +32,14 @@
                 name: "DISTANCE",
                 bins: 25,
                 extent: [0, 4000],
-                resolution: 100,
+                resolution: 400,
             },
         },
         (counts) => {
-            console.log(counts);
+            distanceValues = counts as Bin[];
         }
     );
+
     const departureDelay = new falcon.FalconView(
         {
             type: "1D",
@@ -40,104 +47,51 @@
                 name: "DEP_DELAY",
                 bins: 25,
                 extent: [-20, 60],
-                resolution: 100,
+                resolution: 400,
             },
         },
         (counts) => {
-            console.log(counts);
+            departureDelayValues = counts as Bin[];
         }
     );
-    const departureVsArrivalDelaysView = new falcon.FalconView(
-        {
-            type: "2D",
-            dimensions: [
-                {
-                    name: "DEP_DELAY",
-                    bins: 25,
-                    extent: [-20, 60],
-                    resolution: 100,
-                },
-                {
-                    name: "ARR_DELAY",
-                    bins: 25,
-                    extent: [-20, 60],
-                    resolution: 100,
-                },
-            ],
-        },
-        (counts) => {
-            console.log(counts);
-        }
-    );
-    falconData.add(
-        distance,
-        totalCount,
-        departureDelay,
-        departureVsArrivalDelaysView
-    );
-    console.log(distance);
+    falconData.add(distance, totalCount, departureDelay);
 </script>
 
 <main>
-    <h1>Falcon Premade components</h1>
-    <p>Interactive visualization of flights with</p>
-
-    <div id="views">
-        <BarChart width={500} height={175} />
-    </div>
-    <div>
-        <button
-            on:click={async () => {
-                distance.prefetch();
-            }}>PREFETCH distance</button
-        >
-        <button
-            on:click={async () => {
-                departureDelay.prefetch();
-            }}>PREFETCH departure delay</button
-        >
-        <!-- <button
-            on:click={async () => {
-                departureVsArrivalDelaysView.prefetch();
-            }}>PREFETCH 2D</button
-        > -->
-    </div>
-    <div>
-        <button
-            on:click={async () => {
-                // 3627 count unfiltered
-                distance.brush([0, 1000]);
-            }}>INTERACT distance</button
-        >
-        <button
-            on:click={async () => {
-                departureDelay.brush([-13, 10]);
-            }}>INTERACT departure delay</button
-        >
-        <button
-            on:click={async () => {
+    <VegaLiteHistogram
+        bins={departureDelayValues}
+        dimLabel="Departure Delay"
+        width={400}
+        on:mouseenter={() => {
+            departureDelay.prefetch();
+        }}
+        on:brush={(event) => {
+            const interval = event.detail;
+            if (interval !== null) {
+                departureDelay.brush(interval);
+            } else {
                 departureDelay.brush();
-            }}>RESET departure delay</button
-        >
-        <!-- <button
-            on:click={async () => {
-                // 5696 count unfiltered
-                departureVsArrivalDelaysView.interact([
-                    [-13, 10],
-                    [6, -20],
-                ]);
-            }}>INTERACT 2D</button
-        > -->
-    </div>
-    <div>
-        <button
-            on:click={() => {
-                console.log(falconData.dataCube);
-            }}>Log data cube</button
-        >
-    </div>
-    <h1>Total: {totalCountValue}</h1>
-    <h1>Selected: {filteredCountValue}</h1>
+            }
+        }}
+    />
+
+    <VegaLiteHistogram
+        bins={distanceValues}
+        dimLabel="Distance"
+        width={400}
+        on:mouseenter={() => {
+            distance.prefetch();
+        }}
+        on:brush={(event) => {
+            const interval = event.detail;
+            if (interval !== null) {
+                distance.brush(interval);
+            } else {
+                distance.brush();
+            }
+        }}
+    />
+    <p>{countValue["filteredCount"]}</p>
 </main>
 
 <style>
