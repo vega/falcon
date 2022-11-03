@@ -1,32 +1,49 @@
-// change these later
-type Index = any;
-type NdArray = any;
-type View = any;
+import { NdArray } from "ndarray";
+import { Dimension, View1D, View2D, Views } from "../api";
+import { Interval } from "../basic";
 
-/**
- * Defines how to construct the falcon index
- * and is called in the falcon object
- */
-export interface DataBase {
-    /**
-     * Db may need other initialization steps
-     * Do that here
-     */
-    initialize(): Promise<void> | void;
+export interface Hists {
+  hists: NdArray;
+  noBrush: NdArray;
+}
 
-    /**
-     * Since too slow to get falcon Index on startup
-     * AND no active index is set yet,
-     * just do total counts quickly here
-     */
-    total0D(): NdArray;
-    total1D?(views: View[]): NdArray;
-    total2D?(views: View[]): NdArray;
+export type SyncIndex<V> = Map<V, Hists>;
+export type AsyncIndex<V> = Map<V, Promise<Hists>>;
+export type Index<V> = SyncIndex<V> | AsyncIndex<V>;
 
-    /**
-     * When there is an active view, do the epic
-     * data tiles falcon index strategy
-     */
-    falconIndex1D(activeView: View[], passiveViews: View[]): Index;
-    falconIndex2D(activeView: View[], passiveViews: View[]): Index;
+export interface Hist {
+  hist: NdArray;
+  noBrush: NdArray;
+}
+
+export interface DataBase<V extends string, D extends string> {
+  initialize(): Promise<void> | void;
+
+  /** Are database requests blocking or asynchronous. */
+  readonly blocking: boolean;
+
+  length(): Promise<number> | number;
+  histogram(
+    dimension: Dimension<D>,
+    brushes?: Map<D, Interval<number>>
+  ): Promise<Hist> | Hist;
+  heatmap(dimensions: [Dimension<D>, Dimension<D>]): Promise<NdArray> | NdArray;
+
+  loadData1D(
+    activeView: View1D<D>,
+    pixels: number,
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
+  ): Index<V>;
+
+  loadData2D(
+    activeView: View2D<D>,
+    pixels: [number, number],
+    views: Views<V, D>,
+    brushes: Map<D, Interval<number>>
+  ): Index<V>;
+
+  getDimensionExtent(
+    dimension: Dimension<D>
+  ): Promise<Interval<number>> | Interval<number>;
 }
