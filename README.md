@@ -29,7 +29,7 @@ currently, we are developing within a svelte environment and importing the ts co
 
 ## Milestones
 
--   [ ] Take the current Falcon and decouple it from the UI
+-   [x] Take the current Falcon and decouple it from the UI
+-   [ ] Refactor the code to be more modular and reusable
 -   [ ] Support Categorical Dimensions
 -   [ ] Update the Live demo with Svelte and some premade charts
--   [ ] TO BE DETERMINED
