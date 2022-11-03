@@ -11,6 +11,7 @@
     let countValue = {};
     let distanceValues = [];
     let departureDelayValues = [];
+    let arrivalDelayValues = [];
 
     /**
      * Falcon 2 library example
