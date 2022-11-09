@@ -22,7 +22,7 @@ import { NdArray } from "ndarray";
  * Falcon object that deals with the data
  * and keeps track of all the views
  */
-export class FalconGlobal<V extends string, D extends string> {
+export class Falcon<V extends string, D extends string> {
     public db: DataBase<V, D>;
     dbReady: boolean;
     views: FalconView<V, D>[];
@@ -75,14 +75,37 @@ export class FalconGlobal<V extends string, D extends string> {
         this.views.push(view);
         await view.initialize();
     }
-    async buildFalconIndex() {
-        //
+
+    addView(...dimensions: [Dimension<D>] | [Dimension<D>, Dimension<D>] | []) {
+        let newView: FalconView<V, D>;
+        if (dimensions.length === 0) {
+            newView = new FalconView<V, D>({ type: "0D" });
+        } else if (dimensions.length === 1) {
+            newView = new FalconView<V, D>({
+                type: "1D",
+                dimension: dimensions[0],
+            });
+        } else if (dimensions.length === 2) {
+            newView = new FalconView<V, D>({ type: "2D", dimensions });
+        } else {
+            throw Error("Can only add 0D, 1D, or 2D views");
+        }
+
+        newView.giveAccessToFalcon(this);
+        this.views.push(newView);
+
+        return newView;
     }
-    async updatePassiveCounts() {
-        //
+
+    count() {
+        return this.addView();
     }
+
     get brushes(): Brushes<D> {
         return dimNameToBrushMap(this.views);
+    }
+    all() {
+        this.views.forEach((view) => view.initialize());
     }
 }
 
@@ -95,20 +118,24 @@ type Brushes<DimensionName> = Map<DimensionName, Brush>;
  * and user interaction
  */
 export class FalconView<V extends string, D extends string> {
-    falcon!: FalconGlobal<V, D>;
+    falcon!: Falcon<V, D>;
     spec: ViewSpec<D>;
-    onUpdate: OnUpdate<object>;
     isActive: boolean;
     name: V;
     brushes: Brushes<D>;
     totalCounts: NdArray | number | null;
-    constructor(spec: ViewSpec<D>, onUpdate: OnUpdate<object>) {
+    onChangeListeners: Set<CallableFunction>;
+    constructor(spec: ViewSpec<D>) {
         this.spec = spec;
-        this.onUpdate = onUpdate;
         this.isActive = false;
         this.name = createViewNameFromSpec(spec) as V;
         this.brushes = new Map();
         this.totalCounts = null;
+        this.onChangeListeners = new Set();
+    }
+
+    onUpdate(bins: Bins | IntervalBin | Bins[]) {
+        this.onChangeListeners.forEach((onChangeFunc) => onChangeFunc(bins));
     }
 
     /**
@@ -427,7 +454,11 @@ export class FalconView<V extends string, D extends string> {
     }
 
     export0DPassiveView(totalCount: number, filteredCount: number) {
-        return { count: totalCount, filteredCount };
+        return {
+            count: totalCount,
+            filteredCount,
+            bin: [-1, -1],
+        } as IntervalBin;
     }
     export2DPassiveView(
         dims: Dimension<D>[],
@@ -475,7 +506,7 @@ export class FalconView<V extends string, D extends string> {
         }
     }
 
-    giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
+    giveAccessToFalcon(falcon: Falcon<V, D>) {
         this.falcon = falcon;
     }
     verifyFalconAccess(throwError = true) {
@@ -492,6 +523,18 @@ export class FalconView<V extends string, D extends string> {
     }
     get otherViews(): FalconView<V, D>[] {
         return this.falcon.views.filter((view) => view !== this);
+    }
+
+    /**
+     * called by the user, returns a function to dispose the listener
+     */
+    onChange(calledOnChange: (bins: Bins) => void) {
+        // add the listener to a set of listeners (or map)
+        this.onChangeListeners.add(calledOnChange);
+        return () => {
+            // dispose the listener
+            this.onChangeListeners.delete(calledOnChange);
+        };
     }
 }
 

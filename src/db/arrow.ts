@@ -11,27 +11,25 @@ import { DataBase, SyncIndex } from "./db";
 export class ArrowDB<V extends string, D extends string>
   implements DataBase<V, D>
 {
-  private data: Table<{ [key in D]: any }>;
-
   public readonly blocking: boolean = true;
 
-  public constructor(private readonly urlOrArrayBuffer: string | ArrayBuffer) {}
+  public constructor(private data: Table<{ [key in D]: any }>) {}
 
   private filterMaskIndex = new Map<string, BitSet>();
 
   public async initialize() {
-    let buffer: ArrayBuffer;
+    // let buffer: ArrayBuffer;
 
-    if (typeof this.urlOrArrayBuffer === "string") {
-      const response = await fetch(this.urlOrArrayBuffer);
-      buffer = await response.arrayBuffer();
-    } else {
-      buffer = this.urlOrArrayBuffer;
-    }
+    // if (typeof this.urlOrArrayBuffer === "string") {
+    //   const response = await fetch(this.urlOrArrayBuffer);
+    //   buffer = await response.arrayBuffer();
+    // } else {
+    //   buffer = this.urlOrArrayBuffer;
+    // }
 
-    console.time("Load Apache Arrow");
-    this.data = tableFromIPC(buffer);
-    console.timeEnd("Load Apache Arrow");
+    // console.time("Load Apache Arrow");
+    // this.data = tableFromIPC(buffer);
+    // console.timeEnd("Load Apache Arrow");
 
     return;
   }
