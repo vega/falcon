@@ -55,10 +55,41 @@
             departureDelayValues = counts as Bin[];
         }
     );
-    falconData.add(distance, totalCount, departureDelay);
+
+    const arrivalDelay = new falcon.FalconView(
+        {
+            type: "1D",
+            dimension: {
+                name: "ARR_DELAY",
+                bins: 25,
+                extent: [-20, 60],
+                resolution: 400,
+            },
+        },
+        (counts) => {
+            arrivalDelayValues = counts as Bin[];
+        }
+    );
+    falconData.add(distance, totalCount, departureDelay, arrivalDelay);
 </script>
 
 <main>
+    <VegaLiteHistogram
+        bins={arrivalDelayValues}
+        dimLabel="Arrival Delay"
+        width={400}
+        on:mouseenter={() => {
+            arrivalDelay.prefetch();
+        }}
+        on:brush={(event) => {
+            const interval = event.detail;
+            if (interval !== null) {
+                arrivalDelay.brush(interval);
+            } else {
+                arrivalDelay.brush();
+            }
+        }}
+    />
     <VegaLiteHistogram
         bins={departureDelayValues}
         dimLabel="Departure Delay"
@@ -92,8 +123,18 @@
             }
         }}
     />
-    <p>{countValue["filteredCount"]}</p>
+    <div>
+        <p>Selected: {Number(countValue["filteredCount"]).toLocaleString()}</p>
+    </div>
+    <div>
+        <p>out of {Number(countValue["count"]).toLocaleString()}</p>
+    </div>
 </main>
 
 <style>
+    :global(body, html) {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        margin: 0;
+    }
 </style>
