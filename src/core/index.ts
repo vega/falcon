@@ -22,7 +22,7 @@ import { NdArray } from "ndarray";
  * Falcon object that deals with the data
  * and keeps track of all the views
  */
-export class FalconGlobal<V extends string, D extends string> {
+export class Falcon<V extends string, D extends string> {
     public db: DataBase<V, D>;
     dbReady: boolean;
     views: FalconView<V, D>[];
@@ -75,12 +75,33 @@ export class FalconGlobal<V extends string, D extends string> {
         this.views.push(view);
         await view.initialize();
     }
-    async addView(...dimensions: Dimension<D>[]) {
-        // add views just by a dimension config
+
+    addView(...dimensions: [Dimension<D>] | [Dimension<D>, Dimension<D>] | []) {
+        let newView: FalconView<V, D>;
+        if (dimensions.length === 0) {
+            newView = new FalconView<V, D>({ type: "0D" });
+        } else if (dimensions.length === 1) {
+            newView = new FalconView<V, D>({
+                type: "1D",
+                dimension: dimensions[0],
+            });
+        } else if (dimensions.length === 2) {
+            newView = new FalconView<V, D>({ type: "2D", dimensions });
+        } else {
+            throw Error("Can only add 0D, 1D, or 2D views");
+        }
+
+        newView.giveAccessToFalcon(this);
+        this.views.push(newView);
+
+        return newView;
     }
 
     get brushes(): Brushes<D> {
         return dimNameToBrushMap(this.views);
+    }
+    all() {
+        this.views.forEach((view) => view.initialize());
     }
 }
 
@@ -93,7 +114,7 @@ type Brushes<DimensionName> = Map<DimensionName, Brush>;
  * and user interaction
  */
 export class FalconView<V extends string, D extends string> {
-    falcon!: FalconGlobal<V, D>;
+    falcon!: Falcon<V, D>;
     spec: ViewSpec<D>;
     isActive: boolean;
     name: V;
@@ -481,7 +502,7 @@ export class FalconView<V extends string, D extends string> {
         }
     }
 
-    giveAccessToFalcon(falcon: FalconGlobal<V, D>) {
+    giveAccessToFalcon(falcon: Falcon<V, D>) {
         this.falcon = falcon;
     }
     verifyFalconAccess(throwError = true) {
