@@ -1,72 +1,75 @@
 <script lang="ts">
     import VegaLiteHistogram from "./components/VegaLiteHistogram.svelte";
-    import * as falcon from "../../src/index";
+    import { Falcon, ArrowDB, FalconView } from "../../src/index";
+    import { tableFromIPC } from "apache-arrow";
+    import { onMount } from "svelte";
 
-    type Bin = {
-        filteredCount: number;
-        count: number;
-        bin: number;
-    };
     // svelte variables
     let countValue = {};
     let distanceValues = [];
     let departureDelayValues = [];
     let arrivalDelayValues = [];
 
-    /**
-     * Falcon 2 library example
-     */
-    const data = new falcon.ArrowDB("flights-10k.arrow");
-    const falconData = new falcon.FalconGlobal(data);
+    // view declarations
+    let count: FalconView<string, string>;
+    let distance: FalconView<string, string>;
+    let departureDelay: FalconView<string, string>;
+    let arrivalDelay: FalconView<string, string>;
 
-    /**
-     * View definitions
-     */
-    const totalCount = new falcon.FalconView({ type: "0D" });
-    totalCount.onChange((count) => {
-        countValue = count;
-    });
+    // listeners
+    let disposeCount: CallableFunction;
+    let disposeDistance: CallableFunction;
+    let disposeDepartureDelay: CallableFunction;
+    let disposeArrivalDelay: CallableFunction;
 
-    const distance = new falcon.FalconView({
-        type: "1D",
-        dimension: {
+    onMount(async () => {
+        // Arrow Data
+        const data = await fetch("flights-10k.arrow");
+        const buffer = await data.arrayBuffer();
+        const table = tableFromIPC(buffer);
+
+        // falcon library
+        const falconArrow = new ArrowDB(table);
+        const falcon = new Falcon(falconArrow);
+
+        // add views
+        count = falcon.addView();
+        distance = falcon.addView({
             name: "DISTANCE",
             bins: 25,
             extent: [0, 4000],
             resolution: 400,
-        },
-    });
-    distance.onChange((counts) => {
-        distanceValues = counts;
-    });
-
-    const departureDelay = new falcon.FalconView({
-        type: "1D",
-        dimension: {
+        });
+        departureDelay = falcon.addView({
             name: "DEP_DELAY",
             bins: 25,
             extent: [-20, 60],
             resolution: 400,
-        },
-    });
-    departureDelay.onChange((counts) => {
-        departureDelayValues = counts;
-    });
-
-    const arrivalDelay = new falcon.FalconView({
-        type: "1D",
-        dimension: {
+        });
+        arrivalDelay = falcon.addView({
             name: "ARR_DELAY",
             bins: 25,
             extent: [-20, 60],
             resolution: 400,
-        },
-    });
-    const disposeArrivalDelay = arrivalDelay.onChange((counts) => {
-        arrivalDelayValues = counts;
-    });
+        });
 
-    falconData.add(distance, totalCount, departureDelay, arrivalDelay);
+        // onChange listeners
+        disposeCount = count.onChange((bin) => {
+            countValue = bin;
+        });
+        disposeDistance = distance.onChange((bins) => {
+            distanceValues = bins;
+        });
+        disposeDepartureDelay = departureDelay.onChange((bins) => {
+            departureDelayValues = bins;
+        });
+        disposeArrivalDelay = arrivalDelay.onChange((counts) => {
+            arrivalDelayValues = counts;
+        });
+
+        // update all counts to start
+        falcon.all();
+    });
 </script>
 
 <main>
