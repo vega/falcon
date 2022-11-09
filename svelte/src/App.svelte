@@ -22,54 +22,50 @@
     /**
      * View definitions
      */
-    const totalCount = new falcon.FalconView({ type: "0D" }, (count) => {
-        countValue = count as Bin;
+    const totalCount = new falcon.FalconView({ type: "0D" });
+    totalCount.onChange((count) => {
+        countValue = count;
     });
 
-    const distance = new falcon.FalconView(
-        {
-            type: "1D",
-            dimension: {
-                name: "DISTANCE",
-                bins: 25,
-                extent: [0, 4000],
-                resolution: 400,
-            },
+    const distance = new falcon.FalconView({
+        type: "1D",
+        dimension: {
+            name: "DISTANCE",
+            bins: 25,
+            extent: [0, 4000],
+            resolution: 400,
         },
-        (counts) => {
-            distanceValues = counts as Bin[];
-        }
-    );
+    });
+    distance.onChange((counts) => {
+        distanceValues = counts;
+    });
 
-    const departureDelay = new falcon.FalconView(
-        {
-            type: "1D",
-            dimension: {
-                name: "DEP_DELAY",
-                bins: 25,
-                extent: [-20, 60],
-                resolution: 400,
-            },
+    const departureDelay = new falcon.FalconView({
+        type: "1D",
+        dimension: {
+            name: "DEP_DELAY",
+            bins: 25,
+            extent: [-20, 60],
+            resolution: 400,
         },
-        (counts) => {
-            departureDelayValues = counts as Bin[];
-        }
-    );
+    });
+    departureDelay.onChange((counts) => {
+        departureDelayValues = counts;
+    });
 
-    const arrivalDelay = new falcon.FalconView(
-        {
-            type: "1D",
-            dimension: {
-                name: "ARR_DELAY",
-                bins: 25,
-                extent: [-20, 60],
-                resolution: 400,
-            },
+    const arrivalDelay = new falcon.FalconView({
+        type: "1D",
+        dimension: {
+            name: "ARR_DELAY",
+            bins: 25,
+            extent: [-20, 60],
+            resolution: 400,
         },
-        (counts) => {
-            arrivalDelayValues = counts as Bin[];
-        }
-    );
+    });
+    const disposeArrivalDelay = arrivalDelay.onChange((counts) => {
+        arrivalDelayValues = counts;
+    });
+
     falconData.add(distance, totalCount, departureDelay, arrivalDelay);
 </script>
 
@@ -129,6 +125,11 @@
     <div>
         <p>out of {Number(countValue["count"]).toLocaleString()}</p>
     </div>
+    <button
+        on:click={() => {
+            disposeArrivalDelay();
+        }}>dispose arrival delay listener</button
+    >
 </main>
 
 <style>

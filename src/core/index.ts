@@ -75,12 +75,10 @@ export class FalconGlobal<V extends string, D extends string> {
         this.views.push(view);
         await view.initialize();
     }
-    async buildFalconIndex() {
-        //
+    async addView(...dimensions: Dimension<D>[]) {
+        // add views just by a dimension config
     }
-    async updatePassiveCounts() {
-        //
-    }
+
     get brushes(): Brushes<D> {
         return dimNameToBrushMap(this.views);
     }
@@ -97,18 +95,22 @@ type Brushes<DimensionName> = Map<DimensionName, Brush>;
 export class FalconView<V extends string, D extends string> {
     falcon!: FalconGlobal<V, D>;
     spec: ViewSpec<D>;
-    onUpdate: OnUpdate<object>;
     isActive: boolean;
     name: V;
     brushes: Brushes<D>;
     totalCounts: NdArray | number | null;
-    constructor(spec: ViewSpec<D>, onUpdate: OnUpdate<object>) {
+    onChangeListeners: Set<CallableFunction>;
+    constructor(spec: ViewSpec<D>) {
         this.spec = spec;
-        this.onUpdate = onUpdate;
         this.isActive = false;
         this.name = createViewNameFromSpec(spec) as V;
         this.brushes = new Map();
         this.totalCounts = null;
+        this.onChangeListeners = new Set();
+    }
+
+    onUpdate(bins: Bins | IntervalBin | Bins[]) {
+        this.onChangeListeners.forEach((onChangeFunc) => onChangeFunc(bins));
     }
 
     /**
@@ -427,7 +429,11 @@ export class FalconView<V extends string, D extends string> {
     }
 
     export0DPassiveView(totalCount: number, filteredCount: number) {
-        return { count: totalCount, filteredCount };
+        return {
+            count: totalCount,
+            filteredCount,
+            bin: [-1, -1],
+        } as IntervalBin;
     }
     export2DPassiveView(
         dims: Dimension<D>[],
@@ -492,6 +498,18 @@ export class FalconView<V extends string, D extends string> {
     }
     get otherViews(): FalconView<V, D>[] {
         return this.falcon.views.filter((view) => view !== this);
+    }
+
+    /**
+     * called by the user, returns a function to dispose the listener
+     */
+    onChange(calledOnChange: (bins: Bins) => void) {
+        // add the listener to a set of listeners (or map)
+        this.onChangeListeners.add(calledOnChange);
+        return () => {
+            // dispose the listener
+            this.onChangeListeners.delete(calledOnChange);
+        };
     }
 }
 
