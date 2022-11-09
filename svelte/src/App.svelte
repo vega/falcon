@@ -63,8 +63,8 @@
         disposeDepartureDelay = departureDelay.onChange((bins) => {
             departureDelayValues = bins;
         });
-        disposeArrivalDelay = arrivalDelay.onChange((counts) => {
-            arrivalDelayValues = counts;
+        disposeArrivalDelay = arrivalDelay.onChange((bins) => {
+            arrivalDelayValues = bins;
         });
 
         // update all counts to start
