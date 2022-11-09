@@ -97,6 +97,10 @@ export class Falcon<V extends string, D extends string> {
         return newView;
     }
 
+    count() {
+        return this.addView();
+    }
+
     get brushes(): Brushes<D> {
         return dimNameToBrushMap(this.views);
     }

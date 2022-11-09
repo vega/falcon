@@ -33,7 +33,7 @@
         const falcon = new Falcon(falconArrow);
 
         // add views
-        count = falcon.addView();
+        count = falcon.count();
         distance = falcon.addView({
             name: "DISTANCE",
             bins: 25,
