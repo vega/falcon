@@ -15,17 +15,14 @@ For current mockups and architecture choices, go to this [Figma Page](https://ww
 
 ### Falcon 2 – Getting Started
 
-`yarn dev` will start the dev server and open the browser.
-
-this just does the following for you:
+`yarn` will install the packages for the package and the examples.
 
 ```bash
-cd svelte
-yarn # make sure to install dependencies
+cd examples/flights
 yarn dev --open # to start the dev server and open the browser
 ```
 
-currently, we are developing within a svelte environment and importing the ts code. More build stuff will need to be implemented for the actual package down the line.
+Then changing code in falcon2 will have live changes in the example.
 
 ## Milestones
 

@@ -1,37 +1,27 @@
 {
-  "name": "falcon-vis",
+  "name": "falcon2-monorepo",
   "version": "0.0.0",
-  "main": "build",
-  "repository": "git@github.com:cmudig/falcon.git",
-  "author": "cmudig",
-  "license": "MIT",
-  "scripts": {
-    "test": "jest",
-    "dev": "cd svelte && yarn && yarn dev --open",
-    "build": "tsc"
+  "private": true,
+  "description": "Houses the package and examples for falcon2",
+  "main": "index.js",
+  "repository": "git+https://github.com/cmudig/falcon.git",
+  "author": "xnought <bertuccd@oregonstate.edu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cmudig/falcon/issues"
   },
-  "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.17.0",
-    "@heavyai/connector": "^7.0.0",
-    "apache-arrow": "^10.0.0",
-    "cwise": "^1.0.10",
-    "d3": "^7.6.1",
-    "ndarray": "^1.0.19",
-    "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
-    "ndarray-linear-interpolate": "^1.0.0",
-    "ndarray-ops": "^1.2.2",
-    "ndarray-prefix-sum": "^1.0.0",
-    "vega": "^5.22.1"
+  "homepage": "https://github.com/cmudig/falcon#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@types/cwise": "^1.0.4",
-    "@types/d3": "^7.4.0",
-    "@types/jest": "^29.2.1",
-    "@types/ndarray": "1.0.11",
-    "@types/ndarray-ops": "^1.2.4",
-    "jest": "^29.2.2",
-    "prettier": "^2.7.1",
-    "ts-jest": "^29.0.3",
     "typescript": "^4.8.4"
-  }
+  },
+  "directories": {
+    "examples": "./examples/*"
+  },
+  "workspaces": [
+    "./falcon2",
+    "./examples/*"
+  ]
 }

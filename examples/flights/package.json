@@ -22,6 +22,7 @@
   "dependencies": {
     "apache-arrow": "^10.0.0",
     "svelte-vega": "^1.2.0",
+    "vega": "^5.22.1",
     "vega-lite": "^5.6.0"
   }
 }
