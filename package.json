@@ -12,7 +12,10 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:flights": "yarn workspace arrow-flights dev --open",
+    "test": "yarn workspace falcon2 test",
+    "build": "yarn workspace falcon2 build",
+    "format": "yarn workspace falcon2 format"
   },
   "devDependencies": {
     "typescript": "^4.8.4"

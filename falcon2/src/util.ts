@@ -30,7 +30,7 @@ export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
   return {
     start,
     stop,
-    step: step
+    step: step,
   };
 }
 
@@ -179,7 +179,7 @@ const subInterpolate_ = cwise({
   body: function (_, a, a2, b, b2, fa, fb) {
     _ = (1 - fb) * b + fb * b2 - ((1 - fa) * a + fa * a2);
   },
-  funcName: "subi"
+  funcName: "subi",
 });
 
 /**
@@ -203,7 +203,7 @@ const satl = cwise({
   body: function (_, a, b, c, d) {
     _ = a - b - c + d;
   },
-  funcName: "satl"
+  funcName: "satl",
 });
 
 /**
@@ -257,7 +257,7 @@ const satli = cwise({
     "scalar",
     "scalar",
     "scalar",
-    "scalar"
+    "scalar",
   ],
   body: function (
     _,
@@ -305,7 +305,7 @@ const satli = cwise({
         d3 * (1 - fdx) * (1 - fdy) +
         d4 * fdx * (1 - fdy));
   },
-  funcName: "satli"
+  funcName: "satli",
 });
 
 export function summedAreaTableLookupInterpolate(
@@ -467,7 +467,7 @@ export function only<K, V>(map: Map<K, V>, only: K[]) {
 }
 
 export function timeout(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function repeatInvisible(sequence, start, end) {

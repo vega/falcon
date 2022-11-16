@@ -31,7 +31,7 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
     c.close();
   }
 
-  protected async query(q: string) {
+  protected async query(q: string): Promise<any> {
     const t0 = performance.now();
 
     q = q.replaceAll("count(*)", "count(*)::INT");

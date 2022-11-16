@@ -1,6 +1,6 @@
 <script lang="ts">
 	import VegaLiteHistogram from "./components/VegaLiteHistogram.svelte";
-	import { Falcon, ArrowDB, FalconView } from "falcon2";
+	import { Falcon, ArrowDB, FalconView } from "../../../falcon2/src";
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
 

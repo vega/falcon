@@ -1,13 +1,14 @@
 {
   "name": "falcon2",
   "version": "0.0.0",
-  "main": "src",
+  "main": "build",
   "repository": "git@github.com:cmudig/falcon.git",
   "author": "cmudig",
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.17.0",

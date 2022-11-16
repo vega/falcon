@@ -43,10 +43,10 @@ export class MapDDB<V extends string, D extends string> extends SQLDB<V, D> {
 
     const {
       results,
-      timing
+      timing,
       // fields
     } = await this.session.queryDFAsync(q, {
-      returnTiming: true
+      returnTiming: true,
     });
 
     q = compactQuery(q);

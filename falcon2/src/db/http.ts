@@ -19,6 +19,7 @@ export class HTTPDB<V extends string, D extends string> extends SQLDB<V, D> {
   protected async query(q: string): Promise<Table> {
     const t0 = performance.now();
 
+    //@ts-ignore
     const table = await Table.fromAsync(
       fetch(`${this.url}${this.escapeQuery(q)}`)
     );

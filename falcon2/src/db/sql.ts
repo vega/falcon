@@ -41,7 +41,7 @@ export abstract class SQLDB<V extends string, D extends string>
         (${field} - ${this.castBins(binConfig.start)})
         / ${this.castBins(binConfig.step)}
       as int)`,
-      where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
+      where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`,
     };
   }
 
@@ -103,19 +103,19 @@ export abstract class SQLDB<V extends string, D extends string>
 
     return {
       hist,
-      noBrush
+      noBrush,
     };
   }
 
   public async heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
-    const [binX, binY] = dimensions.map(d => d.binConfig!);
+    const [binX, binY] = dimensions.map((d) => d.binConfig!);
     const [numBinsX, numBinsY] = [binX, binY].map(numBins);
     const bSqlX = this.binSQL(dimensions[0].name, binX);
     const bSqlY = this.binSQL(dimensions[1].name, binY);
 
     const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
       numBinsX,
-      numBinsY
+      numBinsY,
     ]);
 
     const result = await this.query(`
@@ -195,7 +195,7 @@ export abstract class SQLDB<V extends string, D extends string>
 
       hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
         numPixels,
-        binCount
+        binCount,
       ]);
       noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
@@ -208,20 +208,20 @@ export abstract class SQLDB<V extends string, D extends string>
           GROUP BY "keyActive", key`;
     } else {
       const dimensions = view.dimensions;
-      const binConfigs = dimensions.map(d => d.binConfig!);
+      const binConfigs = dimensions.map((d) => d.binConfig!);
       const [numBinsX, numBinsY] = binConfigs.map(numBins);
-      const [binX, binY] = [0, 1].map(i =>
+      const [binX, binY] = [0, 1].map((i) =>
         this.binSQL(dimensions[i].name, binConfigs[i])
       );
 
       hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
         numPixels,
         numBinsX,
-        numBinsY
+        numBinsY,
       ]);
       noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
         numBinsX,
-        numBinsY
+        numBinsY,
       ]);
 
       query = `
@@ -348,7 +348,7 @@ export abstract class SQLDB<V extends string, D extends string>
     if (view.type === "0D") {
       hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
         numPixelsX,
-        numPixelsY
+        numPixelsY,
       ]);
       noBrush = ndarray(new HIST_TYPE(1), [1]);
 
@@ -368,7 +368,7 @@ export abstract class SQLDB<V extends string, D extends string>
       hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount), [
         numPixelsX,
         numPixelsY,
-        binCount
+        binCount,
       ]);
       noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
@@ -381,9 +381,9 @@ export abstract class SQLDB<V extends string, D extends string>
           GROUP BY "keyActiveX", "keyActiveY", key`;
     } else {
       const dimensions = view.dimensions;
-      const binConfigs = dimensions.map(d => d.binConfig!);
+      const binConfigs = dimensions.map((d) => d.binConfig!);
       const [numBinsX, numBinsY] = binConfigs.map(numBins);
-      const [binX, binY] = [0, 1].map(i =>
+      const [binX, binY] = [0, 1].map((i) =>
         this.binSQL(dimensions[i].name, binConfigs[i])
       );
 
@@ -393,7 +393,7 @@ export abstract class SQLDB<V extends string, D extends string>
       );
       noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
         numBinsX,
-        numBinsY
+        numBinsY,
       ]);
 
       query = `

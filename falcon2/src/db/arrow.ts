@@ -1,4 +1,4 @@
-import { Table, tableFromIPC } from "apache-arrow";
+import { Table } from "apache-arrow";
 import ndarray, { NdArray } from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View1D, View2D, Views } from "../api";
@@ -95,21 +95,23 @@ export class ArrowDB<V extends string, D extends string>
 
     return {
       hist,
-      noBrush
+      noBrush,
     };
   }
 
   public heatmap(dimensions: [Dimension<D>, Dimension<D>]) {
     console.time("Heatmap");
 
-    const binConfigs = dimensions.map(d => d.binConfig!);
+    const binConfigs = dimensions.map((d) => d.binConfig!);
     const [numBinsX, numBinsY] = binConfigs.map(numBins);
     const [binX, binY] = binConfigs.map(binNumberFunction);
-    const [columnX, columnY] = dimensions.map(d => this.data.getChild(d.name)!);
+    const [columnX, columnY] = dimensions.map(
+      (d) => this.data.getChild(d.name)!
+    );
 
     const heat = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
       numBinsX,
-      numBinsY
+      numBinsY,
     ]);
 
     for (let i = 0; i < this.data.numRows; i++) {
@@ -205,7 +207,7 @@ export class ArrowDB<V extends string, D extends string>
 
         hists = ndarray(new CUM_ARR_TYPE(numPixels * binCount), [
           numPixels,
-          binCount
+          binCount,
         ]);
         noBrush = ndarray(new HIST_TYPE(binCount), [binCount]);
 
@@ -234,21 +236,21 @@ export class ArrowDB<V extends string, D extends string>
         }
       } else {
         const dimensions = view.dimensions;
-        const binConfigs = dimensions.map(d => d.binConfig!);
+        const binConfigs = dimensions.map((d) => d.binConfig!);
         const [numBinsX, numBinsY] = binConfigs.map(numBins);
-        const [binX, binY] = binConfigs.map(c => binNumberFunction(c));
+        const [binX, binY] = binConfigs.map((c) => binNumberFunction(c));
         const [columnX, columnY] = dimensions.map(
-          d => this.data.getChild(d.name)!
+          (d) => this.data.getChild(d.name)!
         );
 
         hists = ndarray(new CUM_ARR_TYPE(numPixels * numBinsX * numBinsY), [
           numPixels,
           numBinsX,
-          numBinsY
+          numBinsY,
         ]);
         noBrush = ndarray(new HIST_TYPE(numBinsX * numBinsY), [
           numBinsX,
-          numBinsY
+          numBinsY,
         ]);
 
         for (let i = 0; i < this.data.numRows; i++) {
@@ -323,7 +325,7 @@ export class ArrowDB<V extends string, D extends string>
       if (view.type === "0D") {
         hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY), [
           numPixelsX,
-          numPixelsY
+          numPixelsY,
         ]);
         noBrush = ndarray(new HIST_TYPE(1));
 
@@ -360,7 +362,7 @@ export class ArrowDB<V extends string, D extends string>
         hists = ndarray(new CUM_ARR_TYPE(numPixelsX * numPixelsY * binCount), [
           numPixelsX,
           numPixelsY,
-          binCount
+          binCount,
         ]);
         noBrush = ndarray(new HIST_TYPE(binCount));
 

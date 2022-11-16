@@ -48,7 +48,7 @@ export const DEFAULT_CONFIG = {
   //----------
   // debugging
 
-  debugViewInteractions: false
+  debugViewInteractions: false,
 };
 
 export type Config = typeof DEFAULT_CONFIG;
