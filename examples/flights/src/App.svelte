@@ -24,7 +24,7 @@
 
 	onMount(async () => {
 		// Arrow Data
-		const data = await fetch("flights-10k.arrow");
+		const data = await fetch("data/flights-10k.arrow");
 		const buffer = await data.arrayBuffer();
 		const table = tableFromIPC(buffer);
 
