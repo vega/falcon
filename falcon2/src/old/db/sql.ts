@@ -3,7 +3,7 @@ import prefixSum from "ndarray-prefix-sum";
 import { Dimension, View, View1D, View2D, Views } from "../api";
 import { Interval } from "../basic";
 import { numBins, stepSize } from "../util";
-import { BinConfig } from "./../api";
+import { BinConfig } from "../api";
 import { CUM_ARR_TYPE, HIST_TYPE } from "./../consts";
 import { AsyncIndex, DataBase } from "./db";
 

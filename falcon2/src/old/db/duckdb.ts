@@ -3,13 +3,11 @@ import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
 export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
-  private db: duckdb.AsyncDuckDB;
-
-  constructor(private dataUrl: string, nameMap?: Map<D, string>) {
+  constructor(private db: duckdb.AsyncDuckDB, nameMap?: Map<D, string>) {
     super("data", nameMap);
   }
-
-  public async initialize() {
+  public initialize(): void {}
+  public async fromUrl(url: string) {
     console.log("Initialize DuckDB and create view for parquet file.");
 
     const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
@@ -23,7 +21,7 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
 
     const c = await this.db.connect();
     await c.query(
-      `CREATE VIEW '${this.table}' AS SELECT * FROM parquet_scan('${this.dataUrl}')`
+      `CREATE VIEW '${this.table}' AS SELECT * FROM parquet_scan('${url}')`
     );
     const info = await c.query(`PRAGMA table_info('${this.table}')`);
     console.table((info.toArray() as any).map(Object.fromEntries));
@@ -54,4 +52,24 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
 
     return results;
   }
+}
+
+export async function duckdbFromParquet(url: string, table = "data") {
+  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+  const worker = await duckdb.createWorker(bundle.mainWorker!);
+  const logger = new duckdb.ConsoleLogger();
+
+  const db = new duckdb.AsyncDuckDB(logger, worker);
+  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+  const c = await db.connect();
+  await c.query(
+    `CREATE VIEW '${table}' AS SELECT * FROM parquet_scan('${url}')`
+  );
+  const info = await c.query(`PRAGMA table_info('${table}')`);
+  console.table((info.toArray() as any).map(Object.fromEntries));
+
+  c.close();
+  return db;
 }
