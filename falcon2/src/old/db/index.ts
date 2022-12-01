@@ -3,3 +3,4 @@ export * from "./db";
 export * from "./duckdb";
 export * from "./mapd";
 export * from "./js";
+export * from "./json";

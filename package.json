@@ -13,11 +13,14 @@
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
     "start:flights": "yarn workspace arrow-flights dev --open",
-    "test": "yarn workspace falcon2 test",
+    "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "yarn jest",
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format"
   },
   "devDependencies": {
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
     "typescript": "^4.8.4"
   },
   "directories": {

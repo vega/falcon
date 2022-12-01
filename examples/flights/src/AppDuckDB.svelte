@@ -26,10 +26,14 @@
 	onMount(async () => {
 		// load from duckdb
 		const parquetFlights = fullUrl("data/flights-1m.parquet");
-		const duckdbFlights = await duckdbFromParquet(parquetFlights);
+		const tableName = "flights";
+		const duckdbFlights = await duckdbFromParquet(
+			parquetFlights,
+			tableName
+		);
 
 		// falcon library
-		const falconDuckDB = new DuckDB(duckdbFlights);
+		const falconDuckDB = new DuckDB(duckdbFlights, tableName);
 		falcon = new Falcon(falconDuckDB);
 
 		// create views

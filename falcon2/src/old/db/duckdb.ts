@@ -3,8 +3,12 @@ import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
 export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
-  constructor(private db: duckdb.AsyncDuckDB, nameMap?: Map<D, string>) {
-    super("data", nameMap);
+  constructor(
+    private db: duckdb.AsyncDuckDB,
+    tableName: string,
+    nameMap?: Map<D, string>
+  ) {
+    super(tableName, nameMap);
   }
   public initialize(): void {}
   public async fromUrl(url: string) {
