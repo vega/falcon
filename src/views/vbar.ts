@@ -20,6 +20,7 @@ export function createVerticalBarView(
     "(datum.datum.bounds.y2 - datum.datum.bounds.y1) > (datum.bounds.x2 - datum.bounds.x1) * 1.2";
 
   const vgSpec: Spec = {
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     height: config.barHeight,
     width: 28,
     padding: 5,

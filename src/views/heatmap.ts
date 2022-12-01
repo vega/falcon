@@ -269,7 +269,7 @@ export function createHeatmapView<D extends string>(
   marks.push(...loadingMarks("height"));
 
   const vgSpec: Spec = {
-    $schema: "https://vega.github.io/schema/vega/v4.0.json",
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     width: width,
     height: height,
     padding: 5,

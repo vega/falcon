@@ -645,7 +645,7 @@ export function createHistogramView<D extends string>(
   ];
 
   const vgSpec: Spec = {
-    $schema: "https://vega.github.io/schema/vega/v4.0.json",
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     autosize: "pad",
     width: config.histogramWidth,
     padding: 5,

@@ -18,6 +18,7 @@ function vgSpec(dimensions) {
   };
 
   const spec: Spec = {
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     width: 300,
     height: 500,
     padding: {

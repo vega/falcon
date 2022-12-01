@@ -4,6 +4,7 @@ import { Config } from "./../config";
 
 export function createTextView(el: Element, view: View0D, _config: Config) {
   const vgSpec: Spec = {
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     padding: 10,
     height: 20,
 

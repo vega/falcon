@@ -23,6 +23,7 @@ export function createHorizontalBarView(
     "(datum.datum.bounds.x2 - datum.datum.bounds.x1) > (datum.bounds.x2 - datum.bounds.x1) * 1.2";
 
   const vgSpec: Spec = {
+    $schema: "https://vega.github.io/schema/vega/v5.json",
     width: config.barWidth,
     height: 28,
     padding: 5,
