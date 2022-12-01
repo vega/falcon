@@ -10,7 +10,7 @@
     "format": "prettier --write src"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.17.0",
+    "@duckdb/duckdb-wasm": "^1.20.0",
     "@heavyai/connector": "^7.0.0",
     "apache-arrow": "^10.0.1",
     "cwise": "^1.0.10",
