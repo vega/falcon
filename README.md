@@ -1,31 +1,23 @@
 <p align="center">
-  <img src="logo/logo.png" width="200">
+  <img src="logo/logo.png" width="200" style="transform: rotate(90deg);">
 </p>
 
-# Falcon: A Library for Interactive Visual Analysis for Big Data
+# Falcon
 
 ![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 **🚧 Work in Progress**
 
-Crossfilter millions of records without latencies. This is a new **library** version of [Falcon](https://github.com/vega/falcon) with a new API to use falcon
-with your own visualizations.
+Crossfilter millions of records without latencies. This fork of [Falcon](https://github.com/vega/falcon) offers an API, so you can crossfilter on your own data and own charts!
 
-### Getting Started Developing
-
-#### Installation
-
-First install the dependencies for the entire workspace with
+## Development
 
 ```bash
-yarn
+yarn       # install packages for entire workspace
+yarn dev   # runs an demo
 ```
 
-#### Running the 10k flights example with Falcon
+A new browser tab should open with a demo that uses the`falcon` library.
 
-Then, run the following to start the `examples/flights` svelte demo that uses the Arrow format with Falcon on 10k flights.
-
-```bash
-yarn start:flights
-```
+Changes made in the `falcon` package and svelte `examples` will hot reload the user interface.
