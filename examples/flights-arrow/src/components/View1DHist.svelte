@@ -1,6 +1,6 @@
 <script lang="ts">
 	import VegaLiteHistogram from "./VegaLiteHistogram.svelte";
-	import type { View1DState } from "../../../../falcon/src/core/views";
+	import type { View1DState } from "falcon2";
 	export let state: View1DState;
 
 	export let title = "";

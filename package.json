@@ -14,17 +14,17 @@
     "start:flights-arrow": "yarn workspace flights-arrow dev --open",
     "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
     "dev": "yarn start:flights-arrow",
-    "build": "yarn workspace falcon-vis build",
-    "format": "yarn workspace falcon-vis format",
-    "test": "yarn workspace falcon-vis test"
+    "build": "yarn workspace falcon2 build",
+    "format": "yarn workspace falcon2 format",
+    "test": "yarn workspace falcon2 test"
   },
   "devDependencies": {},
   "directories": {
     "examples": "./examples/*",
-    "falcon": "./falcon"
+    "falcon2": "./falcon"
   },
   "workspaces": [
-    "./falcon",
-    "./examples/*"
+    "falcon",
+    "examples/*"
   ]
 }

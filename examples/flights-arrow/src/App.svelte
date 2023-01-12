@@ -1,10 +1,12 @@
 <script lang="ts">
-	import View1DHist from "./components/View1DHist.svelte";
-	import { Falcon, ArrowDB } from "../../../falcon/src";
+	import { Falcon, ArrowDB } from "falcon2";
+	import type { View0DState, View1DState, View1D } from "falcon2";
+
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
+
+	import View1DHist from "./components/View1DHist.svelte";
 	import logo from "../../../logo/logo.png";
-	import type { View0DState, View1DState, View1D } from "../../../falcon/src";
 
 	let totalCountState: View0DState;
 	let distanceState: View1DState;

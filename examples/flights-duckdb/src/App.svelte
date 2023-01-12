@@ -1,10 +1,12 @@
 <script lang="ts">
-	import View1DHist from "./components/View1DHist.svelte";
-	import { Falcon, DuckDB } from "../../../falcon/src";
-	import { onMount } from "svelte";
-	import logo from "../../../logo/logo.png";
-	import type { View0DState, View1DState, View1D } from "../../../falcon/src";
+	import { Falcon, DuckDB } from "falcon2";
+	import type { View0DState, View1DState, View1D } from "falcon2";
+
 	import * as duckdb from "@duckdb/duckdb-wasm";
+	import { onMount } from "svelte";
+
+	import View1DHist from "./components/View1DHist.svelte";
+	import logo from "../../../logo/logo.png";
 
 	let totalCountState: View0DState;
 	let distanceState: View1DState;
