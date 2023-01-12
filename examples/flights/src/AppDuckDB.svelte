@@ -1,7 +1,7 @@
 <script lang="ts">
 	import View1DHist from "./components/View1DHist.svelte";
 	import View2DHeat from "./components/View2DHeat.svelte";
-	import { Falcon, DuckDB, duckdbFromParquet } from "../../../falcon2/src";
+	import { Falcon, DuckDB, duckdbFromParquet } from "../../../falcon/src";
 	import { onMount } from "svelte";
 	import logo from "../../../logo/logo.png";
 	import type {
@@ -10,7 +10,7 @@
 		View2DState,
 		View1D,
 		View2D,
-	} from "../../../falcon2/src";
+	} from "../../../falcon/src";
 
 	let totalCountState: View0DState;
 	let distanceState: View1DState;

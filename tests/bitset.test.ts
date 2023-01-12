@@ -1,5 +1,5 @@
-import { BitSet, union } from "../falcon2/src/old/bitset";
-import { omit, repeatInvisible } from "../falcon2/src/old/util";
+import { BitSet, union } from "../falcon/src/old/bitset";
+import { omit, repeatInvisible } from "../falcon/src/old/util";
 
 describe("union", () => {
 	test("unions two bitsets", () => {

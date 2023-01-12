@@ -2,7 +2,7 @@
   <img src="logo/logo.png" width="200">
 </p>
 
-# Falcon 2: A Library for Interactive Visual Analysis for Big Data
+# Falcon: A Library for Interactive Visual Analysis for Big Data
 
 ![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
@@ -22,9 +22,9 @@ First install the dependencies for the entire workspace with
 yarn
 ```
 
-#### Running the 10k flights example with Falcon2
+#### Running the 10k flights example with Falcon
 
-Then, run the following to start the `examples/flights` svelte demo that uses the Arrow format with Falcon2 on 10k flights.
+Then, run the following to start the `examples/flights` svelte demo that uses the Arrow format with Falcon on 10k flights.
 
 ```bash
 yarn start:flights

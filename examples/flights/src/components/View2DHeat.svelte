@@ -3,7 +3,7 @@
 	import type { VegaLiteSpec } from "svelte-vega";
 	import { VegaLite } from "svelte-vega";
 	import type { View } from "svelte-vega";
-	import type { View2DState } from "../../../../falcon2/src/core/views";
+	import type { View2DState } from "../../../../falcon/src/core/views";
 
 	const dispatch = createEventDispatcher<{
 		brush: [[number, number], [number, number]] | null;
