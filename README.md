@@ -15,7 +15,7 @@ Crossfilter millions of records without latencies. This fork of [Falcon](https:/
 
 ```bash
 yarn       # install packages for entire workspace
-yarn dev   # runs an demo
+yarn dev   # runs demo in browser
 ```
 
 A new browser tab should open with a demo that uses the`falcon` library.
