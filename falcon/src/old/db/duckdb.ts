@@ -57,23 +57,3 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
     return results;
   }
 }
-
-export async function duckdbFromParquet(url: string, table = "data") {
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-  const worker = await duckdb.createWorker(bundle.mainWorker!);
-  const logger = new duckdb.ConsoleLogger();
-
-  const db = new duckdb.AsyncDuckDB(logger, worker);
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-
-  const c = await db.connect();
-  await c.query(
-    `CREATE VIEW '${table}' AS SELECT * FROM parquet_scan('${url}')`
-  );
-  const info = await c.query(`PRAGMA table_info('${table}')`);
-  console.table((info.toArray() as any).map(Object.fromEntries));
-
-  c.close();
-  return db;
-}

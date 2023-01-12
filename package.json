@@ -11,7 +11,9 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
-    "start:flights": "yarn workspace arrow-flights dev --open",
+    "start:flights-arrow": "yarn workspace flights-arrow dev --open",
+    "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
+    "dev": "yarn start:flights-arrow",
     "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test": "yarn jest",
     "build": "yarn workspace falcon build",

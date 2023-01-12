@@ -1,4 +1,4 @@
-import { View0D, View1D, View2D } from "./views";
+import { View0D, View1D } from "./views";
 
 import type { DataBase as OldDatabase } from "../old/db";
 import { FalconDB, DatabasePort, DimensionFilters, Index } from "./db/db";
@@ -33,11 +33,6 @@ export class Falcon {
     const { activeView } = this;
     if (activeView instanceof View1D) {
       return excludeMap(this.filters, activeView.dimension.name);
-    } else if (activeView instanceof View2D) {
-      return excludeMap(
-        this.filters,
-        ...activeView.dimensions.map((d) => d.name)
-      );
     } else {
       throw Error("no other view can be an active view");
     }
@@ -51,10 +46,6 @@ export class Falcon {
     this.saveView(view);
     return view;
   }
-  count() {
-    // count is an alias for view0D
-    return this.view0D();
-  }
 
   /**
    * add 1D view, does not initialize the view
@@ -66,25 +57,12 @@ export class Falcon {
   }
 
   /**
-   * add 2D view, does not initialize the view
-   */
-  view2D(dimensions: [Dimension, Dimension]) {
-    const view = new View2D(this, dimensions);
-    this.saveView(view);
-    return view;
-  }
-
-  /**
    * Fetches the initial counts for all the views
    * This does not involve fetching the falcon index
    */
-  async all() {
+  async init() {
     this.views.forEach(async (view) => {
       await view.all();
     });
-  }
-
-  printViews() {
-    console.log(this.views);
   }
 }

@@ -48,25 +48,4 @@ export class View0D extends ViewAbstract<View0DState> {
     // signal user
     this.signalOnChange(this.state);
   }
-  async count2DIndex(pixels?: [Interval<number>, Interval<number>]) {
-    // take in the index
-    const index = await this.falcon.index.get(this)!;
-    if (index === undefined) {
-      throw Error("Cannot count for undefined index in 0D");
-    }
-
-    // update state
-    if (!pixels) {
-      this.state.filter = index.noBrush.get(0);
-    } else {
-      const A = index.hists.get(pixels[0][1], pixels[1][1]);
-      const B = index.hists.get(pixels[0][1], pixels[1][0]);
-      const C = index.hists.get(pixels[0][0], pixels[1][1]);
-      const D = index.hists.get(pixels[0][0], pixels[1][0]);
-      this.state.filter = A - B - C + D;
-    }
-
-    // signal user
-    this.signalOnChange(this.state);
-  }
 }

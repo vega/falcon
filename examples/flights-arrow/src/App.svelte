@@ -1,27 +1,16 @@
 <script lang="ts">
 	import View1DHist from "./components/View1DHist.svelte";
-	import View2DHeat from "./components/View2DHeat.svelte";
 	import { Falcon, ArrowDB } from "../../../falcon/src";
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
 	import logo from "../../../logo/logo.png";
-	import type {
-		View0DState,
-		View1DState,
-		View2DState,
-		View1D,
-		View2D,
-	} from "../../../falcon/src";
+	import type { View0DState, View1DState, View1D } from "../../../falcon/src";
 
 	let totalCountState: View0DState;
 	let distanceState: View1DState;
 	let distanceView: View1D;
-	let delayState: View1DState;
-	let delayView: View1D;
 	let airTimeView: View1D;
 	let airTimeState: View1DState;
-	let depDelayVsArrDelayView: View2D;
-	let depDelayVsArrDelayState: View2DState;
 
 	let falcon: Falcon;
 	onMount(async () => {
@@ -35,7 +24,7 @@
 		falcon = new Falcon(falconArrow);
 
 		// create views
-		const count = falcon.count();
+		const count = falcon.view0D();
 		airTimeView = falcon.view1D({
 			type: "continuous",
 			name: "AIR_TIME",
@@ -50,22 +39,6 @@
 			extent: [0, 4000],
 			resolution: 400,
 		});
-		depDelayVsArrDelayView = falcon.view2D([
-			{
-				type: "continuous",
-				name: "DEP_DELAY",
-				bins: 25,
-				extent: [-20, 60],
-				resolution: 500,
-			},
-			{
-				type: "continuous",
-				name: "ARR_DELAY",
-				bins: 25,
-				extent: [-20, 60],
-				resolution: 500,
-			},
-		]);
 
 		// setup onChange functions
 		count.onChange((state) => {
@@ -74,15 +47,12 @@
 		distanceView.onChange((state) => {
 			distanceState = state;
 		});
-		depDelayVsArrDelayView.onChange((state) => {
-			depDelayVsArrDelayState = state;
-		});
 		airTimeView.onChange((state) => {
 			airTimeState = state;
 		});
 
 		// get initial counts
-		await falcon.all();
+		await falcon.init();
 	});
 </script>
 
@@ -134,25 +104,6 @@
 			}}
 		/>
 	</div>
-	<View2DHeat
-		state={depDelayVsArrDelayState}
-		width={500}
-		height={500}
-		labelX="Departure Delay"
-		labelY="Arrival Delay"
-		on:mouseenter={() => {
-			depDelayVsArrDelayView.prefetch();
-		}}
-		on:brush={async (event) => {
-			// interact
-			const interval = event.detail;
-			if (interval !== null) {
-				await depDelayVsArrDelayView.add(interval);
-			} else {
-				await depDelayVsArrDelayView.add();
-			}
-		}}
-	/>
 </main>
 
 <style>

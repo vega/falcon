@@ -1,9 +1,5 @@
-import type {
-  View0D as OldView0D,
-  View1D as OldView1D,
-  View2D as OldView2D,
-} from "../../old/api";
-import { View, View0D, View1D, View2D } from "../views";
+import type { View0D as OldView0D, View1D as OldView1D } from "../../old/api";
+import { View, View0D, View1D } from "../views";
 import { NdArray } from "ndarray";
 import { Interval } from "../../old/basic";
 import { Dimension } from "../dimension";
@@ -23,14 +19,8 @@ export type DimensionFilters = Map<string, Interval<number>>;
 
 export interface FalconDB {
   load1DAll(view: View1D, filters?: DimensionFilters): AsyncOrSync<ArrayType>;
-  load2DAll(view: View2D, filters?: DimensionFilters): AsyncOrSync<ArrayType>;
   load1DIndex(
     activeView: View1D,
-    passiveViews: View[],
-    filters?: DimensionFilters
-  ): Index;
-  load2DIndex(
-    activeView: View2D,
     passiveViews: View[],
     filters?: DimensionFilters
   ): Index;
@@ -53,11 +43,6 @@ export class DatabasePort implements FalconDB {
     const dimension = view.dimension;
     const result = await this.db.histogram(dimension, filters);
     return result.hist;
-  }
-  async load2DAll(view: View2D) {
-    const dimensions = view.dimensions;
-    const result = await this.db.heatmap(dimensions);
-    return result;
   }
   load1DIndex(
     activeView: View1D,
@@ -93,43 +78,6 @@ export class DatabasePort implements FalconDB {
     }
     return viewObjMap;
   }
-  load2DIndex(
-    activeView: View2D,
-    passiveViews: View[],
-    filters: DimensionFilters
-  ) {
-    const pixels = activeView.dimensions.map((d) => d.resolution) as [
-      number,
-      number
-    ];
-
-    // convert to interface format that the old db wants
-    const activeInterface = oldViewInterface(activeView) as OldView2D<string>;
-    const passiveInterfaces = passiveViews.map(oldViewInterface);
-    const viewNameMapInterface = new Map(
-      passiveInterfaces.map((inter, i) => [i.toString(), inter])
-    );
-    const viewNameMap = new Map(
-      passiveViews.map((view, i) => [i.toString(), view])
-    );
-
-    // convert out of the result to our format
-    const result = this.db.loadData2D(
-      activeInterface,
-      pixels,
-      viewNameMapInterface,
-      filters
-    );
-
-    const viewObjMap: Index = new Map();
-    for (const viewName of viewNameMap.keys()) {
-      const index = result.get(viewName)! as Promise<IndexContainer> &
-        IndexContainer;
-      const view = viewNameMap.get(viewName)! as View;
-      viewObjMap.set(view, index);
-    }
-    return viewObjMap;
-  }
 }
 
 function oldViewInterface(view: View) {
@@ -137,12 +85,6 @@ function oldViewInterface(view: View) {
     const oldView: OldView1D<string> = {
       dimension: view.dimension,
       type: "1D",
-    };
-    return oldView;
-  } else if (view instanceof View2D) {
-    const oldView: OldView2D<string> = {
-      dimensions: view.dimensions,
-      type: "2D",
     };
     return oldView;
   } else if (view instanceof View0D) {

@@ -44,7 +44,4 @@ export abstract class ViewAbstract<S extends object> {
 
   abstract all(): Promise<void> | void;
   abstract count1DIndex(activeBrushPixels?: Interval<number>): void;
-  abstract count2DIndex(
-    activeBrushPixels?: [Interval<number>, Interval<number>]
-  ): void;
 }
