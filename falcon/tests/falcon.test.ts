@@ -1,6 +1,8 @@
-describe("Falcon V2 Test", () => {
-  it("jest works", () => {
-    expect(true).toBe(true);
+import { Falcon } from "../src/core/falcon";
+
+describe("Falcon", () => {
+  it("Falcon import defined", () => {
+    expect(Falcon).toBeDefined();
   });
 });
 
