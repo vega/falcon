@@ -20,12 +20,12 @@ export class DatabasePort implements FalconDB {
   async extent(dimension: Dimension) {
     return await this.db.getDimensionExtent(dimension);
   }
-  async load1DAll(view: View1D, filters?: DimensionFilters) {
+  async loadAll1D(view: View1D, filters?: DimensionFilters) {
     const dimension = view.dimension;
     const result = await this.db.histogram(dimension, filters);
     return result.hist;
   }
-  load1DIndex(
+  loadIndex1D(
     activeView: View1D,
     passiveViews: View[],
     filters: DimensionFilters

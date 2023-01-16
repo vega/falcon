@@ -10,7 +10,7 @@ import type {
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
-import type { Table } from "apache-arrow";
+import type { Table, Vector } from "apache-arrow";
 
 export class ArrowDB implements FalconDB {
   readonly blocking: boolean;
@@ -33,23 +33,74 @@ export class ArrowDB implements FalconDB {
     this.data = data;
   }
 
+  /**
+   * Total number of rows in the arrow table
+   *
+   * @returns length: number of rows
+   */
   length(): AsyncOrSync<number> {
-    return 0 as AsyncOrSync<number>;
+    return this.data.numRows;
   }
+
+  /**
+   *  extent given a dimension with continuous range of numbers
+   *
+   * @returns the min and max of a range of values for the dimension
+   */
   extent(dimension: Dimension): AsyncOrSync<Interval<number>> {
-    return {} as AsyncOrSync<Interval<number>>;
+    const arrowColumn = this.data.getChild(dimension.name);
+    const arrowColumnExists = arrowColumn !== null;
+    if (arrowColumnExists) {
+      return arrowColumnExtent(arrowColumn);
+    } else {
+      throw Error(
+        `Dimension name ${dimension.name} wasn't found on the arrow table`
+      );
+    }
   }
-  load1DAll(
+
+  loadAll1D(
     view: View1D,
     filters?: DimensionFilters
   ): AsyncOrSync<FalconArray> {
+    view;
+    filters;
     return {} as AsyncOrSync<FalconArray>;
   }
-  load1DIndex(
+
+  //@ts-ignore
+  loadIndex1D(
     activeView: View1D,
     passiveViews: View[],
     filters?: DimensionFilters
   ): FalconIndex {
+    activeView;
+    passiveViews;
+    filters;
     return {} as FalconIndex;
   }
+}
+
+/**
+ * extent over a single columnar vector from arrow
+ *
+ * @returns the [min, max] of the column values
+ */
+function arrowColumnExtent(column: Vector): Interval<number> {
+  const firstRowValue: number = column.get(0)!;
+  let max = firstRowValue;
+  let min = firstRowValue;
+
+  for (const rowValue of column) {
+    // if we found something BIGGER the max, that should be the max instead!
+    if (rowValue > max) {
+      max = rowValue;
+    }
+    // if we found something SMALLER the min, that should be the min instead!
+    else if (rowValue < min) {
+      min = rowValue;
+    }
+  }
+
+  return [min, max];
 }

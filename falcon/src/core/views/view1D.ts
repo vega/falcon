@@ -48,7 +48,7 @@ export class View1D extends ViewAbstract<View1DState> {
     this.state.bin = readableBins(this.dimension.binConfig!);
 
     // count
-    const result = await this.falcon.db.load1DAll(this);
+    const result = await this.falcon.db.loadAll1D(this);
     this.state.total = result.data as Int32Array;
     this.state.filter = result.data as Int32Array;
 
@@ -65,7 +65,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
       // fetch the index
       // and store globally
-      this.falcon.index = this.falcon.db.load1DIndex(
+      this.falcon.index = this.falcon.db.loadIndex1D(
         this,
         this.falcon.views.passive,
         this.falcon.passiveFilters

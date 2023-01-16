@@ -2,6 +2,7 @@
 	import { Falcon, ArrowDB } from "falcon2";
 	import * as dev from "../../../falcon/src/core/db/arrow";
 	import type { View0DState, View1DState, View1D, View0D } from "falcon2";
+	import type { Dimension } from "../../../falcon/src/core/dimension";
 
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
@@ -21,10 +22,32 @@
 
 	let falcon: Falcon;
 	onMount(async () => {
+		// load data
 		const table = await loadArrowFile("data/flights-10k.arrow");
 		const arrowDB = new dev.ArrowDB(table);
+		const oldArrowDB = new ArrowDB(table);
 
-		console.log({ table, arrowDB });
+		console.log({ table, arrowDB, oldArrowDB });
+
+		// view0D count / length
+		const count = arrowDB.length();
+		const oldCount = oldArrowDB.length();
+
+		console.log({ count, oldCount });
+
+		// extent
+		const dimension = {
+			type: "continuous",
+			name: "AIR_TIME",
+			bins: 25,
+			extent: [0, 500],
+			resolution: 400,
+		} as Dimension;
+
+		const extent = arrowDB.extent(dimension);
+		const oldExtent = oldArrowDB.getDimensionExtent(dimension);
+
+		console.log({ extent, oldExtent });
 	});
 
 	async function loadArrowFile(url: string) {
