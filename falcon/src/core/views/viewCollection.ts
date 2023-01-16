@@ -34,6 +34,10 @@ export class ViewCollection {
     return this.views.filter((view) => view.isActive)[0];
   }
 
+  get size(): number {
+    return this.views.length;
+  }
+
   forEach(eachView: (view: View, index: number) => void): void {
     this.views.forEach(eachView);
   }
