@@ -15,13 +15,35 @@ export type FalconIndex = SyncIndex | AsyncIndex;
 export type AsyncOrSync<T> = Promise<T> | T;
 export type DimensionFilters = Map<string, Interval<number>>;
 
+/**
+ * API that the core/falcon uses for database
+ */
 export interface FalconDB {
-  load1DAll(view: View1D, filters?: DimensionFilters): AsyncOrSync<FalconArray>;
-  load1DIndex(
+  /**
+   * loads the ENTIRE (not filtered) length of the data
+   * aka number of rows
+   */
+  length(): AsyncOrSync<number>;
+
+  /**
+   * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
+   * like a histogram
+   */
+  loadAll1D(view: View1D, filters?: DimensionFilters): AsyncOrSync<FalconArray>;
+
+  /**
+   * loads the ENTIRE (not filtered) counts of the 2-Dimensional joint binning
+   * like a heatmap
+   */
+  loadIndex1D(
     activeView: View1D,
     passiveViews: View[],
     filters?: DimensionFilters
   ): FalconIndex;
+
+  /**
+   * determines the min and max of a continuous numbers
+   * over the dimension
+   */
   extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
-  length(): AsyncOrSync<number>;
 }
