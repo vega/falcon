@@ -1,6 +1,11 @@
 import { View, View0D, View1D } from "../views";
 import type { Dimension } from "../dimension";
-import type { FalconDB, DimensionFilters, Index, IndexContainer } from "./db";
+import type {
+  FalconDB,
+  DimensionFilters,
+  FalconIndex,
+  IndexContainer,
+} from "./db";
 import type { View0D as OldView0D, View1D as OldView1D } from "../../old/api";
 import type { DataBase as OldDataBase } from "../../old/db";
 
@@ -45,7 +50,7 @@ export class DatabasePort implements FalconDB {
       filters
     );
 
-    const viewObjMap: Index = new Map();
+    const viewObjMap: FalconIndex = new Map();
     for (const viewName of viewNameMap.keys()) {
       const index = result.get(viewName)! as Promise<IndexContainer> &
         IndexContainer;

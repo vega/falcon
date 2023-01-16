@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Falcon, ArrowDB } from "falcon2";
+	import * as dev from "../../../falcon/src/core/db/arrow";
 	import type { View0DState, View1DState, View1D, View0D } from "falcon2";
 
 	import { tableFromIPC } from "apache-arrow";
@@ -20,10 +21,20 @@
 
 	let falcon: Falcon;
 	onMount(async () => {
-		// arrow data
-		const data = await fetch("data/flights-1m.arrow");
+		const table = await loadArrowFile("data/flights-10k.arrow");
+		const arrowDB = new dev.ArrowDB(table);
+
+		console.log({ table, arrowDB });
+	});
+
+	async function loadArrowFile(url: string) {
+		const data = await fetch(url);
 		const buffer = await data.arrayBuffer();
 		const table = tableFromIPC(buffer);
+		return table;
+	}
+	async function flightsArrowExampleSetup() {
+		const table = await loadArrowFile("data/flights-1m.arrow");
 
 		// falcon library
 		const falconArrow = new ArrowDB(table);
@@ -60,7 +71,7 @@
 
 		// get initial counts
 		await falcon.init();
-	});
+	}
 </script>
 
 <main>
@@ -68,14 +79,14 @@
 		<img src={logo} alt="falcon" width="50px" />
 		<h1>Flights</h1>
 
-		<h3>
+		<!-- <h3>
 			<span style="font-weight: 250;">selected</span>
 			<code style="color: var(--primary-color);"
 				>{totalCountState?.filter.toLocaleString()}</code
 			>
-		</h3>
+		</h3> -->
 	</div>
-	<div>
+	<!-- <div>
 		<View1DHist
 			state={airTimeState}
 			dimLabel="Air Time"
@@ -110,7 +121,7 @@
 				}
 			}}
 		/>
-	</div>
+	</div> -->
 </main>
 
 <style>

@@ -3,7 +3,7 @@ import { DatabasePort } from "./db/portOldDb";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { DataBase as OldDatabase } from "../old/db";
-import type { FalconDB, DimensionFilters, Index } from "./db/db";
+import type { FalconDB, DimensionFilters, FalconIndex } from "./db/db";
 
 export type OldDB = OldDatabase<string, string>;
 
@@ -11,7 +11,7 @@ export class Falcon {
   db: FalconDB;
   views: ViewCollection;
   filters: DimensionFilters;
-  index: Index;
+  index: FalconIndex;
   constructor(db: OldDB) {
     /**
      * doing dirty hack to transform into old db API
@@ -21,6 +21,9 @@ export class Falcon {
     this.views = new ViewCollection();
     this.filters = new Map();
     this.index = new Map();
+
+    console.log(this.db);
+    console.log(this.views);
   }
 
   /**
