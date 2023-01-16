@@ -1,5 +1,4 @@
-import type { BinConfig } from "../old/api";
-import type { Interval } from "../old/basic";
+import type { BinConfig, Interval } from "./util";
 
 interface AbstractDimension {
   type: string;

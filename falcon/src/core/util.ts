@@ -1,7 +1,26 @@
 import { bin, binTime, numBins } from "../old/util";
 import { Dimension } from "./dimension";
-import type { Interval } from "../old/basic";
-import { BinConfig } from "../old/api";
+
+/**
+ * UTILITY TYPES
+ * -------------
+ */
+
+export type Interval<T> = [T, T];
+
+/**
+ * Binning configuration.
+ */
+export interface BinConfig {
+  start: number;
+  stop: number;
+  step: number;
+}
+
+/**
+ * UTILITY FUNCTIONS
+ * -----------------
+ */
 
 export function createBinConfig(
   dimension: Dimension,

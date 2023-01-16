@@ -1,9 +1,9 @@
 import { View0D, View1D, ViewCollection } from "./views";
-
-import type { DataBase as OldDatabase } from "../old/db";
-import { FalconDB, DatabasePort, DimensionFilters, Index } from "./db/db";
+import { DatabasePort } from "./db/portOldDb";
 import { excludeMap } from "./util";
-import { Dimension } from "./dimension";
+import type { Dimension } from "./dimension";
+import type { DataBase as OldDatabase } from "../old/db";
+import type { FalconDB, DimensionFilters, Index } from "./db/db";
 
 export type OldDB = OldDatabase<string, string>;
 
@@ -13,6 +13,10 @@ export class Falcon {
   filters: DimensionFilters;
   index: Index;
   constructor(db: OldDB) {
+    /**
+     * doing dirty hack to transform into old db API
+     * @todo phase this port out
+     */
     this.db = new DatabasePort(db);
     this.views = new ViewCollection();
     this.filters = new Map();
