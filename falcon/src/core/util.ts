@@ -1,5 +1,10 @@
-import { bin, binTime, numBins } from "../old/util";
-import { Dimension } from "./dimension";
+import ndarray from "ndarray";
+import ops from "ndarray-ops";
+import { bin as vegaBin } from "vega-statistics";
+import { scaleTime } from "d3";
+import type { NdArray } from "ndarray";
+import type { Dimension } from "./dimension";
+import { HIST_TYPE } from "./consts";
 
 /**
  * UTILITY TYPES
@@ -21,6 +26,32 @@ export interface BinConfig {
  * UTILITY FUNCTIONS
  * -----------------
  */
+
+/**
+ * Get the number of bins for a bin configuration.
+ */
+export function numBins({ start, step, stop }: BinConfig) {
+  return (stop - start) / step;
+}
+
+export function bin(maxbins: number, extent: Interval<number>): BinConfig {
+  return vegaBin({ maxbins, extent });
+}
+
+export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
+  const ts = scaleTime().domain(extent);
+  const ticks = ts.ticks(maxbins);
+  const start = ticks[0].getTime();
+  const stop = ticks[ticks.length - 1].getTime();
+  const step = (stop - start) / ticks.length;
+
+  // not that this is not accurate but the best we can do if we require regular intervals
+  return {
+    start,
+    stop,
+    step: step,
+  };
+}
 
 export function createBinConfig(
   dimension: Dimension,
@@ -120,4 +151,10 @@ export function excludeMap<K, V>(map: Map<K, V>, ...exclude: K[]) {
   return new Map<K, V>(
     Array.from(map.entries()).filter(([key, _]) => !exclude.includes(key))
   );
+}
+
+export function sub(a: NdArray, b: NdArray) {
+  const out = ndarray(new HIST_TYPE(a.size), a.shape);
+  ops.sub(out, b, a);
+  return out;
 }

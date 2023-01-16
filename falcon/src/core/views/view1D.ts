@@ -1,9 +1,8 @@
 import { ViewAbstract } from "./viewAbstract";
-import { createBinConfig, readableBins, brushToPixelSpace } from "../util";
+import { sub, createBinConfig, readableBins, brushToPixelSpace } from "../util";
 import type { Falcon } from "../falcon";
 import type { Dimension } from "../dimension";
-import type { Interval } from "../../old/basic";
-import { sub } from "../../old/util";
+import type { Interval } from "../util";
 
 /* defines how the parameter is typed for on change */
 export interface View1DState {

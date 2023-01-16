@@ -7,7 +7,7 @@ function dummyView() {
   return view;
 }
 
-describe("ViewCollection", () => {
+describe("ViewCollection Creation", () => {
   it("Import Exists", () => {
     expect(ViewCollection).toBeDefined();
   });
@@ -18,7 +18,9 @@ describe("ViewCollection", () => {
     expect(typeof collection).toBe("object");
     expect(collection.views).toBeDefined();
   });
+});
 
+describe("Adding views to the collection", () => {
   it("Adding a view", () => {
     const collection = new ViewCollection();
     const view = dummyView();
@@ -47,7 +49,9 @@ describe("ViewCollection", () => {
 
     expect(collection.size).toBe(2);
   });
+});
 
+describe("View collection active and passive ops", () => {
   it("Return passive views and active views", () => {
     const collection = new ViewCollection();
 

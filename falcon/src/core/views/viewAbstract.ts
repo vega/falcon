@@ -1,4 +1,4 @@
-import { Interval } from "../../old/basic";
+import { Interval } from "../util";
 import type { Falcon } from "../falcon";
 
 type OnChange<S> = (state: S) => void;
