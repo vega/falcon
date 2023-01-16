@@ -1,8 +1,7 @@
-import { View0D, View1D } from "./views";
+import { View0D, View1D, ViewCollection } from "./views";
 
 import type { DataBase as OldDatabase } from "../old/db";
 import { FalconDB, DatabasePort, DimensionFilters, Index } from "./db/db";
-import type { View } from "./views";
 import { excludeMap } from "./util";
 import { Dimension } from "./dimension";
 
@@ -10,31 +9,24 @@ export type OldDB = OldDatabase<string, string>;
 
 export class Falcon {
   db: FalconDB;
-  views: View[];
+  views: ViewCollection;
   filters: DimensionFilters;
   index: Index;
   constructor(db: OldDB) {
     this.db = new DatabasePort(db);
-    this.views = [];
+    this.views = new ViewCollection();
     this.filters = new Map();
     this.index = new Map();
   }
 
-  private saveView(view: View) {
-    this.views.push(view);
-  }
-  get passiveViews() {
-    return this.views.filter((view) => !view.isActive);
-  }
-  get activeView() {
-    return this.views.filter((view) => view.isActive)[0];
-  }
-  get passiveFilters() {
-    const { activeView } = this;
-    if (activeView instanceof View1D) {
-      return excludeMap(this.filters, activeView.dimension.name);
+  /**
+   * @returns the filters and excludes the active view dimension's filters
+   */
+  get passiveFilters(): DimensionFilters {
+    if (this.views.active instanceof View0D) {
+      throw Error("No filter for 0D view / count");
     } else {
-      throw Error("no other view can be an active view");
+      return excludeMap(this.filters, this.views.active.dimension.name);
     }
   }
 
@@ -43,7 +35,7 @@ export class Falcon {
    */
   view0D() {
     const view = new View0D(this);
-    this.saveView(view);
+    this.views.add(view);
     return view;
   }
 
@@ -52,7 +44,7 @@ export class Falcon {
    */
   view1D(dimension: Dimension) {
     const view = new View1D(this, dimension);
-    this.saveView(view);
+    this.views.add(view);
     return view;
   }
 

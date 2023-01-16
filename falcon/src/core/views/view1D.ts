@@ -68,7 +68,7 @@ export class View1D extends ViewAbstract<View1DState> {
       // and store globally
       this.falcon.index = this.falcon.db.load1DIndex(
         this,
-        this.falcon.passiveViews,
+        this.falcon.views.passive,
         this.falcon.passiveFilters
       );
     }
@@ -100,7 +100,7 @@ export class View1D extends ViewAbstract<View1DState> {
       const selectPixels = convertToPixels ? this.toPixels(filter) : filter;
 
       // use the index to count for the passive views
-      this.falcon.passiveViews.forEach(async (passiveView) => {
+      this.falcon.views.passive.forEach(async (passiveView) => {
         await passiveView.count1DIndex(selectPixels);
       });
 
@@ -115,7 +115,7 @@ export class View1D extends ViewAbstract<View1DState> {
       // remove filter
       this.falcon.filters.delete(this.dimension.name);
       // and revert back counts
-      this.falcon.passiveViews.forEach(async (passiveView) => {
+      this.falcon.views.passive.forEach(async (passiveView) => {
         await passiveView.count1DIndex();
       });
 
