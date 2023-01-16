@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Falcon, ArrowDB } from "falcon2";
-	import type { View0DState, View1DState, View1D } from "falcon2";
+	import type { View0DState, View1DState, View1D, View0D } from "falcon2";
 
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
@@ -8,15 +8,19 @@
 	import View1DHist from "./components/View1DHist.svelte";
 	import logo from "../../../logo/logo.png";
 
-	let totalCountState: View0DState;
-	let distanceState: View1DState;
+	// interactive views
+	let count: View0D;
 	let distanceView: View1D;
 	let airTimeView: View1D;
+
+	// what the views return after interaction
+	let totalCountState: View0DState;
+	let distanceState: View1DState;
 	let airTimeState: View1DState;
 
 	let falcon: Falcon;
 	onMount(async () => {
-		// arrow Data
+		// arrow data
 		const data = await fetch("data/flights-1m.arrow");
 		const buffer = await data.arrayBuffer();
 		const table = tableFromIPC(buffer);
@@ -25,8 +29,9 @@
 		const falconArrow = new ArrowDB(table);
 		falcon = new Falcon(falconArrow);
 
-		// create views
-		const count = falcon.view0D();
+		// create views and save them
+		// you directly interact with these objects
+		count = falcon.view0D();
 		airTimeView = falcon.view1D({
 			type: "continuous",
 			name: "AIR_TIME",
