@@ -2,11 +2,14 @@ import { View, View0D, View1D } from "../views";
 import type { Dimension } from "../dimension";
 import type {
   FalconDB,
-  DimensionFilters,
   FalconIndex,
-  IndexContainer,
+  FalconCube,
+  Filters,
+  BinnedCounts,
 } from "./db";
+import type { Interval } from "../util";
 import type { View0D as OldView0D, View1D as OldView1D } from "../../old/api";
+import type { Hist, Hists } from "../../old/db";
 import type { DataBase as OldDataBase } from "../../old/db";
 
 export class DatabasePort implements FalconDB {
@@ -20,21 +23,20 @@ export class DatabasePort implements FalconDB {
   async extent(dimension: Dimension) {
     return await this.db.getDimensionExtent(dimension);
   }
-  async loadAll1D(view: View1D, filters?: DimensionFilters) {
+  async loadAll1D(view: View1D, filters?: Filters) {
     const dimension = view.dimension;
-    const result = await this.db.histogram(dimension, filters);
-    return result.hist;
+    const brushes = filters ? newToOldBrushesInterface(filters) : filters;
+    const result = await this.db.histogram(dimension, brushes);
+    return oldToNewHistInterface(result);
   }
-  loadIndex1D(
-    activeView: View1D,
-    passiveViews: View[],
-    filters: DimensionFilters
-  ) {
+  loadIndex1D(activeView: View1D, passiveViews: View[], filters: Filters) {
     const pixels = activeView.dimension.resolution;
 
     // convert to interface format that the old db wants
-    const activeInterface = oldViewInterface(activeView) as OldView1D<string>;
-    const passiveInterfaces = passiveViews.map(oldViewInterface);
+    const activeInterface = newToOldViewInterface(
+      activeView
+    ) as OldView1D<string>;
+    const passiveInterfaces = passiveViews.map(newToOldViewInterface);
     const viewNameMapInterface = new Map(
       passiveInterfaces.map((inter, i) => [i.toString(), inter])
     );
@@ -47,21 +49,49 @@ export class DatabasePort implements FalconDB {
       activeInterface,
       pixels,
       viewNameMapInterface,
-      filters
+      newToOldBrushesInterface(filters)
     );
 
     const viewObjMap: FalconIndex = new Map();
     for (const viewName of viewNameMap.keys()) {
-      const index = result.get(viewName)! as Promise<IndexContainer> &
-        IndexContainer;
+      const index = result.get(viewName)!;
       const view = viewNameMap.get(viewName)! as View;
-      viewObjMap.set(view, index);
+      //@ts-ignore
+      viewObjMap.set(view, oldToNewHistsInterface(index));
     }
     return viewObjMap;
   }
 }
 
-function oldViewInterface(view: View) {
+function oldToNewHistsInterface(index: Hists) {
+  const newFormat = {
+    filter: index.hists,
+    noFilter: index.noBrush,
+  } as FalconCube;
+
+  return newFormat;
+}
+
+function oldToNewHistInterface(index: Hist) {
+  const newFormat = {
+    filter: index.hist,
+    noFilter: index.noBrush,
+  } as BinnedCounts;
+
+  return newFormat;
+}
+
+function newToOldBrushesInterface(
+  filters: Filters
+): Map<string, Interval<number>> {
+  const oldMap = new Map<string, Interval<number>>();
+  for (const [dimension, filter] of filters) {
+    oldMap.set(dimension.name, filter);
+  }
+  return oldMap;
+}
+
+function newToOldViewInterface(view: View) {
   if (view instanceof View1D) {
     const oldView: OldView1D<string> = {
       dimension: view.dimension,

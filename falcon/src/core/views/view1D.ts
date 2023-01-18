@@ -49,8 +49,8 @@ export class View1D extends ViewAbstract<View1DState> {
 
     // count
     const result = await this.falcon.db.loadAll1D(this);
-    this.state.total = result.data as Int32Array;
-    this.state.filter = result.data as Int32Array;
+    this.state.total = result.filter.data as Int32Array;
+    this.state.filter = result.filter.data as Int32Array;
 
     this.signalOnChange(this.state);
   }
@@ -93,7 +93,7 @@ export class View1D extends ViewAbstract<View1DState> {
       }
 
       // add filter
-      this.falcon.filters.set(this.dimension.name, filter);
+      this.falcon.filters.set(this.dimension, filter);
 
       // convert active selection into pixels if needed
       const selectPixels = convertToPixels ? this.toPixels(filter) : filter;
@@ -112,7 +112,7 @@ export class View1D extends ViewAbstract<View1DState> {
       }
 
       // remove filter
-      this.falcon.filters.delete(this.dimension.name);
+      this.falcon.filters.delete(this.dimension);
       // and revert back counts
       this.falcon.views.passive.forEach(async (passiveView) => {
         await passiveView.count1DIndex();
@@ -134,11 +134,11 @@ export class View1D extends ViewAbstract<View1DState> {
 
     // update state
     if (!pixels) {
-      this.state.filter = index.noBrush.data as Int32Array;
+      this.state.filter = index.noFilter.data as Int32Array;
     } else {
       // select the columns and subtract them to get in between [A, B]
-      const A = index.hists.pick(pixels[0], null);
-      const B = index.hists.pick(pixels[1], null);
+      const A = index.filter.pick(pixels[0], null);
+      const B = index.filter.pick(pixels[1], null);
       const result = sub(A, B);
 
       this.state.filter = result.data;

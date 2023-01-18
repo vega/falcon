@@ -1,21 +1,19 @@
-import { BitSet } from "../bitset";
-import { FalconDB } from "./db";
+import { BitSet, union } from "../bitset";
+import { BinnedCounts, FalconDB } from "./db";
 import { View1D } from "../views";
-import type {
-  DimensionFilters,
-  AsyncOrSync,
-  FalconIndex,
-  FalconArray,
-} from "./db";
+import type { AsyncOrSync, FalconIndex, Filters } from "./db";
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
 import type { Table, Vector } from "apache-arrow";
 
+type DimensionFilterHash = string;
+type FilterMasks<T> = Map<T, BitSet>;
+
 export class ArrowDB implements FalconDB {
   readonly blocking: boolean;
   data: Table;
-  filterMaskIndex: Map<Dimension, BitSet>;
+  filterMaskIndex: FilterMasks<DimensionFilterHash>;
 
   /**
    * Falcon Database using arrow data columnar table
@@ -59,26 +57,121 @@ export class ArrowDB implements FalconDB {
     }
   }
 
-  loadAll1D(
-    view: View1D,
-    filters?: DimensionFilters
-  ): AsyncOrSync<FalconArray> {
-    view;
-    filters;
-    return {} as AsyncOrSync<FalconArray>;
+  /**
+   * Takes in the view and returns
+   * the total counts for each bin in the ENTIRE arrow table
+   *
+   * @returns an array of counts for each bin
+   */
+  loadAll1D(view: View1D, filters?: Filters): BinnedCounts {
+    // 1. decide which rows are filtered or not
+    const filterMask: BitSet | null = union(
+      ...this.getFilterMasks(filters ?? new Map()).values()
+    );
+
+    /**
+     * two questions here
+     * 1. should the bins be premade and passed in?
+     * 2. how should the FalconArray be set up?
+     */
+    // (create Falcon Arrays to store data)
+
+    // 2. resolve binning scheme
+
+    // 3. iterate over the row values and determine which bin to increment
+
+    // 4. return the results
+
+    return {} as BinnedCounts;
   }
 
   //@ts-ignore
   loadIndex1D(
     activeView: View1D,
     passiveViews: View[],
-    filters?: DimensionFilters
+    filters?: Filters
   ): FalconIndex {
     activeView;
     passiveViews;
     filters;
     return {} as FalconIndex;
   }
+
+  /**
+   * given the dimension and filters
+   *
+   * @returns a map of the filter masks
+   */
+  private getFilterMasks(filters: Filters): FilterMasks<Dimension> {
+    // no filters just return blank
+    if (!filters.size) {
+      return new Map();
+    }
+
+    // extract filters from the larger cache index into this compact one
+    const compactIndex: FilterMasks<Dimension> = new Map();
+    for (const [dimension, extent] of filters) {
+      const mask = this.getFilterMask(dimension, extent)!;
+      compactIndex.set(dimension, mask);
+    }
+
+    return compactIndex;
+  }
+
+  /**
+   * Gets filter mask given the filter (extent for now)
+   *
+   * @returns a bitmask of which 1 if the row value should be included or 0 if not
+   */
+  private getFilterMask(dimension: Dimension, extent: Interval<number>) {
+    const key = `${dimension.name} ${extent}`;
+
+    // if not in the cache, compute it and add it!
+    const notFound = !this.filterMaskIndex.has(key);
+    if (notFound) {
+      // compute filter mask
+      const column = this.data.getChild(dimension.name)!;
+      const mask = arrowFilterMask(
+        column,
+        (value: number) => value < extent[0] || value >= extent[1]
+      );
+
+      // set the cache
+      this.filterMaskIndex.set(key, mask);
+    }
+
+    // return the value of the mask
+    return this.filterMaskIndex.get(key);
+  }
+}
+/**
+ * given an arrow column vector, create a filter mask
+ *
+ * @note uses bitmask to reduce space and allow for potential computer optimizations
+ * @note should keep => true corresponds to 1 and otherwise 0
+ * @returns a bitmask that indicates if the values should be included (1) or not (0)
+ */
+function arrowFilterMask<T>(
+  column: Vector,
+  shouldKeep: (rowValue: T) => boolean
+) {
+  const bitmask = new BitSet(column.length);
+
+  /**
+   * iterate each row value in the column and decide if we should
+   * keep it or not
+   *
+   * bit 1 indicates keep
+   * bit 0 indicates remove
+   */
+  for (let i = 0; i < column.length; i++) {
+    const rowValue: T = column.get(i)!;
+    if (shouldKeep(rowValue)) {
+      bitmask.set(i, true);
+    }
+  }
+
+  return bitmask;
 }
 
 /**

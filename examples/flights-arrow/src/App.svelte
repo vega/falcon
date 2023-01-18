@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { Falcon, ArrowDB } from "falcon2";
 	import * as dev from "../../../falcon/src/core/db/arrow";
-	import type { View0DState, View1DState, View1D, View0D } from "falcon2";
+	import {
+		type View0DState,
+		type View1DState,
+		View1D,
+		View0D,
+	} from "falcon2";
 	import type { Dimension } from "../../../falcon/src/core/dimension";
 
 	import { tableFromIPC } from "apache-arrow";
@@ -22,18 +27,23 @@
 
 	let falcon: Falcon;
 	onMount(async () => {
+		// await flightsArrowExampleSetup();
+		await test();
+	});
+
+	async function test() {
 		// load data
 		const table = await loadArrowFile("data/flights-10k.arrow");
 		const arrowDB = new dev.ArrowDB(table);
 		const oldArrowDB = new ArrowDB(table);
 
-		console.log({ table, arrowDB, oldArrowDB });
+		// console.log({ table, arrowDB, oldArrowDB });
 
 		// view0D count / length
 		const count = arrowDB.length();
 		const oldCount = oldArrowDB.length();
 
-		console.log({ count, oldCount });
+		// console.log({ count, oldCount });
 
 		// extent
 		const dimension = {
@@ -42,13 +52,27 @@
 			bins: 25,
 			extent: [0, 500],
 			resolution: 400,
+			binConfig: {
+				start: 0,
+				stop: 500,
+				step: 20,
+			},
 		} as Dimension;
 
 		const extent = arrowDB.extent(dimension);
 		const oldExtent = oldArrowDB.getDimensionExtent(dimension);
 
-		console.log({ extent, oldExtent });
-	});
+		// console.log({ extent, oldExtent });
+
+		// count 1D
+		const falcon = {} as Falcon;
+		const airTimeView = new View1D(falcon, dimension);
+
+		const oldHist1D = oldArrowDB.histogram(dimension);
+		const hist1D = arrowDB.loadAll1D(airTimeView);
+
+		console.log({ airTimeView, oldHist1D, hist1D });
+	}
 
 	async function loadArrowFile(url: string) {
 		const data = await fetch(url);

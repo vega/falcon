@@ -3,14 +3,14 @@ import { DatabasePort } from "./db/portOldDb";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { DataBase as OldDatabase } from "../old/db";
-import type { FalconDB, DimensionFilters, FalconIndex } from "./db/db";
+import type { FalconDB, FalconIndex, Filters } from "./db/db";
 
 export type OldDB = OldDatabase<string, string>;
 
 export class Falcon {
   db: FalconDB;
   views: ViewCollection;
-  filters: DimensionFilters;
+  filters: Filters;
   index: FalconIndex;
   constructor(db: OldDB) {
     /**
@@ -21,19 +21,16 @@ export class Falcon {
     this.views = new ViewCollection();
     this.filters = new Map();
     this.index = new Map();
-
-    console.log(this.db);
-    console.log(this.views);
   }
 
   /**
    * @returns the filters and excludes the active view dimension's filters
    */
-  get passiveFilters(): DimensionFilters {
+  get passiveFilters(): Filters {
     if (this.views.active instanceof View0D) {
       throw Error("No filter for 0D view / count");
     } else {
-      return excludeMap(this.filters, this.views.active.dimension.name);
+      return excludeMap(this.filters, this.views.active.dimension);
     }
   }
 

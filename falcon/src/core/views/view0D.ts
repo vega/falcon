@@ -38,10 +38,10 @@ export class View0D extends ViewAbstract<View0DState> {
 
     // update state
     if (!pixels) {
-      this.state.filter = index.noBrush.get(0);
+      this.state.filter = index.noFilter.get(0);
     } else {
-      const A = index.hists.get(pixels[0]);
-      const B = index.hists.get(pixels[1]);
+      const A = index.filter.get(pixels[0]);
+      const B = index.filter.get(pixels[1]);
       this.state.filter = B - A;
     }
 
