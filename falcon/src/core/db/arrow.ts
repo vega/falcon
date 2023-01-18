@@ -1,5 +1,7 @@
 import { BitSet, union } from "../bitset";
 import { BinnedCounts, FalconDB } from "./db";
+import { FArray } from "../falconArray/falconArray";
+import { binNumberFunction, numBins } from "../util";
 import { View1D } from "../views";
 import type { AsyncOrSync, FalconIndex, Filters } from "./db";
 import type { Dimension } from "../dimension";
@@ -61,6 +63,8 @@ export class ArrowDB implements FalconDB {
    * Takes in the view and returns
    * the total counts for each bin in the ENTIRE arrow table
    *
+   * @todo have parameter where you can pass the typed arrays as input
+   * so we can allocate elsewhere and keep the memory instead of reallocating
    * @returns an array of counts for each bin
    */
   loadAll1D(view: View1D, filters?: Filters): BinnedCounts {
@@ -69,20 +73,34 @@ export class ArrowDB implements FalconDB {
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
 
-    /**
-     * two questions here
-     * 1. should the bins be premade and passed in?
-     * 2. how should the FalconArray be set up?
-     */
-    // (create Falcon Arrays to store data)
-
     // 2. resolve binning scheme
+    const binConfig = view.dimension.binConfig!;
+    const bin = binNumberFunction(binConfig);
+    const binCount = numBins(binConfig);
 
-    // 3. iterate over the row values and determine which bin to increment
+    // 3. allocate memory (perhaps this should not be done every time)
+    // and instead pass by reference and control this in the background
+    const noFilter = new FArray(new Int32Array(binCount));
+    const filter = filterMask ? new FArray(new Int32Array(binCount)) : noFilter;
 
-    // 4. return the results
+    // 4. iterate over the row values and determine which bin to increment
+    const column = this.data.getChild(view.dimension.name)!;
+    for (let i = 0; i < this.data.numRows; i++) {
+      const value: number = column.get(i)!;
+      const binLocation = bin(value);
+      if (0 <= binLocation && binLocation < binCount) {
+        noFilter.increment(binLocation);
+        if (filterMask && !filterMask.get(i)) {
+          filter.increment(binLocation);
+        }
+      }
+    }
 
-    return {} as BinnedCounts;
+    // 5. return the results
+    return {
+      noFilter: noFilter.ndarray,
+      filter: filter.ndarray,
+    };
   }
 
   //@ts-ignore

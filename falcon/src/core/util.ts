@@ -23,6 +23,15 @@ export interface BinConfig {
 }
 
 /**
+ * BinConfig that does not need to have a stop.
+ */
+interface StartStepBinConfig {
+  start: number;
+  stop?: number;
+  step: number;
+}
+
+/**
  * UTILITY FUNCTIONS
  * -----------------
  */
@@ -157,4 +166,11 @@ export function sub(a: NdArray, b: NdArray) {
   const out = ndarray(new HIST_TYPE(a.size), a.shape);
   ops.sub(out, b, a);
   return out;
+}
+
+/**
+ * Returns a function that returns the bin for a value.
+ */
+export function binNumberFunction({ start, step }: StartStepBinConfig) {
+  return (v: number) => Math.floor((v - start) / step);
 }
