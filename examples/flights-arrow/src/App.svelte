@@ -40,10 +40,10 @@
 		// console.log({ table, arrowDB, oldArrowDB });
 
 		// view0D count / length
-		const count = arrowDB.length();
-		const oldCount = oldArrowDB.length();
+		const c = arrowDB.length();
+		const oldC = oldArrowDB.length();
 
-		// console.log({ count, oldCount });
+		// console.log({ c, oldC });
 
 		// extent
 		const dimension = {
@@ -65,13 +65,54 @@
 		// console.log({ extent, oldExtent });
 
 		// count 1D
-		const falcon = {} as Falcon;
-		const airTimeView = new View1D(falcon, dimension);
+		const f = {} as Falcon;
+		const airTimeView = new View1D(f, dimension);
 
 		const oldHist1D = oldArrowDB.histogram(dimension);
-		const hist1D = arrowDB.countsView1D(airTimeView);
+		const hist1D = arrowDB.histogramView1D(airTimeView);
 
-		console.log({ airTimeView, oldHist1D, hist1D });
+		// console.log({ airTimeView, oldHist1D, hist1D });
+
+		/**
+		 * index testing
+		 */
+		const falcon = new Falcon({
+			db: arrowDB,
+		});
+		const oldFalcon = new Falcon({
+			oldDb: new ArrowDB(table),
+		});
+		const dimA: Dimension = {
+			type: "continuous",
+			name: "AIR_TIME",
+			bins: 25,
+			extent: [0, 500],
+			resolution: 400,
+		};
+		const oldViewA = oldFalcon.view1D(dimA);
+		const oldCount = oldFalcon.view0D();
+
+		const viewA = falcon.view1D(dimA);
+		const count = falcon.view0D();
+
+		oldViewA.onChange((s) => {
+			console.log("old", s);
+		});
+		oldCount.onChange((s) => {
+			console.log("old", s);
+		});
+		viewA.onChange((s) => {
+			console.log("new", s);
+		});
+		count.onChange((s) => {
+			console.log("new", s);
+		});
+
+		oldFalcon.init();
+		falcon.init();
+
+		oldViewA.add([50, 200]);
+		viewA.add([50, 200]);
 	}
 
 	async function loadArrowFile(url: string) {
@@ -85,7 +126,9 @@
 
 		// falcon library
 		const falconArrow = new ArrowDB(table);
-		falcon = new Falcon(falconArrow);
+		falcon = new Falcon({
+			oldDb: falconArrow,
+		});
 
 		// create views and save them
 		// you directly interact with these objects

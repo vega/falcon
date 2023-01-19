@@ -6,18 +6,19 @@ import type { DataBase as OldDatabase } from "../old/db";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
 
 export type OldDB = OldDatabase<string, string>;
+type FalconConstructor = { db: FalconDB } | { oldDb: OldDB };
 
 export class Falcon {
   db: FalconDB;
   views: ViewCollection;
   filters: Filters;
   index: FalconIndex;
-  constructor(db: OldDB) {
-    /**
-     * doing dirty hack to transform into old db API
-     * @todo phase this port out
-     */
-    this.db = new DatabasePort(db);
+  constructor(args: FalconConstructor) {
+    if ("db" in args) {
+      this.db = args.db;
+    } else if ("oldDb" in args) {
+      this.db = new DatabasePort(args.oldDb);
+    }
     this.views = new ViewCollection();
     this.filters = new Map();
     this.index = new Map();

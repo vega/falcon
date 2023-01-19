@@ -48,7 +48,7 @@ export class View1D extends ViewAbstract<View1DState> {
     this.state.bin = readableBins(this.dimension.binConfig!);
 
     // count
-    const result = await this.falcon.db.countsView1D(this);
+    const result = await this.falcon.db.histogramView1D(this);
     this.state.total = result.filter.data as Int32Array;
     this.state.filter = result.filter.data as Int32Array;
 

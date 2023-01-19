@@ -36,7 +36,7 @@ export interface FalconDB {
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
    * like a histogram
    */
-  countsView1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
+  histogramView1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
 
   /**
    * loads falcon index that accumulates pixel counts over passive bins

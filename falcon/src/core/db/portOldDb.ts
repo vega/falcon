@@ -23,7 +23,7 @@ export class DatabasePort implements FalconDB {
   async extent(dimension: Dimension) {
     return await this.db.getDimensionExtent(dimension);
   }
-  async countsView1D(view: View1D, filters?: Filters) {
+  async histogramView1D(view: View1D, filters?: Filters) {
     const dimension = view.dimension;
     const brushes = filters ? newToOldBrushesInterface(filters) : filters;
     const result = await this.db.histogram(dimension, brushes);

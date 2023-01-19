@@ -32,6 +32,15 @@ interface StartStepBinConfig {
 }
 
 /**
+ * BinConfig that does not need to have a step.
+ */
+interface StartStopBinConfig {
+  start: number;
+  stop: number;
+  step?: number;
+}
+
+/**
  * UTILITY FUNCTIONS
  * -----------------
  */
@@ -173,4 +182,19 @@ export function sub(a: NdArray, b: NdArray) {
  */
 export function binNumberFunction({ start, step }: StartStepBinConfig) {
   return (v: number) => Math.floor((v - start) / step);
+}
+
+/**
+ * Returns a function that returns the bin for a pixel. Starts one pixel before so that the brush contains the data.
+ */
+export function binNumberFunctionBins(
+  { start, stop }: StartStopBinConfig,
+  pixel: number
+) {
+  const step = stepSize({ start, stop }, pixel);
+  return binNumberFunction({ start: start, step });
+}
+
+export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
+  return (stop - start) / bins;
 }

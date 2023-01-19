@@ -1,9 +1,9 @@
 import { BitSet, union } from "../bitset";
-import { BinnedCounts, FalconDB } from "./db";
+import { BinnedCounts, FalconDB, SyncIndex } from "./db";
 import { FArray } from "../falconArray/falconArray";
-import { binNumberFunction, numBins } from "../util";
-import { View1D } from "../views";
-import type { AsyncOrSync, FalconIndex, Filters } from "./db";
+import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
+import { View0D, View1D } from "../views";
+import type { AsyncOrSync, Filters } from "./db";
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
@@ -68,7 +68,7 @@ export class ArrowDB implements FalconDB {
    * so we can allocate elsewhere and keep the memory instead of reallocating
    * @returns an array of counts for each bin
    */
-  countsView1D(view: View1D, filters?: Filters): BinnedCounts {
+  histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
     // 1. decide which rows are filtered or not
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
@@ -112,18 +112,129 @@ export class ArrowDB implements FalconDB {
     activeView: View1D,
     passiveViews: View[],
     filters: Filters
-  ): FalconIndex {
+  ) {
     const filterMasks = this.getFilterMasks(filters);
+    const cubes: SyncIndex = new Map();
 
-    // iterate over the views and compute cube
-    const index: FalconIndex = new Map();
+    // 1. bin mapping functions
+    const pixels = activeView.dimension.resolution;
+    const activeDim = activeView.dimension;
+    const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
+    const activeCol = this.data.getChild(activeDim.name)!;
+    const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
+
+    // 2. iterate over each passive view to compute cubes
     passiveViews.forEach((view) => {
-      console.log(view);
+      // 2.1 only filter all other dimensions (filter on same dimension does not apply)
+      const relevantMasks = new Map(filterMasks);
+      if (view instanceof View0D) {
+        // use all filters
+      } else if (view instanceof View1D) {
+        // remove itself from filtering
+        relevantMasks.delete(view.dimension);
+      }
+      const filterMask = union(...relevantMasks.values());
+
+      // 2.2 this count counts for each pixel wise bin
+      if (view instanceof View0D) {
+        const filter = new FArray(new Float32Array(numPixels));
+        const noFilter = new FArray(new Int32Array(1), [1]);
+
+        // add data to aggregation matrix
+        for (let i = 0; i < this.data.numRows; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.get(i)) {
+            continue;
+          }
+
+          const keyActive = binActive(activeCol.get(i)!) + 1;
+          if (0 <= keyActive && keyActive < numPixels) {
+            filter.increment(keyActive);
+          }
+          noFilter.increment(0);
+        }
+
+        // falcon magic sauce
+        filter.cumulativeSum();
+
+        cubes.set(view, {
+          noFilter: noFilter.ndarray,
+          filter: filter.ndarray,
+        });
+      } else if (view instanceof View1D) {
+        // bins for passive view that we accumulate across
+        const dim = view.dimension;
+        const binConfig = dim.binConfig!;
+        const bin = binNumberFunction(binConfig);
+        const binCount = numBins(binConfig);
+
+        /**
+         * ---------------------------- active pixels width
+         * |
+         * |
+         * |
+         * |
+         * vertical corresponds to each passive bin
+         *
+         * The name of the game is to for each pixel bin [interval]
+         * [-]---------------------------
+         * |||||||
+         * |||
+         * |
+         * |
+         *
+         * count the passive bins just for that small interval
+         *
+         * repeat this to create the aggregating matrix
+         * then commutative sum across to create falcon index
+         *
+         * ACTUALLY
+         * These arrays below are the ones in the comment but transpose
+         * Cols -> passive bins
+         * Rows -> active pixel bins
+         */
+        const filter = new FArray(new Float32Array(numPixels * binCount), [
+          numPixels,
+          binCount,
+        ]);
+        const noFilter = new FArray(new Int32Array(binCount), [binCount]);
+
+        const column = this.data.getChild(dim.name)!;
+
+        // add data to aggregation matrix
+        for (let i = 0; i < this.data.numRows; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.get(i)) {
+            continue;
+          }
+
+          const key = bin(column.get(i)!);
+          const keyActive = binActive(activeCol.get(i)!) + 1;
+          if (0 <= key && key < binCount) {
+            if (0 <= keyActive && keyActive < numPixels) {
+              filter.increment(keyActive, key);
+            }
+            noFilter.increment(key);
+          }
+        }
+
+        for (
+          let passiveBinIndex = 0;
+          passiveBinIndex < filter.shape[1];
+          passiveBinIndex++
+        ) {
+          // sum across column (passive bin aggregate)
+          filter.slice(null, passiveBinIndex).cumulativeSum();
+        }
+
+        cubes.set(view, {
+          noFilter: noFilter.ndarray,
+          filter: filter.ndarray,
+        });
+      }
     });
 
-    // iterate over each passive view
-    // 1.
-    return {} as FalconIndex;
+    return cubes;
   }
 
   /**
@@ -177,12 +288,12 @@ export class ArrowDB implements FalconDB {
  * given an arrow column vector, create a filter mask
  *
  * @note uses bitmask to reduce space and allow for potential computer optimizations
- * @note should keep => true corresponds to 1 and otherwise 0
+ * @note should filter => true corresponds to filter out and false keeps
  * @returns a bitmask that indicates if the values should be included (1) or not (0)
  */
 function arrowFilterMask<T>(
   column: Vector,
-  shouldKeep: (rowValue: T) => boolean
+  shouldFilter: (rowValue: T) => boolean
 ) {
   const bitmask = new BitSet(column.length);
 
@@ -190,12 +301,12 @@ function arrowFilterMask<T>(
    * iterate each row value in the column and decide if we should
    * keep it or not
    *
-   * bit 1 indicates keep
-   * bit 0 indicates remove
+   * bit 1 indicates filter
+   * bit 0 indicates keep
    */
   for (let i = 0; i < column.length; i++) {
     const rowValue: T = column.get(i)!;
-    if (shouldKeep(rowValue)) {
+    if (shouldFilter(rowValue)) {
       bitmask.set(i, true);
     }
   }

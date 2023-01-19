@@ -1,4 +1,5 @@
 import ndarray from "ndarray";
+import prefixSum from "ndarray-prefix-sum";
 import type { NdArray } from "ndarray";
 import ops from "ndarray-ops";
 
@@ -84,5 +85,21 @@ export class FArray {
     const out = new FArray(new Int32Array(this.size), this.shape);
     ops.sub(out.ndarray, this.ndarray, other.ndarray);
     return out;
+  }
+
+  /**
+   * slice by changing the shape, offset, or stride
+   * no new memory created
+   */
+  slice(...indices: (number | null)[]) {
+    const sliced = this.ndarray.pick(...indices);
+    return new FArray(this.data, sliced.shape, sliced.stride, sliced.offset);
+  }
+
+  /**
+   * prefix sum across and up
+   */
+  cumulativeSum() {
+    prefixSum(this.ndarray);
   }
 }
