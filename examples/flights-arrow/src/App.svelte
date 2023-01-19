@@ -69,7 +69,7 @@
 		const airTimeView = new View1D(falcon, dimension);
 
 		const oldHist1D = oldArrowDB.histogram(dimension);
-		const hist1D = arrowDB.loadAll1D(airTimeView);
+		const hist1D = arrowDB.countsView1D(airTimeView);
 
 		console.log({ airTimeView, oldHist1D, hist1D });
 	}

@@ -63,11 +63,12 @@ export class ArrowDB implements FalconDB {
    * Takes in the view and returns
    * the total counts for each bin in the ENTIRE arrow table
    *
+   * @todo pass in bins that are already created or something else to support categorical somehow?
    * @todo have parameter where you can pass the typed arrays as input
    * so we can allocate elsewhere and keep the memory instead of reallocating
    * @returns an array of counts for each bin
    */
-  loadAll1D(view: View1D, filters?: Filters): BinnedCounts {
+  countsView1D(view: View1D, filters?: Filters): BinnedCounts {
     // 1. decide which rows are filtered or not
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
@@ -103,15 +104,25 @@ export class ArrowDB implements FalconDB {
     };
   }
 
-  //@ts-ignore
-  loadIndex1D(
+  /**
+   * active view 1D compute the index which contains passive view
+   *
+   */
+  falconIndexView1D(
     activeView: View1D,
     passiveViews: View[],
-    filters?: Filters
+    filters: Filters
   ): FalconIndex {
-    activeView;
-    passiveViews;
-    filters;
+    const filterMasks = this.getFilterMasks(filters);
+
+    // iterate over the views and compute cube
+    const index: FalconIndex = new Map();
+    passiveViews.forEach((view) => {
+      console.log(view);
+    });
+
+    // iterate over each passive view
+    // 1.
     return {} as FalconIndex;
   }
 

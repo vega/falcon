@@ -36,16 +36,16 @@ export interface FalconDB {
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
    * like a histogram
    */
-  loadAll1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
+  countsView1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
 
   /**
-   * loads the ENTIRE (not filtered) counts of the 2-Dimensional joint binning
-   * like a heatmap
+   * loads falcon index that accumulates pixel counts over passive bins
+   * There mig
    */
-  loadIndex1D(
+  falconIndexView1D(
     activeView: View1D,
     passiveViews: View[],
-    filters?: Filters
+    filters: Filters
   ): FalconIndex;
 
   /**
