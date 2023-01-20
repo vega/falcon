@@ -1,5 +1,4 @@
 import { View0D, View1D, ViewCollection } from "./views";
-import { DatabasePort } from "./db/portOldDb";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { DataBase as OldDatabase } from "../old/db";
