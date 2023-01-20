@@ -21,3 +21,15 @@ yarn dev   # runs demo in browser
 A new browser tab should open with a demo that uses the`falcon` library.
 
 Changes made in the `falcon` package and svelte `examples` will hot reload the user interface.
+
+## Usage
+
+### Import
+
+```typescript
+import { Falcon, ArrowDB } from "falcon2";
+```
+
+...
+
+only support arrow format and continuos dimensions right now.
