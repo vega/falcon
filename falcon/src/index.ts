@@ -1,5 +1,5 @@
 // old
-export * as oldDb from "./old/db";
+export * as oldDbs from "./old/db";
 
 // new
 export * from "./core/db";

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Falcon, DuckDB } from "falcon2";
+	import { Falcon, oldDbs, DatabasePort } from "falcon2";
 	import type { View0DState, View1DState, View1D } from "falcon2";
 
 	import * as duckdb from "@duckdb/duckdb-wasm";
@@ -23,7 +23,11 @@
 		);
 
 		// falcon library
-		const falconDuckDB = new DuckDB(duckdbFlights, "flights");
+		// includes a port because haven't translated over duckdb yet to new library
+		// but I did write a wrapper
+		const falconDuckDB = new DatabasePort(
+			new oldDbs.DuckDB(duckdbFlights, "flights")
+		);
 		falcon = new Falcon(falconDuckDB);
 
 		// create views
