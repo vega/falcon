@@ -1,9 +1,8 @@
 {
-  "name": "falcon2-monorepo",
+  "name": "falcon-monorepo",
   "version": "0.0.0",
   "private": true,
-  "description": "Houses the package and examples for falcon2",
-  "main": "index.js",
+  "description": "Falcon package and examples of cross-filtering",
   "repository": "git+https://github.com/cmudig/falcon.git",
   "author": "xnought <bertuccd@oregonstate.edu>",
   "license": "ISC",
@@ -12,22 +11,20 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
-    "start:flights": "yarn workspace arrow-flights dev --open",
-    "jest": "NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "test": "yarn jest",
+    "start:flights-arrow": "yarn workspace flights-arrow dev --open",
+    "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
+    "dev": "yarn start:flights-arrow",
     "build": "yarn workspace falcon2 build",
-    "format": "yarn workspace falcon2 format"
+    "format": "yarn workspace falcon2 format",
+    "test": "yarn workspace falcon2 test"
   },
-  "devDependencies": {
-    "jest": "^29.3.1",
-    "ts-jest": "^29.0.3",
-    "typescript": "^4.9.4"
-  },
+  "devDependencies": {},
   "directories": {
-    "examples": "./examples/*"
+    "examples": "./examples/*",
+    "falcon2": "./falcon"
   },
   "workspaces": [
-    "./falcon2",
-    "./examples/*"
+    "falcon",
+    "examples/*"
   ]
 }

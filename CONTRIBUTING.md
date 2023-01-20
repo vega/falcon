@@ -10,7 +10,7 @@ Thank you for your interest in contributing! This file should help you started.
 -   [ ] Write tests and performance benchmarks
 -   [ ] Refactor and revise API and code (move to stdlib.js arrays too)
 -   [ ] Add categorical data support
--   [ ] Create documentation for the falcon2 API
+-   [ ] Create documentation for the falcon API
 -   [ ] Launch v1.0.0 to the public
 
 ## Getting Started
@@ -25,13 +25,13 @@ To install all packages in the workspace, run
 yarn
 ```
 
-## Running the 10k flights example with Falcon2
+## Running the 10k flights example with Falcon
 
 ```bash
 yarn start:flights
 ```
 
-starts the svelte app that imports `falcon2/src` typescript files. The demo doesn't actually use the compiled javascript build.
+starts the svelte app that imports `falcon/src` typescript files. The demo doesn't actually use the compiled javascript build.
 
 This is because vite allows us to have fast development with hot reloading whenever changes are made directly in the typescript files instead of rebuilding every time.
 
@@ -39,7 +39,7 @@ If this example is deployed, we'll need to use the build version instead.
 
 ## Changing the library
 
-The library lives in `falcon2`
+The library lives in `falcon`
 
 Changes there will be reflected in the example app if its running.
 
@@ -49,4 +49,4 @@ For production, you can build this library with
 yarn build
 ```
 
-and this will create a build in `falcon2/build` (this houses the compiled js from the ts)
+and this will create a build in `falcon/build` (this houses the compiled js from the ts)
