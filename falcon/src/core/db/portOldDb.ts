@@ -7,10 +7,12 @@ import type {
   Filters,
   BinnedCounts,
 } from "./db";
+import { FalconArray } from "../falconArray";
 import type { Interval } from "../util";
 import type { View0D as OldView0D, View1D as OldView1D } from "../../old/api";
 import type { Hist, Hists } from "../../old/db";
 import type { DataBase as OldDataBase } from "../../old/db";
+import { NdArray } from "ndarray";
 
 export class DatabasePort implements FalconDB {
   private db: OldDataBase<string, string>;
@@ -67,10 +69,15 @@ export class DatabasePort implements FalconDB {
   }
 }
 
+function oldToNewArray(old: NdArray): FalconArray {
+  //@ts-ignore
+  const newHists = new FalconArray(old.data, old.shape, old.stride, old.offset);
+  return newHists;
+}
 function oldToNewHistsInterface(index: Hists) {
   const newFormat = {
-    filter: index.hists,
-    noFilter: index.noBrush,
+    filter: oldToNewArray(index.hists),
+    noFilter: oldToNewArray(index.noBrush),
   } as FalconCube;
 
   return newFormat;
@@ -78,8 +85,8 @@ function oldToNewHistsInterface(index: Hists) {
 
 function oldToNewHistInterface(index: Hist) {
   const newFormat = {
-    filter: index.hist,
-    noFilter: index.noBrush,
+    filter: oldToNewArray(index.hist),
+    noFilter: oldToNewArray(index.noBrush),
   } as BinnedCounts;
 
   return newFormat;

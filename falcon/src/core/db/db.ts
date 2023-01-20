@@ -1,17 +1,15 @@
-import { NdArray } from "ndarray";
-
+import type { FalconArray } from "../falconArray";
 import type { View, View1D } from "../views";
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
 
-export type FalconArray = NdArray;
 export interface BinnedCounts {
-  filter: NdArray;
-  noFilter: NdArray;
+  filter: FalconArray;
+  noFilter: FalconArray;
 }
 export interface FalconCube {
-  filter: NdArray;
-  noFilter: NdArray;
+  filter: FalconArray;
+  noFilter: FalconArray;
 }
 export type SyncIndex = Map<View, FalconCube>;
 export type AsyncIndex = Map<View, Promise<FalconCube>>;

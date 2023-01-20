@@ -20,7 +20,7 @@ export type TypedArray =
  *
  * @resource [PyTorch example of shape, stride, offset](https://www.youtube.com/watch?v=85xBkapaZts)
  */
-export class FArray {
+export class FalconArray {
   ndarray: NdArray;
   data: TypedArray;
 
@@ -81,8 +81,8 @@ export class FArray {
   /**
    * this - other = new memory
    */
-  sub(other: FArray) {
-    const out = new FArray(new Int32Array(this.size), this.shape);
+  sub(other: FalconArray) {
+    const out = new FalconArray(new Int32Array(this.size), this.shape);
     ops.sub(out.ndarray, this.ndarray, other.ndarray);
     return out;
   }
@@ -93,7 +93,12 @@ export class FArray {
    */
   slice(...indices: (number | null)[]) {
     const sliced = this.ndarray.pick(...indices);
-    return new FArray(this.data, sliced.shape, sliced.stride, sliced.offset);
+    return new FalconArray(
+      this.data,
+      sliced.shape,
+      sliced.stride,
+      sliced.offset
+    );
   }
 
   /**

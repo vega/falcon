@@ -1,10 +1,6 @@
-import ndarray from "ndarray";
-import ops from "ndarray-ops";
 import { bin as vegaBin } from "vega-statistics";
 import { scaleTime } from "d3";
-import type { NdArray } from "ndarray";
 import type { Dimension } from "./dimension";
-import { HIST_TYPE } from "./consts";
 
 /**
  * UTILITY TYPES
@@ -169,12 +165,6 @@ export function excludeMap<K, V>(map: Map<K, V>, ...exclude: K[]) {
   return new Map<K, V>(
     Array.from(map.entries()).filter(([key, _]) => !exclude.includes(key))
   );
-}
-
-export function sub(a: NdArray, b: NdArray) {
-  const out = ndarray(new HIST_TYPE(a.size), a.shape);
-  ops.sub(out, b, a);
-  return out;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { BitSet, union } from "../bitset";
 import { BinnedCounts, FalconDB, SyncIndex } from "./db";
-import { FArray } from "../falconArray/falconArray";
+import { FalconArray } from "../falconArray";
 import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
 import { View0D, View1D } from "../views";
 import type { AsyncOrSync, Filters } from "./db";
@@ -81,8 +81,10 @@ export class ArrowDB implements FalconDB {
 
     // 3. allocate memory (perhaps this should not be done every time)
     // and instead pass by reference and control this in the background
-    const noFilter = new FArray(new Int32Array(binCount));
-    const filter = filterMask ? new FArray(new Int32Array(binCount)) : noFilter;
+    const noFilter = new FalconArray(new Int32Array(binCount));
+    const filter = filterMask
+      ? new FalconArray(new Int32Array(binCount))
+      : noFilter;
 
     // 4. iterate over the row values and determine which bin to increment
     const column = this.data.getChild(view.dimension.name)!;
@@ -99,8 +101,8 @@ export class ArrowDB implements FalconDB {
 
     // 5. return the results
     return {
-      noFilter: noFilter.ndarray,
-      filter: filter.ndarray,
+      noFilter,
+      filter,
     };
   }
 
@@ -137,8 +139,8 @@ export class ArrowDB implements FalconDB {
 
       // 2.2 this count counts for each pixel wise bin
       if (view instanceof View0D) {
-        const filter = new FArray(new Float32Array(numPixels));
-        const noFilter = new FArray(new Int32Array(1), [1]);
+        const filter = new FalconArray(new Float32Array(numPixels));
+        const noFilter = new FalconArray(new Int32Array(1), [1]);
 
         // add data to aggregation matrix
         for (let i = 0; i < this.data.numRows; i++) {
@@ -158,8 +160,8 @@ export class ArrowDB implements FalconDB {
         filter.cumulativeSum();
 
         cubes.set(view, {
-          noFilter: noFilter.ndarray,
-          filter: filter.ndarray,
+          noFilter,
+          filter,
         });
       } else if (view instanceof View1D) {
         // bins for passive view that we accumulate across
@@ -192,12 +194,17 @@ export class ArrowDB implements FalconDB {
          * These arrays below are the ones in the comment but transpose
          * Cols -> passive bins
          * Rows -> active pixel bins
+         *
+         * ---------- is actually each bin
+         * |
+         * |
+         * is each active pixel
          */
-        const filter = new FArray(new Float32Array(numPixels * binCount), [
+        const filter = new FalconArray(new Float32Array(numPixels * binCount), [
           numPixels,
           binCount,
         ]);
-        const noFilter = new FArray(new Int32Array(binCount), [binCount]);
+        const noFilter = new FalconArray(new Int32Array(binCount), [binCount]);
 
         const column = this.data.getChild(dim.name)!;
 
@@ -228,8 +235,8 @@ export class ArrowDB implements FalconDB {
         }
 
         cubes.set(view, {
-          noFilter: noFilter.ndarray,
-          filter: filter.ndarray,
+          noFilter,
+          filter,
         });
       }
     });

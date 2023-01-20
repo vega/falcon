@@ -1,5 +1,5 @@
 import { ViewAbstract } from "./viewAbstract";
-import { sub, createBinConfig, readableBins, brushToPixelSpace } from "../util";
+import { createBinConfig, readableBins, brushToPixelSpace } from "../util";
 import type { Falcon } from "../falcon";
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
@@ -137,11 +137,11 @@ export class View1D extends ViewAbstract<View1DState> {
       this.state.filter = index.noFilter.data as Int32Array;
     } else {
       // select the columns and subtract them to get in between [A, B]
-      const A = index.filter.pick(pixels[0], null);
-      const B = index.filter.pick(pixels[1], null);
-      const result = sub(A, B);
+      const A = index.filter.slice(pixels[0], null);
+      const B = index.filter.slice(pixels[1], null);
+      const binCounts = B.sub(A);
 
-      this.state.filter = result.data;
+      this.state.filter = binCounts.data as Int32Array;
     }
 
     // signal user
