@@ -32,4 +32,4 @@ import { Falcon, ArrowDB } from "falcon2";
 
 ...
 
-only support arrow format and continuos dimensions right now.
+only support arrow format and continuous dimensions right now.
