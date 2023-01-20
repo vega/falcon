@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Falcon, ArrowDB } from "falcon2";
-	import * as dev from "../../../falcon/src/core/db/arrow";
 	import type { View0DState, View1DState, View1D, View0D } from "falcon2";
-	import type { Dimension } from "../../../falcon/src/core/dimension";
 
 	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
@@ -23,92 +21,7 @@
 	let falcon: Falcon;
 	onMount(async () => {
 		await flightsArrowExampleSetup();
-		// await test();
 	});
-
-	// async function test() {
-	// 	// load data
-	// 	const table = await loadArrowFile("data/flights-10k.arrow");
-	// 	const arrowDB = new dev.ArrowDB(table);
-	// 	const oldArrowDB = new ArrowDB(table);
-
-	// 	// console.log({ table, arrowDB, oldArrowDB });
-
-	// 	// view0D count / length
-	// 	const c = arrowDB.length();
-	// 	const oldC = oldArrowDB.length();
-
-	// 	// console.log({ c, oldC });
-
-	// 	// extent
-	// 	const dimension = {
-	// 		type: "continuous",
-	// 		name: "AIR_TIME",
-	// 		bins: 25,
-	// 		extent: [0, 500],
-	// 		resolution: 400,
-	// 		binConfig: {
-	// 			start: 0,
-	// 			stop: 500,
-	// 			step: 20,
-	// 		},
-	// 	} as Dimension;
-
-	// 	const extent = arrowDB.extent(dimension);
-	// 	const oldExtent = oldArrowDB.getDimensionExtent(dimension);
-
-	// 	// console.log({ extent, oldExtent });
-
-	// 	// count 1D
-	// 	const f = {} as Falcon;
-	// 	const airTimeView = new View1D(f, dimension);
-
-	// 	const oldHist1D = oldArrowDB.histogram(dimension);
-	// 	const hist1D = arrowDB.histogramView1D(airTimeView);
-
-	// 	// console.log({ airTimeView, oldHist1D, hist1D });
-
-	// 	/**
-	// 	 * index testing
-	// 	 */
-	// 	const falcon = new Falcon({
-	// 		db: arrowDB,
-	// 	});
-	// 	const oldFalcon = new Falcon({
-	// 		oldDb: new ArrowDB(table),
-	// 	});
-	// 	const dimA: Dimension = {
-	// 		type: "continuous",
-	// 		name: "AIR_TIME",
-	// 		bins: 25,
-	// 		extent: [0, 500],
-	// 		resolution: 400,
-	// 	};
-	// 	const oldViewA = oldFalcon.view1D(dimA);
-	// 	const oldCount = oldFalcon.view0D();
-
-	// 	const viewA = falcon.view1D(dimA);
-	// 	const count = falcon.view0D();
-
-	// 	oldViewA.onChange((s) => {
-	// 		console.log("old", s);
-	// 	});
-	// 	oldCount.onChange((s) => {
-	// 		console.log("old", s);
-	// 	});
-	// 	viewA.onChange((s) => {
-	// 		console.log("new", s);
-	// 	});
-	// 	count.onChange((s) => {
-	// 		console.log("new", s);
-	// 	});
-
-	// 	oldFalcon.init();
-	// 	falcon.init();
-
-	// 	oldViewA.add([50, 200]);
-	// 	viewA.add([50, 200]);
-	// }
 
 	async function loadArrowFile(url: string) {
 		const data = await fetch(url);
@@ -116,14 +29,12 @@
 		const table = tableFromIPC(buffer);
 		return table;
 	}
+
 	async function flightsArrowExampleSetup() {
 		const table = await loadArrowFile("data/flights-1m.arrow");
 
 		// falcon library
-		const falconArrow = new dev.ArrowDB(table);
-		falcon = new Falcon({
-			db: falconArrow,
-		});
+		falcon = new Falcon(new ArrowDB(table));
 
 		// create views and save them
 		// you directly interact with these objects
