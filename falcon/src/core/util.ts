@@ -188,3 +188,7 @@ export function binNumberFunctionBins(
 export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
   return (stop - start) / bins;
 }
+
+export function compactQuery(str: string): string {
+  return str.replace(/\s+/g, " ").trim();
+}

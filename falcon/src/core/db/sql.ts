@@ -11,16 +11,17 @@ import {
 import type { View } from "../views";
 
 export type SQLNameMap = Map<string, string>;
+export type SQLQuery = string;
 
 export abstract class SQLDB implements FalconDB {
   table: string;
-  nameMap: SQLNameMap;
-  constructor(table: string, nameMap: SQLNameMap) {
+  nameMap: SQLNameMap | undefined;
+  constructor(table: string, nameMap?: SQLNameMap) {
     this.table = table;
     this.nameMap = nameMap;
   }
 
-  protected abstract query(q: string): Promise<Iterable<Record<string, any>>>;
+  protected abstract query(q: SQLQuery): Promise<Iterable<Record<string, any>>>;
 
   extent(dimension: RangeDimension): AsyncOrSync<Interval<number>> {
     return {} as AsyncOrSync<Interval<number>>;
