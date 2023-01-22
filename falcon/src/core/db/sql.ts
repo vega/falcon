@@ -23,21 +23,25 @@ export abstract class SQLDB implements FalconDB {
 
   protected abstract query(q: SQLQuery): Promise<Iterable<Record<string, any>>>;
 
+  private values(result: Iterable<Record<string, any>>) {
+    return result[Symbol.iterator]().next().value;
+  }
+
   async extent(dimension: RangeDimension) {
     const field = dimension.name;
     const result = await this.query(
       `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max FROM ${this.table}`
     );
-    const value = result[Symbol.iterator]().next().value;
-    return [value["_min"], value["_max"]] as Interval<number>;
+    const { _min, _max } = this.values(result);
+    return [_min, _max] as Interval<number>;
   }
 
   async length() {
     const result = await this.query(
-      `SELECT count(*) AS length FROM ${this.table}`
+      `SELECT count(*) AS _count FROM ${this.table}`
     );
-    const value = result[Symbol.iterator]().next().value;
-    return value["length"];
+    const { _count } = this.values(result);
+    return _count;
   }
 
   histogramView1D(
