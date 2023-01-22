@@ -15,8 +15,16 @@
 	let falcon: Falcon;
 	onMount(async () => {
 		const flights = fullUrl("data/flights-1m.parquet");
-		const db = await DuckDB.fromParquetURL(flights);
-		falcon = new Falcon(db);
+		const db = await DuckDB.fromParquetURL(flights, "flights");
+
+		const count = await db.length();
+		const extent = await db.extent({
+			type: "continuous",
+			name: "AIR_TIME",
+			bins: 25,
+			resolution: 400,
+		});
+		console.log({ count, extent });
 	});
 
 	function fullUrl(filename: string) {
