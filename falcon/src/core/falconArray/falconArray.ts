@@ -70,12 +70,8 @@ export class FalconArray {
     return this.ndarray.set(...indices);
   }
 
-  decrement(...indices: number[]) {
-    this.set(...indices, this.get(...indices) - 1);
-  }
-
-  increment(...indices: number[]) {
-    this.set(...indices, this.get(...indices) + 1);
+  increment(index: number[], incrementBy = 1) {
+    this.set(...index, this.get(...index) + incrementBy);
   }
 
   /**

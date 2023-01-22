@@ -92,9 +92,9 @@ export class ArrowDB implements FalconDB {
       const value: number = column.get(i)!;
       const binLocation = bin(value);
       if (0 <= binLocation && binLocation < binCount) {
-        noFilter.increment(binLocation);
+        noFilter.increment([binLocation]);
         if (filterMask && !filterMask.get(i)) {
-          filter.increment(binLocation);
+          filter.increment([binLocation]);
         }
       }
     }
@@ -151,9 +151,9 @@ export class ArrowDB implements FalconDB {
 
           const keyActive = binActive(activeCol.get(i)!) + 1;
           if (0 <= keyActive && keyActive < numPixels) {
-            filter.increment(keyActive);
+            filter.increment([keyActive]);
           }
-          noFilter.increment(0);
+          noFilter.increment([0]);
         }
 
         // falcon magic sauce
@@ -219,9 +219,9 @@ export class ArrowDB implements FalconDB {
           const keyActive = binActive(activeCol.get(i)!) + 1;
           if (0 <= key && key < binCount) {
             if (0 <= keyActive && keyActive < numPixels) {
-              filter.increment(keyActive, key);
+              filter.increment([keyActive, key]);
             }
-            noFilter.increment(key);
+            noFilter.increment([key]);
           }
         }
 
