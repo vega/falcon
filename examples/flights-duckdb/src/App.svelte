@@ -16,6 +16,7 @@
 	onMount(async () => {
 		const flights = fullUrl("data/flights-1m.parquet");
 		const db = await DuckDB.fromParquetURL(flights, "flights");
+		const falcon = new Falcon(db);
 
 		const count = await db.length();
 		const extent = await db.extent({
@@ -25,6 +26,19 @@
 			resolution: 400,
 		});
 		console.log({ count, extent });
+
+		// histogram
+		const airTimeView = falcon.view1D({
+			type: "continuous",
+			name: "AIR_TIME",
+			bins: 25,
+			resolution: 400,
+		});
+
+		airTimeView.onChange((state) => {
+			console.log(state);
+		});
+		await falcon.fetchInitialViewCounts();
 	});
 
 	function fullUrl(filename: string) {
