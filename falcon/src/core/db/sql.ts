@@ -1,13 +1,18 @@
 import { Dimension, RangeDimension } from "../dimension";
 import { FalconArray } from "../falconArray";
-import { numBins } from "../util";
-import { View1D } from "../views";
-import { FalconDB, Filters, FalconIndex } from "./db";
+import { numBins, stepSize } from "../util";
+import { View0D, View1D } from "../views";
+import { FalconDB, Filters, AsyncIndex } from "./db";
 import type { BinConfig, Interval } from "../util";
 import type { View } from "../views";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
+export interface SQLBin {
+  select: string;
+  where: string;
+}
+export type SQLFilters = Map<Dimension, string>;
 
 export abstract class SQLDB implements FalconDB {
   table: string;
@@ -45,7 +50,7 @@ export abstract class SQLDB implements FalconDB {
   }
 
   private getWhereClauses(brushes: Filters) {
-    const whereClauses = new Map<Dimension, string>();
+    const whereClauses: SQLFilters = new Map();
 
     for (const [dimension, extent] of brushes) {
       const field = this.getName(dimension);
@@ -56,6 +61,17 @@ export abstract class SQLDB implements FalconDB {
     }
 
     return whereClauses;
+  }
+
+  private binSQLPixel(
+    dimension: Dimension,
+    binConfig: BinConfig,
+    pixels?: number
+  ) {
+    const step =
+      pixels !== undefined ? stepSize(binConfig, pixels) : binConfig.step;
+    const start = binConfig.start;
+    return this.binSQL(dimension, { ...binConfig, start, step });
   }
 
   async extent(dimension: RangeDimension) {
@@ -124,7 +140,119 @@ export abstract class SQLDB implements FalconDB {
     activeView: View1D,
     passiveViews: View[],
     filters: Filters
-  ): FalconIndex {
-    return {} as FalconIndex;
+  ) {
+    const t0 = performance.now();
+
+    const sqlFilters = this.getWhereClauses(filters);
+    const cubes: AsyncIndex = new Map();
+
+    // 1. active bin for each pixel
+    const binActive = this.binSQLPixel(
+      activeView.dimension,
+      activeView.dimension.binConfig!,
+      activeView.dimension.resolution
+    );
+    const numPixels = activeView.dimension.resolution + 1; // extending by one pixel so we can compute the right diff later
+
+    // 2. iterate through passive views and compute cubes
+    const promises: Promise<any>[] = [];
+    passiveViews.forEach((view) => {
+      const cube = this.cubeSlice1D(view, sqlFilters, binActive, numPixels);
+      promises.push(cube);
+      cubes.set(view, cube);
+    });
+
+    Promise.all(promises).then(() => {
+      console.info(`Build index: ${performance.now() - t0}ms`);
+    });
+
+    return cubes;
+  }
+
+  async cubeSlice1D(
+    view: View,
+    sqlFilters: SQLFilters,
+    binActive: SQLBin,
+    numPixels: number
+  ) {
+    let noFilter: FalconArray;
+    let filter: FalconArray;
+
+    const relevantFilters = new Map(sqlFilters);
+    if (view instanceof View0D) {
+      // use all filters
+    } else if (view instanceof View1D) {
+      // remove itself from filtering
+      relevantFilters.delete(view.dimension);
+    }
+
+    const where = [...relevantFilters.values()].join(" AND ");
+    let query: string;
+    const select = `CASE WHEN ${binActive.where} 
+     THEN ${binActive.select}
+     ELSE -1 END AS "keyActive",
+     count(*) AS cnt`;
+
+    if (view instanceof View0D) {
+      filter = new FalconArray(new Float32Array(numPixels));
+      noFilter = new FalconArray(new Int32Array(1), [1]);
+
+      query = `SELECT ${select}
+         FROM ${this.table} 
+         ${where ? `WHERE ${where}` : ""} 
+         GROUP BY "keyActive"`;
+    } else if (view instanceof View1D) {
+      const binConfig = view.dimension.binConfig!;
+      const bin = this.binSQL(view.dimension, binConfig);
+      const binCount = numBins(binConfig);
+
+      filter = new FalconArray(new Float32Array(numPixels * binCount), [
+        numPixels,
+        binCount,
+      ]);
+      noFilter = new FalconArray(new Int32Array(binCount), [binCount]);
+
+      query = `SELECT ${select}, 
+       ${bin.select} AS key 
+       FROM ${this.table} 
+       WHERE ${bin.where} ${where ? `AND ${where}` : ""} 
+       GROUP BY "keyActive", key`;
+    } else {
+      throw Error("only 0D and 1D views");
+    }
+
+    const result = await this.query(query);
+
+    if (view instanceof View0D) {
+      for (const { keyActive, cnt } of result) {
+        if (keyActive >= 0) {
+          filter.set(keyActive, cnt);
+        }
+        noFilter.increment([0], cnt);
+      }
+
+      filter.cumulativeSum();
+    } else if (view instanceof View1D) {
+      for (const { keyActive, key, cnt } of result) {
+        if (keyActive >= 0) {
+          filter.set(keyActive, key, cnt);
+        }
+        noFilter.increment([key], cnt);
+      }
+
+      // compute cumulative sums
+      for (
+        let passiveBinIndex = 0;
+        passiveBinIndex < filter.shape[1];
+        passiveBinIndex++
+      ) {
+        // sum across column (passive bin aggregate)
+        filter.slice(null, passiveBinIndex).cumulativeSum();
+      }
+    } else {
+      throw Error("only 0D and 1D views");
+    }
+
+    return { filter, noFilter };
   }
 }
