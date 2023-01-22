@@ -61,7 +61,8 @@ export abstract class SQLDB implements FalconDB {
   async extent(dimension: RangeDimension) {
     const field = this.getName(dimension);
     const result = await this.query(
-      `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max FROM ${this.table}`
+      `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
+       FROM ${this.table}`
     );
     const { _min, _max } = this.values(result);
     return [_min, _max] as Interval<number>;
@@ -69,7 +70,8 @@ export abstract class SQLDB implements FalconDB {
 
   async length() {
     const result = await this.query(
-      `SELECT count(*) AS _count FROM ${this.table}`
+      `SELECT count(*) AS _count
+       FROM ${this.table}`
     );
     const { _count } = this.values(result);
     return _count;
@@ -90,7 +92,11 @@ export abstract class SQLDB implements FalconDB {
 
     // 3. query and store if we have no filters
     const result = await this.query(
-      `SELECT ${bSql.select} AS binIndex, count(*) AS binCount FROM ${this.table} WHERE ${bSql.where} GROUP BY binIndex`
+      `SELECT ${bSql.select}
+       AS binIndex, count(*) AS binCount
+       FROM ${this.table} 
+       WHERE ${bSql.where} 
+       GROUP BY binIndex`
     );
     for (const { binIndex, binCount } of result) {
       noFilter.set(binIndex, binCount);
@@ -100,7 +106,11 @@ export abstract class SQLDB implements FalconDB {
     if (hasFilters) {
       const where = [...this.getWhereClauses(filters).values()].join(" AND ");
       const result = await this.query(
-        `SELECT ${bSql.select} AS binIndex, count(*) AS binCount FROM ${this.table} WHERE ${bSql.where} AND ${where} GROUP BY key`
+        `SELECT ${bSql.select}
+         AS binIndex, count(*) AS binCount
+         FROM ${this.table}
+         WHERE ${bSql.where} AND ${where} 
+         GROUP BY key`
       );
       for (const { binIndex, binCount } of result) {
         filter.set(binIndex, binCount);
