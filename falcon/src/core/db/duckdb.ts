@@ -46,9 +46,9 @@ export class DuckDB extends SQLDB {
   }
 
   /**
-   * creates new duckdb falcon db from the parquet file
+   * creates new FalconDB instance from this parquet file
    *
-   * @returns a db that can be passed into the Falcon library
+   * @returns a new FalconDB
    */
   static async fromParquetURL(
     url: string,

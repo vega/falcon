@@ -1,7 +1,7 @@
 import { Table } from "apache-arrow";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
-import type { SQLNameMap } from "./sql";
+import type { SQLNameMap, SQLQuery } from "./sql";
 
 export class HTTPDB extends SQLDB {
   public readonly blocking: boolean = false;
@@ -15,7 +15,7 @@ export class HTTPDB extends SQLDB {
     super(table, nameMap);
   }
 
-  protected async query(q: string): Promise<Table> {
+  protected async query(q: SQLQuery): Promise<Table> {
     const t0 = performance.now();
 
     //@ts-ignore
