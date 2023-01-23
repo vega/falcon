@@ -100,11 +100,9 @@ export abstract class SQLDB implements FalconDB {
     const bSql = this.binSQL(view.dimension, bin);
 
     // 2. allocate memory
-    const noFilter = new FalconArray(new Int32Array(binCount));
+    const noFilter = FalconArray.allocCounts(binCount);
     const hasFilters = filters && filters.size > 0;
-    const filter = hasFilters
-      ? new FalconArray(new Int32Array(binCount))
-      : noFilter;
+    const filter = hasFilters ? FalconArray.allocCounts(binCount) : noFilter;
 
     // 3. query and store if we have no filters
     const result = await this.query(
@@ -194,8 +192,8 @@ export abstract class SQLDB implements FalconDB {
      count(*) AS cnt`;
 
     if (view instanceof View0D) {
-      filter = new FalconArray(new Float32Array(numPixels));
-      noFilter = new FalconArray(new Int32Array(1), [1]);
+      filter = FalconArray.allocCumulative(numPixels);
+      noFilter = FalconArray.allocCounts(1, [1]);
 
       query = `SELECT ${select}
          FROM ${this.table} 
@@ -206,11 +204,11 @@ export abstract class SQLDB implements FalconDB {
       const bin = this.binSQL(view.dimension, binConfig);
       const binCount = numBins(binConfig);
 
-      filter = new FalconArray(new Float32Array(numPixels * binCount), [
+      filter = FalconArray.allocCumulative(numPixels * binCount, [
         numPixels,
         binCount,
       ]);
-      noFilter = new FalconArray(new Int32Array(binCount), [binCount]);
+      noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
       query = `SELECT ${select}, 
        ${bin.select} AS key 
