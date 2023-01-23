@@ -45,44 +45,45 @@ export class FalconArray {
     this.ndarray = ndarray(data, shape, stride, offset);
   }
 
+  /**
+   * these GETS AND SETS can be replaced with
+   * variables on the object when we phase out ndarray
+   */
   get shape() {
     return this.ndarray.shape;
   }
-
   get offset() {
     return this.ndarray.offset;
   }
-
   get stride() {
     return this.ndarray.stride;
   }
-
   get size() {
     return this.ndarray.size;
   }
-
   set shape(value: number[]) {
     this.ndarray.shape = value;
   }
-
   set offset(value: number) {
     this.ndarray.offset = value;
   }
-
   set stride(value: number[]) {
     this.ndarray.stride = value;
   }
-
   get(...indices: number[]) {
     return this.ndarray.get(...indices);
   }
-
   set(...indices: number[]) {
     return this.ndarray.set(...indices);
   }
 
+  /**
+   * increments the location defined by index by
+   * whatever you want!
+   */
   increment(index: number[], incrementBy = 1) {
     this.set(...index, this.get(...index) + incrementBy);
+    return this;
   }
 
   /**
@@ -113,7 +114,6 @@ export class FalconArray {
    */
   cumulativeSum() {
     prefixSum(this.ndarray);
-
     return this;
   }
 
