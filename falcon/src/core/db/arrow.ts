@@ -81,10 +81,8 @@ export class ArrowDB implements FalconDB {
 
     // 3. allocate memory (perhaps this should not be done every time)
     // and instead pass by reference and control this in the background
-    const noFilter = new FalconArray(new Int32Array(binCount));
-    const filter = filterMask
-      ? new FalconArray(new Int32Array(binCount))
-      : noFilter;
+    const noFilter = FalconArray.allocCounts(binCount);
+    const filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
 
     // 4. iterate over the row values and determine which bin to increment
     const column = this.data.getChild(view.dimension.name)!;
@@ -115,6 +113,9 @@ export class ArrowDB implements FalconDB {
     passiveViews: View[],
     filters: Filters
   ) {
+    let noFilter: FalconArray;
+    let filter: FalconArray;
+
     const filterMasks = this.getFilterMasks(filters);
     const cubes: SyncIndex = new Map();
 
@@ -139,8 +140,8 @@ export class ArrowDB implements FalconDB {
 
       // 2.2 this count counts for each pixel wise bin
       if (view instanceof View0D) {
-        const filter = new FalconArray(new Float32Array(numPixels));
-        const noFilter = new FalconArray(new Int32Array(1), [1]);
+        filter = FalconArray.allocCumulative(numPixels);
+        noFilter = FalconArray.allocCounts(1, [1]);
 
         // add data to aggregation matrix
         for (let i = 0; i < this.data.numRows; i++) {
@@ -170,41 +171,11 @@ export class ArrowDB implements FalconDB {
         const bin = binNumberFunction(binConfig);
         const binCount = numBins(binConfig);
 
-        /**
-         * ---------------------------- active pixels width
-         * |
-         * |
-         * |
-         * |
-         * vertical corresponds to each passive bin
-         *
-         * The name of the game is to for each pixel bin [interval]
-         * [-]---------------------------
-         * |||||||
-         * |||
-         * |
-         * |
-         *
-         * count the passive bins just for that small interval
-         *
-         * repeat this to create the aggregating matrix
-         * then commutative sum across to create falcon index
-         *
-         * ACTUALLY
-         * These arrays below are the ones in the comment but transpose
-         * Cols -> passive bins
-         * Rows -> active pixel bins
-         *
-         * ---------- is actually each bin
-         * |
-         * |
-         * is each active pixel
-         */
-        const filter = new FalconArray(new Float32Array(numPixels * binCount), [
+        filter = FalconArray.allocCumulative(numPixels * binCount, [
           numPixels,
           binCount,
         ]);
-        const noFilter = new FalconArray(new Int32Array(binCount), [binCount]);
+        noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
         const column = this.data.getChild(dim.name)!;
 
@@ -233,12 +204,14 @@ export class ArrowDB implements FalconDB {
           // sum across column (passive bin aggregate)
           filter.slice(null, passiveBinIndex).cumulativeSum();
         }
-
-        cubes.set(view, {
-          noFilter,
-          filter,
-        });
+      } else {
+        throw Error("only 0D and 1D views");
       }
+
+      cubes.set(view, {
+        noFilter,
+        filter,
+      });
     });
 
     return cubes;
