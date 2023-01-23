@@ -3,6 +3,7 @@ import prefixSum from "ndarray-prefix-sum";
 import type { NdArray } from "ndarray";
 import ops from "ndarray-ops";
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 export type TypedArray =
   | Int8Array
   | Int16Array
@@ -13,7 +14,6 @@ export type TypedArray =
   | Uint32Array
   | Float32Array
   | Float64Array;
-
 export type TypedArrayConstructor =
   | Int8ArrayConstructor
   | Int16ArrayConstructor
