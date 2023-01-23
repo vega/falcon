@@ -1,7 +1,7 @@
-import type { FalconArray } from "../falconArray";
-import type { View, View1D } from "../views";
 import type { Dimension } from "../dimension";
 import type { Interval } from "../util";
+import type { FalconArray } from "../falconArray";
+import type { View, View1D } from "../views";
 
 export interface BinnedCounts {
   filter: FalconArray;
@@ -16,7 +16,6 @@ export type AsyncIndex = Map<View, Promise<FalconCube>>;
 export type FalconIndex = SyncIndex | AsyncIndex;
 export type AsyncOrSync<T> = Promise<T> | T;
 export type DimensionFilters = Map<string, Interval<number>>;
-
 export type Filter = Interval<number>;
 export type Filters = Map<Dimension, Filter>;
 
@@ -27,28 +26,37 @@ export interface FalconDB {
   /**
    * loads the ENTIRE (not filtered) length of the data
    * aka number of rows
+   *
+   * @returns the length as a number
    */
   length(): AsyncOrSync<number>;
 
   /**
+   * determines the min and max of a continuous numbers
+   * over the dimension
+   *
+   * @todo extend to categorical (get set of possible values)
+   * @returns the min max for continuos as interval
+   */
+  extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
+
+  /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
    * like a histogram
+   *
+   * @returns object with counts over bins
    */
   histogramView1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
 
   /**
    * loads falcon index that accumulates pixel counts over passive bins
-   * There mig
+   * more details in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)
+   *
+   * @returns index of passive views to falcon cubes
    */
   falconIndexView1D(
     activeView: View1D,
     passiveViews: View[],
     filters: Filters
   ): FalconIndex;
-
-  /**
-   * determines the min and max of a continuous numbers
-   * over the dimension
-   */
-  extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
 }

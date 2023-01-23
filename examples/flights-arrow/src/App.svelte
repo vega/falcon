@@ -66,7 +66,7 @@
 		});
 
 		// get initial counts
-		await falcon.init();
+		await falcon.fetchInitialViewCounts();
 	}
 </script>
 

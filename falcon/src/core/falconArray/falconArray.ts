@@ -3,6 +3,7 @@ import prefixSum from "ndarray-prefix-sum";
 import type { NdArray } from "ndarray";
 import ops from "ndarray-ops";
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 export type TypedArray =
   | Int8Array
   | Int16Array
@@ -13,6 +14,16 @@ export type TypedArray =
   | Uint32Array
   | Float32Array
   | Float64Array;
+export type TypedArrayConstructor =
+  | Int8ArrayConstructor
+  | Int16ArrayConstructor
+  | Int32ArrayConstructor
+  | Uint8ArrayConstructor
+  | Uint8ClampedArrayConstructor
+  | Uint16ArrayConstructor
+  | Uint32ArrayConstructor
+  | Float32ArrayConstructor
+  | Float64ArrayConstructor;
 
 /**
  * abstract away the NdArray reliance and can be swapped out
@@ -70,12 +81,8 @@ export class FalconArray {
     return this.ndarray.set(...indices);
   }
 
-  decrement(...indices: number[]) {
-    this.set(...indices, this.get(...indices) - 1);
-  }
-
-  increment(...indices: number[]) {
-    this.set(...indices, this.get(...indices) + 1);
+  increment(index: number[], incrementBy = 1) {
+    this.set(...index, this.get(...index) + incrementBy);
   }
 
   /**
@@ -106,5 +113,52 @@ export class FalconArray {
    */
   cumulativeSum() {
     prefixSum(this.ndarray);
+
+    return this;
+  }
+
+  /**
+   * @returns FalconArray with typed array
+   */
+  private static typedArray(
+    TypedArray: TypedArrayConstructor,
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    const newMemory = new TypedArray(length);
+    return new FalconArray(newMemory, shape, stride, offset);
+  }
+
+  /**
+   * Typed array to store and accumulate values
+   * Float for this, but consider other options
+   *
+   * Namely for the cubes
+   *
+   * @returns FalconArray with the given length allocated
+   */
+  static allocCumulative(
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    return this.typedArray(Float32Array, length, shape, stride, offset);
+  }
+
+  /**
+   * Typed array to store integer counts. Namely the histogram bins and counts.
+   *
+   * @returns FalconArray with the given length allocated
+   */
+  static allocCounts(
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    return this.typedArray(Uint32Array, length, shape, stride, offset);
   }
 }
