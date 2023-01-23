@@ -159,6 +159,6 @@ export class FalconArray {
     stride?: number[],
     offset?: number
   ) {
-    return this.typedArray(Int32Array, length, shape, stride, offset);
+    return this.typedArray(Uint32Array, length, shape, stride, offset);
   }
 }
