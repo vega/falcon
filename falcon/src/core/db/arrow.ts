@@ -33,20 +33,10 @@ export class ArrowDB implements FalconDB {
     this.data = data;
   }
 
-  /**
-   * Total number of rows in the arrow table
-   *
-   * @returns length: number of rows
-   */
   length(): AsyncOrSync<number> {
     return this.data.numRows;
   }
 
-  /**
-   *  extent given a dimension with continuous range of numbers
-   *
-   * @returns the min and max of a range of values for the dimension
-   */
   extent(dimension: Dimension): AsyncOrSync<Interval<number>> {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
@@ -59,15 +49,6 @@ export class ArrowDB implements FalconDB {
     }
   }
 
-  /**
-   * Takes in the view and returns
-   * the total counts for each bin in the ENTIRE arrow table
-   *
-   * @todo pass in bins that are already created or something else to support categorical somehow?
-   * @todo have parameter where you can pass the typed arrays as input
-   * so we can allocate elsewhere and keep the memory instead of reallocating
-   * @returns an array of counts for each bin
-   */
   histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
     // 1. decide which rows are filtered or not
     const filterMask: BitSet | null = union(
@@ -104,18 +85,11 @@ export class ArrowDB implements FalconDB {
     };
   }
 
-  /**
-   * active view 1D compute the index which contains passive view
-   *
-   */
   falconIndexView1D(
     activeView: View1D,
     passiveViews: View[],
     filters: Filters
   ) {
-    let noFilter: FalconArray;
-    let filter: FalconArray;
-
     const filterMasks = this.getFilterMasks(filters);
     const cubes: SyncIndex = new Map();
 
@@ -128,93 +102,115 @@ export class ArrowDB implements FalconDB {
 
     // 2. iterate over each passive view to compute cubes
     passiveViews.forEach((view) => {
-      // 2.1 only filter all other dimensions (filter on same dimension does not apply)
-      const relevantMasks = new Map(filterMasks);
-      if (view instanceof View0D) {
-        // use all filters
-      } else if (view instanceof View1D) {
-        // remove itself from filtering
-        relevantMasks.delete(view.dimension);
-      }
-      const filterMask = union(...relevantMasks.values());
-
-      // 2.2 this count counts for each pixel wise bin
-      if (view instanceof View0D) {
-        filter = FalconArray.allocCumulative(numPixels);
-        noFilter = FalconArray.allocCounts(1, [1]);
-
-        // add data to aggregation matrix
-        for (let i = 0; i < this.data.numRows; i++) {
-          // ignore filtered entries
-          if (filterMask && filterMask.get(i)) {
-            continue;
-          }
-
-          const keyActive = binActive(activeCol.get(i)!) + 1;
-          if (0 <= keyActive && keyActive < numPixels) {
-            filter.increment([keyActive]);
-          }
-          noFilter.increment([0]);
-        }
-
-        // falcon magic sauce
-        filter.cumulativeSum();
-
-        cubes.set(view, {
-          noFilter,
-          filter,
-        });
-      } else if (view instanceof View1D) {
-        // bins for passive view that we accumulate across
-        const dim = view.dimension;
-        const binConfig = dim.binConfig!;
-        const bin = binNumberFunction(binConfig);
-        const binCount = numBins(binConfig);
-
-        filter = FalconArray.allocCumulative(numPixels * binCount, [
-          numPixels,
-          binCount,
-        ]);
-        noFilter = FalconArray.allocCounts(binCount, [binCount]);
-
-        const column = this.data.getChild(dim.name)!;
-
-        // add data to aggregation matrix
-        for (let i = 0; i < this.data.numRows; i++) {
-          // ignore filtered entries
-          if (filterMask && filterMask.get(i)) {
-            continue;
-          }
-
-          const key = bin(column.get(i)!);
-          const keyActive = binActive(activeCol.get(i)!) + 1;
-          if (0 <= key && key < binCount) {
-            if (0 <= keyActive && keyActive < numPixels) {
-              filter.increment([keyActive, key]);
-            }
-            noFilter.increment([key]);
-          }
-        }
-
-        for (
-          let passiveBinIndex = 0;
-          passiveBinIndex < filter.shape[1];
-          passiveBinIndex++
-        ) {
-          // sum across column (passive bin aggregate)
-          filter.slice(null, passiveBinIndex).cumulativeSum();
-        }
-      } else {
-        throw Error("only 0D and 1D views");
-      }
-
-      cubes.set(view, {
-        noFilter,
-        filter,
-      });
+      const cube = this.cubeSlice1D(
+        view,
+        activeCol,
+        filterMasks,
+        numPixels,
+        binActive
+      );
+      cubes.set(view, cube);
     });
 
     return cubes;
+  }
+
+  /**
+   * Takes a view and computes the falcon cube for that passive view
+   * more details in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)
+   *
+   * @note Only works for 0D and 1D continuous views at the moment
+   * @returns a cube as FalconArray for the passive view
+   */
+  cubeSlice1D(
+    view: View,
+    activeCol: Vector,
+    filterMasks: FilterMasks<Dimension>,
+    numPixels: number,
+    binActive: (x: number) => number
+  ) {
+    let noFilter: FalconArray;
+    let filter: FalconArray;
+
+    // 2.1 only filter all other dimensions (filter on same dimension does not apply)
+    const relevantMasks = new Map(filterMasks);
+    if (view instanceof View0D) {
+      // use all filters
+    } else if (view instanceof View1D) {
+      // remove itself from filtering
+      relevantMasks.delete(view.dimension);
+    }
+    const filterMask = union(...relevantMasks.values());
+
+    // 2.2 this count counts for each pixel wise bin
+    if (view instanceof View0D) {
+      filter = FalconArray.allocCumulative(numPixels);
+      noFilter = FalconArray.allocCounts(1, [1]);
+
+      // add data to aggregation matrix
+      for (let i = 0; i < this.data.numRows; i++) {
+        // ignore filtered entries
+        if (filterMask && filterMask.get(i)) {
+          continue;
+        }
+
+        const keyActive = binActive(activeCol.get(i)!) + 1;
+        if (0 <= keyActive && keyActive < numPixels) {
+          filter.increment([keyActive]);
+        }
+        noFilter.increment([0]);
+      }
+
+      // falcon magic sauce
+      filter.cumulativeSum();
+    } else if (view instanceof View1D) {
+      // bins for passive view that we accumulate across
+      const dim = view.dimension;
+      const binConfig = dim.binConfig!;
+      const bin = binNumberFunction(binConfig);
+      const binCount = numBins(binConfig);
+
+      filter = FalconArray.allocCumulative(numPixels * binCount, [
+        numPixels,
+        binCount,
+      ]);
+      noFilter = FalconArray.allocCounts(binCount, [binCount]);
+
+      const column = this.data.getChild(dim.name)!;
+
+      // add data to aggregation matrix
+      for (let i = 0; i < this.data.numRows; i++) {
+        // ignore filtered entries
+        if (filterMask && filterMask.get(i)) {
+          continue;
+        }
+
+        const key = bin(column.get(i)!);
+        const keyActive = binActive(activeCol.get(i)!) + 1;
+        if (0 <= key && key < binCount) {
+          if (0 <= keyActive && keyActive < numPixels) {
+            filter.increment([keyActive, key]);
+          }
+          noFilter.increment([key]);
+        }
+      }
+
+      for (
+        let passiveBinIndex = 0;
+        passiveBinIndex < filter.shape[1];
+        passiveBinIndex++
+      ) {
+        // sum across column (passive bin aggregate)
+        filter.slice(null, passiveBinIndex).cumulativeSum();
+      }
+    } else {
+      throw Error("only 0D and 1D views");
+    }
+
+    return {
+      noFilter,
+      filter,
+    };
   }
 
   /**

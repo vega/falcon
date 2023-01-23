@@ -31,6 +31,12 @@ export interface FalconDB {
   length(): AsyncOrSync<number>;
 
   /**
+   * determines the min and max of a continuous numbers
+   * over the dimension
+   */
+  extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
+
+  /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
    * like a histogram
    */
@@ -45,10 +51,4 @@ export interface FalconDB {
     passiveViews: View[],
     filters: Filters
   ): FalconIndex;
-
-  /**
-   * determines the min and max of a continuous numbers
-   * over the dimension
-   */
-  extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
 }

@@ -1,5 +1,5 @@
 import { compactQuery } from "../util";
-import { SQLDB } from "./sql";
+import { SQLDB, SQLQueryResult } from "./sql";
 import * as duckdb from "@duckdb/duckdb-wasm";
 import type { SQLNameMap, SQLQuery } from "./sql";
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
@@ -21,7 +21,7 @@ export class DuckDB extends SQLDB {
    *
    * @returns the query results
    */
-  protected async query(q: SQLQuery): Promise<any> {
+  protected async query(q: SQLQuery): Promise<SQLQueryResult> {
     const t0 = performance.now();
 
     q = q.replaceAll("count(*)", "count(*)::INT");
