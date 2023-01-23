@@ -14,6 +14,17 @@ export type TypedArray =
   | Float32Array
   | Float64Array;
 
+export type TypedArrayConstructor =
+  | Int8ArrayConstructor
+  | Int16ArrayConstructor
+  | Int32ArrayConstructor
+  | Uint8ArrayConstructor
+  | Uint8ClampedArrayConstructor
+  | Uint16ArrayConstructor
+  | Uint32ArrayConstructor
+  | Float32ArrayConstructor
+  | Float64ArrayConstructor;
+
 /**
  * abstract away the NdArray reliance and can be swapped out
  * for std lib js for example or vanilla, or tensorflow.js?
@@ -102,5 +113,52 @@ export class FalconArray {
    */
   cumulativeSum() {
     prefixSum(this.ndarray);
+
+    return this;
+  }
+
+  /**
+   * @returns FalconArray with typed array
+   */
+  private static typedArray(
+    TypedArray: TypedArrayConstructor,
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    const newMemory = new TypedArray(length);
+    return new FalconArray(newMemory, shape, stride, offset);
+  }
+
+  /**
+   * Typed array to store and accumulate values
+   * Float for this, but consider other options
+   *
+   * Namely for the cubes
+   *
+   * @returns FalconArray with the given length allocated
+   */
+  static allocCumulative(
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    return this.typedArray(Float32Array, length, shape, stride, offset);
+  }
+
+  /**
+   * Typed array to store integer counts. Namely the histogram bins and counts.
+   *
+   * @returns FalconArray with the given length allocated
+   */
+  static allocCounts(
+    length: number,
+    shape?: number[],
+    stride?: number[],
+    offset?: number
+  ) {
+    return this.typedArray(Int32Array, length, shape, stride, offset);
   }
 }
