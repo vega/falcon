@@ -37,11 +37,15 @@ export class ArrowDB implements FalconDB {
     return this.data.numRows;
   }
 
-  extent(dimension: Dimension): AsyncOrSync<Interval<number>> {
+  extent(dimension: Dimension) {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
     if (arrowColumnExists) {
-      return arrowColumnExtent(arrowColumn);
+      if (dimension.type === "continuous") {
+        return arrowColumnExtent(arrowColumn);
+      } else {
+        throw Error("Categorical not Implemented yet");
+      }
     } else {
       throw Error(
         `Dimension name ${dimension.name} wasn't found on the arrow table`
@@ -50,39 +54,43 @@ export class ArrowDB implements FalconDB {
   }
 
   histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
-    // 1. decide which rows are filtered or not
-    const filterMask: BitSet | null = union(
-      ...this.getFilterMasks(filters ?? new Map()).values()
-    );
+    if (view.dimension.type === "continuous") {
+      // 1. decide which rows are filtered or not
+      const filterMask: BitSet | null = union(
+        ...this.getFilterMasks(filters ?? new Map()).values()
+      );
 
-    // 2. resolve binning scheme
-    const binConfig = view.dimension.binConfig!;
-    const bin = binNumberFunction(binConfig);
-    const binCount = numBins(binConfig);
+      // 2. resolve binning scheme
+      const binConfig = view.dimension.binConfig!;
+      const bin = binNumberFunction(binConfig);
+      const binCount = numBins(binConfig);
 
-    // 3. allocate memory (perhaps this should not be done every time)
-    // and instead pass by reference and control this in the background
-    const noFilter = FalconArray.allocCounts(binCount);
-    const filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
+      // 3. allocate memory (perhaps this should not be done every time)
+      // and instead pass by reference and control this in the background
+      const noFilter = FalconArray.allocCounts(binCount);
+      const filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
 
-    // 4. iterate over the row values and determine which bin to increment
-    const column = this.data.getChild(view.dimension.name)!;
-    for (let i = 0; i < this.data.numRows; i++) {
-      const value: number = column.get(i)!;
-      const binLocation = bin(value);
-      if (0 <= binLocation && binLocation < binCount) {
-        noFilter.increment([binLocation]);
-        if (filterMask && !filterMask.get(i)) {
-          filter.increment([binLocation]);
+      // 4. iterate over the row values and determine which bin to increment
+      const column = this.data.getChild(view.dimension.name)!;
+      for (let i = 0; i < this.data.numRows; i++) {
+        const value: number = column.get(i)!;
+        const binLocation = bin(value);
+        if (0 <= binLocation && binLocation < binCount) {
+          noFilter.increment([binLocation]);
+          if (filterMask && !filterMask.get(i)) {
+            filter.increment([binLocation]);
+          }
         }
       }
-    }
 
-    // 5. return the results
-    return {
-      noFilter,
-      filter,
-    };
+      // 5. return the results
+      return {
+        noFilter,
+        filter,
+      };
+    } else {
+      throw Error("Categorical not implemented");
+    }
   }
 
   falconIndexView1D(
@@ -93,24 +101,28 @@ export class ArrowDB implements FalconDB {
     const filterMasks = this.getFilterMasks(filters);
     const cubes: SyncIndex = new Map();
 
-    // 1. bin mapping functions
-    const pixels = activeView.dimension.resolution;
-    const activeDim = activeView.dimension;
-    const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
-    const activeCol = this.data.getChild(activeDim.name)!;
-    const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
+    if (activeView.dimension.type === "continuous") {
+      // 1. bin mapping functions
+      const pixels = activeView.dimension.resolution;
+      const activeDim = activeView.dimension;
+      const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
+      const activeCol = this.data.getChild(activeDim.name)!;
+      const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
-    // 2. iterate over each passive view to compute cubes
-    passiveViews.forEach((view) => {
-      const cube = this.cubeSlice1D(
-        view,
-        activeCol,
-        filterMasks,
-        numPixels,
-        binActive
-      );
-      cubes.set(view, cube);
-    });
+      // 2. iterate over each passive view to compute cubes
+      passiveViews.forEach((view) => {
+        const cube = this.cubeSlice1D(
+          view,
+          activeCol,
+          filterMasks,
+          numPixels,
+          binActive
+        );
+        cubes.set(view, cube);
+      });
+    } else {
+      throw Error("categorical not implemented yet");
+    }
 
     return cubes;
   }
@@ -164,44 +176,48 @@ export class ArrowDB implements FalconDB {
       // falcon magic sauce
       filter.cumulativeSum();
     } else if (view instanceof View1D) {
-      // bins for passive view that we accumulate across
-      const dim = view.dimension;
-      const binConfig = dim.binConfig!;
-      const bin = binNumberFunction(binConfig);
-      const binCount = numBins(binConfig);
+      if (view.dimension.type === "continuous") {
+        // bins for passive view that we accumulate across
+        const dim = view.dimension;
+        const binConfig = dim.binConfig!;
+        const bin = binNumberFunction(binConfig);
+        const binCount = numBins(binConfig);
 
-      filter = FalconArray.allocCumulative(numPixels * binCount, [
-        numPixels,
-        binCount,
-      ]);
-      noFilter = FalconArray.allocCounts(binCount, [binCount]);
+        filter = FalconArray.allocCumulative(numPixels * binCount, [
+          numPixels,
+          binCount,
+        ]);
+        noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
-      const column = this.data.getChild(dim.name)!;
+        const column = this.data.getChild(dim.name)!;
 
-      // add data to aggregation matrix
-      for (let i = 0; i < this.data.numRows; i++) {
-        // ignore filtered entries
-        if (filterMask && filterMask.get(i)) {
-          continue;
-        }
-
-        const key = bin(column.get(i)!);
-        const keyActive = binActive(activeCol.get(i)!) + 1;
-        if (0 <= key && key < binCount) {
-          if (0 <= keyActive && keyActive < numPixels) {
-            filter.increment([keyActive, key]);
+        // add data to aggregation matrix
+        for (let i = 0; i < this.data.numRows; i++) {
+          // ignore filtered entries
+          if (filterMask && filterMask.get(i)) {
+            continue;
           }
-          noFilter.increment([key]);
-        }
-      }
 
-      for (
-        let passiveBinIndex = 0;
-        passiveBinIndex < filter.shape[1];
-        passiveBinIndex++
-      ) {
-        // sum across column (passive bin aggregate)
-        filter.slice(null, passiveBinIndex).cumulativeSum();
+          const key = bin(column.get(i)!);
+          const keyActive = binActive(activeCol.get(i)!) + 1;
+          if (0 <= key && key < binCount) {
+            if (0 <= keyActive && keyActive < numPixels) {
+              filter.increment([keyActive, key]);
+            }
+            noFilter.increment([key]);
+          }
+        }
+
+        for (
+          let passiveBinIndex = 0;
+          passiveBinIndex < filter.shape[1];
+          passiveBinIndex++
+        ) {
+          // sum across column (passive bin aggregate)
+          filter.slice(null, passiveBinIndex).cumulativeSum();
+        }
+      } else {
+        throw Error("categorical not implemented yet");
       }
     } else {
       throw Error("only 0D and 1D views");
@@ -227,8 +243,15 @@ export class ArrowDB implements FalconDB {
     // extract filters from the larger cache index into this compact one
     const compactIndex: FilterMasks<Dimension> = new Map();
     for (const [dimension, extent] of filters) {
-      const mask = this.getFilterMask(dimension, extent)!;
-      compactIndex.set(dimension, mask);
+      if (dimension.type === "continuous") {
+        const mask = this.getContinuousFilterMask(
+          dimension,
+          extent as Interval<number>
+        )!;
+        compactIndex.set(dimension, mask);
+      } else {
+        throw Error("haven't implemented categorical yet");
+      }
     }
 
     return compactIndex;
@@ -239,7 +262,10 @@ export class ArrowDB implements FalconDB {
    *
    * @returns a bitmask of which 1 if the row value should be included or 0 if not
    */
-  private getFilterMask(dimension: Dimension, extent: Interval<number>) {
+  private getContinuousFilterMask(
+    dimension: Dimension,
+    extent: Interval<number>
+  ) {
     const key = `${dimension.name} ${extent}`;
 
     // if not in the cache, compute it and add it!

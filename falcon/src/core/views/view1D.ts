@@ -1,7 +1,7 @@
 import { ViewAbstract } from "./viewAbstract";
 import { createBinConfig, readableBins, brushToPixelSpace } from "../util";
 import type { Falcon } from "../falcon";
-import type { Dimension } from "../dimension";
+import type { ContinuousRange, Dimension, DimensionFilter } from "../dimension";
 import type { Interval } from "../util";
 
 /* defines how the parameter is typed for on change */
@@ -15,7 +15,7 @@ export class View1D extends ViewAbstract<View1DState> {
   dimension: Dimension;
   state: View1DState;
   toPixels: (brush: Interval<number>) => Interval<number>;
-  lastFilter: Interval<number> | undefined;
+  lastFilter: DimensionFilter | undefined;
   constructor(falcon: Falcon, dimension: Dimension) {
     super(falcon);
     this.dimension = dimension;
@@ -30,22 +30,30 @@ export class View1D extends ViewAbstract<View1DState> {
     if (this.dimension?.extent === undefined) {
       this.dimension.extent = await this.falcon.db.extent(this.dimension);
     }
-    this.toPixels = brushToPixelSpace(
-      this.dimension.extent!,
-      this.dimension.resolution
-    );
-    this.dimension.binConfig = createBinConfig(
-      this.dimension,
-      this.dimension.extent!
-    );
+    if (this.dimension.type === "continuous") {
+      this.toPixels = brushToPixelSpace(
+        this.dimension.extent!,
+        this.dimension.resolution
+      );
+      this.dimension.binConfig = createBinConfig(
+        this.dimension,
+        this.dimension.extent!
+      );
+    } else {
+      throw new Error("categorical not implemented yet");
+    }
   }
 
   async all() {
     // create bin config from extent and bins given
     await this.createBinConfig();
 
-    // save the bin definitions
-    this.state.bin = readableBins(this.dimension.binConfig!);
+    if (this.dimension.type === "continuous") {
+      // save the bin definitions
+      this.state.bin = readableBins(this.dimension.binConfig!);
+    } else {
+      throw new Error("categorical not implemented yet");
+    }
 
     // count
     const result = await this.falcon.db.histogramView1D(this);
@@ -76,56 +84,65 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * compute counts from the falcon index
    */
-  async add(
-    filter: Interval<number> | undefined = undefined,
-    convertToPixels = true
-  ) {
+  async add(filter?: DimensionFilter, convertToPixels = true) {
     await this.prefetch();
 
     if (filter) {
-      // just end now if the filter hasn't changed
-      const filterStayedTheSame =
-        this.lastFilter &&
-        this.lastFilter[0] === filter[0] &&
-        this.lastFilter[1] === filter[1];
-      if (filterStayedTheSame) {
-        return;
+      if (this.dimension.type === "continuous") {
+        // just end now if the filter hasn't changed
+        const filterStayedTheSame =
+          this.lastFilter &&
+          this.lastFilter[0] === filter[0] &&
+          this.lastFilter[1] === filter[1];
+        if (filterStayedTheSame) {
+          return;
+        }
+
+        // add filter
+        this.falcon.filters.set(this.dimension, filter);
+
+        // convert active selection into pixels if needed
+        const selectPixels = convertToPixels
+          ? this.toPixels(filter as ContinuousRange)
+          : filter;
+
+        // use the index to count for the passive views
+        this.falcon.views.passive.forEach(async (passiveView) => {
+          await passiveView.countContinuous1DIndex(
+            selectPixels as ContinuousRange
+          );
+        });
+
+        this.lastFilter = filter;
+      } else {
+        throw new Error("categorical not implemented yet");
       }
-
-      // add filter
-      this.falcon.filters.set(this.dimension, filter);
-
-      // convert active selection into pixels if needed
-      const selectPixels = convertToPixels ? this.toPixels(filter) : filter;
-
-      // use the index to count for the passive views
-      this.falcon.views.passive.forEach(async (passiveView) => {
-        await passiveView.count1DIndex(selectPixels);
-      });
-
-      this.lastFilter = filter;
     } else {
-      // just end now if the filter hasn't changed
-      const filterStayedTheSame = this.lastFilter === filter;
-      if (filterStayedTheSame) {
-        return;
+      if (this.dimension.type === "continuous") {
+        // just end now if the filter hasn't changed
+        const filterStayedTheSame = this.lastFilter === filter;
+        if (filterStayedTheSame) {
+          return;
+        }
+
+        // remove filter
+        this.falcon.filters.delete(this.dimension);
+        // and revert back counts
+        this.falcon.views.passive.forEach(async (passiveView) => {
+          await passiveView.countContinuous1DIndex();
+        });
+
+        this.lastFilter = filter;
+      } else {
+        throw new Error("categorical not implemented yet");
       }
-
-      // remove filter
-      this.falcon.filters.delete(this.dimension);
-      // and revert back counts
-      this.falcon.views.passive.forEach(async (passiveView) => {
-        await passiveView.count1DIndex();
-      });
-
-      this.lastFilter = filter;
     }
   }
 
   /**
    * Given an active 1D view, count for this passive view
    */
-  async count1DIndex(pixels?: Interval<number>) {
+  async countContinuous1DIndex(pixels?: Interval<number>) {
     // grab index
     const index = await this.falcon.index.get(this)!;
     if (index === undefined) {

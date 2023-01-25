@@ -1,5 +1,9 @@
-import type { Dimension } from "../dimension";
-import type { Interval } from "../util";
+import type {
+  CategoricalRange,
+  ContinuousRange,
+  Dimension,
+  DimensionFilter,
+} from "../dimension";
 import type { FalconArray } from "../falconArray";
 import type { View, View1D } from "../views";
 
@@ -15,8 +19,7 @@ export type SyncIndex = Map<View, FalconCube>;
 export type AsyncIndex = Map<View, Promise<FalconCube>>;
 export type FalconIndex = SyncIndex | AsyncIndex;
 export type AsyncOrSync<T> = Promise<T> | T;
-export type DimensionFilters = Map<string, Interval<number>>;
-export type Filter = Interval<number>;
+export type Filter = DimensionFilter;
 export type Filters = Map<Dimension, Filter>;
 
 /**
@@ -38,7 +41,7 @@ export interface FalconDB {
    * @todo extend to categorical (get set of possible values)
    * @returns the min max for continuos as interval
    */
-  extent(dimension: Dimension): AsyncOrSync<Interval<number>>;
+  extent(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
 
   /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning

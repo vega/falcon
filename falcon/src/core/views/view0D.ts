@@ -29,7 +29,7 @@ export class View0D extends ViewAbstract<View0DState> {
   /**
    * Given an active 1D view, count for this passive view
    */
-  async count1DIndex(pixels?: Interval<number>): Promise<void> {
+  async countContinuous1DIndex(pixels?: Interval<number>): Promise<void> {
     // take in the index
     const index = await this.falcon.index.get(this)!;
     if (index === undefined) {

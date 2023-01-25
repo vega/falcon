@@ -43,5 +43,5 @@ export abstract class ViewAbstract<S extends object> {
   }
 
   abstract all(): Promise<void> | void;
-  abstract count1DIndex(activeBrushPixels?: Interval<number>): void;
+  abstract countContinuous1DIndex(activeBrushPixels?: Interval<number>): void;
 }
