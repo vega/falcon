@@ -1,4 +1,4 @@
-import { Dimension, RangeDimension } from "../dimension";
+import { Dimension, ContinuousDimension } from "../dimension";
 import { FalconArray } from "../falconArray";
 import { numBins, stepSize } from "../util";
 import { View0D, View1D } from "../views";
@@ -43,7 +43,7 @@ export abstract class SQLDB implements FalconDB {
     return _count;
   }
 
-  async extent(dimension: RangeDimension) {
+  async extent(dimension: ContinuousDimension) {
     const field = this.getName(dimension);
     const result = await this.query(
       `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
