@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { Falcon, ObjectDB } from "falcon2";
+	import type { Dimension } from "falcon2";
 	import { onMount } from "svelte";
 
 	import logo from "../../../logo/logo.png";
 
 	let falcon: Falcon;
 	let data = {
-		name: ["chicken", "egg", "egg", "chicken", "egg"],
+		organism: ["dog", "chicken", "chicken", "dog", "chicken"],
 		isDead: [1, 0, 1, 0, 0],
 		weight: [100, 25, 31, 40, 5],
 	};
@@ -20,6 +21,15 @@
 		falcon = new Falcon(db);
 
 		console.log(falcon);
+
+		// create categorical dimension
+		const organism = {
+			type: "categorical",
+			name: "organism",
+		} as Dimension;
+
+		const organismView = falcon.view1D(organism);
+		console.log(organismView);
 	}
 </script>
 
