@@ -11,6 +11,7 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
+    "start:categorical-arrow": "yarn workspace categorical-arrow dev --open",
     "start:flights-arrow": "yarn workspace flights-arrow dev --open",
     "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
     "dev": "yarn start:flights-arrow",
