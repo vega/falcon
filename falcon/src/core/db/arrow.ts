@@ -58,43 +58,55 @@ export class ArrowDB implements FalconDB {
   }
 
   histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
+    let filter: FalconArray;
+    let noFilter: FalconArray;
+    let bin: (item: any) => number;
+    let binCount: number;
+
+    // 1. decide which rows are filtered or not
+    const filterMask: BitSet | null = union(
+      ...this.getFilterMasks(filters ?? new Map()).values()
+    );
+
+    // 2. allocate memory for the bins
     if (view.dimension.type === "continuous") {
-      // 1. decide which rows are filtered or not
-      const filterMask: BitSet | null = union(
-        ...this.getFilterMasks(filters ?? new Map()).values()
-      );
-
-      // 2. resolve binning scheme
       const binConfig = view.dimension.binConfig!;
-      const bin = binNumberFunction(binConfig);
-      const binCount = numBins(binConfig);
+      binCount = numBins(binConfig);
+      bin = binNumberFunction(binConfig);
 
-      // 3. allocate memory (perhaps this should not be done every time)
-      // and instead pass by reference and control this in the background
-      const noFilter = FalconArray.allocCounts(binCount);
-      const filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
+      noFilter = FalconArray.allocCounts(binCount);
+      filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
+    } else {
+      binCount = view.dimension.extent!.length;
+      const binMapper = new Map(
+        view.dimension.extent!.map((item, index) => [item, index])
+      );
+      bin = (item: any) => binMapper.get(item)!;
 
-      // 4. iterate over the row values and determine which bin to increment
-      const column = this.data.getChild(view.dimension.name)!;
-      for (let i = 0; i < this.data.numRows; i++) {
-        const value: number = column.get(i)!;
-        const binLocation = bin(value);
-        if (0 <= binLocation && binLocation < binCount) {
-          noFilter.increment([binLocation]);
-          if (filterMask && !filterMask.get(i)) {
-            filter.increment([binLocation]);
-          }
+      noFilter = FalconArray.allocCounts(binCount);
+      filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
+    }
+
+    // 3. iterate over the row values and determine which bin to increment
+    const column = this.data.getChild(view.dimension.name)!;
+    for (let i = 0; i < this.data.numRows; i++) {
+      const value: any = column.get(i)!;
+      const binLocation = bin(value);
+
+      // increment the specific bin
+      if (0 <= binLocation && binLocation < binCount) {
+        noFilter.increment([binLocation]);
+        if (filterMask && !filterMask.get(i)) {
+          filter.increment([binLocation]);
         }
       }
-
-      // 5. return the results
-      return {
-        noFilter,
-        filter,
-      };
-    } else {
-      throw Error("Categorical not implemented");
     }
+
+    // 5. return the results
+    return {
+      noFilter,
+      filter,
+    };
   }
 
   falconIndexView1D(

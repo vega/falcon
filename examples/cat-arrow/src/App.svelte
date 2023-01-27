@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Falcon, ObjectDB } from "falcon2";
+	import { Falcon, ObjectDB, type CategoricalDimension } from "falcon2";
 	import type { Dimension } from "falcon2";
 	import { onMount } from "svelte";
 
@@ -26,6 +26,7 @@
 		const organism = {
 			type: "categorical",
 			name: "organism",
+			extent: ["dog", "chicken"],
 		} as Dimension;
 
 		const organismView = falcon.view1D(organism);
@@ -33,6 +34,9 @@
 
 		const range = db.range(organism);
 		console.log({ range });
+
+		const hist = db.histogramView1D(organismView);
+		console.log(hist);
 	}
 </script>
 
