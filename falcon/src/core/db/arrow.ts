@@ -4,7 +4,13 @@ import { FalconArray } from "../falconArray";
 import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
 import { View0D, View1D } from "../views";
 import type { AsyncOrSync, Filters } from "./db";
-import type { Dimension } from "../dimension";
+import type {
+  CategoricalDimension,
+  CategoricalRange,
+  ContinuousDimension,
+  ContinuousRange,
+  Dimension,
+} from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
 import type { Table, Vector } from "apache-arrow";
@@ -240,16 +246,20 @@ export class ArrowDB implements FalconDB {
 
     // extract filters from the larger cache index into this compact one
     const compactIndex: FilterMasks<Dimension> = new Map();
-    for (const [dimension, extent] of filters) {
+    for (const [dimension, filter] of filters) {
+      let mask: BitSet;
       if (dimension.type === "continuous") {
-        const mask = this.getContinuousFilterMask(
+        mask = this.getContinuousFilterMask(
           dimension,
-          extent as Interval<number>
+          filter as ContinuousRange
         )!;
-        compactIndex.set(dimension, mask);
       } else {
-        throw Error("haven't implemented categorical yet");
+        mask = this.getCategoricalFilterMask(
+          dimension,
+          filter as CategoricalRange
+        )!;
       }
+      compactIndex.set(dimension, mask);
     }
 
     return compactIndex;
@@ -260,11 +270,12 @@ export class ArrowDB implements FalconDB {
    *
    * @returns a bitmask of which 1 if the row value should be included or 0 if not
    */
-  private getContinuousFilterMask(
-    dimension: Dimension,
-    extent: Interval<number>
+  private getCategoricalFilterMask(
+    dimension: CategoricalDimension,
+    filter: CategoricalRange
   ) {
-    const key = `${dimension.name} ${extent}`;
+    const filterSet = new Set(filter);
+    const key = `${dimension.name} ${filter}`;
 
     // if not in the cache, compute it and add it!
     const notFound = !this.filterMaskIndex.has(key);
@@ -273,7 +284,36 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => value < extent[0] || value >= extent[1]
+        (value: any) => !filterSet.has(value)
+      );
+
+      // set the cache
+      this.filterMaskIndex.set(key, mask);
+    }
+
+    // return the value of the mask
+    return this.filterMaskIndex.get(key);
+  }
+
+  /**
+   * Gets filter mask given the filter (extent for now)
+   *
+   * @returns a bitmask of which 1 if the row value should be included or 0 if not
+   */
+  private getContinuousFilterMask(
+    dimension: ContinuousDimension,
+    filter: ContinuousRange
+  ) {
+    const key = `${dimension.name} ${filter}`;
+
+    // if not in the cache, compute it and add it!
+    const notFound = !this.filterMaskIndex.has(key);
+    if (notFound) {
+      // compute filter mask
+      const column = this.data.getChild(dimension.name)!;
+      const mask = arrowFilterMask(
+        column,
+        (value: number) => value < filter[0] || value >= filter[1]
       );
 
       // set the cache
@@ -293,7 +333,7 @@ export class ArrowDB implements FalconDB {
  */
 function arrowFilterMask<T>(
   column: Vector,
-  shouldFilter: (rowValue: T) => boolean
+  shouldFilterOut: (rowValue: T) => boolean
 ) {
   const bitmask = new BitSet(column.length);
 
@@ -306,7 +346,7 @@ function arrowFilterMask<T>(
    */
   for (let i = 0; i < column.length; i++) {
     const rowValue: T = column.get(i)!;
-    if (shouldFilter(rowValue)) {
+    if (shouldFilterOut(rowValue)) {
       bitmask.set(i, true);
     }
   }
