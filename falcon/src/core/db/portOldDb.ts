@@ -22,7 +22,7 @@ export class DatabasePort implements FalconDB {
   async length() {
     return await this.db.length();
   }
-  async extent(dimension: Dimension) {
+  async range(dimension: Dimension) {
     return await this.db.getDimensionExtent(dimension);
   }
   async histogramView1D(view: View1D, filters?: Filters) {

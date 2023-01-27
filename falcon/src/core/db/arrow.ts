@@ -37,15 +37,13 @@ export class ArrowDB implements FalconDB {
     return this.data.numRows;
   }
 
-  extent(dimension: Dimension) {
+  range(dimension: Dimension) {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
     if (arrowColumnExists) {
-      if (dimension.type === "continuous") {
-        return arrowColumnExtent(arrowColumn);
-      } else {
-        throw Error("Categorical not Implemented yet");
-      }
+      const possibleValues =
+        dimension.type === "continuous" ? arrowColumnExtent : arrowColumnUnique;
+      return possibleValues(arrowColumn);
     } else {
       throw Error(
         `Dimension name ${dimension.name} wasn't found on the arrow table`
@@ -314,6 +312,19 @@ function arrowFilterMask<T>(
   }
 
   return bitmask;
+}
+
+/**
+ * Takes all unique values and returns it into an array
+ *
+ * @returns unique values in an array
+ */
+function arrowColumnUnique(column: Vector): any[] {
+  const unique = new Set();
+  for (const rowValue of column) {
+    unique.add(rowValue);
+  }
+  return Array.from(unique);
 }
 
 /**

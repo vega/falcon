@@ -35,13 +35,12 @@ export interface FalconDB {
   length(): AsyncOrSync<number>;
 
   /**
-   * determines the min and max of a continuous numbers
-   * over the dimension
+   * determines the min and max of a continuous dimensions
+   * determines the unique range of values for categorical dimensions
    *
-   * @todo extend to categorical (get set of possible values)
-   * @returns the min max for continuos as interval
+   * @returns [min, max] or unique[]
    */
-  extent(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
+  range(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
 
   /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning

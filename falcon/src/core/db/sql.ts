@@ -43,7 +43,7 @@ export abstract class SQLDB implements FalconDB {
     return _count;
   }
 
-  async extent(dimension: ContinuousDimension) {
+  async range(dimension: ContinuousDimension) {
     const field = this.getName(dimension);
     const result = await this.query(
       `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max

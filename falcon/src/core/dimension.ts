@@ -34,5 +34,5 @@ export interface CategoricalDimension extends AbstractDimension {
 
 export type Dimension = ContinuousDimension | CategoricalDimension;
 export type ContinuousRange = Interval<number>;
-export type CategoricalRange = string[];
+export type CategoricalRange = any[];
 export type DimensionFilter = ContinuousRange | CategoricalRange;

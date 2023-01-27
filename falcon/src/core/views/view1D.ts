@@ -28,7 +28,7 @@ export class View1D extends ViewAbstract<View1DState> {
    */
   async createBinConfig() {
     if (this.dimension?.extent === undefined) {
-      this.dimension.extent = await this.falcon.db.extent(this.dimension);
+      this.dimension.extent = await this.falcon.db.range(this.dimension);
     }
     if (this.dimension.type === "continuous") {
       this.toPixels = brushToPixelSpace(

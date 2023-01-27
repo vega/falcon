@@ -30,6 +30,9 @@
 
 		const organismView = falcon.view1D(organism);
 		console.log(organismView);
+
+		const range = db.range(organism);
+		console.log({ range });
 	}
 </script>
 
