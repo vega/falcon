@@ -27,17 +27,17 @@ export class View1D extends ViewAbstract<View1DState> {
    * populates the extent in the dimension if not already defined
    */
   async createBinConfig() {
-    if (this.dimension?.extent === undefined) {
-      this.dimension.extent = await this.falcon.db.range(this.dimension);
+    if (this.dimension?.range === undefined) {
+      this.dimension.range = await this.falcon.db.range(this.dimension);
     }
     if (this.dimension.type === "continuous") {
       this.toPixels = brushToPixelSpace(
-        this.dimension.extent!,
+        this.dimension.range!,
         this.dimension.resolution
       );
       this.dimension.binConfig = createBinConfig(
         this.dimension,
-        this.dimension.extent!
+        this.dimension.range!
       );
     } else {
       throw new Error("categorical not implemented yet");

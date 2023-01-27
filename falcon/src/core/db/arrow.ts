@@ -77,9 +77,9 @@ export class ArrowDB implements FalconDB {
       noFilter = FalconArray.allocCounts(binCount);
       filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
     } else {
-      binCount = view.dimension.extent!.length;
+      binCount = view.dimension.range!.length;
       const binMapper = new Map(
-        view.dimension.extent!.map((item, index) => [item, index])
+        view.dimension.range!.map((item, index) => [item, index])
       );
       bin = (item: any) => binMapper.get(item)!;
 

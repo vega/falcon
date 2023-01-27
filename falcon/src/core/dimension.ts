@@ -16,7 +16,7 @@ export interface ContinuousDimension extends AbstractDimension {
   resolution: number;
 
   /* [min, max] interval to count between */
-  extent?: ContinuousRange;
+  range?: ContinuousRange;
 
   /* binConfig determines the bin scheme */
   binConfig?: BinConfig;
@@ -29,7 +29,7 @@ export interface CategoricalDimension extends AbstractDimension {
    * possible values to look at, blank if just use all
    * @todo change this to an exclude or what to include
    */
-  extent?: CategoricalRange;
+  range?: CategoricalRange;
 }
 
 export type Dimension = ContinuousDimension | CategoricalDimension;
