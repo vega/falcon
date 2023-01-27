@@ -5,15 +5,21 @@ import type { ContinuousRange, Dimension, DimensionFilter } from "../dimension";
 import type { Interval } from "../util";
 
 /* defines how the parameter is typed for on change */
-export interface View1DState {
+export interface ContinuousView1DState {
   total: Int32Array | null;
   filter: Int32Array | null;
   bin: { binStart: number; binEnd: number }[] | null;
 }
+export interface CategoricalView1DState {
+  total: Int32Array | null;
+  filter: Int32Array | null;
+  bin: any[] | null;
+}
+export type View1DState = CategoricalView1DState | ContinuousView1DState;
 
 export class View1D extends ViewAbstract<View1DState> {
   dimension: Dimension;
-  state: View1DState;
+  state: View1DState | CategoricalView1DState;
   toPixels: (brush: Interval<number>) => Interval<number>;
   lastFilter: DimensionFilter | undefined;
   constructor(falcon: Falcon, dimension: Dimension) {
@@ -26,7 +32,7 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * populates the extent in the dimension if not already defined
    */
-  async createBinConfig() {
+  async createBins() {
     if (this.dimension?.range === undefined) {
       this.dimension.range = await this.falcon.db.range(this.dimension);
     }
@@ -39,26 +45,22 @@ export class View1D extends ViewAbstract<View1DState> {
         this.dimension,
         this.dimension.range!
       );
-    } else {
-      throw new Error("categorical not implemented yet");
     }
-  }
-
-  async all() {
-    // create bin config from extent and bins given
-    await this.createBinConfig();
 
     if (this.dimension.type === "continuous") {
       // save the bin definitions
       this.state.bin = readableBins(this.dimension.binConfig!);
     } else {
-      throw new Error("categorical not implemented yet");
+      this.state.bin = this.dimension.range!;
     }
+  }
 
-    // count
-    const result = await this.falcon.db.histogramView1D(this);
-    this.state.total = result.filter.data as Int32Array;
-    this.state.filter = result.filter.data as Int32Array;
+  async all() {
+    await this.createBins();
+
+    const counts = await this.falcon.db.histogramView1D(this);
+    this.state.total = counts.noFilter.data as Int32Array;
+    this.state.filter = counts.filter.data as Int32Array;
 
     this.signalOnChange(this.state);
   }
