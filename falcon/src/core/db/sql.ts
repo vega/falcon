@@ -1,6 +1,6 @@
 import { Dimension, ContinuousDimension } from "../dimension";
 import { FalconArray } from "../falconArray";
-import { numBins, stepSize } from "../util";
+import { numBinsContinuous, stepSize } from "../util";
 import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig, Interval } from "../util";
@@ -56,7 +56,7 @@ export abstract class SQLDB implements FalconDB {
   async histogramView1D(view: View1D, filters?: Filters) {
     // 1. construct binning scheme
     const bin = view.dimension.binConfig!;
-    const binCount = numBins(bin);
+    const binCount = numBinsContinuous(bin);
     const bSql = this.binSQL(view.dimension, bin);
 
     // 2. allocate memory
@@ -172,7 +172,7 @@ export abstract class SQLDB implements FalconDB {
     } else if (view instanceof View1D) {
       const binConfig = view.dimension.binConfig!;
       const bin = this.binSQL(view.dimension, binConfig);
-      const binCount = numBins(binConfig);
+      const binCount = numBinsContinuous(binConfig);
 
       filter = FalconArray.allocCumulative(numPixels * binCount, [
         numPixels,

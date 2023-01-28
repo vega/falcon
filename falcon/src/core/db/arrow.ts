@@ -1,7 +1,11 @@
 import { BitSet, union } from "../bitset";
 import { BinnedCounts, FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
-import { binNumberFunction, binNumberFunctionBins, numBins } from "../util";
+import {
+  binNumberFunctionContinuous,
+  binNumberFunctionBinsContinuous,
+  numBinsContinuous,
+} from "../util";
 import { View0D, View1D } from "../views";
 import type { AsyncOrSync, Filters } from "./db";
 import type {
@@ -71,8 +75,8 @@ export class ArrowDB implements FalconDB {
     // 2. allocate memory for the bins
     if (view.dimension.type === "continuous") {
       const binConfig = view.dimension.binConfig!;
-      binCount = numBins(binConfig);
-      bin = binNumberFunction(binConfig);
+      binCount = numBinsContinuous(binConfig);
+      bin = binNumberFunctionContinuous(binConfig);
 
       noFilter = FalconArray.allocCounts(binCount);
       filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
@@ -121,7 +125,10 @@ export class ArrowDB implements FalconDB {
       // 1. bin mapping functions
       const pixels = activeView.dimension.resolution;
       const activeDim = activeView.dimension;
-      const binActive = binNumberFunctionBins(activeDim.binConfig!, pixels);
+      const binActive = binNumberFunctionBinsContinuous(
+        activeDim.binConfig!,
+        pixels
+      );
       const activeCol = this.data.getChild(activeDim.name)!;
       const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
@@ -196,8 +203,8 @@ export class ArrowDB implements FalconDB {
         // bins for passive view that we accumulate across
         const dim = view.dimension;
         const binConfig = dim.binConfig!;
-        const bin = binNumberFunction(binConfig);
-        const binCount = numBins(binConfig);
+        const bin = binNumberFunctionContinuous(binConfig);
+        const binCount = numBinsContinuous(binConfig);
 
         filter = FalconArray.allocCumulative(numPixels * binCount, [
           numPixels,

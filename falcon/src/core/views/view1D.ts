@@ -1,5 +1,9 @@
 import { ViewAbstract } from "./viewAbstract";
-import { createBinConfig, readableBins, brushToPixelSpace } from "../util";
+import {
+  createBinConfigContinuous,
+  readableBinsContinuous,
+  brushToPixelSpace,
+} from "../util";
 import type { Falcon } from "../falcon";
 import type { ContinuousRange, Dimension, DimensionFilter } from "../dimension";
 import type { Interval } from "../util";
@@ -41,7 +45,7 @@ export class View1D extends ViewAbstract<View1DState> {
         this.dimension.range!,
         this.dimension.resolution
       );
-      this.dimension.binConfig = createBinConfig(
+      this.dimension.binConfig = createBinConfigContinuous(
         this.dimension,
         this.dimension.range!
       );
@@ -49,7 +53,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
     if (this.dimension.type === "continuous") {
       // save the bin definitions
-      this.state.bin = readableBins(this.dimension.binConfig!);
+      this.state.bin = readableBinsContinuous(this.dimension.binConfig!);
     } else {
       this.state.bin = this.dimension.range!;
     }
