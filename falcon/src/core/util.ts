@@ -1,6 +1,6 @@
 import { bin as vegaBin } from "vega-statistics";
 import { scaleTime } from "d3";
-import type { ContinuousDimension } from "./dimension";
+import type { CategoricalRange, ContinuousDimension } from "./dimension";
 
 /**
  * UTILITY TYPES
@@ -40,6 +40,22 @@ interface StartStopBinConfig {
  * UTILITY FUNCTIONS
  * -----------------
  */
+
+/**
+ * Get the number of bins for a bin configuration.
+ */
+export function numBinsCategorical(range: CategoricalRange) {
+  return range.length;
+}
+
+/**
+ * Takes the categorical names and maps them to indices
+ * @returns function that returns bin index
+ */
+export function binNumberFunctionCategorical(range: CategoricalRange) {
+  const binMapper = new Map(range.map((item, index) => [item, index]));
+  return (item: any) => binMapper.get(item)!;
+}
 
 /**
  * Get the number of bins for a bin configuration.

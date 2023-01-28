@@ -5,6 +5,8 @@ import {
   binNumberFunctionContinuous,
   binNumberFunctionBinsContinuous,
   numBinsContinuous,
+  numBinsCategorical,
+  binNumberFunctionCategorical,
 } from "../util";
 import { View0D, View1D } from "../views";
 import type { AsyncOrSync, Filters } from "./db";
@@ -81,11 +83,8 @@ export class ArrowDB implements FalconDB {
       noFilter = FalconArray.allocCounts(binCount);
       filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
     } else {
-      binCount = view.dimension.range!.length;
-      const binMapper = new Map(
-        view.dimension.range!.map((item, index) => [item, index])
-      );
-      bin = (item: any) => binMapper.get(item)!;
+      binCount = numBinsCategorical(view.dimension.range!);
+      bin = binNumberFunctionCategorical(view.dimension.range!);
 
       noFilter = FalconArray.allocCounts(binCount);
       filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
