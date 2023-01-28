@@ -108,9 +108,20 @@ export class View1D extends ViewAbstract<View1DState> {
         this.falcon.filters.set(this.dimension, filter);
 
         // convert active selection into pixels if needed
-        const selectPixels = convertToPixels
+        let selectPixels = convertToPixels
           ? this.toPixels(filter as ContinuousRange)
           : filter;
+
+        /**
+         * if they query something outside the possible resolution.
+         * just do nothing!
+         */
+        if (
+          selectPixels[0] > this.dimension.resolution ||
+          selectPixels[1] > this.dimension.resolution
+        ) {
+          selectPixels = [0, 0];
+        }
 
         // use the index to count for the passive views
         this.falcon.views.passive.forEach(async (passiveView) => {
