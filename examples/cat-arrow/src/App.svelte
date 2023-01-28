@@ -1,16 +1,32 @@
 <script lang="ts">
-	import { Falcon, ObjectDB } from "falcon2";
+	import {
+		Falcon,
+		ObjectDB,
+		type View0DState,
+		type View1DState,
+		View0D,
+		View1D,
+	} from "falcon2";
 	import type { Dimension } from "falcon2";
 	import { onMount } from "svelte";
+	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 
 	import logo from "../../../logo/logo.png";
+	import View1DHist from "./components/View1DHist.svelte";
 
 	let falcon: Falcon;
 	let data = {
-		organism: ["dog", "chicken", "chicken", "dog", "chicken"],
-		isDead: [1, 0, 1, 0, 0],
-		weight: [100, 25, 31, 40, 5],
+		organism: ["dog", "chicken", "chicken", "dog", "chicken", "dog"],
+		isDead: [1, 0, 1, 0, 0, 1],
+		weight: [100.0, 25.0, 31.0, 40.0, 5.0, 101.0],
 	};
+	let weightsView: View1D;
+	let organismView: View1D;
+	let totalCountView: View0D;
+
+	let weightsState: View1DState;
+	let organismState: View1DState;
+	let totalCountState: View0DState;
 
 	onMount(async () => {
 		await categoricalArrowExampleSetup();
@@ -20,8 +36,6 @@
 		const db = new ObjectDB(data);
 		falcon = new Falcon(db);
 
-		console.log(falcon);
-
 		// create categorical dimension
 		const organism = {
 			type: "categorical",
@@ -29,19 +43,29 @@
 			range: ["dog", "chicken"],
 		} as Dimension;
 
-		const organismView = falcon.view1D(organism);
-		console.log(organismView);
+		const weights = {
+			type: "continuous",
+			name: "weight",
+			resolution: 400,
+			bins: 10,
+			range: [0, 125],
+		} as Dimension;
 
-		const range = db.range(organism);
-		console.log({ range });
+		organismView = falcon.view1D(organism);
+		weightsView = falcon.view1D(weights);
+		totalCountView = falcon.view0D();
 
-		const hist = db.histogramView1D(organismView);
-		console.log(hist);
-
-		organismView.onChange((state) => {
-			console.log(state);
+		organismView.onChange((s) => {
+			organismState = s;
 		});
-		falcon.fetchInitialViewCounts();
+		weightsView.onChange((s) => {
+			weightsState = s;
+		});
+		totalCountView.onChange((s) => {
+			totalCountState = s;
+		});
+
+		await falcon.fetchInitialViewCounts();
 	}
 </script>
 
@@ -50,14 +74,42 @@
 		<img src={logo} alt="falcon" width="50px" />
 		<h1>Categorical Test</h1>
 
-		<!-- <h3>
+		<h3>
 			<span style="font-weight: 250;">selected</span>
 			<code style="color: var(--primary-color);"
 				>{totalCountState?.filter.toLocaleString()}</code
 			>
-		</h3> -->
+		</h3>
 	</div>
-	<div>put hists here</div>
+	<div>
+		<CategoricalHistogram
+			bins={organismState?.bin?.map((b, i) => ({
+				bin: b,
+				count: organismState["total"][i],
+				filteredCount: organismState["filter"][i],
+			})) ?? []}
+			on:select={(e) => {
+				console.log(e.detail);
+			}}
+		/>
+		<View1DHist
+			state={weightsState}
+			dimLabel="weights"
+			width={400}
+			on:mouseenter={async () => {
+				await weightsView.prefetch();
+			}}
+			on:brush={async (event) => {
+				// interact
+				const interval = event.detail;
+				if (interval !== null) {
+					await weightsView.add(interval);
+				} else {
+					await weightsView.add();
+				}
+			}}
+		/>
+	</div>
 </main>
 
 <style>

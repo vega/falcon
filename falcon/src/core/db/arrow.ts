@@ -198,48 +198,52 @@ export class ArrowDB implements FalconDB {
       // falcon magic sauce
       filter.cumulativeSum();
     } else if (view instanceof View1D) {
+      let bin: (x: any) => number;
+      let binCount: number;
+
       if (view.dimension.type === "continuous") {
-        // bins for passive view that we accumulate across
-        const dim = view.dimension;
-        const binConfig = dim.binConfig!;
-        const bin = binNumberFunctionContinuous(binConfig);
-        const binCount = numBinsContinuous(binConfig);
-
-        filter = FalconArray.allocCumulative(numPixels * binCount, [
-          numPixels,
-          binCount,
-        ]);
-        noFilter = FalconArray.allocCounts(binCount, [binCount]);
-
-        const column = this.data.getChild(dim.name)!;
-
-        // add data to aggregation matrix
-        for (let i = 0; i < this.data.numRows; i++) {
-          // ignore filtered entries
-          if (filterMask && filterMask.get(i)) {
-            continue;
-          }
-
-          const key = bin(column.get(i)!);
-          const keyActive = binActive(activeCol.get(i)!) + 1;
-          if (0 <= key && key < binCount) {
-            if (0 <= keyActive && keyActive < numPixels) {
-              filter.increment([keyActive, key]);
-            }
-            noFilter.increment([key]);
-          }
-        }
-
-        for (
-          let passiveBinIndex = 0;
-          passiveBinIndex < filter.shape[1];
-          passiveBinIndex++
-        ) {
-          // sum across column (passive bin aggregate)
-          filter.slice(null, passiveBinIndex).cumulativeSum();
-        }
+        // continuous bins for passive view that we accumulate across
+        const binConfig = view.dimension.binConfig!;
+        bin = binNumberFunctionContinuous(binConfig);
+        binCount = numBinsContinuous(binConfig);
       } else {
-        throw Error("categorical not implemented yet");
+        // categorical bins for passive view that we accumulate across
+        bin = binNumberFunctionCategorical(view.dimension.range!);
+        binCount = numBinsCategorical(view.dimension.range!);
+      }
+
+      filter = FalconArray.allocCumulative(numPixels * binCount, [
+        numPixels,
+        binCount,
+      ]);
+      noFilter = FalconArray.allocCounts(binCount, [binCount]);
+
+      const column = this.data.getChild(view.dimension.name)!;
+
+      // add data to aggregation matrix
+      for (let i = 0; i < this.data.numRows; i++) {
+        // ignore filtered entries
+        if (filterMask && filterMask.get(i)) {
+          continue;
+        }
+
+        const key = bin(column.get(i)!);
+        const keyActive = binActive(activeCol.get(i)!) + 1;
+        if (0 <= key && key < binCount) {
+          if (0 <= keyActive && keyActive < numPixels) {
+            filter.increment([keyActive, key]);
+          }
+          noFilter.increment([key]);
+        }
+      }
+
+      for (
+        let passiveBinIndex = 0;
+        passiveBinIndex < filter.shape[1];
+        passiveBinIndex++
+      ) {
+        // sum across column (passive bin aggregate)
+        filter.slice(null, passiveBinIndex).cumulativeSum();
       }
     } else {
       throw Error("only 0D and 1D views");
