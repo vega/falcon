@@ -1,5 +1,6 @@
 import { Interval } from "../util";
 import type { Falcon } from "../falcon";
+import { CategoricalRange } from "../dimension";
 
 type OnChange<S> = (state: S) => void;
 
@@ -44,4 +45,8 @@ export abstract class ViewAbstract<S extends object> {
 
   abstract all(): Promise<void> | void;
   abstract countContinuous1DIndex(activeBrushPixels?: Interval<number>): void;
+  abstract countCategorical1DIndex(
+    selection?: CategoricalRange,
+    totalRange?: CategoricalRange
+  ): void;
 }

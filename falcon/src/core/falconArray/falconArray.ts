@@ -87,6 +87,13 @@ export class FalconArray {
   }
 
   /**
+   * this + other = new memory
+   */
+  addOverride(other: FalconArray) {
+    ops.addeq(this.ndarray, other.ndarray);
+  }
+
+  /**
    * this - other = new memory
    */
   sub(other: FalconArray) {

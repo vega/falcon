@@ -89,7 +89,15 @@
 				filteredCount: organismState["filter"][i],
 			})) ?? []}
 			on:select={(e) => {
-				console.log(e.detail);
+				const selection = e.detail;
+				if (selection !== null) {
+					organismView.add(selection);
+				} else {
+					organismView.add();
+				}
+			}}
+			on:mouseenter={async () => {
+				await organismView.prefetch();
 			}}
 		/>
 		<View1DHist

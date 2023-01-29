@@ -3,10 +3,18 @@ import {
   createBinConfigContinuous,
   readableBinsContinuous,
   brushToPixelSpace,
+  binNumberFunctionCategorical,
+  numBinsContinuous,
 } from "../util";
 import type { Falcon } from "../falcon";
-import type { ContinuousRange, Dimension, DimensionFilter } from "../dimension";
+import type {
+  CategoricalRange,
+  ContinuousRange,
+  Dimension,
+  DimensionFilter,
+} from "../dimension";
 import type { Interval } from "../util";
+import { FalconArray } from "../falconArray";
 
 /* defines how the parameter is typed for on change */
 export interface ContinuousView1DState {
@@ -132,11 +140,22 @@ export class View1D extends ViewAbstract<View1DState> {
 
         this.lastFilter = filter;
       } else {
-        throw new Error("categorical not implemented yet");
+        // add filter
+        this.falcon.filters.set(this.dimension, filter);
+
+        // use the index to count for the passive views
+        this.falcon.views.passive.forEach(async (passiveView) => {
+          await passiveView.countCategorical1DIndex(
+            filter as CategoricalRange,
+            this.dimension.range!
+          );
+        });
+
+        this.lastFilter = filter;
       }
     } else {
       if (this.dimension.type === "continuous") {
-        // just end now if the filter hasn't changed
+        // just end now if the filter hasn't changed (still undefined)
         const filterStayedTheSame = this.lastFilter === filter;
         if (filterStayedTheSame) {
           return;
@@ -151,7 +170,14 @@ export class View1D extends ViewAbstract<View1DState> {
 
         this.lastFilter = filter;
       } else {
-        throw new Error("categorical not implemented yet");
+        // remove filter
+        this.falcon.filters.delete(this.dimension);
+        // and revert back counts
+        this.falcon.views.passive.forEach(async (passiveView) => {
+          await passiveView.countCategorical1DIndex();
+        });
+
+        this.lastFilter = filter;
       }
     }
   }
@@ -175,6 +201,46 @@ export class View1D extends ViewAbstract<View1DState> {
       const B = index.filter.slice(pixels[1], null);
       const binCounts = B.sub(A);
 
+      this.state.filter = binCounts.data as Int32Array;
+    }
+
+    // signal user
+    this.signalOnChange(this.state);
+  }
+
+  /**
+   * Given an active 1D view, count for this passive view
+   */
+  async countCategorical1DIndex(
+    selection?: CategoricalRange,
+    totalRange?: CategoricalRange
+  ) {
+    // grab index
+    const index = await this.falcon.index.get(this)!;
+    if (index === undefined) {
+      throw Error("Index not defined for 1D passive view");
+    }
+
+    // update state
+    if (!selection) {
+      this.state.filter = index.noFilter.data as Int32Array;
+    } else {
+      let binCounts: FalconArray;
+      if (this.dimension.type === "continuous") {
+        binCounts = FalconArray.allocCounts(
+          numBinsContinuous(this.dimension.binConfig!)
+        );
+      } else {
+        binCounts = FalconArray.allocCounts(this.dimension.range!.length);
+      }
+      binCounts.data.fill(0);
+
+      const bin = binNumberFunctionCategorical(totalRange!);
+      for (const s of selection) {
+        const binKey = bin(s);
+        const counts = index.filter.slice(binKey, null);
+        binCounts.addOverride(counts);
+      }
       this.state.filter = binCounts.data as Int32Array;
     }
 

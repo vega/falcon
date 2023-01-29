@@ -133,7 +133,7 @@ export class ArrowDB implements FalconDB {
 
       // 2. iterate over each passive view to compute cubes
       passiveViews.forEach((view) => {
-        const cube = this.cubeSlice1D(
+        const cube = this.cubeSlice1DContinuous(
           view,
           activeCol,
           filterMasks,
@@ -143,7 +143,24 @@ export class ArrowDB implements FalconDB {
         cubes.set(view, cube);
       });
     } else {
-      throw Error("categorical not implemented yet");
+      // 1. bin mapping functions
+      const binActive = binNumberFunctionCategorical(
+        activeView.dimension.range!
+      );
+      const binCountActive = numBinsCategorical(activeView.dimension.range!);
+      const activeCol = this.data.getChild(activeView.dimension.name)!;
+
+      // 2. iterate over each passive view to compute cubes
+      passiveViews.forEach((view) => {
+        const cube = this.cubeSlice1DCategorical(
+          view,
+          activeCol,
+          filterMasks,
+          binActive,
+          binCountActive
+        );
+        cubes.set(view, cube);
+      });
     }
 
     return cubes;
@@ -156,7 +173,96 @@ export class ArrowDB implements FalconDB {
    * @note Only works for 0D and 1D continuous views at the moment
    * @returns a cube as FalconArray for the passive view
    */
-  cubeSlice1D(
+  cubeSlice1DCategorical(
+    view: View,
+    activeCol: Vector,
+    filterMasks: FilterMasks<Dimension>,
+    binActive: (x: number) => number,
+    binCountActive: number
+  ) {
+    let noFilter: FalconArray;
+    let filter: FalconArray;
+
+    // 2.1 only filter all other dimensions (filter on same dimension does not apply)
+    const relevantMasks = new Map(filterMasks);
+    if (view instanceof View0D) {
+      // use all filters
+    } else if (view instanceof View1D) {
+      // remove itself from filtering
+      relevantMasks.delete(view.dimension);
+    }
+    const filterMask = union(...relevantMasks.values());
+
+    if (view instanceof View0D) {
+      filter = FalconArray.allocCounts(binCountActive);
+      noFilter = FalconArray.allocCounts(1, [1]);
+
+      // add data to aggregation matrix
+      for (let i = 0; i < this.data.numRows; i++) {
+        // ignore filtered entries
+        if (filterMask && filterMask.get(i)) {
+          continue;
+        }
+
+        const keyActive = binActive(activeCol.get(i)!);
+        if (0 <= keyActive && keyActive < binCountActive) {
+          filter.increment([keyActive]);
+        }
+        noFilter.increment([0]);
+      }
+    } else if (view instanceof View1D) {
+      let bin: (x: any) => number;
+      let binCount: number;
+
+      if (view.dimension.type === "continuous") {
+        // continuous bins for passive view that we accumulate across
+        const binConfig = view.dimension.binConfig!;
+        bin = binNumberFunctionContinuous(binConfig);
+        binCount = numBinsContinuous(binConfig);
+      } else {
+        // categorical bins for passive view that we accumulate across
+        bin = binNumberFunctionCategorical(view.dimension.range!);
+        binCount = numBinsCategorical(view.dimension.range!);
+      }
+
+      filter = FalconArray.allocCounts(binCountActive * binCount, [
+        binCountActive,
+        binCount,
+      ]);
+      noFilter = FalconArray.allocCounts(binCount, [binCount]);
+
+      const column = this.data.getChild(view.dimension.name)!;
+
+      // add data to aggregation matrix
+      for (let i = 0; i < this.data.numRows; i++) {
+        // ignore filtered entries
+        if (filterMask && filterMask.get(i)) {
+          continue;
+        }
+
+        const key = bin(column.get(i)!);
+        const keyActive = binActive(activeCol.get(i)!);
+        if (0 <= key && key < binCount) {
+          if (0 <= keyActive && keyActive < binCountActive) {
+            filter.increment([keyActive, key]);
+          }
+          noFilter.increment([key]);
+        }
+      }
+    } else {
+      throw Error("no 2d view here");
+    }
+
+    return { noFilter, filter };
+  }
+  /**
+   * Takes a view and computes the falcon cube for that passive view
+   * more details in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)
+   *
+   * @note Only works for 0D and 1D continuous views at the moment
+   * @returns a cube as FalconArray for the passive view
+   */
+  cubeSlice1DContinuous(
     view: View,
     activeCol: Vector,
     filterMasks: FilterMasks<Dimension>,
