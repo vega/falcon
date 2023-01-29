@@ -1,5 +1,5 @@
 <script lang="ts">
-	import VegaLiteHistogram from "./VegaLiteHistogram.svelte";
+	import VegaLiteHistogram from "./VLContinuous.svelte";
 	import type { View1DState } from "falcon2";
 	export let state: View1DState;
 
