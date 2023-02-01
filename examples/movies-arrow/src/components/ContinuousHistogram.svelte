@@ -1,5 +1,5 @@
 <script lang="ts">
-	import VegaLiteHistogram from "./VLContinuous.svelte";
+	import VLContinuous from "./VLContinuous.svelte";
 	import type { View1DState } from "falcon2";
 	export let state: View1DState;
 
@@ -26,9 +26,9 @@
 	}
 </script>
 
-<VegaLiteHistogram
+<VLContinuous
 	bins={data}
-	on:brush
+	on:select
 	on:mouseenter
 	on:mouseleave
 	{title}

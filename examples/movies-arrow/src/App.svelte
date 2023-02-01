@@ -16,13 +16,10 @@
 
 	let falcon: Falcon;
 
-	let ratingView: View1D;
-	let grossUSView: View1D;
 	let count: View0D;
-
-	let ratingState: View1DState;
-	let grossUSState: View1DState;
 	let countState: View0DState;
+	let views: View1D[] = [];
+	let viewStates: View1DState[] = [];
 
 	onMount(async () => {
 		await categoricalArrowExampleSetup();
@@ -41,28 +38,33 @@
 		falcon = new Falcon(db);
 		console.log(table.schema.fields.map((f) => f.name));
 
-		ratingView = falcon.view1D({
-			type: "categorical",
-			name: "MPAA_Rating",
-			range: ["G", "PG", "PG-13", "R"],
-		});
-		ratingView.onChange((state) => {
-			ratingState = state;
-		});
-
-		grossUSView = falcon.view1D({
-			type: "continuous",
-			name: "US_Gross",
-			bins: 25,
-			resolution: 400,
-		});
-		grossUSView.onChange((state) => {
-			grossUSState = state;
-		});
-
 		count = falcon.view0D();
 		count.onChange((state) => {
 			countState = state;
+		});
+
+		views.push(
+			falcon.view1D({
+				type: "categorical",
+				name: "MPAA_Rating",
+				range: ["G", "PG", "PG-13", "R"],
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "US_Gross",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+
+		viewStates = new Array(views.length);
+		// states will be updated when the view counts change
+		views.forEach((view, i) => {
+			view.onChange((state) => {
+				viewStates[i] = state;
+			});
 		});
 
 		await falcon.fetchInitialViewCounts();
@@ -82,34 +84,28 @@
 		</h3>
 	</div>
 	<div>
-		<ContinuousHistogram
-			state={grossUSState}
-			on:brush={(e) => {
-				const interval = e.detail;
-				if (interval !== null) {
-					grossUSView.add(interval);
-				} else {
-					grossUSView.add();
-				}
-			}}
-			on:mouseenter={async () => {
-				await grossUSView.prefetch();
-			}}
-		/>
-		<CategoricalHistogram
-			state={ratingState}
-			on:select={(e) => {
-				const selection = e.detail;
-				if (selection !== null) {
-					ratingView.add(selection);
-				} else {
-					ratingView.add();
-				}
-			}}
-			on:mouseenter={async () => {
-				await ratingView.prefetch();
-			}}
-		/>
+		{#each views as view, i}
+			{@const state = viewStates[i]}
+			{@const Histogram =
+				view.dimension.type === "continuous"
+					? ContinuousHistogram
+					: CategoricalHistogram}
+			<Histogram
+				{state}
+				dimLabel={view.dimension.name}
+				on:select={(e) => {
+					const selection = e.detail;
+					if (selection !== null) {
+						view.add(selection);
+					} else {
+						view.add();
+					}
+				}}
+				on:mouseenter={async () => {
+					await view.prefetch();
+				}}
+			/>
+		{/each}
 	</div>
 </main>
 

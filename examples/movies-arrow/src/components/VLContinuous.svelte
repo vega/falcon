@@ -5,7 +5,7 @@
 	import type { View } from "svelte-vega";
 
 	const dispatch = createEventDispatcher<{
-		brush: [number, number] | null;
+		select: [number, number] | null;
 	}>();
 
 	export let bins = [
@@ -42,7 +42,7 @@
 			{
 				params: [
 					{
-						name: "brush",
+						name: "select",
 						select: { type: "interval", encodings: ["x"] },
 					},
 				],
@@ -99,9 +99,8 @@
 	let view: View;
 	let runOnce = false;
 	$: if (view && !runOnce) {
-		view.addSignalListener("brush", (...s) => {
-			console.log(s);
-			dispatch("brush", s[1][`bin\\.0`] ?? null);
+		view.addSignalListener("select", (...s) => {
+			dispatch("select", s[1][`bin\\.0`] ?? null);
 		});
 		runOnce = true;
 	}
