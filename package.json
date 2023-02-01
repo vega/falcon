@@ -12,6 +12,7 @@
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
     "start:movies-arrow": "yarn workspace movies-arrow dev --open",
+    "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
     "start:flights-arrow": "yarn workspace flights-arrow dev --open",
     "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
     "dev": "yarn start:flights-arrow",
