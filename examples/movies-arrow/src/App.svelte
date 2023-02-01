@@ -47,13 +47,81 @@
 			falcon.view1D({
 				type: "categorical",
 				name: "MPAA_Rating",
-				range: ["G", "PG", "PG-13", "R"],
 			})
 		);
 		views.push(
 			falcon.view1D({
 				type: "continuous",
 				name: "US_Gross",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "Worldwide_Gross",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "Production_Budget",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "categorical",
+				name: "Distributor",
+				range: [
+					"Warner Bros.",
+					"Sony Pictures",
+					"Paramount Pictures",
+					"Universal",
+					"Walt Disney Pictures",
+					"20th Century Fox",
+					"MGM",
+					"Miramax",
+					"New Line",
+					"Lionsgate",
+					"Sony Pictures Classics",
+					"Fox Searchlight",
+					"Dreamworks SKG",
+					"Focus Features",
+					"Weinstein Co.",
+				],
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "IMDB_Rating",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "Rotten_Tomatoes_Rating",
+				bins: 25,
+				resolution: 400,
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "categorical",
+				name: "Major_Genre",
+			})
+		);
+		views.push(
+			falcon.view1D({
+				type: "continuous",
+				name: "Running_Time_min",
 				bins: 25,
 				resolution: 400,
 			})
@@ -74,7 +142,7 @@
 <main>
 	<div>
 		<img src={logo} alt="falcon" width="50px" />
-		<h1>Categorical Test</h1>
+		<h1>Movies</h1>
 
 		<h3>
 			<span style="font-weight: 250;">selected</span>
@@ -92,7 +160,7 @@
 					: CategoricalHistogram}
 			<Histogram
 				{state}
-				dimLabel={view.dimension.name}
+				dimLabel={view.dimension.name.replaceAll("_", " ")}
 				on:select={(e) => {
 					const selection = e.detail;
 					if (selection !== null) {

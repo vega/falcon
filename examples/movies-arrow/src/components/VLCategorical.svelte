@@ -60,7 +60,7 @@
 							{
 								param: "select",
 								empty: false,
-								value: "red",
+								value: "violet",
 							},
 						],
 						value: "transparent",
@@ -70,7 +70,7 @@
 							{
 								param: "select",
 								empty: false,
-								value: 2,
+								value: 3,
 							},
 						],
 						value: 0,
