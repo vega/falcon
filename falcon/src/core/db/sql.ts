@@ -1,4 +1,10 @@
-import { Dimension, ContinuousDimension } from "../dimension";
+import {
+  Dimension,
+  ContinuousDimension,
+  CategoricalDimension,
+  ContinuousRange,
+  CategoricalRange,
+} from "../dimension";
 import { FalconArray } from "../falconArray";
 import { numBinsContinuous, stepSize } from "../util";
 import { View0D, View1D } from "../views";
@@ -43,14 +49,27 @@ export abstract class SQLDB implements FalconDB {
     return _count;
   }
 
-  async range(dimension: ContinuousDimension) {
+  async range(dimension: Dimension) {
     const field = this.getName(dimension);
-    const result = await this.query(
-      `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
-       FROM ${this.table}`
-    );
-    const { _min, _max } = this.getASValues(result);
-    return [_min, _max] as Interval<number>;
+    if (dimension.type === "continuous") {
+      const result = await this.query(
+        `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
+        FROM ${this.table}`
+      );
+      const { _min, _max } = this.getASValues(result);
+      return [_min, _max] as ContinuousRange;
+    } else {
+      const result = await this.query(
+        `SELECT DISTINCT "${field}" AS _unique FROM ${this.table}`
+      );
+
+      let range: CategoricalRange[] = [];
+      for (const { _unique } of result) {
+        range.push(_unique);
+      }
+
+      return range;
+    }
   }
 
   async histogramView1D(view: View1D, filters?: Filters) {
