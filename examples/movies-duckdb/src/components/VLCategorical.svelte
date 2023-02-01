@@ -60,7 +60,7 @@
 							{
 								param: "select",
 								empty: false,
-								value: "violet",
+								value: labelColor,
 							},
 						],
 						value: "transparent",
