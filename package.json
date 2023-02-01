@@ -34,7 +34,7 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.20.0",
     "@heavyai/connector": "^7.0.0",
-    "apache-arrow": "^10.0.1",
+    "apache-arrow": "^11.0.0",
     "cwise": "^1.0.10",
     "d3": "^7.8.1",
     "ndarray": "^1.0.19",
