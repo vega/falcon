@@ -6,7 +6,12 @@ import {
   CategoricalRange,
 } from "../dimension";
 import { FalconArray } from "../falconArray";
-import { numBinsContinuous, stepSize } from "../util";
+import {
+  binNumberFunctionCategorical,
+  numBinsCategorical,
+  numBinsContinuous,
+  stepSize,
+} from "../util";
 import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig, Interval } from "../util";
@@ -73,10 +78,20 @@ export abstract class SQLDB implements FalconDB {
   }
 
   async histogramView1D(view: View1D, filters?: Filters) {
-    // 1. construct binning scheme
-    const bin = view.dimension.binConfig!;
-    const binCount = numBinsContinuous(bin);
-    const bSql = this.binSQL(view.dimension, bin);
+    let binCount: number;
+    let bSql: { select: PartialSQLQuery; where: PartialSQLQuery };
+    let binIndexMap = (x: any) => x;
+
+    if (view.dimension.type === "continuous") {
+      // 1. construct binning scheme
+      const bin = view.dimension.binConfig!;
+      binCount = numBinsContinuous(bin);
+      bSql = this.binSQL(view.dimension, bin);
+    } else {
+      binCount = numBinsCategorical(view.dimension.range!);
+      bSql = this.binSQLCategorical(view.dimension, view.dimension.range!);
+      binIndexMap = binNumberFunctionCategorical(view.dimension.range!);
+    }
 
     // 2. allocate memory
     const noFilter = FalconArray.allocCounts(binCount);
@@ -92,7 +107,7 @@ export abstract class SQLDB implements FalconDB {
        GROUP BY binIndex`
     );
     for (const { binIndex, binCount } of result) {
-      noFilter.set(binIndex, binCount);
+      noFilter.set(binIndexMap(binIndex), binCount);
     }
 
     // 4. query and store if we have filters
@@ -259,6 +274,34 @@ export abstract class SQLDB implements FalconDB {
    */
   private getName(dimension: Dimension) {
     return this.nameMap?.get(dimension.name) ?? dimension.name;
+  }
+
+  /**
+   * Takes the dimension and creates the select and where statement
+   * for querying the defined bins
+   *
+   * @returns select and where statement as strings
+   */
+  private binSQLCategorical(dimension: Dimension, range: CategoricalRange) {
+    const field = this.getName(dimension);
+    const select: PartialSQLQuery = `"${field}"`;
+    let where = `"${field}" in (`;
+    range.forEach((r) => {
+      if (r !== null) {
+        where += `'${r}', `;
+      }
+    });
+    where += `)`;
+
+    const hasNull = range.findIndex((r) => r === null) !== -1;
+    if (hasNull) {
+      where += ` OR "${field}" IS NULL`;
+    }
+
+    return {
+      select,
+      where,
+    };
   }
 
   /**
