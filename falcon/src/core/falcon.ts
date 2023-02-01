@@ -1,10 +1,7 @@
 import { View0D, View1D, ViewCollection } from "./views";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
-import type { DataBase as OldDatabase } from "../old/db";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
-
-export type OldDB = OldDatabase<string, string>;
 
 export class Falcon {
   db: FalconDB;

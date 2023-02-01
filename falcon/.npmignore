@@ -1,0 +1,7 @@
+src/
+benchmarks/
+tests/
+old/
+
+.prettierrc/
+jest.config.js

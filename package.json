@@ -17,9 +17,14 @@
     "dev": "yarn start:flights-arrow",
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format",
-    "test": "yarn workspace falcon2 test"
+    "test": "yarn workspace falcon2 test",
+    "predeploy": "yarn workspace movies-arrow build",
+    "deploy": "gh-pages -d movies-arrow/dist",
+    "pub": "yarn workspace falcon2 pub"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gh-pages": "^5.0.0"
+  },
   "directories": {
     "examples": "./examples/*",
     "falcon2": "./falcon"
