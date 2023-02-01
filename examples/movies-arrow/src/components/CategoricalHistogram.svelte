@@ -15,11 +15,13 @@
 	export let backgroundColor = "hsl(240,23%,9%)";
 
 	$: bins =
-		state?.bin?.map((b, i) => ({
-			bin: b,
-			count: state["total"][i],
-			filteredCount: state["filter"][i],
-		})) ?? [];
+		state?.bin
+			?.filter((b) => b !== null)
+			.map((b, i) => ({
+				bin: b,
+				count: state["total"][i],
+				filteredCount: state["filter"][i],
+			})) ?? [];
 </script>
 
 <VLCategorical
