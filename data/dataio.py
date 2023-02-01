@@ -1,5 +1,5 @@
 import pyarrow as pa
-from pyarrow.parquet import ParquetFile
+from pyarrow.parquet import ParquetFile, ParquetWriter
 
 
 def n_rows_parquet(filename: str, n_rows: int = 1) -> pa.Table:
@@ -16,4 +16,12 @@ def table_to_arrow_file(table: pa.Table, filename: str):
 
     writer = pa.RecordBatchFileWriter(filename, table.schema)
     writer.write(table)
+    writer.close()
+
+
+def table_to_parquet_file(table: pa.Table, filename: str):
+    """writes the pyarrow table to a file with parquet format"""
+
+    writer = ParquetWriter(filename, table.schema)
+    writer.write_table(table)
     writer.close()
