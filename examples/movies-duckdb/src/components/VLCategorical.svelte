@@ -49,10 +49,20 @@
 				encoding: {
 					x: {
 						field: "bin",
+						axis: {
+							title: dimLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
 					y: {
 						field: "count",
 						type: "quantitative",
+						axis: {
+							title: countLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
 					color: { value: backgroundBarColor },
 					stroke: {
@@ -89,21 +99,11 @@
 					x: {
 						field: "bin",
 						title: "",
-						axis: {
-							title: dimLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
 					},
 					y: {
 						field: "filteredCount",
 						type: "quantitative",
-						title: "count",
-						axis: {
-							title: countLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
+						title: "",
 					},
 					color: { value: foregroundBarColor },
 				},

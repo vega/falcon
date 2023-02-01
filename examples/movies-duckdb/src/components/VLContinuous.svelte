@@ -51,11 +51,22 @@
 					x: {
 						field: "bin[0]",
 						bin: { binned: true },
+						axis: {
+							title: dimLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
 					x2: { field: "bin[1]" },
 					y: {
 						field: "count",
 						type: "quantitative",
+						axis: {
+							title: countLabel,
+							titleColor: labelColor,
+							tickCount: 2,
+							labelColor: labelColor,
+						},
 					},
 					color: { value: backgroundBarColor },
 				},
@@ -72,23 +83,11 @@
 						field: "bin[0]",
 						bin: { binned: true },
 						title: "",
-						axis: {
-							title: dimLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
 					},
 					x2: { field: "bin[1]" },
 					y: {
 						field: "filteredCount",
 						type: "quantitative",
-						title: "count",
-						axis: {
-							title: countLabel,
-							titleColor: labelColor,
-							tickCount: 2,
-							labelColor: labelColor,
-						},
 					},
 					color: { value: foregroundBarColor },
 				},
