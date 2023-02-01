@@ -124,11 +124,17 @@ export class View1D extends ViewAbstract<View1DState> {
          * if they query something outside the possible resolution.
          * just do nothing!
          */
-        if (
-          selectPixels[0] > this.dimension.resolution ||
-          selectPixels[1] > this.dimension.resolution
-        ) {
-          selectPixels = [0, 0];
+        if (selectPixels[1] > this.dimension.resolution) {
+          selectPixels[1] = this.dimension.resolution;
+        }
+        if (selectPixels[0] > this.dimension.resolution) {
+          selectPixels[0] = this.dimension.resolution;
+        }
+        if (selectPixels[1] < 0) {
+          selectPixels[1] = 0;
+        }
+        if (selectPixels[0] < 0) {
+          selectPixels[0] = 0;
         }
 
         // use the index to count for the passive views
