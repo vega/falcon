@@ -131,7 +131,7 @@
 			});
 		});
 
-		await falcon.fetchInitialViewCounts();
+		await falcon.all();
 	}
 </script>
 

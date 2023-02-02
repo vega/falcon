@@ -48,7 +48,7 @@ export class Falcon {
    * Fetches the initial counts for all the views
    * This does not involve fetching the falcon index
    */
-  async fetchInitialViewCounts() {
+  async all() {
     this.views.forEach(async (view) => {
       await view.all();
     });
