@@ -34,6 +34,12 @@ export class Falcon {
     this.views.add(view);
     return view;
   }
+  /**
+   * alias for view0D
+   */
+  count() {
+    return this.view0D();
+  }
 
   /**
    * add 1D view, does not initialize the view
