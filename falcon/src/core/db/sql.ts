@@ -1,21 +1,14 @@
-import {
-  Dimension,
-  ContinuousDimension,
-  CategoricalDimension,
-  ContinuousRange,
-  CategoricalRange,
-} from "../dimension";
+import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
   binNumberFunctionCategorical,
-  binNumberFunctionContinuous,
   numBinsCategorical,
   numBinsContinuous,
   stepSize,
 } from "../util";
 import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
-import type { BinConfig, Interval } from "../util";
+import type { BinConfig } from "../util";
 import type { View } from "../views";
 
 export type SQLNameMap = Map<string, string>;
@@ -80,7 +73,7 @@ export abstract class SQLDB implements FalconDB {
 
   async histogramView1D(view: View1D, filters?: Filters) {
     let binCount: number;
-    let bSql: { select: PartialSQLQuery; where: PartialSQLQuery };
+    let bSql: SQLBin;
     let binIndexMap = (x: any) => x;
 
     if (view.dimension.type === "continuous") {
@@ -237,7 +230,7 @@ export abstract class SQLDB implements FalconDB {
          ${where ? `WHERE ${where}` : ""} 
          GROUP BY "keyActive"`;
     } else if (view instanceof View1D) {
-      let binPassive: { select: PartialSQLQuery; where: PartialSQLQuery };
+      let binPassive: SQLBin;
       let binCount: number;
 
       if (view.dimension.type === "continuous") {
