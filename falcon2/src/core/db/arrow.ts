@@ -71,7 +71,7 @@ export class ArrowDB implements FalconDB {
     }
   }
 
-  histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
+  histogramView1D(view: View1D, filters?: Filters) {
     let filter: FalconArray;
     let noFilter: FalconArray;
     let bin: (item: any) => number;
