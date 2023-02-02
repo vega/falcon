@@ -11,6 +11,14 @@
 
 Crossfilter millions of records without latencies. This fork of [Falcon](https://github.com/vega/falcon) offers an API, so you can crossfilter on your own data and own charts!
 
+## Usage
+
+Import the main `Falcon` object and whichever data you plan to use
+
+```typescript
+import { Falcon, ObjectDB, ArrowDB, DuckDB } from "falcon2";
+```
+
 ## Development
 
 ```bash
