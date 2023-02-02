@@ -147,28 +147,30 @@
 			>
 		</h3>
 	</div>
-	<div>
+	<div class="hist">
 		{#each views as view, i}
 			{@const state = viewStates[i]}
 			{@const Histogram =
 				view.dimension.type === "continuous"
 					? ContinuousHistogram
 					: CategoricalHistogram}
-			<Histogram
-				{state}
-				dimLabel={view.dimension.name.replaceAll("_", " ")}
-				on:select={(e) => {
-					const selection = e.detail;
-					if (selection !== null) {
-						view.add(selection);
-					} else {
-						view.add();
-					}
-				}}
-				on:mouseenter={async () => {
-					await view.prefetch();
-				}}
-			/>
+			<div class="hist-baby">
+				<Histogram
+					{state}
+					dimLabel={view.dimension.name.replaceAll("_", " ")}
+					on:select={(e) => {
+						const selection = e.detail;
+						if (selection !== null) {
+							view.add(selection);
+						} else {
+							view.add();
+						}
+					}}
+					on:mouseenter={async () => {
+						await view.prefetch();
+					}}
+				/>
+			</div>
 		{/each}
 	</div>
 </main>
@@ -190,5 +192,12 @@
 	code {
 		font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
 			monospace;
+	}
+	.hist {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+	}
+	.hist-baby {
 	}
 </style>

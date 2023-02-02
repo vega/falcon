@@ -13,6 +13,7 @@
 	export let backgroundBarColor = "hsla(0, 0%, 100%, 0.5)";
 	export let foregroundBarColor = "hsla(172, 97%, 45%, 0.95)";
 	export let backgroundColor = "hsl(240,23%,9%)";
+	export let onlyFiltered = false;
 
 	$: bins =
 		state?.bin
@@ -35,6 +36,7 @@
 	{backgroundBarColor}
 	{foregroundBarColor}
 	{backgroundColor}
+	{onlyFiltered}
 	on:mouseenter
 	on:mouseleave
 	on:select
