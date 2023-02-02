@@ -7,7 +7,6 @@
 		View1D,
 		ArrowDB,
 	} from "falcon2";
-	import { tableFromIPC } from "apache-arrow";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
@@ -22,21 +21,12 @@
 	let viewStates: View1DState[] = [];
 
 	onMount(async () => {
-		await categoricalArrowExampleSetup();
+		await moviesArrow();
 	});
 
-	async function loadArrowFile(url: string) {
-		const data = await fetch(url);
-		const buffer = await data.arrayBuffer();
-		const table = tableFromIPC(buffer);
-		return table;
-	}
-
-	async function categoricalArrowExampleSetup() {
-		const table = await loadArrowFile("data/movies-3k.arrow");
-		const db = new ArrowDB(table);
+	async function moviesArrow() {
+		const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
 		falcon = new Falcon(db);
-		console.log(table.schema.fields.map((f) => f.name));
 
 		count = falcon.view0D();
 		count.onChange((state) => {
@@ -135,7 +125,7 @@
 			});
 		});
 
-		await falcon.fetchInitialViewCounts();
+		await falcon.all();
 	}
 </script>
 
@@ -151,28 +141,30 @@
 			>
 		</h3>
 	</div>
-	<div>
+	<div class="hist">
 		{#each views as view, i}
 			{@const state = viewStates[i]}
 			{@const Histogram =
 				view.dimension.type === "continuous"
 					? ContinuousHistogram
 					: CategoricalHistogram}
-			<Histogram
-				{state}
-				dimLabel={view.dimension.name.replaceAll("_", " ")}
-				on:select={(e) => {
-					const selection = e.detail;
-					if (selection !== null) {
-						view.add(selection);
-					} else {
-						view.add();
-					}
-				}}
-				on:mouseenter={async () => {
-					await view.prefetch();
-				}}
-			/>
+			<div class="hist-baby">
+				<Histogram
+					{state}
+					dimLabel={view.dimension.name.replaceAll("_", " ")}
+					on:select={(e) => {
+						const selection = e.detail;
+						if (selection !== null) {
+							view.select(selection);
+						} else {
+							view.select();
+						}
+					}}
+					on:mouseenter={async () => {
+						await view.prefetch();
+					}}
+				/>
+			</div>
 		{/each}
 	</div>
 </main>
@@ -194,5 +186,12 @@
 	code {
 		font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
 			monospace;
+	}
+	.hist {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+	}
+	.hist-baby {
 	}
 </style>

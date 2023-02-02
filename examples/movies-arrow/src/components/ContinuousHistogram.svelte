@@ -8,6 +8,7 @@
 	export let height = 125;
 	export let countLabel = "Count";
 	export let dimLabel = "";
+	export let onlyFiltered = false;
 
 	$: data = convertFormat(state);
 
@@ -36,4 +37,5 @@
 	{height}
 	{countLabel}
 	{dimLabel}
+	{onlyFiltered}
 />

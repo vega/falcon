@@ -1,5 +1,6 @@
+import { tableFromIPC } from "apache-arrow";
 import { BitSet, union } from "../bitset";
-import { BinnedCounts, FalconDB, SyncIndex } from "./db";
+import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
 import {
   binNumberFunctionContinuous,
@@ -43,6 +44,13 @@ export class ArrowDB implements FalconDB {
     // bitmask to determine what rows filter out or not
     this.filterMaskIndex = new Map();
     this.data = data;
+  }
+
+  static async fromArrowFile(url: string) {
+    const data = await fetch(url);
+    const buffer = await data.arrayBuffer();
+    const table = tableFromIPC(buffer);
+    return new ArrowDB(table);
   }
 
   length(): AsyncOrSync<number> {

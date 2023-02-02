@@ -21,14 +21,14 @@
 	let viewStates: View1DState[] = [];
 
 	onMount(async () => {
-		await categoricalArrowExampleSetup();
+		await moviesDuckDB();
 	});
 
 	function fullUrl(filename: string) {
 		return `${window.location.href}${filename}`;
 	}
 
-	async function categoricalArrowExampleSetup() {
+	async function moviesDuckDB() {
 		const db = await DuckDB.fromParquetFile(
 			fullUrl("data/movies-3k.parquet")
 		);
@@ -161,9 +161,9 @@
 					on:select={(e) => {
 						const selection = e.detail;
 						if (selection !== null) {
-							view.add(selection);
+							view.select(selection);
 						} else {
-							view.add();
+							view.select();
 						}
 					}}
 					on:mouseenter={async () => {

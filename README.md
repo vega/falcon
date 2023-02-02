@@ -29,7 +29,7 @@ Add your data to one of the FalconDB supported formats.
 
 ```typescript
 const animals = {
-	name: ["Giraffe", "Lion", "Zebra"],
+	animalName: ["Giraffe", "Lion", "Zebra"],
 	weightKg: [1900, 200, 220],
 };
 
@@ -41,9 +41,9 @@ or row-wise like this
 
 ```typescript
 const animals = [
-	{ name: "Giraffe", weightKg: 1900 },
-	{ name: "Lion", weightKg: 200 },
-	{ name: "Zebra", weightKg: 220 },
+	{ animalName: "Giraffe", weightKg: 1900 },
+	{ animalName: "Lion", weightKg: 200 },
+	{ animalName: "Zebra", weightKg: 220 },
 ];
 
 // ObjectDB can take a row object
@@ -77,6 +77,104 @@ const tableName = "animals";
 // DuckDB takes the duckdb-wasm db and table name to read from
 const db = new DuckDB(duck, tableName);
 ```
+
+### Falcon
+
+Take your FalconDB and create a Falcon object.
+
+```typescript
+const falcon = new Falcon(db);
+```
+
+**Create Views**
+
+To keep track of total counts, use `view0D` or alias `count`. Directly call the object created from `falcon = new Falcon(db)`. The returned value is the view you can interact with.
+
+```typescript
+const counts = falcon.count();
+```
+
+To create create a 1-D histogram, you can create a 1-D view by specifying a dimension.
+
+-   Categorical
+
+```typescript
+const namesView = falcon.view1D({
+	type: "categorical",
+	name: "animalName",
+});
+```
+
+-   Continuous
+
+```typescript
+const weightsKgView = falcon.view1D({
+	type: "continuous",
+	name: "weightKg",
+	resolution: 200, // the total number of pixels you plan to brush over
+	bins: 2,
+});
+```
+
+**View Counts**
+
+After creating a view, you can directly add a `onChange` listener that gets called every time that view count changes.
+
+Here, you can directly define how the counts get visualized for example with `d3`.
+
+```typescript
+/**
+ * the state argument will contain total and filtered counts
+ * as well as bins
+ */
+count.onChange((state) => {
+	console.log(state);
+});
+namesView.onChange((state) => {
+	console.log(state);
+});
+weightsKgView.onChange((state) => {
+	console.log(state);
+});
+```
+
+To initially populate the counts for all the views call the `all` method on the global falcon object.
+
+```typescript
+await falcon.all();
+```
+
+**View Interaction**
+You can directly declare what you want to filter with `select`.
+
+```typescript
+weightsKgView.select([0, 400]);
+namesView.select(["zebra", "giraffe"]);
+```
+
+then all the views will run their `onChange` if the count changes based on the cross-filter selection.
+
+or deselect
+
+```typescript
+weightsKgView.select();
+namesView.select();
+```
+
+**Falcon Prefetching**
+Under the hood, `select` calls the `view.prefetch()` which is responsible for the massive speedups (as described in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)).
+
+You can call this beforehand if you think a user will `select` a particular view.
+
+for example, if they are hovering a bar chart for the weights view, you can call prefetch beforehand. So when they do brush over the view they will have a smooth experience.
+
+```typescript
+await weightsKgView.prefetch();
+```
+
+## Examples
+
+To see examples of the usages, run examples in the `examples/` directory. Check out the `package.json` to see how to run each one.
 
 ## Development
 
