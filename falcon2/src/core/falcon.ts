@@ -19,10 +19,14 @@ export class Falcon {
    * @returns the filters and excludes the active view dimension's filters
    */
   get passiveFilters(): Filters {
-    if (this.views.active instanceof View0D) {
+    const activeView = this.views.active;
+    if (activeView instanceof View0D) {
       throw Error("No filter for 0D view / count");
+    } else if (activeView instanceof View1D) {
+      const onlyPassiveFilters = excludeMap(this.filters, activeView.dimension);
+      return onlyPassiveFilters;
     } else {
-      return excludeMap(this.filters, this.views.active.dimension);
+      throw Error("2D view not implemented yet");
     }
   }
 
