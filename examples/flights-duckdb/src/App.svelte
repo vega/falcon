@@ -24,7 +24,7 @@
 
 	async function flightsDuckDBExampleSetup() {
 		const flights = fullUrl("data/flights-1m.parquet");
-		const db = await DuckDB.fromParquetURL(flights, "flights");
+		const db = await DuckDB.fromParquetFile(flights, "flights");
 		falcon = new Falcon(db);
 
 		// create views and save them
@@ -34,14 +34,14 @@
 			type: "continuous",
 			name: "AIR_TIME",
 			bins: 25,
-			extent: [0, 500],
+			range: [0, 500],
 			resolution: 400,
 		});
 		distanceView = falcon.view1D({
 			type: "continuous",
 			name: "DISTANCE",
 			bins: 25,
-			extent: [0, 4000],
+			range: [0, 4000],
 			resolution: 400,
 		});
 
@@ -57,7 +57,7 @@
 		});
 
 		// get initial counts
-		await falcon.fetchInitialViewCounts();
+		await falcon.all();
 	}
 </script>
 

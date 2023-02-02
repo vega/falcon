@@ -29,7 +29,7 @@
 	}
 
 	async function categoricalArrowExampleSetup() {
-		const db = await DuckDB.fromParquetURL(
+		const db = await DuckDB.fromParquetFile(
 			fullUrl("data/movies-3k.parquet")
 		);
 		falcon = new Falcon(db);
