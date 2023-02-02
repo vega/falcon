@@ -28,10 +28,10 @@
   },
   "directories": {
     "examples": "./examples/*",
-    "falcon2": "./falcon"
+    "falcon2": "./falcon2"
   },
   "workspaces": [
-    "falcon",
+    "falcon2",
     "examples/*"
   ]
 }
