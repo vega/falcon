@@ -34,12 +34,10 @@ Falcon supports
 -   HTTP (sends `GET` request with a `SQL` query)
 -   MapD
 
-for more details check out the implementations in `falcon/src/core/db`
+for both categorical and continuous data
 
 ### Views
 
 Falcon supports `0D` and `1D` views at the moment. `1D` meaning binned counts (histogram) across that dimension/column. `0D` being no dimension: just total counts across the entire data.
 
-Only continuos data is supported right now. Categorical data will be supported soon.
-
-`2D` views (like heatmaps) will be brought back after supporting categorical data.
+`2D` views (like heatmaps) will be brought soon
