@@ -11,14 +11,21 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
+    "start:movies-arrow": "yarn workspace movies-arrow dev --open",
+    "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
     "start:flights-arrow": "yarn workspace flights-arrow dev --open",
     "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
-    "dev": "yarn start:flights-arrow",
+    "dev": "yarn start:movies-duckdb",
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format",
-    "test": "yarn workspace falcon2 test"
+    "test": "yarn workspace falcon2 test",
+    "predeploy": "yarn workspace movies-arrow build",
+    "deploy": "gh-pages -d examples/movies-arrow/dist",
+    "pub": "yarn workspace falcon2 pub"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gh-pages": "^5.0.0"
+  },
   "directories": {
     "examples": "./examples/*",
     "falcon2": "./falcon"

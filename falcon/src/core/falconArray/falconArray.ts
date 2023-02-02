@@ -77,6 +77,10 @@ export class FalconArray {
     return this.ndarray.set(...indices);
   }
 
+  zeros() {
+    this.data.fill(0);
+  }
+
   /**
    * increments the location defined by index by
    * whatever you want!
@@ -84,6 +88,13 @@ export class FalconArray {
   increment(index: number[], incrementBy = 1) {
     this.set(...index, this.get(...index) + incrementBy);
     return this;
+  }
+
+  /**
+   * this + other and overrides this memory
+   */
+  addOverride(other: FalconArray) {
+    ops.addeq(this.ndarray, other.ndarray);
   }
 
   /**

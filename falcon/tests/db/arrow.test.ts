@@ -51,8 +51,8 @@ describe("Falcon ArrowDB", () => {
     } as Dimension;
 
     const arrowDB = new ArrowDB(arrowTable);
-    const randomExtent = arrowDB.extent(randomDimension);
-    const integerExtent = arrowDB.extent(integerDimension);
+    const randomExtent = arrowDB.range(randomDimension);
+    const integerExtent = arrowDB.range(integerDimension);
 
     expect(integerExtent).toBeDefined();
     expect(randomExtent).toBeDefined();

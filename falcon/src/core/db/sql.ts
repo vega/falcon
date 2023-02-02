@@ -1,9 +1,14 @@
-import { Dimension, RangeDimension } from "../dimension";
+import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
 import { FalconArray } from "../falconArray";
-import { numBins, stepSize } from "../util";
+import {
+  binNumberFunctionCategorical,
+  numBinsCategorical,
+  numBinsContinuous,
+  stepSize,
+} from "../util";
 import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
-import type { BinConfig, Interval } from "../util";
+import type { BinConfig } from "../util";
 import type { View } from "../views";
 
 export type SQLNameMap = Map<string, string>;
@@ -43,21 +48,44 @@ export abstract class SQLDB implements FalconDB {
     return _count;
   }
 
-  async extent(dimension: RangeDimension) {
+  async range(dimension: Dimension) {
     const field = this.getName(dimension);
-    const result = await this.query(
-      `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
-       FROM ${this.table}`
-    );
-    const { _min, _max } = this.getASValues(result);
-    return [_min, _max] as Interval<number>;
+    if (dimension.type === "continuous") {
+      const result = await this.query(
+        `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
+        FROM ${this.table}`
+      );
+      const { _min, _max } = this.getASValues(result);
+      return [_min, _max] as ContinuousRange;
+    } else {
+      const result = await this.query(
+        `SELECT DISTINCT "${field}" AS _unique FROM ${this.table}`
+      );
+
+      let range: CategoricalRange[] = [];
+      for (const { _unique } of result) {
+        range.push(_unique);
+      }
+
+      return range;
+    }
   }
 
   async histogramView1D(view: View1D, filters?: Filters) {
-    // 1. construct binning scheme
-    const bin = view.dimension.binConfig!;
-    const binCount = numBins(bin);
-    const bSql = this.binSQL(view.dimension, bin);
+    let binCount: number;
+    let bSql: SQLBin;
+    let binIndexMap = (x: any) => x;
+
+    if (view.dimension.type === "continuous") {
+      // 1. construct binning scheme
+      const bin = view.dimension.binConfig!;
+      binCount = numBinsContinuous(bin);
+      bSql = this.binSQL(view.dimension, bin);
+    } else {
+      binCount = numBinsCategorical(view.dimension.range!);
+      bSql = this.binSQLCategorical(view.dimension, view.dimension.range!);
+      binIndexMap = binNumberFunctionCategorical(view.dimension.range!);
+    }
 
     // 2. allocate memory
     const noFilter = FalconArray.allocCounts(binCount);
@@ -73,7 +101,7 @@ export abstract class SQLDB implements FalconDB {
        GROUP BY binIndex`
     );
     for (const { binIndex, binCount } of result) {
-      noFilter.set(binIndex, binCount);
+      noFilter.set(binIndexMap(binIndex), binCount);
     }
 
     // 4. query and store if we have filters
@@ -106,30 +134,162 @@ export abstract class SQLDB implements FalconDB {
     const sqlFilters = this.filtersToSQLWhereClauses(filters);
     const cubes: AsyncIndex = new Map();
 
-    // 1. active bin for each pixel
-    const binActive = this.binSQLPixel(
-      activeView.dimension,
-      activeView.dimension.binConfig!,
-      activeView.dimension.resolution
-    );
-    const numPixels = activeView.dimension.resolution + 1; // extending by one pixel so we can compute the right diff later
+    if (activeView.dimension.type === "continuous") {
+      // 1. active bin for each pixel
+      const binActive = this.binSQLPixel(
+        activeView.dimension,
+        activeView.dimension.binConfig!,
+        activeView.dimension.resolution
+      );
+      const numPixels = activeView.dimension.resolution + 1; // extending by one pixel so we can compute the right diff later
 
-    // 2. iterate through passive views and compute cubes
-    const promises: Promise<FalconCube>[] = [];
-    passiveViews.forEach((view) => {
-      const cube = this.cubeSlice1D(view, sqlFilters, binActive, numPixels);
-      promises.push(cube);
-      cubes.set(view, cube);
-    });
+      // 2. iterate through passive views and compute cubes
+      const promises: Promise<FalconCube>[] = [];
+      passiveViews.forEach((view) => {
+        const cube = this.cubeSlice1DContinuous(
+          view,
+          sqlFilters,
+          binActive,
+          numPixels
+        );
+        promises.push(cube);
+        cubes.set(view, cube);
+      });
 
-    // Merge promises into one, when all resolve .then will hit
-    Promise.all(promises).then(() => {
-      console.info(`Build index: ${performance.now() - t0}ms`);
-    });
+      // Merge promises into one, when all resolve .then will hit
+      Promise.all(promises).then(() => {
+        console.info(`Build index: ${performance.now() - t0}ms`);
+      });
+    } else {
+      // 1. active bin for each pixel
+      const binActive = this.binSQLCategorical(
+        activeView.dimension,
+        activeView.dimension.range!
+      );
+      const numBins = numBinsCategorical(activeView.dimension.range!);
+      const binActiveIndexMap = binNumberFunctionCategorical(
+        activeView.dimension.range!
+      );
+
+      // 2. iterate through passive views and compute cubes
+      const promises: Promise<FalconCube>[] = [];
+      passiveViews.forEach((view) => {
+        const cube = this.cubeSlice1DCategorical(
+          view,
+          sqlFilters,
+          binActive,
+          binActiveIndexMap,
+          numBins
+        );
+        promises.push(cube);
+        cubes.set(view, cube);
+      });
+
+      // Merge promises into one, when all resolve .then will hit
+      Promise.all(promises).then(() => {
+        console.info(`Build index: ${performance.now() - t0}ms`);
+      });
+    }
 
     return cubes;
   }
 
+  async cubeSlice1DCategorical(
+    view: View,
+    sqlFilters: SQLFilters,
+    binActive: SQLBin,
+    binActiveIndexMap: (x: any) => number,
+    binCountActive: number
+  ) {
+    let noFilter: FalconArray;
+    let filter: FalconArray;
+
+    const relevantFilters = new Map(sqlFilters);
+    if (view instanceof View0D) {
+      // use all filters
+    } else if (view instanceof View1D) {
+      // remove itself from filtering
+      relevantFilters.delete(view.dimension);
+    }
+
+    const where = [...relevantFilters.values()].join(" AND ");
+    let query: SQLQuery = ``;
+    let binPassiveIndexMap = (x: any) => x;
+
+    const select = `CASE WHEN ${binActive.where} 
+     THEN ${binActive.select}
+     ELSE -1 END AS "keyActive",
+     count(*) AS cnt`;
+
+    if (view instanceof View0D) {
+      filter = FalconArray.allocCounts(binCountActive);
+      noFilter = FalconArray.allocCounts(1, [1]);
+
+      query = `SELECT ${select}
+         FROM ${this.table} 
+         ${where ? `WHERE ${where}` : ""} 
+         GROUP BY "keyActive"`;
+    } else if (view instanceof View1D) {
+      let binPassive: SQLBin;
+      let binCount: number;
+
+      if (view.dimension.type === "continuous") {
+        // continuous bins for passive view that we accumulate across
+        const binConfig = view.dimension.binConfig!;
+        binCount = numBinsContinuous(binConfig);
+        binPassive = this.binSQL(view.dimension, view.dimension.binConfig!);
+      } else {
+        // categorical bins for passive view that we accumulate across
+        binPassiveIndexMap = binNumberFunctionCategorical(
+          view.dimension.range!
+        );
+        binCount = numBinsCategorical(view.dimension.range!);
+        binPassive = this.binSQLCategorical(
+          view.dimension,
+          view.dimension.range!
+        );
+      }
+
+      filter = FalconArray.allocCounts(binCountActive * binCount, [
+        binCountActive,
+        binCount,
+      ]);
+      noFilter = FalconArray.allocCounts(binCount, [binCount]);
+
+      query = `SELECT ${select}, 
+       ${binPassive.select} AS key 
+       FROM ${this.table} 
+       WHERE ${binPassive.where} ${where ? `AND ${where}` : ""} 
+       GROUP BY "keyActive", key`;
+    } else {
+      throw Error("no 2d view here");
+    }
+
+    const result = await this.query(query);
+
+    if (view instanceof View0D) {
+      for (const { keyActive, cnt } of result) {
+        const binIndex = binActiveIndexMap(keyActive);
+        if (binIndex >= 0) {
+          filter.set(binIndex, cnt);
+        }
+        noFilter.increment([0], cnt);
+      }
+    } else if (view instanceof View1D) {
+      for (const { keyActive, key, cnt } of result) {
+        const binActiveIndex = binActiveIndexMap(keyActive);
+        const binPassiveIndex = binPassiveIndexMap!(key);
+        if (binActiveIndex >= 0) {
+          filter.set(binActiveIndex, binPassiveIndex, cnt);
+        }
+        noFilter.increment([binPassiveIndex], cnt);
+      }
+    } else {
+      throw Error();
+    }
+
+    return { noFilter, filter };
+  }
   /**
    * Takes a view and computes the falcon cube for that passive view
    * more details in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)
@@ -137,7 +297,7 @@ export abstract class SQLDB implements FalconDB {
    * @note Only works for 0D and 1D continuous views at the moment
    * @returns a cube as FalconArray for the passive view
    */
-  async cubeSlice1D(
+  async cubeSlice1DContinuous(
     view: View,
     sqlFilters: SQLFilters,
     binActive: SQLBin,
@@ -156,6 +316,8 @@ export abstract class SQLDB implements FalconDB {
 
     const where = [...relevantFilters.values()].join(" AND ");
     let query: SQLQuery;
+    let binPassiveIndexMap = (x: any) => x;
+
     const select = `CASE WHEN ${binActive.where} 
      THEN ${binActive.select}
      ELSE -1 END AS "keyActive",
@@ -170,9 +332,22 @@ export abstract class SQLDB implements FalconDB {
          ${where ? `WHERE ${where}` : ""} 
          GROUP BY "keyActive"`;
     } else if (view instanceof View1D) {
-      const binConfig = view.dimension.binConfig!;
-      const bin = this.binSQL(view.dimension, binConfig);
-      const binCount = numBins(binConfig);
+      let passiveBin: SQLBin;
+      let binCount: number;
+      if (view.dimension.type === "continuous") {
+        const binConfig = view.dimension.binConfig!;
+        passiveBin = this.binSQL(view.dimension, binConfig);
+        binCount = numBinsContinuous(binConfig);
+      } else {
+        passiveBin = this.binSQLCategorical(
+          view.dimension,
+          view.dimension.range!
+        );
+        binCount = numBinsCategorical(view.dimension.range!);
+        binPassiveIndexMap = binNumberFunctionCategorical(
+          view.dimension.range!
+        );
+      }
 
       filter = FalconArray.allocCumulative(numPixels * binCount, [
         numPixels,
@@ -181,9 +356,9 @@ export abstract class SQLDB implements FalconDB {
       noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
       query = `SELECT ${select}, 
-       ${bin.select} AS key 
+       ${passiveBin.select} AS key 
        FROM ${this.table} 
-       WHERE ${bin.where} ${where ? `AND ${where}` : ""} 
+       WHERE ${passiveBin.where} ${where ? `AND ${where}` : ""} 
        GROUP BY "keyActive", key`;
     } else {
       throw Error("only 0D and 1D views");
@@ -202,10 +377,11 @@ export abstract class SQLDB implements FalconDB {
       filter.cumulativeSum();
     } else if (view instanceof View1D) {
       for (const { keyActive, key, cnt } of result) {
+        const binPassiveIndex = binPassiveIndexMap(key);
         if (keyActive >= 0) {
-          filter.set(keyActive, key, cnt);
+          filter.set(keyActive, binPassiveIndex, cnt);
         }
-        noFilter.increment([key], cnt);
+        noFilter.increment([binPassiveIndex], cnt);
       }
 
       // compute cumulative sums
@@ -248,6 +424,22 @@ export abstract class SQLDB implements FalconDB {
    *
    * @returns select and where statement as strings
    */
+  private binSQLCategorical(dimension: Dimension, range: CategoricalRange) {
+    const field = this.getName(dimension);
+    const select: PartialSQLQuery = `"${field}"`;
+    const where = categoricalWhereSQL(field, range);
+    return {
+      select,
+      where,
+    };
+  }
+
+  /**
+   * Takes the dimension and creates the select and where statement
+   * for querying the defined bins
+   *
+   * @returns select and where statement as strings
+   */
   private binSQL(dimension: Dimension, binConfig: BinConfig) {
     const field = this.getName(dimension);
     const select: PartialSQLQuery = `cast((${field} - ${binConfig.start}) / ${binConfig.step} as int)`;
@@ -268,12 +460,17 @@ export abstract class SQLDB implements FalconDB {
   private filtersToSQLWhereClauses(filters: Filters) {
     const whereClauses: SQLFilters = new Map();
 
-    for (const [dimension, extent] of filters) {
+    for (const [dimension, range] of filters) {
       const field = this.getName(dimension);
-      whereClauses.set(
-        dimension,
-        `${field} BETWEEN ${extent[0]} AND ${extent[1]}`
-      );
+
+      let whereClause: PartialSQLQuery;
+      if (dimension.type === "continuous") {
+        whereClause = `${field} BETWEEN ${range[0]} AND ${range[1]}`;
+      } else {
+        whereClause = categoricalWhereSQL(field, range);
+      }
+
+      whereClauses.set(dimension, whereClause);
     }
 
     return whereClauses;
@@ -295,4 +492,20 @@ export abstract class SQLDB implements FalconDB {
     const start = binConfig.start;
     return this.binSQL(dimension, { ...binConfig, start, step });
   }
+}
+
+function categoricalWhereSQL(field: string, range: CategoricalRange) {
+  let where = `"${field}" in (`;
+  range.forEach((r) => {
+    if (r !== null) {
+      where += `'${r}', `;
+    }
+  });
+  where += `)`;
+
+  const hasNull = range.findIndex((r) => r === null) !== -1;
+  if (hasNull) {
+    where += ` OR "${field}" IS NULL`;
+  }
+  return where;
 }

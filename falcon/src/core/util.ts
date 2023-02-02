@@ -1,6 +1,6 @@
 import { bin as vegaBin } from "vega-statistics";
 import { scaleTime } from "d3";
-import type { Dimension } from "./dimension";
+import type { CategoricalRange, ContinuousDimension } from "./dimension";
 
 /**
  * UTILITY TYPES
@@ -44,11 +44,30 @@ interface StartStopBinConfig {
 /**
  * Get the number of bins for a bin configuration.
  */
-export function numBins({ start, step, stop }: BinConfig) {
+export function numBinsCategorical(range: CategoricalRange) {
+  return range.length;
+}
+
+/**
+ * Takes the categorical names and maps them to indices
+ * @returns function that returns bin index
+ */
+export function binNumberFunctionCategorical(range: CategoricalRange) {
+  const binMapper = new Map(range.map((item, index) => [item, index]));
+  return (item: any) => binMapper.get(item)!;
+}
+
+/**
+ * Get the number of bins for a bin configuration.
+ */
+export function numBinsContinuous({ start, step, stop }: BinConfig) {
   return (stop - start) / step;
 }
 
-export function bin(maxbins: number, extent: Interval<number>): BinConfig {
+export function binContinuous(
+  maxbins: number,
+  extent: Interval<number>
+): BinConfig {
   return vegaBin({ maxbins, extent });
 }
 
@@ -67,16 +86,16 @@ export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
   };
 }
 
-export function createBinConfig(
-  dimension: Dimension,
+export function createBinConfigContinuous(
+  dimension: ContinuousDimension,
   extent: Interval<number>
 ) {
   const time = false;
-  const binningFunc = time ? binTime : bin;
+  const binningFunc = time ? binTime : binContinuous;
   return binningFunc(dimension.bins, extent);
 }
 
-export function readableBins(binConfig: BinConfig) {
+export function readableBinsContinuous(binConfig: BinConfig) {
   let bins: { binStart: number; binEnd: number }[] = [];
   let curStart = binConfig.start;
   let curEnd = curStart + binConfig.step;
@@ -88,8 +107,8 @@ export function readableBins(binConfig: BinConfig) {
   return bins;
 }
 
-export function conciseBins(binConfig: BinConfig) {
-  const n = numBins(binConfig);
+export function conciseBinsContinuous(binConfig: BinConfig) {
+  const n = numBinsContinuous(binConfig);
   const bins = new Float32Array(n);
   let curStart = binConfig.start;
   for (let i = 0; i < n; i++) {
@@ -170,19 +189,22 @@ export function excludeMap<K, V>(map: Map<K, V>, ...exclude: K[]) {
 /**
  * Returns a function that returns the bin for a value.
  */
-export function binNumberFunction({ start, step }: StartStepBinConfig) {
+export function binNumberFunctionContinuous({
+  start,
+  step,
+}: StartStepBinConfig) {
   return (v: number) => Math.floor((v - start) / step);
 }
 
 /**
  * Returns a function that returns the bin for a pixel. Starts one pixel before so that the brush contains the data.
  */
-export function binNumberFunctionBins(
+export function binNumberFunctionBinsContinuous(
   { start, stop }: StartStopBinConfig,
   pixel: number
 ) {
   const step = stepSize({ start, stop }, pixel);
-  return binNumberFunction({ start: start, step });
+  return binNumberFunctionContinuous({ start: start, step });
 }
 
 export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
