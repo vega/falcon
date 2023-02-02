@@ -8,6 +8,13 @@ export class Falcon {
   views: ViewCollection;
   filters: Filters;
   index: FalconIndex;
+
+  /**
+   * Takes a data and creates the main driver of the Falcon library
+   *
+   * Here, you can then create new views (view0D or view1D) and directly interact with
+   * those
+   */
   constructor(db: FalconDB) {
     this.db = db;
     this.views = new ViewCollection();
