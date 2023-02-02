@@ -15,7 +15,7 @@
     "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
     "start:flights-arrow": "yarn workspace flights-arrow dev --open",
     "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
-    "dev": "yarn start:flights-arrow",
+    "dev": "yarn start:movies-duckdb",
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format",
     "test": "yarn workspace falcon2 test",
