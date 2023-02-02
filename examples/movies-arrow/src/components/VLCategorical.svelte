@@ -22,6 +22,7 @@
 	export let backgroundBarColor = "hsla(0, 0%, 100%, 0.5)";
 	export let foregroundBarColor = "hsla(172, 97%, 45%, 0.95)";
 	export let backgroundColor = "hsl(240,23%,9%)";
+	export let onlyFiltered = false;
 
 	$: data = {
 		table: bins,
@@ -49,10 +50,21 @@
 				encoding: {
 					x: {
 						field: "bin",
+						axis: {
+							title: dimLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
 					y: {
-						field: "count",
+						field: onlyFiltered ? "filteredCount" : "count",
 						type: "quantitative",
+						axis: {
+							title: countLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+							tickCount: 3,
+						},
 					},
 					color: { value: backgroundBarColor },
 					stroke: {
@@ -60,7 +72,7 @@
 							{
 								param: "select",
 								empty: false,
-								value: "violet",
+								value: labelColor,
 							},
 						],
 						value: "transparent",
@@ -89,21 +101,11 @@
 					x: {
 						field: "bin",
 						title: "",
-						axis: {
-							title: dimLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
 					},
 					y: {
 						field: "filteredCount",
 						type: "quantitative",
-						title: "count",
-						axis: {
-							title: countLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
+						title: "",
 					},
 					color: { value: foregroundBarColor },
 				},

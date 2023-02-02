@@ -1,5 +1,5 @@
 {
-  "name": "flights-arrow",
+  "name": "movies-json",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,16 +12,15 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.4.0",
     "@tsconfig/svelte": "^3.0.0",
-    "svelte": "^3.55.1",
-    "svelte-check": "^3.0.3",
-    "svelte-preprocess": "^5.0.1",
-    "tslib": "^2.5.0",
-    "typescript": "^4.9.5",
+    "svelte": "^3.55.0",
+    "svelte-check": "^3.0.2",
+    "svelte-preprocess": "^5.0.0",
+    "tslib": "^2.4.0",
+    "typescript": "^4.9.4",
     "vite": "^3.2.4"
   },
   "dependencies": {
-    "apache-arrow": "^10.0.1",
-    "falcon2": "0.0.0",
+    "falcon2": "0.0.15",
     "svelte-vega": "^1.2.0",
     "vega": "^5.22.1",
     "vega-lite": "^5.6.0"

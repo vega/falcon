@@ -5,7 +5,7 @@
 		type View1DState,
 		View0D,
 		View1D,
-		ArrowDB,
+		ObjectDB,
 	} from "falcon2";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
@@ -21,11 +21,13 @@
 	let viewStates: View1DState[] = [];
 
 	onMount(async () => {
-		await moviesArrow();
+		await moviesJson();
 	});
 
-	async function moviesArrow() {
-		const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
+	async function moviesJson() {
+		const json = await fetch("data/movies.json").then((res) => res.json());
+		const db = new ObjectDB(json);
+
 		falcon = new Falcon(db);
 
 		count = falcon.view0D();

@@ -5,7 +5,7 @@
 	import type { View } from "svelte-vega";
 
 	const dispatch = createEventDispatcher<{
-		brush: [number, number] | null;
+		select: [number, number] | null;
 	}>();
 
 	export let bins = [
@@ -23,6 +23,7 @@
 	export let backgroundBarColor = "hsla(0, 0%, 100%, 0.5)";
 	export let foregroundBarColor = "hsla(172, 97%, 45%, 0.95)";
 	export let backgroundColor = "hsl(240,23%,9%)";
+	export let onlyFiltered = false;
 
 	$: data = {
 		table: bins,
@@ -42,7 +43,7 @@
 			{
 				params: [
 					{
-						name: "brush",
+						name: "select",
 						select: { type: "interval", encodings: ["x"] },
 					},
 				],
@@ -51,11 +52,22 @@
 					x: {
 						field: "bin[0]",
 						bin: { binned: true },
+						axis: {
+							title: dimLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
 					x2: { field: "bin[1]" },
 					y: {
-						field: "count",
+						field: onlyFiltered ? "filteredCount" : "count",
 						type: "quantitative",
+						axis: {
+							title: countLabel,
+							titleColor: labelColor,
+							tickCount: 3,
+							labelColor: labelColor,
+						},
 					},
 					color: { value: backgroundBarColor },
 				},
@@ -72,23 +84,11 @@
 						field: "bin[0]",
 						bin: { binned: true },
 						title: "",
-						axis: {
-							title: dimLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
 					},
 					x2: { field: "bin[1]" },
 					y: {
 						field: "filteredCount",
 						type: "quantitative",
-						title: "count",
-						axis: {
-							title: countLabel,
-							titleColor: labelColor,
-							tickCount: 2,
-							labelColor: labelColor,
-						},
 					},
 					color: { value: foregroundBarColor },
 				},
@@ -97,10 +97,12 @@
 	} as VegaLiteSpec;
 
 	let view: View;
-	$: if (view) {
-		view.addSignalListener("brush", (...s) => {
-			dispatch("brush", s[1][`bin\\.0`] ?? null);
+	let runOnce = false;
+	$: if (view && !runOnce) {
+		view.addSignalListener("select", (...s) => {
+			dispatch("select", s[1][`bin\\.0`] ?? null);
 		});
+		runOnce = true;
 	}
 </script>
 

@@ -8,6 +8,13 @@ export class Falcon {
   views: ViewCollection;
   filters: Filters;
   index: FalconIndex;
+
+  /**
+   * Takes a data and creates the main driver of the Falcon library
+   *
+   * Here, you can then create new views (view0D or view1D) and directly interact with
+   * those
+   */
   constructor(db: FalconDB) {
     this.db = db;
     this.views = new ViewCollection();
@@ -19,10 +26,14 @@ export class Falcon {
    * @returns the filters and excludes the active view dimension's filters
    */
   get passiveFilters(): Filters {
-    if (this.views.active instanceof View0D) {
+    const activeView = this.views.active;
+    if (activeView instanceof View0D) {
       throw Error("No filter for 0D view / count");
+    } else if (activeView instanceof View1D) {
+      const onlyPassiveFilters = excludeMap(this.filters, activeView.dimension);
+      return onlyPassiveFilters;
     } else {
-      return excludeMap(this.filters, this.views.active.dimension);
+      throw Error("2D view not implemented yet");
     }
   }
 
@@ -33,6 +44,12 @@ export class Falcon {
     const view = new View0D(this);
     this.views.add(view);
     return view;
+  }
+  /**
+   * alias for view0D
+   */
+  count() {
+    return this.view0D();
   }
 
   /**

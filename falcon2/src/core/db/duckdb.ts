@@ -50,7 +50,7 @@ export class DuckDB extends SQLDB {
    *
    * @returns a new FalconDB
    */
-  static async fromParquetURL(
+  static async fromParquetFile(
     url: string,
     table = "data",
     nameMap?: SQLNameMap

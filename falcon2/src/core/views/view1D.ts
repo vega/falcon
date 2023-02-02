@@ -98,7 +98,7 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * compute counts from the falcon index
    */
-  async add(filter?: DimensionFilter, convertToPixels = true) {
+  async select(filter?: DimensionFilter, convertToPixels = true) {
     await this.prefetch();
 
     if (filter) {

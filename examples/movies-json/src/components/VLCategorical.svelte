@@ -5,13 +5,12 @@
 	import type { View } from "svelte-vega";
 
 	const dispatch = createEventDispatcher<{
-		brush: [number, number] | null;
+		select: any[] | null;
 	}>();
 
 	export let bins = [
-		{ bin: [0, 10], count: 200, filteredCount: 150 },
-		{ bin: [10, 20], count: 300, filteredCount: 25 },
-		{ bin: [20, 30], count: 72, filteredCount: 12 },
+		{ bin: "chicken", count: 200, filteredCount: 150 },
+		{ bin: "dog", count: 300, filteredCount: 25 },
 	];
 
 	export let title = "";
@@ -23,6 +22,7 @@
 	export let backgroundBarColor = "hsla(0, 0%, 100%, 0.5)";
 	export let foregroundBarColor = "hsla(172, 97%, 45%, 0.95)";
 	export let backgroundColor = "hsl(240,23%,9%)";
+	export let onlyFiltered = false;
 
 	$: data = {
 		table: bins,
@@ -30,7 +30,7 @@
 
 	$: spec = {
 		$schema: "https://vega.github.io/schema/vega-lite/v5.json",
-		description: "A simple bar chart with embedded data.",
+		description: "A categorical bar chart",
 		data: {
 			name: "table",
 		},
@@ -42,23 +42,53 @@
 			{
 				params: [
 					{
-						name: "brush",
-						select: { type: "interval", encodings: ["x"] },
+						name: "select",
+						select: { type: "point", encodings: ["x"] },
 					},
 				],
-				mark: { type: "bar", cursor: "col-resize" },
+				mark: { type: "bar", cursor: "pointer" },
 				encoding: {
 					x: {
-						field: "bin[0]",
-						bin: { binned: true },
+						field: "bin",
+						axis: {
+							title: dimLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+						},
 					},
-					x2: { field: "bin[1]" },
 					y: {
-						field: "count",
+						field: onlyFiltered ? "filteredCount" : "count",
 						type: "quantitative",
+						axis: {
+							title: countLabel,
+							titleColor: labelColor,
+							labelColor: labelColor,
+							tickCount: 3,
+						},
 					},
 					color: { value: backgroundBarColor },
+					stroke: {
+						condition: [
+							{
+								param: "select",
+								empty: false,
+								value: labelColor,
+							},
+						],
+						value: "transparent",
+					},
+					strokeWidth: {
+						condition: [
+							{
+								param: "select",
+								empty: false,
+								value: 3,
+							},
+						],
+						value: 0,
+					},
 				},
+				color: { value: foregroundBarColor },
 			},
 			{
 				mark: {
@@ -69,26 +99,13 @@
 						legend: null,
 					},
 					x: {
-						field: "bin[0]",
-						bin: { binned: true },
+						field: "bin",
 						title: "",
-						axis: {
-							title: dimLabel,
-							titleColor: labelColor,
-							labelColor: labelColor,
-						},
 					},
-					x2: { field: "bin[1]" },
 					y: {
 						field: "filteredCount",
 						type: "quantitative",
-						title: "count",
-						axis: {
-							title: countLabel,
-							titleColor: labelColor,
-							tickCount: 2,
-							labelColor: labelColor,
-						},
+						title: "",
 					},
 					color: { value: foregroundBarColor },
 				},
@@ -97,10 +114,18 @@
 	} as VegaLiteSpec;
 
 	let view: View;
-	$: if (view) {
-		view.addSignalListener("brush", (...s) => {
-			dispatch("brush", s[1][`bin\\.0`] ?? null);
+	let runOnce = false;
+	$: if (view && !runOnce) {
+		view.addSignalListener("select", (...s) => {
+			let out: any[] | null;
+			if (s[1] && "bin" in s[1]) {
+				out = s[1]["bin"];
+			} else {
+				out = null;
+			}
+			dispatch("select", out);
 		});
+		runOnce = true;
 	}
 </script>
 

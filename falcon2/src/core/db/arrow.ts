@@ -1,5 +1,6 @@
+import { tableFromIPC } from "apache-arrow";
 import { BitSet, union } from "../bitset";
-import { BinnedCounts, FalconDB, SyncIndex } from "./db";
+import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
 import {
   binNumberFunctionContinuous,
@@ -45,6 +46,13 @@ export class ArrowDB implements FalconDB {
     this.data = data;
   }
 
+  static async fromArrowFile(url: string) {
+    const data = await fetch(url);
+    const buffer = await data.arrayBuffer();
+    const table = tableFromIPC(buffer);
+    return new ArrowDB(table);
+  }
+
   length(): AsyncOrSync<number> {
     return this.data.numRows;
   }
@@ -63,7 +71,7 @@ export class ArrowDB implements FalconDB {
     }
   }
 
-  histogramView1D(view: View1D, filters?: Filters): BinnedCounts {
+  histogramView1D(view: View1D, filters?: Filters) {
     let filter: FalconArray;
     let noFilter: FalconArray;
     let bin: (item: any) => number;

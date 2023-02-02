@@ -1,5 +1,5 @@
 <script lang="ts">
-	import VegaLiteHistogram from "./VegaLiteHistogram.svelte";
+	import VLContinuous from "./VLContinuous.svelte";
 	import type { View1DState } from "falcon2";
 	export let state: View1DState;
 
@@ -8,6 +8,7 @@
 	export let height = 125;
 	export let countLabel = "Count";
 	export let dimLabel = "";
+	export let onlyFiltered = false;
 
 	$: data = convertFormat(state);
 
@@ -26,9 +27,9 @@
 	}
 </script>
 
-<VegaLiteHistogram
+<VLContinuous
 	bins={data}
-	on:brush
+	on:select
 	on:mouseenter
 	on:mouseleave
 	{title}
@@ -36,4 +37,5 @@
 	{height}
 	{countLabel}
 	{dimLabel}
+	{onlyFiltered}
 />
