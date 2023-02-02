@@ -13,8 +13,7 @@
   "scripts": {
     "start:movies-arrow": "yarn workspace movies-arrow dev --open",
     "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
-    "start:flights-arrow": "yarn workspace flights-arrow dev --open",
-    "start:flights-duckdb": "yarn workspace flights-duckdb dev --open",
+    "start:movies-json": "yarn workspace movies-json dev --open",
     "dev": "yarn start:movies-duckdb",
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format",
