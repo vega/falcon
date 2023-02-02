@@ -11,8 +11,6 @@
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
 
-	import logo from "../../../logo/logo.png";
-
 	let falcon: Falcon;
 
 	let count: View0D;
@@ -137,7 +135,7 @@
 
 <main>
 	<div>
-		<img src={logo} alt="falcon" width="50px" />
+		<img src="logo.png" alt="falcon logo" width="50px" />
 		<h1>Movies</h1>
 
 		<h3>

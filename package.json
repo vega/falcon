@@ -18,8 +18,8 @@
     "build": "yarn workspace falcon2 build",
     "format": "yarn workspace falcon2 format",
     "test": "yarn workspace falcon2 test",
-    "predeploy": "yarn workspace movies-arrow build",
-    "deploy": "gh-pages -d examples/movies-arrow/dist",
+    "build:deploy": "yarn workspace movies-duckdb build",
+    "deploy": "gh-pages -d examples/movies-duckdb/dist",
     "pub": "yarn workspace falcon2 pub"
   },
   "devDependencies": {
