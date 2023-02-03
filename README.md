@@ -9,7 +9,7 @@
 
 **🚧 Work in Progress**
 
-Crossfilter millions of records without latencies. This fork of [Falcon](https://github.com/vega/falcon) offers an API, so you can crossfilter on your own data and own charts
+Crossfilter millions of records without latencies. This fork of [Falcon](https://github.com/vega/falcon) offers an API, so you can crossfilter on your own data and own charts.
 
 Try out the [live demo](http://dig.cmu.edu/falcon/)
 
