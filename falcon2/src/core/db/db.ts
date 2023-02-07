@@ -43,6 +43,13 @@ export interface FalconDB {
   range(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
 
   /**
+   * computes a page/batch of instance indices
+   *
+   * @returns list of indices from the database inside the filter
+   */
+  instances(offset?: number, length?: number, filters?: Filters): number[];
+
+  /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
    * like a histogram
    *

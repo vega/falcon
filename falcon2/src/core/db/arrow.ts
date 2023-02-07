@@ -71,6 +71,44 @@ export class ArrowDB implements FalconDB {
     }
   }
 
+  instances(
+    offset: number = 0,
+    length: number = Infinity,
+    filters?: Filters | undefined
+  ) {
+    // 1. decide which rows are filtered or not
+    const filterMask: BitSet | null = union(
+      ...this.getFilterMasks(filters ?? new Map()).values()
+    );
+
+    let indices: number[] = [];
+    if (offset > this.data.numRows) {
+      return indices;
+    }
+
+    if (filterMask) {
+      let i = 0;
+      let passedOffset = 0;
+      while (i < this.data.numRows && indices.length < length) {
+        if (!filterMask.get(i)) {
+          if (passedOffset >= offset) {
+            indices.push(i);
+          }
+
+          passedOffset++;
+        }
+        i++;
+      }
+    } else {
+      indices = Array.from(
+        { length: Math.min(length, this.data.numRows) },
+        (_, i) => i + offset
+      );
+    }
+
+    return indices;
+  }
+
   histogramView1D(view: View1D, filters?: Filters) {
     let filter: FalconArray;
     let noFilter: FalconArray;
