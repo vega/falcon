@@ -1,4 +1,4 @@
-import { tableFromIPC, Table, tableFromJSON } from "apache-arrow";
+import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
@@ -79,12 +79,12 @@ export class ArrowDB implements FalconDB {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
-
-    if (offset > this.data.numRows) {
-      return this.data;
-    }
-
-    return new ArrowInstances(this.data, filterMask, offset, length);
+    return new ArrowInstances(
+      this.data,
+      filterMask,
+      offset,
+      length
+    ) as Iterable<Record<string, any>>;
   }
 
   histogramView1D(view: View1D, filters?: Filters) {
@@ -590,11 +590,16 @@ class ArrowInstances {
   *[Symbol.iterator]() {
     let validIterated = 0;
     let globalIndex = 0;
+    let ignored = 0;
     while (validIterated < this.length && globalIndex < this.table.numRows) {
+      const pastOffset = ignored >= this.offset;
       if (this.mask && !this.mask.get(globalIndex)) {
-        const row = this.table.get(globalIndex);
-        validIterated++;
-        yield row;
+        if (pastOffset) {
+          const row = this.table.get(globalIndex);
+          validIterated++;
+          yield row;
+        }
+        ignored++;
       }
       globalIndex++;
     }

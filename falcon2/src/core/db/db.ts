@@ -47,7 +47,11 @@ export interface FalconDB {
    *
    * @returns list of indices from the database inside the filter
    */
-  instances(offset?: number, length?: number, filters?: Filters): number[];
+  instances(
+    offset?: number,
+    length?: number,
+    filters?: Filters
+  ): AsyncOrSync<Iterable<Record<string, any>>>;
 
   /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning

@@ -39,6 +39,23 @@ export abstract class SQLDB implements FalconDB {
     q: SQLQuery
   ): SQLQueryResult | Promise<SQLQueryResult>;
 
+  async instances(
+    offset: number = 0,
+    length: number = Infinity,
+    filters?: Filters
+  ) {
+    const where = filters
+      ? [...this.filtersToSQLWhereClauses(filters).values()].join(" AND ")
+      : undefined;
+    const queryIndices = await this.query(`SELECT *
+              FROM ${this.table}
+              ${filters ? `WHERE ${where}` : ""}
+              ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
+              OFFSET ${offset}`);
+
+    return queryIndices;
+  }
+
   async length() {
     const result = await this.query(
       `SELECT count(*) AS _count
