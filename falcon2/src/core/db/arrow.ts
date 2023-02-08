@@ -553,34 +553,12 @@ function arrowColumnExtent(column: Vector): Interval<number> {
   return [min, max];
 }
 
-/**
- * given a table and a filter mask, return a new table with the filtered rows removed
- * right now this is a worst possible implementation, but it works
- *
- * @returns a new table with the filtered rows removed
- */
-function filterArrowTable(
-  table: Table,
-  bitmask: BitSet,
-  offset?: number,
-  length?: number
-) {
-  const filtered = [...table]
-    .filter((_, i) => !bitmask.get(i))
-    .slice(offset, length);
-  if (filtered.length === 0) {
-    return new Table();
-  } else {
-    return tableFromJSON(filtered);
-  }
-}
-
-class ArrowInstances {
+export class ArrowInstances {
   constructor(
     private table: Table,
-    private mask: BitSet | null = null,
-    public offset: number,
-    public length: number
+    private mask?: BitSet | null,
+    public offset: number = 0,
+    public length: number = Infinity
   ) {
     this.table = table;
     this.mask = mask;
@@ -593,13 +571,20 @@ class ArrowInstances {
     let ignored = 0;
     while (validIterated < this.length && globalIndex < this.table.numRows) {
       const pastOffset = ignored >= this.offset;
-      if (this.mask && !this.mask.get(globalIndex)) {
-        if (pastOffset) {
-          const row = this.table.get(globalIndex);
-          validIterated++;
-          yield row;
+      const row = this.table.get(globalIndex);
+      // if we have filters, go into that mode
+      if (this.mask) {
+        if (this.mask && !this.mask.get(globalIndex)) {
+          if (pastOffset) {
+            validIterated++;
+            yield row;
+          }
+          ignored++;
         }
-        ignored++;
+        // no filters? yield everything!
+      } else {
+        yield row;
+        validIterated++;
       }
       globalIndex++;
     }

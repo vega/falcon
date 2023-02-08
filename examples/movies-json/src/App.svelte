@@ -24,8 +24,9 @@
 		await moviesJson();
 	});
 
+	let json: Record<string, unknown>[];
 	async function moviesJson() {
-		const json = await fetch("data/movies.json").then((res) => res.json());
+		json = await fetch("data/movies.json").then((res) => res.json());
 		const db = new ObjectDB(json);
 
 		falcon = new Falcon(db);
@@ -129,6 +130,9 @@
 
 		await falcon.all();
 	}
+	let instances: Iterable<Record<string, any>>;
+	let page = 0;
+	let pageSize = 20;
 </script>
 
 <main>
@@ -154,13 +158,19 @@
 				<Histogram
 					{state}
 					dimLabel={view.dimension.name.replaceAll("_", " ")}
-					on:select={(e) => {
+					on:select={async (e) => {
 						const selection = e.detail;
 						if (selection !== null) {
-							view.select(selection);
+							await view.select(selection);
 						} else {
-							view.select();
+							await view.select();
 						}
+						instances = await falcon.instances({
+							offset: 0,
+							length: pageSize,
+						});
+						console.log([...instances]);
+						page = 0;
 					}}
 					on:mouseenter={async () => {
 						await view.prefetch();
@@ -169,6 +179,40 @@
 			</div>
 		{/each}
 	</div>
+
+	<button
+		on:click={async () => {
+			page = Math.max(page - pageSize, 0);
+			instances = await falcon.instances({
+				length: pageSize,
+				offset: page,
+			});
+
+			console.log(page, instances);
+		}}>back</button
+	>
+	<button
+		on:click={async () => {
+			page += pageSize;
+			instances = await falcon.instances({
+				length: pageSize,
+				offset: page,
+			});
+
+			console.log(page, instances);
+		}}>next</button
+	>
+	<table>
+		{#if instances}
+			{#each [...instances] as instance}
+				<tr>
+					{#each Object.keys(instance) as key}
+						<td>{instance[key]}</td>
+					{/each}
+				</tr>
+			{/each}
+		{/if}
+	</table>
 </main>
 
 <style>

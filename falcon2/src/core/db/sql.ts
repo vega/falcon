@@ -1,3 +1,4 @@
+import { ArrowInstances } from "./arrow";
 import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
@@ -10,6 +11,7 @@ import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig } from "../util";
 import type { View } from "../views";
+import { Table } from "apache-arrow";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
@@ -47,13 +49,13 @@ export abstract class SQLDB implements FalconDB {
     const where = filters
       ? [...this.filtersToSQLWhereClauses(filters).values()].join(" AND ")
       : undefined;
-    const queryIndices = await this.query(`SELECT *
+    const filteredTable = await this.query(`SELECT *
               FROM ${this.table}
               ${filters ? `WHERE ${where}` : ""}
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
 
-    return queryIndices;
+    return new ArrowInstances(filteredTable as Table);
   }
 
   async length() {
