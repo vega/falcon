@@ -1,4 +1,4 @@
-import { tableFromIPC } from "apache-arrow";
+import { tableFromIPC, Table, tableFromJSON } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
@@ -20,7 +20,7 @@ import type {
 } from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
-import type { Table, Vector } from "apache-arrow";
+import type { Vector } from "apache-arrow";
 
 type DimensionFilterHash = string;
 type FilterMasks<T> = Map<T, BitSet>;
@@ -75,38 +75,16 @@ export class ArrowDB implements FalconDB {
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined
-  ) {
-    // 1. decide which rows are filtered or not
+  ): Iterable<Record<string, any>> {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
 
-    let indices: number[] = [];
     if (offset > this.data.numRows) {
-      return indices;
+      return this.data;
     }
 
-    if (filterMask) {
-      let i = 0;
-      let passedOffset = 0;
-      while (i < this.data.numRows && indices.length < length) {
-        if (!filterMask.get(i)) {
-          if (passedOffset >= offset) {
-            indices.push(i);
-          }
-
-          passedOffset++;
-        }
-        i++;
-      }
-    } else {
-      indices = Array.from(
-        { length: Math.min(length, this.data.numRows) },
-        (_, i) => i + offset
-      );
-    }
-
-    return indices;
+    return new ArrowInstances(this.data, filterMask, offset, length);
   }
 
   histogramView1D(view: View1D, filters?: Filters) {
@@ -469,6 +447,16 @@ export class ArrowDB implements FalconDB {
     return this.filterMaskIndex.get(key);
   }
 
+  private getNullMask(dimension: Dimension) {
+    const column = this.data.getChild(dimension.name)!;
+    const mask = arrowFilterMask(
+      column,
+      (value: any) =>
+        value === null || value === undefined || Number.isNaN(value)
+    );
+    return mask;
+  }
+
   /**
    * Gets filter mask given the filter (extent for now)
    *
@@ -487,7 +475,7 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => value < filter[0] || value >= filter[1]
+        (value: number) => (value && value < filter[0]) || value >= filter[1]
       );
 
       // set the cache
@@ -563,4 +551,52 @@ function arrowColumnExtent(column: Vector): Interval<number> {
   }
 
   return [min, max];
+}
+
+/**
+ * given a table and a filter mask, return a new table with the filtered rows removed
+ * right now this is a worst possible implementation, but it works
+ *
+ * @returns a new table with the filtered rows removed
+ */
+function filterArrowTable(
+  table: Table,
+  bitmask: BitSet,
+  offset?: number,
+  length?: number
+) {
+  const filtered = [...table]
+    .filter((_, i) => !bitmask.get(i))
+    .slice(offset, length);
+  if (filtered.length === 0) {
+    return new Table();
+  } else {
+    return tableFromJSON(filtered);
+  }
+}
+
+class ArrowInstances {
+  constructor(
+    private table: Table,
+    private mask: BitSet | null = null,
+    public offset: number,
+    public length: number
+  ) {
+    this.table = table;
+    this.mask = mask;
+    this.length = length;
+    this.offset = offset;
+  }
+  *[Symbol.iterator]() {
+    let validIterated = 0;
+    let globalIndex = 0;
+    while (validIterated < this.length && globalIndex < this.table.numRows) {
+      if (this.mask && !this.mask.get(globalIndex)) {
+        const row = this.table.get(globalIndex);
+        validIterated++;
+        yield row;
+      }
+      globalIndex++;
+    }
+  }
 }
