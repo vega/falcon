@@ -447,16 +447,6 @@ export class ArrowDB implements FalconDB {
     return this.filterMaskIndex.get(key);
   }
 
-  private getNullMask(dimension: Dimension) {
-    const column = this.data.getChild(dimension.name)!;
-    const mask = arrowFilterMask(
-      column,
-      (value: any) =>
-        value === null || value === undefined || Number.isNaN(value)
-    );
-    return mask;
-  }
-
   /**
    * Gets filter mask given the filter (extent for now)
    *

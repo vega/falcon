@@ -2,7 +2,6 @@ import { View0D, View1D, ViewCollection } from "./views";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
-import type { InstancesInput } from "./instances";
 
 export class Falcon {
   db: FalconDB;
@@ -63,30 +62,7 @@ export class Falcon {
   }
 
   /**
-   * adds a listener to return instances on filter change
-   *
-   * every time the filter changes, this will get called.
-   *
-   * You can also select specific values by interacting with it
-   *
-   * for(const batch of filteredInstances) {
-   *     const instances = batch;
-   *     break;
-   * }
-   *
-   * ORRRRR
-   *
-   * const instances = falcon.instances(32);
-   * for(const batch of instances) {
-   *    const indices = batch.load();
-   *    break;
-   * }
-   *
-   * ORRRRR
-   *
-   * const instances = falcon.instances({batchSize: 32});
-   * const ids = instances.getBatch(); // queries the database with the given filters
-   *
+   * @returns an iterable that iterates over instances from the filter
    */
   async instances({ offset = 0, length = Infinity } = {}) {
     const indices = await this.db.instances(offset, length, this.filters);
