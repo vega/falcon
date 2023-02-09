@@ -1,4 +1,5 @@
-import { tableFromIPC } from "apache-arrow";
+import { ArrowInstances } from "../instances";
+import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
@@ -20,7 +21,8 @@ import type {
 } from "../dimension";
 import type { Interval } from "../util";
 import type { View } from "../views";
-import type { Table, Vector } from "apache-arrow";
+import type { Vector } from "apache-arrow";
+import type { Row } from "../instances";
 
 type DimensionFilterHash = string;
 type FilterMasks<T> = Map<T, BitSet>;
@@ -69,6 +71,22 @@ export class ArrowDB implements FalconDB {
         `Dimension name ${dimension.name} wasn't found on the arrow table`
       );
     }
+  }
+
+  instances(
+    offset: number = 0,
+    length: number = Infinity,
+    filters?: Filters | undefined
+  ) {
+    const filterMask: BitSet | null = union(
+      ...this.getFilterMasks(filters ?? new Map()).values()
+    );
+    return new ArrowInstances(
+      this.data,
+      filterMask,
+      offset,
+      length
+    ) as Iterable<Row>;
   }
 
   histogramView1D(view: View1D, filters?: Filters) {
@@ -449,7 +467,7 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => value < filter[0] || value >= filter[1]
+        (value: number) => (value && value < filter[0]) || value >= filter[1]
       );
 
       // set the cache

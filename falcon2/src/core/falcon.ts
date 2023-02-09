@@ -62,6 +62,14 @@ export class Falcon {
   }
 
   /**
+   * @returns an iterable that iterates over instances from the filter
+   */
+  async instances({ offset = 0, length = Infinity } = {}) {
+    const indices = await this.db.instances(offset, length, this.filters);
+    return indices;
+  }
+
+  /**
    * Fetches the initial counts for all the views
    * This does not involve fetching the falcon index
    */

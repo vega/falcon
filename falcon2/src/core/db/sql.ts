@@ -1,3 +1,4 @@
+import { ArrowInstances } from "../instances";
 import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
@@ -10,11 +11,13 @@ import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig } from "../util";
 import type { View } from "../views";
+import { Table } from "apache-arrow";
+import { Row } from "../instances";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
 export type PartialSQLQuery = string;
-export type SQLQueryResult = Iterable<Record<string, any>>;
+export type SQLQueryResult = Iterable<Row>;
 export interface SQLBin {
   select: PartialSQLQuery;
   where: PartialSQLQuery;
@@ -38,6 +41,23 @@ export abstract class SQLDB implements FalconDB {
   protected abstract query(
     q: SQLQuery
   ): SQLQueryResult | Promise<SQLQueryResult>;
+
+  async instances(
+    offset: number = 0,
+    length: number = Infinity,
+    filters?: Filters
+  ) {
+    const where = filters
+      ? [...this.filtersToSQLWhereClauses(filters).values()].join(" AND ")
+      : undefined;
+    const filteredTable = await this.query(`SELECT *
+              FROM ${this.table}
+              ${filters ? `WHERE ${where}` : ""}
+              ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
+              OFFSET ${offset}`);
+
+    return new ArrowInstances(filteredTable as Table) as Iterable<Row>;
+  }
 
   async length() {
     const result = await this.query(
@@ -405,7 +425,7 @@ export abstract class SQLDB implements FalconDB {
    *
    * @returns a dictionary that you can index values from the result
    */
-  private getASValues(result: Iterable<Record<string, any>>) {
+  private getASValues(result: Iterable<Row>) {
     return result[Symbol.iterator]().next().value;
   }
 
