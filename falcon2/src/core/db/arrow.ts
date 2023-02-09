@@ -1,3 +1,4 @@
+import { ArrowInstances } from "../instances";
 import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
@@ -21,6 +22,7 @@ import type {
 import type { Interval } from "../util";
 import type { View } from "../views";
 import type { Vector } from "apache-arrow";
+import type { Row } from "../instances";
 
 type DimensionFilterHash = string;
 type FilterMasks<T> = Map<T, BitSet>;
@@ -75,7 +77,7 @@ export class ArrowDB implements FalconDB {
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined
-  ): Iterable<Record<string, any>> {
+  ) {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
@@ -84,7 +86,7 @@ export class ArrowDB implements FalconDB {
       filterMask,
       offset,
       length
-    ) as Iterable<Record<string, any>>;
+    ) as Iterable<Row>;
   }
 
   histogramView1D(view: View1D, filters?: Filters) {
@@ -541,42 +543,4 @@ function arrowColumnExtent(column: Vector): Interval<number> {
   }
 
   return [min, max];
-}
-
-export class ArrowInstances {
-  constructor(
-    private table: Table,
-    private mask?: BitSet | null,
-    public offset: number = 0,
-    public length: number = Infinity
-  ) {
-    this.table = table;
-    this.mask = mask;
-    this.length = length;
-    this.offset = offset;
-  }
-  *[Symbol.iterator]() {
-    let validIterated = 0;
-    let globalIndex = 0;
-    let ignored = 0;
-    while (validIterated < this.length && globalIndex < this.table.numRows) {
-      const pastOffset = ignored >= this.offset;
-      const row = this.table.get(globalIndex);
-      // if we have filters, go into that mode
-      if (this.mask) {
-        if (this.mask && !this.mask.get(globalIndex)) {
-          if (pastOffset) {
-            validIterated++;
-            yield row;
-          }
-          ignored++;
-        }
-        // no filters? yield everything!
-      } else {
-        yield row;
-        validIterated++;
-      }
-      globalIndex++;
-    }
-  }
 }

@@ -1,3 +1,4 @@
+import type { Row } from "../instances";
 import type {
   CategoricalRange,
   ContinuousRange,
@@ -7,7 +8,7 @@ import type {
 import type { FalconArray } from "../falconArray";
 import type { View, View1D } from "../views";
 
-export interface BinnedCounts {
+export interface FalconCounts {
   filter: FalconArray;
   noFilter: FalconArray;
 }
@@ -51,7 +52,7 @@ export interface FalconDB {
     offset?: number,
     length?: number,
     filters?: Filters
-  ): AsyncOrSync<Iterable<Record<string, any>>>;
+  ): AsyncOrSync<Iterable<Row>>;
 
   /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning
@@ -59,7 +60,7 @@ export interface FalconDB {
    *
    * @returns object with counts over bins
    */
-  histogramView1D(view: View1D, filters?: Filters): AsyncOrSync<BinnedCounts>;
+  histogramView1D(view: View1D, filters?: Filters): AsyncOrSync<FalconCounts>;
 
   /**
    * loads falcon index that accumulates pixel counts over passive bins

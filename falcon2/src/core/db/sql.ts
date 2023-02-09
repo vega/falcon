@@ -1,4 +1,4 @@
-import { ArrowInstances } from "./arrow";
+import { ArrowInstances } from "../instances";
 import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
@@ -12,11 +12,12 @@ import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig } from "../util";
 import type { View } from "../views";
 import { Table } from "apache-arrow";
+import { Row } from "../instances";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
 export type PartialSQLQuery = string;
-export type SQLQueryResult = Iterable<Record<string, any>>;
+export type SQLQueryResult = Iterable<Row>;
 export interface SQLBin {
   select: PartialSQLQuery;
   where: PartialSQLQuery;
@@ -55,7 +56,7 @@ export abstract class SQLDB implements FalconDB {
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
 
-    return new ArrowInstances(filteredTable as Table);
+    return new ArrowInstances(filteredTable as Table) as Iterable<Row>;
   }
 
   async length() {
@@ -424,7 +425,7 @@ export abstract class SQLDB implements FalconDB {
    *
    * @returns a dictionary that you can index values from the result
    */
-  private getASValues(result: Iterable<Record<string, any>>) {
+  private getASValues(result: Iterable<Row>) {
     return result[Symbol.iterator]().next().value;
   }
 
