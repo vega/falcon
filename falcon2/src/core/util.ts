@@ -90,8 +90,7 @@ export function createBinConfigContinuous(
   dimension: ContinuousDimension,
   extent: Interval<number>
 ) {
-  const time = false;
-  const binningFunc = time ? binTime : binContinuous;
+  const binningFunc = dimension.time ? binTime : binContinuous;
   return binningFunc(dimension.bins, extent);
 }
 

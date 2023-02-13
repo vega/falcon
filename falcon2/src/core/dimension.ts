@@ -20,6 +20,9 @@ export interface ContinuousDimension extends AbstractDimension {
 
   /* binConfig determines the bin scheme */
   binConfig?: BinConfig;
+
+  /* should format for dates */
+  time?: boolean;
 }
 export interface CategoricalDimension extends AbstractDimension {
   /* categorical values */

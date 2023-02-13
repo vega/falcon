@@ -52,7 +52,7 @@ export abstract class SQLDB implements FalconDB {
       : undefined;
     const filteredTable = await this.query(`SELECT *
               FROM ${this.table}
-              ${filters ? `WHERE ${where}` : ""}
+              ${where ? `WHERE ${where}` : ""}
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
 
