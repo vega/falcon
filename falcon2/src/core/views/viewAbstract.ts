@@ -36,7 +36,7 @@ export abstract class ViewAbstract<S extends object> {
    * Set all other views passive
    * and this one active
    */
-  protected makeActiveView() {
+  protected markThisViewActive() {
     this.falcon.views.forEach((view) => {
       view.isActive = false;
     });

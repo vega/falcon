@@ -82,8 +82,22 @@ export class View1D extends ViewAbstract<View1DState> {
    */
   async prefetch() {
     if (!this.isActive) {
-      // make the current one active
-      this.makeActiveView();
+      // make sure we have binConfigs computed for all views if this one is activated
+      await this.falcon.views.forEach(async (view) => {
+        const rangeNotComputed =
+          view instanceof View1D &&
+          (!("range" in view.dimension) ||
+            (view.dimension.type === "continuous" &&
+              !("binConfig" in view.dimension)));
+
+        // we just count the whole shebang too
+        if (rangeNotComputed) {
+          await view.all();
+        }
+      });
+
+      // make the current one active and rest passive
+      this.markThisViewActive();
 
       // fetch the index
       // and store globally
