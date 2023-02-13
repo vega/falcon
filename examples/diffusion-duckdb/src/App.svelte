@@ -28,20 +28,17 @@
 	}
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		const count = falcon.view0D();
-		count.onChange((state) => {
+		const count = falcon.view0D((state) => {
 			countState = state;
 		});
 
-		const views = view1Ds.map((dim) => falcon.view1D(dim));
-		viewStates = new Array(views.length);
-
-		// states will be updated when the view counts change
-		views.forEach((view, i) => {
-			view.onChange((state) => {
+		viewStates = new Array(view1Ds.length);
+		const views = view1Ds.map((dim, i) =>
+			falcon.view1D(dim, (state) => {
 				viewStates[i] = state;
-			});
-		});
+			})
+		);
+
 		return [count, views] as [View0D, View1D[]];
 	}
 

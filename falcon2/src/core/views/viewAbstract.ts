@@ -2,7 +2,7 @@ import { Interval } from "../util";
 import type { Falcon } from "../falcon";
 import { CategoricalRange } from "../dimension";
 
-type OnChange<S> = (state: S) => void;
+export type OnChange<S> = (state: S) => void;
 
 export abstract class ViewAbstract<S extends object> {
   falcon: Falcon;
@@ -18,7 +18,7 @@ export abstract class ViewAbstract<S extends object> {
    * returns dispose function that disposes the listener
    * you've added that listens to onChange
    */
-  onChange(listener: OnChange<S>) {
+  addOnChange(listener: OnChange<S>) {
     this.onChangeListeners.add(listener);
     return () => this.onChangeListeners.delete(listener);
   }

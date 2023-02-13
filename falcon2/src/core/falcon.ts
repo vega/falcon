@@ -1,7 +1,14 @@
-import { View0D, View1D, ViewCollection } from "./views";
+import {
+  View0D,
+  View1D,
+  ViewCollection,
+  View1DState,
+  View0DState,
+} from "./views";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
+import { OnChange } from "./views/viewAbstract";
 
 export class Falcon {
   db: FalconDB;
@@ -40,25 +47,36 @@ export class Falcon {
   /**
    * add 0D view, does not initialize the view
    */
-  view0D() {
+  view0D(onChange?: OnChange<View0DState>) {
     const view = new View0D(this);
     this.views.add(view);
+
+    if (onChange) {
+      view.addOnChange(onChange);
+    }
+
     return view;
   }
-  /**
-   * alias for view0D
-   */
-  count() {
-    return this.view0D();
+  count(onChange?: OnChange<View0DState>) {
+    return this.view0D(onChange);
   }
 
   /**
    * add 1D view, does not initialize the view
    */
-  view1D(dimension: Dimension) {
+  view1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
     const view = new View1D(this, dimension);
     this.views.add(view);
+
+    if (onChange) {
+      view.addOnChange(onChange);
+    }
+
     return view;
+  }
+
+  link(dimension: Dimension, onChange?: OnChange<View1DState>) {
+    return this.view1D(dimension, onChange);
   }
 
   /**

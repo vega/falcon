@@ -94,6 +94,9 @@ export class View1D extends ViewAbstract<View1DState> {
       );
     }
   }
+  async activate() {
+    await this.prefetch();
+  }
 
   /**
    * compute counts from the falcon index
