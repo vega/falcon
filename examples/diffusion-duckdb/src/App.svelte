@@ -28,27 +28,36 @@
 	}
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		const count = falcon.view0D((state) => {
+		falcon.count((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
 		const views = view1Ds.map((dim, i) =>
-			falcon.view1D(dim, (state) => {
+			falcon.link(dim, (state) => {
 				viewStates[i] = state;
 			})
 		);
 
-		return [count, views] as [View0D, View1D[]];
+		return views;
 	}
 
 	async function moviesDuckDB() {
 		const db = await DuckDB.fromParquetFile(
-			fullUrl("data/diffusiondb.parquet")
+			fullUrl("data/diffusiondb.parquet"),
+			"diffusiondb",
+			new Map([["timestamp", "epoch(timestamp)*1000"]])
 		);
 		falcon = new Falcon(db);
 
-		[count, views] = compose(falcon, [
+		views = compose(falcon, [
+			{
+				type: "continuous",
+				name: "timestamp",
+				bins: 10,
+				resolution: 400,
+				time: true,
+			},
 			{
 				type: "continuous",
 				name: "image_nsfw",
@@ -76,7 +85,7 @@
 		]);
 
 		await falcon.all();
-		entries = await falcon.instances({ length: numEntries });
+		entries = await falcon.entries({ length: numEntries });
 	}
 
 	let page = 0;

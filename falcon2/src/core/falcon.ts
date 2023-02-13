@@ -83,8 +83,10 @@ export class Falcon {
    * @returns an iterable that iterates over instances from the filter
    */
   async instances({ offset = 0, length = Infinity } = {}) {
-    const indices = await this.db.instances(offset, length, this.filters);
-    return indices;
+    return this.db.instances(offset, length, this.filters);
+  }
+  async entries({ offset = 0, length = Infinity } = {}) {
+    return this.instances({ offset, length });
   }
 
   /**

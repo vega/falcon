@@ -1,5 +1,10 @@
 import { ArrowInstances } from "../instances";
-import { Dimension, ContinuousRange, CategoricalRange } from "../dimension";
+import {
+  Dimension,
+  ContinuousRange,
+  CategoricalRange,
+  ContinuousDimension,
+} from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
   binNumberFunctionCategorical,
@@ -72,11 +77,11 @@ export abstract class SQLDB implements FalconDB {
     const field = this.getName(dimension);
     if (dimension.type === "continuous") {
       const result = await this.query(
-        `SELECT MIN(${field}) AS _min, MAX(${field}) AS _max
+        `SELECT  MIN(${field}) AS _min, MAX(${field}) AS _max
         FROM ${this.table}`
       );
       const { _min, _max } = this.getASValues(result);
-      return [_min, _max] as ContinuousRange;
+      return [Number(_min), Number(_max)] as ContinuousRange;
     } else {
       const result = await this.query(
         `SELECT DISTINCT "${field}" AS _unique FROM ${this.table}`
@@ -435,6 +440,9 @@ export abstract class SQLDB implements FalconDB {
    * @returns mapped string name defined from constructor
    */
   private getName(dimension: Dimension) {
+    // if (dimension.type === "continuous" && dimension?.time) {
+    //   return `epoch(${dimension.name})*1000`;
+    // }
     return this.nameMap?.get(dimension.name) ?? dimension.name;
   }
 
@@ -460,7 +468,7 @@ export abstract class SQLDB implements FalconDB {
    *
    * @returns select and where statement as strings
    */
-  private binSQL(dimension: Dimension, binConfig: BinConfig) {
+  private binSQL(dimension: ContinuousDimension, binConfig: BinConfig) {
     const field = this.getName(dimension);
     const select: PartialSQLQuery = `cast((${field} - ${binConfig.start}) / ${binConfig.step} as int)`;
     const where: PartialSQLQuery = `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`;
@@ -503,7 +511,7 @@ export abstract class SQLDB implements FalconDB {
    * @returns select and where statement as strings
    */
   private binSQLPixel(
-    dimension: Dimension,
+    dimension: ContinuousDimension,
     binConfig: BinConfig,
     pixels?: number
   ) {

@@ -1,3 +1,4 @@
+import { scaleLinear } from "d3";
 import { bin as vegaBin } from "vega-statistics";
 import { scaleTime } from "d3";
 import type { CategoricalRange, ContinuousDimension } from "./dimension";
@@ -144,39 +145,12 @@ export function scaleFilterToResolution(
 ) {
   const pixelSpace = [0, resolution] as Interval<number>;
   const valueSpace = extent;
-  const toPixels = scaleLinear({
-    domain: valueSpace,
-    range: pixelSpace,
-  });
+  const toPixels = scaleLinear().domain(valueSpace).range(pixelSpace);
 
   return (x: number) => {
     const pixels = toPixels(x);
     return Math.floor(pixels);
   };
-}
-
-export function scaleLinear({
-  domain,
-  range,
-}: {
-  domain: Interval<number>;
-  range: Interval<number>;
-}) {
-  const p1 = { x: domain[0], y: range[0] };
-  const p2 = { x: domain[1], y: range[1] };
-
-  const dy = p2.y - p1.y;
-  const dx = p2.x - p1.x;
-
-  if (dx <= 0) {
-    throw Error("divide by 0 error, pick a non-zero domain");
-  }
-
-  // y = mx + b
-  const m = dy / dx;
-  const b = p2.y - m * p2.x;
-
-  return (x: number) => m * x + b;
 }
 
 export function excludeMap<K, V>(map: Map<K, V>, ...exclude: K[]) {
