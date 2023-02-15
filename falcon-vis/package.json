@@ -1,6 +1,6 @@
 {
-  "name": "falcon2",
-  "version": "0.0.15",
+  "name": "falcon-vis",
+  "version": "0.0.17",
   "main": "src",
   "repository": "git@github.com:cmudig/falcon.git",
   "author": "cmudig",

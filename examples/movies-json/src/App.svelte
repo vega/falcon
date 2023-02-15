@@ -6,7 +6,7 @@
 		View0D,
 		View1D,
 		ObjectDB,
-	} from "falcon2";
+	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";

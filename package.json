@@ -16,22 +16,23 @@
     "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
     "start:movies-json": "yarn workspace movies-json dev --open",
     "dev": "yarn start:movies-duckdb",
-    "build": "yarn workspace falcon2 build",
-    "format": "yarn workspace falcon2 format",
-    "test": "yarn workspace falcon2 test",
+    "build": "yarn workspace falcon-vis build",
+    "format": "yarn workspace falcon-vis format",
+    "test": "yarn workspace falcon-vis test",
     "build:deploy": "yarn workspace movies-duckdb build",
     "deploy": "gh-pages -d examples/movies-duckdb/dist",
-    "pub": "yarn workspace falcon2 pub"
+    "pub": "yarn workspace falcon-vis pub",
+    "clean": "sh clean.sh"
   },
   "devDependencies": {
     "gh-pages": "^5.0.0"
   },
   "directories": {
     "examples": "./examples/*",
-    "falcon2": "./falcon2"
+    "falcon-vis": "./falcon-vis"
   },
   "workspaces": [
-    "falcon2",
+    "falcon-vis",
     "examples/*"
   ]
 }

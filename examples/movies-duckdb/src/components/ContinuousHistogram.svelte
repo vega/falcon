@@ -1,6 +1,6 @@
 <script lang="ts">
 	import VLContinuous from "./VLContinuous.svelte";
-	import type { View1DState } from "falcon2";
+	import type { View1DState } from "falcon-vis";
 	export let state: View1DState;
 
 	export let title = "";
