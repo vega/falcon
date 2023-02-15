@@ -1,8 +1,8 @@
-import { ArrowInstances } from "../instances";
 import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
+import { ArrowInstances } from "../instances";
 import {
   binNumberFunctionContinuous,
   binNumberFunctionBinsContinuous,
@@ -11,6 +11,7 @@ import {
   binNumberFunctionCategorical,
 } from "../util";
 import { View0D, View1D } from "../views";
+import type { Vector } from "apache-arrow";
 import type { AsyncOrSync, Filters } from "./db";
 import type {
   CategoricalDimension,
@@ -19,10 +20,9 @@ import type {
   ContinuousRange,
   Dimension,
 } from "../dimension";
+import type { Row } from "../instances";
 import type { Interval } from "../util";
 import type { View } from "../views";
-import type { Vector } from "apache-arrow";
-import type { Row } from "../instances";
 
 type DimensionFilterHash = string;
 type FilterMasks<T> = Map<T, BitSet>;
