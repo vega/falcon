@@ -1,6 +1,6 @@
-import { Interval } from "../util";
+import type { Interval } from "../util";
 import type { Falcon } from "../falcon";
-import { CategoricalRange } from "../dimension";
+import type { CategoricalRange } from "../dimension";
 
 export type OnChange<S> = (state: S) => void;
 
@@ -8,15 +8,42 @@ export abstract class ViewAbstract<S extends object> {
   falcon: Falcon;
   onChangeListeners: Set<OnChange<S>>;
   isActive: boolean;
+
+  /**
+   * Links this new view with all other views through the falcon object
+   * by default is passive (isActive = false)
+   */
   constructor(falcon: Falcon) {
-    this.falcon = falcon;
-    this.onChangeListeners = new Set();
     this.isActive = false;
+    this.linkTogetherWithOtherViews(falcon);
+    this.onChangeListeners = new Set();
   }
 
   /**
-   * returns dispose function that disposes the listener
-   * you've added that listens to onChange
+   * fetches all the counts
+   */
+  abstract all(): Promise<void> | void;
+
+  /**
+   * given the active view is continuous 1D, compute the counts for this view as passive
+   */
+  abstract countContinuous1DIndex(activeBrushPixels?: Interval<number>): void;
+
+  /**
+   * given the active view is categorical 1D, compute the counts for this view as passive
+   */
+  abstract countCategorical1DIndex(
+    selection?: CategoricalRange,
+    totalRange?: CategoricalRange
+  ): void;
+
+  private linkTogetherWithOtherViews(falcon: Falcon) {
+    this.falcon = falcon;
+  }
+
+  /**
+   * calls your listener function when the counts change after filtering
+   * @returns a function that removes the listener when called
    */
   onChange(listener: OnChange<S>) {
     this.onChangeListeners.add(listener);
@@ -46,11 +73,4 @@ export abstract class ViewAbstract<S extends object> {
     });
     this.isActive = true;
   }
-
-  abstract all(): Promise<void> | void;
-  abstract countContinuous1DIndex(activeBrushPixels?: Interval<number>): void;
-  abstract countCategorical1DIndex(
-    selection?: CategoricalRange,
-    totalRange?: CategoricalRange
-  ): void;
 }
