@@ -18,9 +18,13 @@ export abstract class ViewAbstract<S extends object> {
    * returns dispose function that disposes the listener
    * you've added that listens to onChange
    */
-  addOnChange(listener: OnChange<S>) {
+  onChange(listener: OnChange<S>) {
     this.onChangeListeners.add(listener);
     return () => this.onChangeListeners.delete(listener);
+  }
+  // new name
+  addOnChangeListener(listener: OnChange<S>) {
+    return this.onChange(listener);
   }
 
   /**

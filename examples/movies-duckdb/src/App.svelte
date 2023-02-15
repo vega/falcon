@@ -33,7 +33,7 @@
 		falcon = new Falcon(db);
 
 		count = falcon.view0D();
-		count.onChange((state) => {
+		count.addOnChangeListener((state) => {
 			countState = state;
 		});
 
@@ -124,7 +124,7 @@
 		viewStates = new Array(views.length);
 		// states will be updated when the view counts change
 		views.forEach((view, i) => {
-			view.onChange((state) => {
+			view.addOnChangeListener((state) => {
 				viewStates[i] = state;
 			});
 		});

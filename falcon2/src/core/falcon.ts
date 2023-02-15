@@ -52,7 +52,7 @@ export class Falcon {
     this.views.add(view);
 
     if (onChange) {
-      view.addOnChange(onChange);
+      view.addOnChangeListener(onChange);
     }
 
     return view;
@@ -69,7 +69,7 @@ export class Falcon {
     this.views.add(view);
 
     if (onChange) {
-      view.addOnChange(onChange);
+      view.addOnChangeListener(onChange);
     }
 
     return view;
