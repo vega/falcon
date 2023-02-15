@@ -1,6 +1,6 @@
 import type { BitSet } from "./bitset";
 import type { Table } from "apache-arrow";
-import type { TypedArray } from "./falconArray/falconArray";
+import type { TypedArray } from "./falconArray/arrayTypes";
 
 export type Instances = Record<string, unknown[]>;
 export type Indices = TypedArray;
@@ -25,28 +25,35 @@ export class ArrowInstances {
     this.length = length;
     this.offset = offset;
   }
-  *[Symbol.iterator]() {
-    let validIterated = 0;
+
+  *bitmaskRows() {
     let globalIndex = 0;
-    let ignored = 0;
-    while (validIterated < this.length && globalIndex < this.table.numRows) {
-      const pastOffset = ignored >= this.offset;
+    while (globalIndex < this.table.numRows) {
       const row = this.table.get(globalIndex);
-      // if we have filters, go into that mode
       if (this.mask) {
         if (this.mask && !this.mask.get(globalIndex)) {
-          if (pastOffset) {
-            validIterated++;
-            yield row;
-          }
-          ignored++;
+          yield row as Row;
         }
-        // no filters? yield everything!
-      } else {
-        yield row;
-        validIterated++;
       }
       globalIndex++;
+    }
+  }
+
+  *[Symbol.iterator]() {
+    let lengthCount = 0;
+    let offsetCount = 0;
+
+    for (const row of this.bitmaskRows()) {
+      const lengthExceeded = lengthCount >= this.length;
+      if (lengthExceeded) {
+        break;
+      }
+      const pastOffset = offsetCount >= this.offset;
+      if (pastOffset) {
+        lengthCount++;
+        yield row;
+      }
+      offsetCount++;
     }
   }
 }
