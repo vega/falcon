@@ -204,6 +204,7 @@
 	>
 	<table>
 		{#if instances}
+			{[...instances].length}
 			{#each [...instances] as instance}
 				<tr>
 					{#each Object.keys(instance) as key}

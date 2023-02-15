@@ -1,4 +1,4 @@
-import { ArrowInstances } from "../instances";
+import { RowIterator } from "../iterator";
 import {
   Dimension,
   ContinuousRange,
@@ -17,7 +17,7 @@ import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig } from "../util";
 import type { View } from "../views";
 import { Table } from "apache-arrow";
-import { Row } from "../instances";
+import { Row } from "../iterator";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
@@ -61,7 +61,7 @@ export abstract class SQLDB implements FalconDB {
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
 
-    return new ArrowInstances(filteredTable as Table) as Iterable<Row>;
+    return new RowIterator(filteredTable as Table) as Iterable<Row>;
   }
 
   async length() {

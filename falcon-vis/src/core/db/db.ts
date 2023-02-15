@@ -1,4 +1,4 @@
-import type { Row } from "../instances";
+import type { Row } from "../iterator";
 import type {
   CategoricalRange,
   ContinuousRange,

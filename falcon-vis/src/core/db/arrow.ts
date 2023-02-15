@@ -2,7 +2,7 @@ import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
-import { ArrowInstances } from "../instances";
+import { RowIterator } from "../iterator";
 import {
   binNumberFunctionContinuous,
   binNumberFunctionBinsContinuous,
@@ -20,7 +20,7 @@ import type {
   ContinuousRange,
   Dimension,
 } from "../dimension";
-import type { Row } from "../instances";
+import type { Row } from "../iterator";
 import type { Interval } from "../util";
 import type { View } from "../views";
 
@@ -98,12 +98,7 @@ export class ArrowDB implements FalconDB {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
-    return new ArrowInstances(
-      this.data,
-      filterMask,
-      offset,
-      length
-    ) as Iterable<Row>;
+    return new RowIterator(this.data, filterMask, offset, length);
   }
 
   histogramView1D(view: View1D, filters?: Filters) {

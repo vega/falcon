@@ -13,7 +13,7 @@ interface InstancesInputAbstract {
 export type InstancesInput = InstancesInputAbstract;
 export type Row = Record<string, any>;
 
-export class ArrowInstances {
+export class RowIterator {
   constructor(
     private table: Table,
     private mask?: BitSet | null,
