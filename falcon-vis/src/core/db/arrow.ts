@@ -75,13 +75,12 @@ export class ArrowDB implements FalconDB {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
     if (arrowColumnExists) {
-      switch (dimension.type) {
-        case "continuous":
-          return this.continuousRange(arrowColumn);
-        case "categorical":
-          return this.categoricalRange(arrowColumn);
-        default:
-          throw Error("Dimension type not supported yet");
+      if (dimension.type === "continuous") {
+        return this.continuousRange(arrowColumn);
+      } else if (dimension.type === "categorical") {
+        return this.categoricalRange(arrowColumn);
+      } else {
+        throw Error("Must be categorical or continuous type");
       }
     } else {
       throw Error(
