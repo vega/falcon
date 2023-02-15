@@ -8,7 +8,7 @@ import {
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
-import { OnChange } from "./views/viewAbstract";
+import type { OnChange } from "./views/viewAbstract";
 
 export class Falcon {
   db: FalconDB;
@@ -57,6 +57,7 @@ export class Falcon {
 
     return view;
   }
+  // alias
   count(onChange?: OnChange<View0DState>) {
     return this.view0D(onChange);
   }
@@ -74,7 +75,7 @@ export class Falcon {
 
     return view;
   }
-
+  // alias
   link(dimension: Dimension, onChange?: OnChange<View1DState>) {
     return this.view1D(dimension, onChange);
   }
@@ -85,6 +86,7 @@ export class Falcon {
   async instances({ offset = 0, length = Infinity } = {}) {
     return this.db.instances(offset, length, this.filters);
   }
+  // alias
   async entries({ offset = 0, length = Infinity } = {}) {
     return this.instances({ offset, length });
   }
