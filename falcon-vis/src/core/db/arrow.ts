@@ -48,6 +48,12 @@ export class ArrowDB implements FalconDB {
     this.data = data;
   }
 
+  /**
+   * Easy helper method to create a new ArrowDB from an arrow file
+   *
+   * @todo think about if we should even support this
+   * @returns a new ArrowDB object with the arrow data from the file
+   */
   static async fromArrowFile(url: string) {
     const data = await fetch(url);
     const buffer = await data.arrayBuffer();
@@ -59,13 +65,24 @@ export class ArrowDB implements FalconDB {
     return this.data.numRows;
   }
 
+  private categoricalRange(arrowColumn: Vector): CategoricalRange {
+    return arrowColumnUnique(arrowColumn);
+  }
+  private continuousRange(arrowColumn: Vector): ContinuousRange {
+    return arrowColumnExtent(arrowColumn);
+  }
   range(dimension: Dimension) {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
     if (arrowColumnExists) {
-      const possibleValues =
-        dimension.type === "continuous" ? arrowColumnExtent : arrowColumnUnique;
-      return possibleValues(arrowColumn);
+      switch (dimension.type) {
+        case "continuous":
+          return this.continuousRange(arrowColumn);
+        case "categorical":
+          return this.categoricalRange(arrowColumn);
+        default:
+          throw Error("Dimension type not supported yet");
+      }
     } else {
       throw Error(
         `Dimension name ${dimension.name} wasn't found on the arrow table`
