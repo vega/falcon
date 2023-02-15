@@ -1,10 +1,4 @@
-import {
-  View0D,
-  View1D,
-  ViewCollection,
-  View1DState,
-  View0DState,
-} from "./views";
+import { View0D, View1D, ViewSet, View1DState, View0DState } from "./views";
 import { excludeMap } from "./util";
 import type { Dimension } from "./dimension";
 import type { FalconDB, FalconIndex, Filters } from "./db/db";
@@ -12,7 +6,7 @@ import type { OnChange } from "./views/viewAbstract";
 
 export class Falcon {
   db: FalconDB;
-  views: ViewCollection;
+  views: ViewSet;
   filters: Filters;
   index: FalconIndex;
 
@@ -24,7 +18,7 @@ export class Falcon {
    */
   constructor(db: FalconDB) {
     this.db = db;
-    this.views = new ViewCollection();
+    this.views = new ViewSet();
     this.filters = new Map();
     this.index = new Map();
   }

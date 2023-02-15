@@ -1,4 +1,4 @@
-import { ViewCollection } from "../src/core/views/viewCollection";
+import { ViewSet } from "../src/core/views/viewSet";
 import { View1D } from "../src/core/views/view1D";
 
 function dummyView() {
@@ -7,13 +7,13 @@ function dummyView() {
   return view;
 }
 
-describe("ViewCollection Creation", () => {
+describe("View Set Creation", () => {
   it("Import Exists", () => {
-    expect(ViewCollection).toBeDefined();
+    expect(ViewSet).toBeDefined();
   });
 
   it("Class construction", () => {
-    const collection = new ViewCollection();
+    const collection = new ViewSet();
     expect(collection).toBeDefined();
     expect(typeof collection).toBe("object");
     expect(collection.views).toBeDefined();
@@ -22,7 +22,7 @@ describe("ViewCollection Creation", () => {
 
 describe("Adding views to the collection", () => {
   it("Adding a view", () => {
-    const collection = new ViewCollection();
+    const collection = new ViewSet();
     const view = dummyView();
     collection.add(view);
 
@@ -30,7 +30,7 @@ describe("Adding views to the collection", () => {
   });
 
   it("Adding a duplicate view", () => {
-    const collection = new ViewCollection();
+    const collection = new ViewSet();
     const view = dummyView();
 
     collection.add(view);
@@ -40,7 +40,7 @@ describe("Adding views to the collection", () => {
   });
 
   it("Adding different views", () => {
-    const collection = new ViewCollection();
+    const collection = new ViewSet();
     const viewA = dummyView();
     const viewB = dummyView();
 
@@ -53,7 +53,7 @@ describe("Adding views to the collection", () => {
 
 describe("View collection active and passive ops", () => {
   it("Return passive views and active views", () => {
-    const collection = new ViewCollection();
+    const collection = new ViewSet();
 
     const passiveViewA = dummyView();
     passiveViewA.isActive = false;

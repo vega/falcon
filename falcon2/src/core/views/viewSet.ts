@@ -3,12 +3,8 @@ import { View } from "./index";
 /**
  * Collections of views
  * Assumes that views are unique and distinct (we don't have the same view twice here)
- * Perhaps change this to set later
- *
- * I have this an array right now because I directly use the array
- * in other functions
  */
-export class ViewCollection {
+export class ViewSet {
   views: View[];
   constructor() {
     this.views = [];
@@ -26,12 +22,22 @@ export class ViewCollection {
     }
   }
 
+  /**
+   * @returns all the views that are not active (meaning passive)
+   */
   get passive(): View[] {
     return this.views.filter((view) => !view.isActive);
   }
 
+  /**
+   * @returns the only active view
+   */
   get active(): View {
-    return this.views.filter((view) => view.isActive)[0];
+    const activeView = this.views.find((view) => view.isActive);
+    if (activeView === undefined) {
+      throw Error("No active view found, this should not happen");
+    }
+    return activeView;
   }
 
   get size(): number {
@@ -40,5 +46,9 @@ export class ViewCollection {
 
   forEach(eachView: (view: View, index: number) => void): void {
     this.views.forEach(eachView);
+  }
+
+  [Symbol.iterator](): Iterator<View> {
+    return this.views[Symbol.iterator]();
   }
 }
