@@ -2,7 +2,7 @@ import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
-import { RowIterator } from "../iterator";
+import { Row, RowIterator } from "../iterator";
 import {
   binNumberFunctionContinuous,
   binNumberFunctionBinsContinuous,
@@ -12,7 +12,13 @@ import {
 } from "../util";
 import { View0D, View1D } from "../views";
 import type { Vector } from "apache-arrow";
-import type { AsyncOrSync, Filters } from "./db";
+import type {
+  AsyncOrSync,
+  Filters,
+  FalconCounts,
+  FalconIndex,
+  FalconCube,
+} from "./db";
 import type {
   CategoricalDimension,
   CategoricalRange,
@@ -20,7 +26,6 @@ import type {
   ContinuousRange,
   Dimension,
 } from "../dimension";
-import type { Row } from "../iterator";
 import type { Interval } from "../util";
 import type { View } from "../views";
 
@@ -54,7 +59,7 @@ export class ArrowDB implements FalconDB {
    * @todo think about if we should even support this
    * @returns a new ArrowDB object with the arrow data from the file
    */
-  static async fromArrowFile(url: string) {
+  static async fromArrowFile(url: string): Promise<ArrowDB> {
     const data = await fetch(url);
     const buffer = await data.arrayBuffer();
     const table = tableFromIPC(buffer);
@@ -71,7 +76,7 @@ export class ArrowDB implements FalconDB {
   private continuousRange(arrowColumn: Vector): ContinuousRange {
     return arrowColumnExtent(arrowColumn);
   }
-  range(dimension: Dimension) {
+  range(dimension: Dimension): ContinuousRange | CategoricalRange {
     const arrowColumn = this.data.getChild(dimension.name);
     const arrowColumnExists = arrowColumn !== null;
     if (arrowColumnExists) {
@@ -80,12 +85,10 @@ export class ArrowDB implements FalconDB {
       } else if (dimension.type === "categorical") {
         return this.categoricalRange(arrowColumn);
       } else {
-        throw Error("Must be categorical or continuous type");
+        throw Error("Unsupported Dimension type for range");
       }
     } else {
-      throw Error(
-        `Dimension name ${dimension.name} wasn't found on the arrow table`
-      );
+      throw Error("Dimension name does not exist in arrow table");
     }
   }
 
@@ -93,14 +96,14 @@ export class ArrowDB implements FalconDB {
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined
-  ) {
+  ): Iterable<Row> {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
     return new RowIterator(this.data, filterMask, offset, length);
   }
 
-  histogramView1D(view: View1D, filters?: Filters) {
+  histogramView1D(view: View1D, filters?: Filters): FalconCounts {
     let filter: FalconArray;
     let noFilter: FalconArray;
     let bin: (item: any) => number;
@@ -116,16 +119,14 @@ export class ArrowDB implements FalconDB {
       const binConfig = view.dimension.binConfig!;
       binCount = numBinsContinuous(binConfig);
       bin = binNumberFunctionContinuous(binConfig);
-
-      noFilter = FalconArray.allocCounts(binCount);
-      filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
-    } else {
+    } else if (view.dimension.type === "categorical") {
       binCount = numBinsCategorical(view.dimension.range!);
       bin = binNumberFunctionCategorical(view.dimension.range!);
-
-      noFilter = FalconArray.allocCounts(binCount);
-      filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
+    } else {
+      throw new Error("Unsupported dimension type for array allocation");
     }
+    noFilter = FalconArray.allocCounts(binCount);
+    filter = filterMask ? FalconArray.allocCounts(binCount) : noFilter;
 
     // 3. iterate over the row values and determine which bin to increment
     const column = this.data.getChild(view.dimension.name)!;
@@ -153,7 +154,7 @@ export class ArrowDB implements FalconDB {
     activeView: View1D,
     passiveViews: View[],
     filters: Filters
-  ) {
+  ): FalconIndex {
     const filterMasks = this.getFilterMasks(filters);
     const cubes: SyncIndex = new Map();
 
@@ -179,7 +180,7 @@ export class ArrowDB implements FalconDB {
         );
         cubes.set(view, cube);
       });
-    } else {
+    } else if (activeView.dimension.type === "categorical") {
       // 1. bin mapping functions
       const binActive = binNumberFunctionCategorical(
         activeView.dimension.range!
@@ -198,6 +199,8 @@ export class ArrowDB implements FalconDB {
         );
         cubes.set(view, cube);
       });
+    } else {
+      throw new Error("Unsupported dimension type for index1D");
     }
 
     return cubes;
@@ -216,7 +219,7 @@ export class ArrowDB implements FalconDB {
     filterMasks: FilterMasks<Dimension>,
     binActive: (x: number) => number,
     binCountActive: number
-  ) {
+  ): FalconCube {
     let noFilter: FalconArray;
     let filter: FalconArray;
 
@@ -287,7 +290,7 @@ export class ArrowDB implements FalconDB {
         }
       }
     } else {
-      throw Error("no 2d view here");
+      throw Error("Unsupported passive view type in cube computation");
     }
 
     return { noFilter, filter };
@@ -305,7 +308,7 @@ export class ArrowDB implements FalconDB {
     filterMasks: FilterMasks<Dimension>,
     numPixels: number,
     binActive: (x: number) => number
-  ) {
+  ): FalconCube {
     let noFilter: FalconArray;
     let filter: FalconArray;
 
@@ -438,7 +441,7 @@ export class ArrowDB implements FalconDB {
   private getCategoricalFilterMask(
     dimension: CategoricalDimension,
     filter: CategoricalRange
-  ) {
+  ): BitSet | undefined {
     const filterSet = new Set(filter);
     const key = `${dimension.name} ${filter}`;
 
@@ -468,7 +471,7 @@ export class ArrowDB implements FalconDB {
   private getContinuousFilterMask(
     dimension: ContinuousDimension,
     filter: ContinuousRange
-  ) {
+  ): BitSet | undefined {
     const key = `${dimension.name} ${filter}`;
 
     // if not in the cache, compute it and add it!
@@ -499,7 +502,7 @@ export class ArrowDB implements FalconDB {
 function arrowFilterMask<T>(
   column: Vector,
   shouldFilterOut: (rowValue: T) => boolean
-) {
+): BitSet {
   const bitmask = new BitSet(column.length);
 
   /**
