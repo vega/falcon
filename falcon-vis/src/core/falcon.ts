@@ -77,12 +77,8 @@ export class Falcon {
   /**
    * @returns an iterable that iterates over instances from the filter
    */
-  async instances({ offset = 0, length = Infinity } = {}) {
-    return this.db.instances(offset, length, this.filters);
-  }
-  // alias
   async entries({ offset = 0, length = Infinity } = {}) {
-    return this.instances({ offset, length });
+    return this.db.entries(offset, length, this.filters);
   }
 
   /**

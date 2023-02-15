@@ -73,7 +73,7 @@ export class ArrowDB implements FalconDB {
     }
   }
 
-  instances(
+  entries(
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined

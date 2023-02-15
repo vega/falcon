@@ -47,7 +47,7 @@ export abstract class SQLDB implements FalconDB {
     q: SQLQuery
   ): SQLQueryResult | Promise<SQLQueryResult>;
 
-  async instances(
+  async entries(
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters

@@ -154,7 +154,7 @@
 				<button
 					on:click={async () => {
 						page = Math.max(page - numEntries, 0);
-						entries = await falcon.instances({
+						entries = await falcon.entries({
 							length: numEntries,
 							offset: page,
 						});
@@ -163,7 +163,7 @@
 				<button
 					on:click={async () => {
 						page += numEntries;
-						entries = await falcon.instances({
+						entries = await falcon.entries({
 							length: numEntries,
 							offset: page,
 						});

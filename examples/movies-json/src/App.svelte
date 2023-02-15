@@ -165,7 +165,7 @@
 						} else {
 							await view.select();
 						}
-						instances = await falcon.instances({
+						instances = await falcon.entries({
 							offset: 0,
 							length: pageSize,
 						});
@@ -183,7 +183,7 @@
 	<button
 		on:click={async () => {
 			page = Math.max(page - pageSize, 0);
-			instances = await falcon.instances({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});
@@ -194,7 +194,7 @@
 	<button
 		on:click={async () => {
 			page += pageSize;
-			instances = await falcon.instances({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});

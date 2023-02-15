@@ -44,11 +44,14 @@ export interface FalconDB {
   range(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
 
   /**
-   * computes a page/batch of instance indices
+   * Gets the entries of the data given an offset and length
    *
-   * @returns list of indices from the database inside the filter
+   * @param length is the max number of rows to return
+   * @param offset is the number of initial rows to skip
+   *
+   * @returns an iterable over the rows
    */
-  instances(
+  entries(
     offset?: number,
     length?: number,
     filters?: Filters
