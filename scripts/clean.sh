@@ -1,4 +1,4 @@
-projSrc=.
+projSrc=..
 rm -fr $projSrc/node_modules
 rm -fr $projSrc/falcon/node_modules
 rm -fr $projSrc/examples/flights-arrow/node_modules
