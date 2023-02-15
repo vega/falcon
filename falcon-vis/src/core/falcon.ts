@@ -51,13 +51,20 @@ export class Falcon {
 
     return view;
   }
-  // alias
+
+  /**
+   * Creates a 0D view that counts the number of entries
+   *
+   * @returns the view
+   */
   count(onChange?: OnChange<View0DState>) {
     return this.view0D(onChange);
   }
 
   /**
    * add 1D view, does not initialize the view
+   *
+   * @returns the 1D view you can directly filter with .select()
    */
   view1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
     const view = new View1D(this, dimension);
@@ -69,7 +76,14 @@ export class Falcon {
 
     return view;
   }
-  // alias
+
+  /**
+   * links dimensions together to form a view
+   * this also links the view with all the other views
+   *
+   * @todo add 2D and 0D capabilities to this function so this link() is a one stop shop
+   * @returns the view you can directly filter with .select()
+   */
   link(dimension: Dimension, onChange?: OnChange<View1DState>) {
     return this.view1D(dimension, onChange);
   }
