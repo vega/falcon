@@ -15,16 +15,17 @@ import type {
 } from "../dimension";
 import type { Interval } from "../util";
 import { FalconArray } from "../falconArray";
+import type { CountsArrayType } from "../falconArray/arrayTypes";
 
 /* defines how the parameter is typed for on change */
 export interface ContinuousView1DState {
-  total: Int32Array | null;
-  filter: Int32Array | null;
+  total: CountsArrayType | null;
+  filter: CountsArrayType | null;
   bin: { binStart: number; binEnd: number }[] | null;
 }
 export interface CategoricalView1DState {
-  total: Int32Array | null;
-  filter: Int32Array | null;
+  total: CountsArrayType | null;
+  filter: CountsArrayType | null;
   bin: any[] | null;
 }
 export type View1DState = CategoricalView1DState | ContinuousView1DState;
@@ -71,8 +72,8 @@ export class View1D extends ViewAbstract<View1DState> {
     await this.createBins();
 
     const counts = await this.falcon.db.histogramView1D(this);
-    this.state.total = counts.noFilter.data as Int32Array;
-    this.state.filter = counts.filter.data as Int32Array;
+    this.state.total = counts.noFilter.data as CountsArrayType;
+    this.state.filter = counts.filter.data as CountsArrayType;
 
     this.signalOnChange(this.state);
   }
@@ -156,7 +157,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
         // use the index to count for the passive views
         this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countContinuous1DIndex(
+          await passiveView.countFromActiveContinuous1D(
             selectPixels as ContinuousRange
           );
         });
@@ -168,7 +169,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
         // use the index to count for the passive views
         this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countCategorical1DIndex(
+          await passiveView.countFromActiveCategorical1D(
             filter as CategoricalRange,
             this.dimension.range!
           );
@@ -188,7 +189,7 @@ export class View1D extends ViewAbstract<View1DState> {
         this.falcon.filters.delete(this.dimension);
         // and revert back counts
         this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countContinuous1DIndex();
+          await passiveView.countFromActiveContinuous1D();
         });
 
         this.lastFilter = filter;
@@ -197,7 +198,7 @@ export class View1D extends ViewAbstract<View1DState> {
         this.falcon.filters.delete(this.dimension);
         // and revert back counts
         this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countCategorical1DIndex();
+          await passiveView.countFromActiveCategorical1D();
         });
 
         this.lastFilter = filter;
@@ -208,7 +209,7 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * Given an active 1D view, count for this passive view
    */
-  async countContinuous1DIndex(pixels?: Interval<number>) {
+  async countFromActiveContinuous1D(pixels?: Interval<number>) {
     // grab index
     const index = await this.falcon.index.get(this)!;
     if (index === undefined) {
@@ -217,14 +218,14 @@ export class View1D extends ViewAbstract<View1DState> {
 
     // update state
     if (!pixels) {
-      this.state.filter = index.noFilter.data as Int32Array;
+      this.state.filter = index.noFilter.data as CountsArrayType;
     } else {
       // select the columns and subtract them to get in between [A, B]
       const A = index.filter.slice(pixels[0], null);
       const B = index.filter.slice(pixels[1], null);
       const binCounts = B.sub(A);
 
-      this.state.filter = binCounts.data as Int32Array;
+      this.state.filter = binCounts.data as CountsArrayType;
     }
 
     // signal user
@@ -234,7 +235,7 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * Given an active 1D view, count for this passive view
    */
-  async countCategorical1DIndex(
+  async countFromActiveCategorical1D(
     selection?: CategoricalRange,
     totalRange?: CategoricalRange
   ) {
@@ -246,7 +247,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
     // update state
     if (!selection) {
-      this.state.filter = index.noFilter.data as Int32Array;
+      this.state.filter = index.noFilter.data as CountsArrayType;
     } else {
       let binCounts: FalconArray;
       if (this.dimension.type === "continuous") {
@@ -262,9 +263,9 @@ export class View1D extends ViewAbstract<View1DState> {
       for (const s of selection) {
         const binKey = bin(s);
         const counts = index.filter.slice(binKey, null);
-        binCounts.addOverride(counts);
+        binCounts.addToItself(counts);
       }
-      this.state.filter = binCounts.data as Int32Array;
+      this.state.filter = binCounts.data as CountsArrayType;
     }
 
     // signal user

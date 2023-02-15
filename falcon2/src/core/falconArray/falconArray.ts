@@ -1,29 +1,9 @@
+import { CumulativeCountsArray, CountsArray } from "./arrayTypes";
 import ndarray from "ndarray";
 import prefixSum from "ndarray-prefix-sum";
-import type { NdArray } from "ndarray";
 import ops from "ndarray-ops";
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
-export type TypedArray =
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | Uint8Array
-  | Uint8ClampedArray
-  | Uint16Array
-  | Uint32Array
-  | Float32Array
-  | Float64Array;
-export type TypedArrayConstructor =
-  | Int8ArrayConstructor
-  | Int16ArrayConstructor
-  | Int32ArrayConstructor
-  | Uint8ArrayConstructor
-  | Uint8ClampedArrayConstructor
-  | Uint16ArrayConstructor
-  | Uint32ArrayConstructor
-  | Float32ArrayConstructor
-  | Float64ArrayConstructor;
+import type { TypedArray, TypedArrayConstructor } from "./arrayTypes";
+import type { NdArray } from "ndarray";
 
 /**
  * abstract away the NdArray reliance and can be swapped out
@@ -38,11 +18,11 @@ export class FalconArray {
   constructor(
     data: TypedArray,
     shape?: number[],
-    stride?: number[],
+    strides?: number[],
     offset?: number
   ) {
     this.data = data;
-    this.ndarray = ndarray(data, shape, stride, offset);
+    this.ndarray = ndarray(data, shape, strides, offset);
   }
 
   /**
@@ -55,10 +35,10 @@ export class FalconArray {
   get offset() {
     return this.ndarray.offset;
   }
-  get stride() {
+  get strides() {
     return this.ndarray.stride;
   }
-  get size() {
+  get length() {
     return this.ndarray.size;
   }
   set shape(value: number[]) {
@@ -67,7 +47,7 @@ export class FalconArray {
   set offset(value: number) {
     this.ndarray.offset = value;
   }
-  set stride(value: number[]) {
+  set strides(value: number[]) {
     this.ndarray.stride = value;
   }
   get(...indices: number[]) {
@@ -76,9 +56,8 @@ export class FalconArray {
   set(...indices: number[]) {
     return this.ndarray.set(...indices);
   }
-
-  zeros() {
-    this.data.fill(0);
+  fill(value: number) {
+    this.data.fill(value);
   }
 
   /**
@@ -93,15 +72,24 @@ export class FalconArray {
   /**
    * this + other and overrides this memory
    */
-  addOverride(other: FalconArray) {
+  addToItself(other: FalconArray): this {
     ops.addeq(this.ndarray, other.ndarray);
+    return this;
+  }
+
+  /**
+   * this - other and overrides this memory
+   */
+  subToItself(other: FalconArray): this {
+    ops.subeq(this.ndarray, other.ndarray);
+    return this;
   }
 
   /**
    * this - other = new memory
    */
-  sub(other: FalconArray) {
-    const out = new FalconArray(new Int32Array(this.size), this.shape);
+  sub(other: FalconArray, ReturnArray = CountsArray): FalconArray {
+    const out = new FalconArray(new ReturnArray(this.length), this.shape);
     ops.sub(out.ndarray, this.ndarray, other.ndarray);
     return out;
   }
@@ -110,7 +98,7 @@ export class FalconArray {
    * slice by changing the shape, offset, or stride
    * no new memory created
    */
-  slice(...indices: (number | null)[]) {
+  slice(...indices: (number | null)[]): FalconArray {
     const sliced = this.ndarray.pick(...indices);
     return new FalconArray(
       this.data,
@@ -123,7 +111,7 @@ export class FalconArray {
   /**
    * prefix sum across and up
    */
-  cumulativeSum() {
+  cumulativeSum(): this {
     prefixSum(this.ndarray);
     return this;
   }
@@ -137,7 +125,7 @@ export class FalconArray {
     shape?: number[],
     stride?: number[],
     offset?: number
-  ) {
+  ): FalconArray {
     const newMemory = new TypedArray(length);
     return new FalconArray(newMemory, shape, stride, offset);
   }
@@ -155,8 +143,14 @@ export class FalconArray {
     shape?: number[],
     stride?: number[],
     offset?: number
-  ) {
-    return this.typedArray(Float32Array, length, shape, stride, offset);
+  ): FalconArray {
+    return this.typedArray(
+      CumulativeCountsArray,
+      length,
+      shape,
+      stride,
+      offset
+    );
   }
 
   /**
@@ -169,7 +163,7 @@ export class FalconArray {
     shape?: number[],
     stride?: number[],
     offset?: number
-  ) {
-    return this.typedArray(Uint32Array, length, shape, stride, offset);
+  ): FalconArray {
+    return this.typedArray(CountsArray, length, shape, stride, offset);
   }
 }
