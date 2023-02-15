@@ -27,12 +27,14 @@ export abstract class ViewAbstract<S extends object> {
   /**
    * given the active view is continuous 1D, compute the counts for this view as passive
    */
-  abstract countContinuous1DIndex(activeBrushPixels?: Interval<number>): void;
+  abstract countFromActiveContinuous1D(
+    activeBrushPixels?: Interval<number>
+  ): void;
 
   /**
    * given the active view is categorical 1D, compute the counts for this view as passive
    */
-  abstract countCategorical1DIndex(
+  abstract countFromActiveCategorical1D(
     selection?: CategoricalRange,
     totalRange?: CategoricalRange
   ): void;

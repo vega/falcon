@@ -1,36 +1,41 @@
+import { binNumberFunctionCategorical } from "../util";
 import { ViewAbstract } from "./viewAbstract";
-import { binNumberFunctionCategorical, Interval } from "../util";
+import type { Interval } from "../util";
 import type { Falcon } from "../falcon";
-import { CategoricalRange } from "../dimension";
+import type { CategoricalRange } from "../dimension";
 
 /* defines how the parameter is typed for on change */
 export interface View0DState {
   total: number | null;
   filter: number | null;
 }
+// alias
 export type CountState = View0DState;
 
 export class View0D extends ViewAbstract<View0DState> {
   state: View0DState;
+
   constructor(falcon: Falcon) {
     super(falcon);
     this.state = { total: null, filter: null };
   }
 
   /**
-   * returns all count from the db and signals the user
+   * @returns all count from the db and signals the user
    */
   async all() {
     const total = await this.falcon.db.length();
     this.state.total = total;
     this.state.filter = total;
+
+    // signals/broadcasts new counts to the user
     this.signalOnChange(this.state);
   }
 
   /**
    * Given an active 1D view, count for this passive view
    */
-  async countContinuous1DIndex(pixels?: Interval<number>): Promise<void> {
+  async countFromActiveContinuous1D(pixels?: Interval<number>): Promise<void> {
     // take in the index
     const index = await this.falcon.index.get(this)!;
     if (index === undefined) {
@@ -49,10 +54,11 @@ export class View0D extends ViewAbstract<View0DState> {
     // signal user
     this.signalOnChange(this.state);
   }
+
   /**
    * Given an active 1D view, count for this passive view
    */
-  async countCategorical1DIndex(
+  async countFromActiveCategorical1D(
     selection?: CategoricalRange,
     totalRange?: CategoricalRange
   ): Promise<void> {
@@ -66,6 +72,7 @@ export class View0D extends ViewAbstract<View0DState> {
     if (selection === undefined) {
       this.state.filter = index.noFilter.get(0);
     } else {
+      // sum over selections to get counts per bin
       const bin = binNumberFunctionCategorical(totalRange!);
       let total = 0;
       for (const s of selection) {
