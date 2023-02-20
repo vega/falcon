@@ -45,19 +45,12 @@
 	async function moviesDuckDB() {
 		const db = await DuckDB.fromParquetFile(
 			fullUrl("data/diffusiondb.parquet"),
-			"diffusiondb",
-			new Map([["timestamp", "epoch(timestamp)*1000"]])
+			"diffusiondb"
+			// new Map([["timestamp", "epoch(timestamp)*1000"]])
 		);
 		falcon = new Falcon(db);
 
 		views = compose(falcon, [
-			{
-				type: "continuous",
-				name: "timestamp",
-				bins: 10,
-				resolution: 400,
-				time: true,
-			},
 			{
 				type: "continuous",
 				name: "image_nsfw",
@@ -132,7 +125,7 @@
 							if (resolved) {
 								resolved = false;
 								request = falcon
-									.entries({
+									.getEntries({
 										length: numEntries,
 									})
 									.then((d) => {
