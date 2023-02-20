@@ -9,6 +9,12 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
+  "dependencies": {
+    "falcon-vis": "0.0.17",
+    "svelte-vega": "^1.2.0",
+    "vega": "^5.22.1",
+    "vega-lite": "^5.6.0"
+  },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
     "@tsconfig/svelte": "^3.0.0",

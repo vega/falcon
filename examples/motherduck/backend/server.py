@@ -6,6 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+import duckdb
+import pyarrow as pa
+from io import BytesIO
+from fastapi.responses import Response
 
 BACKEND_HOST = "localhost"
 BACKEND_PORT = 8000
@@ -16,9 +20,10 @@ app = FastAPI()
 
 # without this, the frontend errors out
 # when making requests to the backend
-FRONTEND_URL = f"http://{FRONTEND_HOST}:{FRONTEND_PORT}"
+port_url = lambda url, port: f"http://{url}:{port}"
 origins = [
-    FRONTEND_URL,
+    port_url("localhost", FRONTEND_PORT),
+    port_url("127.0.0.1", FRONTEND_PORT),
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -26,6 +31,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+con = duckdb.connect(":memory:")
+con.query(
+    """CREATE TABLE diffusiondb AS
+    SELECT * FROM read_parquet('data/diffusiondb.parquet')
+    """
 )
 
 
@@ -49,6 +61,22 @@ async def get_items():
         {"name": "Plumbus", "price": 3},
         {"name": "Portal Gun", "price": 9001},
     ]
+
+
+@app.get("/query/{sql_query:path}")
+async def query(sql_query: str):
+    global con
+    sql_query = sql_query.replace("count(*)", "count(*)::INT")
+    result = con.query(sql_query)
+    table = result.arrow()
+
+    sink = pa.BufferOutputStream()
+    with pa.RecordBatchStreamWriter(sink, table.schema) as writer:
+        writer.write_table(table)
+
+    file_in_memory = BytesIO(sink.getvalue()).getvalue()
+
+    return Response(file_in_memory, media_type="application/octet-stream")
 
 
 if __name__ == "__main__":

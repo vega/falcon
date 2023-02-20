@@ -1,4 +1,4 @@
-import { Table } from "apache-arrow";
+import { Table, tableFromIPC } from "apache-arrow";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 import type { SQLNameMap, SQLQuery } from "./sql";
@@ -18,16 +18,18 @@ export class HTTPDB extends SQLDB {
   protected async query(q: SQLQuery): Promise<Table> {
     const t0 = performance.now();
 
-    //@ts-ignore
-    const table = await Table.fromAsync(
-      fetch(`${this.url}${this.escapeQuery(q)}`)
-    );
+    const escapedQuery = this.escapeQuery(q);
+    const query = await fetch(`${this.url}${escapedQuery}`);
+    if (!query.ok) throw new Error(`HTTP ${query.status}: ${query.statusText}`);
+
+    const buffer = await query.arrayBuffer();
+    const table = tableFromIPC(buffer);
 
     console.info(
       `%c${compactQuery(q)}`,
       "color: #bbb",
       "\nRows:",
-      table.length,
+      table.numRows,
       "Query time:",
       performance.now() - t0,
       "ms."
