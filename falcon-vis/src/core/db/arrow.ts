@@ -100,7 +100,13 @@ export class ArrowDB implements FalconDB {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
-    return new RowIterator(this.data, filterMask, offset, length);
+    return new RowIterator(
+      this.data.numRows,
+      (i) => this.data.get(i),
+      filterMask,
+      offset,
+      length
+    );
   }
 
   histogramView1D(view: View1D, filters?: Filters): FalconCounts {

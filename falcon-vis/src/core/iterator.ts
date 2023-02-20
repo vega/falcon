@@ -1,5 +1,4 @@
 import type { BitSet } from "./bitset";
-import type { Table } from "apache-arrow";
 import type { TypedArray } from "./falconArray/arrayTypes";
 
 export type Instances = Record<string, unknown[]>;
@@ -15,25 +14,23 @@ export type Row = Record<string, any>;
 
 export class RowIterator {
   constructor(
-    private table: Table,
+    private numRows: number,
+    private rowGetter: (index: number) => Row | null,
     private mask?: BitSet | null,
     public offset: number = 0,
     public length: number = Infinity
-  ) {
-    this.table = table;
-    this.mask = mask;
-    this.length = length;
-    this.offset = offset;
-  }
+  ) {}
 
   *bitmaskRows() {
     let globalIndex = 0;
-    while (globalIndex < this.table.numRows) {
-      const row = this.table.get(globalIndex);
+    while (globalIndex < this.numRows) {
+      const row = this.rowGetter(globalIndex);
       if (this.mask) {
-        if (this.mask && !this.mask.get(globalIndex)) {
+        if (!this.mask.get(globalIndex)) {
           yield row as Row;
         }
+      } else {
+        yield row as Row;
       }
       globalIndex++;
     }

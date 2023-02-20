@@ -169,7 +169,6 @@
 							offset: 0,
 							length: pageSize,
 						});
-						console.log([...instances]);
 						page = 0;
 					}}
 					on:mouseenter={async () => {

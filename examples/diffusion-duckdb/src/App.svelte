@@ -132,7 +132,7 @@
 							if (resolved) {
 								resolved = false;
 								request = falcon
-									.instances({
+									.entries({
 										length: numEntries,
 									})
 									.then((d) => {

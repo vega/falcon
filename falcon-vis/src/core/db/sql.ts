@@ -1,4 +1,3 @@
-import { RowIterator } from "../iterator";
 import {
   Dimension,
   ContinuousRange,
@@ -16,7 +15,6 @@ import { View0D, View1D } from "../views";
 import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import type { BinConfig } from "../util";
 import type { View } from "../views";
-import { Table } from "apache-arrow";
 import { Row } from "../iterator";
 
 export type SQLNameMap = Map<string, string>;
@@ -60,8 +58,7 @@ export abstract class SQLDB implements FalconDB {
               ${where ? `WHERE ${where}` : ""}
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
-
-    return new RowIterator(filteredTable as Table) as Iterable<Row>;
+    return filteredTable;
   }
 
   async length() {
