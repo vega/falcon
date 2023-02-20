@@ -21,13 +21,13 @@
 	let viewStates: View1DState[] = [];
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		falcon.count((state) => {
+		falcon.linkCount((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
 		const views = view1Ds.map((dim, i) =>
-			falcon.link(dim, (state) => {
+			falcon.linkView1D(dim, (state) => {
 				viewStates[i] = state;
 			})
 		);
@@ -62,7 +62,7 @@
 			},
 		]);
 
-		await falcon.all();
+		await falcon.initializeAllCounts();
 		console.warn = () => {};
 	}
 </script>

@@ -28,13 +28,13 @@
 	}
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		falcon.count((state) => {
+		falcon.linkCount((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
 		const views = view1Ds.map((dim, i) =>
-			falcon.link(dim, (state) => {
+			falcon.linkView1D(dim, (state) => {
 				viewStates[i] = state;
 			})
 		);
@@ -84,8 +84,8 @@
 			},
 		]);
 
-		await falcon.all();
-		entries = await falcon.entries({ length: numEntries });
+		await falcon.initializeAllCounts();
+		entries = await falcon.getEntries({ length: numEntries });
 	}
 
 	let page = 0;
@@ -154,7 +154,7 @@
 				<button
 					on:click={async () => {
 						page = Math.max(page - numEntries, 0);
-						entries = await falcon.entries({
+						entries = await falcon.getEntries({
 							length: numEntries,
 							offset: page,
 						});
@@ -163,7 +163,7 @@
 				<button
 					on:click={async () => {
 						page += numEntries;
-						entries = await falcon.entries({
+						entries = await falcon.getEntries({
 							length: numEntries,
 							offset: page,
 						});

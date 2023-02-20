@@ -22,19 +22,19 @@ export abstract class ViewAbstract<S extends object> {
   /**
    * fetches all the counts
    */
-  abstract all(): Promise<void> | void;
+  abstract initializeAllCounts(): Promise<void> | void;
 
   /**
    * given the active view is continuous 1D, compute the counts for this view as passive
    */
-  abstract countFromActiveContinuous1D(
+  protected abstract countFromActiveContinuous1D(
     activeBrushPixels?: Interval<number>
   ): void;
 
   /**
    * given the active view is categorical 1D, compute the counts for this view as passive
    */
-  abstract countFromActiveCategorical1D(
+  protected abstract countFromActiveCategorical1D(
     selection?: CategoricalRange,
     totalRange?: CategoricalRange
   ): void;

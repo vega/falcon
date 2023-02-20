@@ -68,7 +68,7 @@ export class View1D extends ViewAbstract<View1DState> {
     }
   }
 
-  async all() {
+  async initializeAllCounts() {
     await this.createBins();
 
     const counts = await this.falcon.db.histogramView1D(this);
@@ -93,7 +93,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
         // we just count the whole shebang too
         if (rangeNotComputed) {
-          await view.all();
+          await view.initializeAllCounts();
         }
       });
 
@@ -109,6 +109,12 @@ export class View1D extends ViewAbstract<View1DState> {
       );
     }
   }
+
+  /**
+   * activates this view: makes this view the active view
+   *
+   * this prefetches the falcon index under the hood that does all the speedups
+   */
   async activate() {
     await this.prefetch();
   }

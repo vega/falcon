@@ -31,19 +31,19 @@
 
 		falcon = new Falcon(db);
 
-		count = falcon.view0D();
+		count = falcon.linkCount();
 		count.addOnChangeListener((state) => {
 			countState = state;
 		});
 
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "categorical",
 				name: "MPAA_Rating",
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "US_Gross",
 				bins: 25,
@@ -51,7 +51,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "Worldwide_Gross",
 				bins: 25,
@@ -59,7 +59,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "Production_Budget",
 				bins: 25,
@@ -67,7 +67,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "categorical",
 				name: "Distributor",
 				range: [
@@ -90,7 +90,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "IMDB_Rating",
 				bins: 25,
@@ -98,7 +98,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
 				bins: 25,
@@ -106,13 +106,13 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "categorical",
 				name: "Major_Genre",
 			})
 		);
 		views.push(
-			falcon.view1D({
+			falcon.linkView1DView1D({
 				type: "continuous",
 				name: "Running_Time_min",
 				bins: 25,
@@ -128,7 +128,7 @@
 			});
 		});
 
-		await falcon.all();
+		await falcon.initializeAllCounts();
 	}
 	let instances: Iterable<Record<string, any>>;
 	let page = 0;
@@ -165,7 +165,7 @@
 						} else {
 							await view.select();
 						}
-						instances = await falcon.entries({
+						instances = await falcon.getEntries({
 							offset: 0,
 							length: pageSize,
 						});
@@ -182,7 +182,7 @@
 	<button
 		on:click={async () => {
 			page = Math.max(page - pageSize, 0);
-			instances = await falcon.entries({
+			instances = await falcon.getEntries({
 				length: pageSize,
 				offset: page,
 			});
@@ -193,7 +193,7 @@
 	<button
 		on:click={async () => {
 			page += pageSize;
-			instances = await falcon.entries({
+			instances = await falcon.getEntries({
 				length: pageSize,
 				offset: page,
 			});
