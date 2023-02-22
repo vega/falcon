@@ -37,13 +37,13 @@
 		});
 
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "categorical",
 				name: "MPAA_Rating",
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "US_Gross",
 				bins: 25,
@@ -51,7 +51,7 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "Worldwide_Gross",
 				bins: 25,
@@ -59,7 +59,7 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "Production_Budget",
 				bins: 25,
@@ -67,7 +67,7 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "categorical",
 				name: "Distributor",
 				range: [
@@ -90,7 +90,7 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "IMDB_Rating",
 				bins: 25,
@@ -98,7 +98,7 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
 				bins: 25,
@@ -106,13 +106,13 @@
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "categorical",
 				name: "Major_Genre",
 			})
 		);
 		views.push(
-			falcon.linkView1DView1D({
+			falcon.linkView1D({
 				type: "continuous",
 				name: "Running_Time_min",
 				bins: 25,

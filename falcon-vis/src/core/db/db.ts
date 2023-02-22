@@ -44,6 +44,16 @@ export interface FalconDB {
   range(dimension: Dimension): AsyncOrSync<ContinuousRange | CategoricalRange>;
 
   /**
+   * Checks whether the table exists or not
+   */
+  tableExists(): AsyncOrSync<boolean>;
+
+  /**
+   * checks whether the dimension exists or not
+   */
+  dimensionExists(dimension: Dimension): AsyncOrSync<boolean>;
+
+  /**
    * Gets the entries of the data given an offset and length
    *
    * @param length is the max number of rows to return

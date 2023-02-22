@@ -45,6 +45,26 @@ export abstract class SQLDB implements FalconDB {
     q: SQLQuery
   ): SQLQueryResult | Promise<SQLQueryResult>;
 
+  async dimensionExists(dimension: Dimension): Promise<boolean> {
+    const result = await this.query(
+      `SELECT EXISTS 
+      (SELECT 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${
+        this.table
+      }' AND COLUMN_NAME = '${this.getName(dimension)}') as _exists`
+    );
+    const { _exists } = this.getASValues(result);
+    return _exists;
+  }
+
+  async tableExists(): Promise<boolean> {
+    const result = await this.query(
+      `SELECT EXISTS 
+      (SELECT 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${this.table}') as _exists`
+    );
+    const { _exists } = this.getASValues(result);
+    return _exists;
+  }
+
   async entries(
     offset: number = 0,
     length: number = Infinity,

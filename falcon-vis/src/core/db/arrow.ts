@@ -92,6 +92,14 @@ export class ArrowDB implements FalconDB {
     }
   }
 
+  dimensionExists(dimension: Dimension): boolean {
+    return this.data.getChild(dimension.name) !== null;
+  }
+
+  tableExists(): boolean {
+    return this.data && this.data.numCols > 0;
+  }
+
   entries(
     offset: number = 0,
     length: number = Infinity,

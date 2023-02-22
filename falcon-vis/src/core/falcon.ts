@@ -24,6 +24,34 @@ export class Falcon {
   }
 
   /**
+   * verifies if we can continue to do stuff on the data
+   * throws an error if the data does not exist
+   */
+  async assertDataExists(...dimensions: Dimension[]) {
+    /**
+     * Check if the table exists
+     */
+    const tableExistsInDB = await this.db.tableExists();
+    if (!tableExistsInDB) {
+      throw new Error(`Table does not exists in the database`);
+    }
+
+    /**
+     * If provided, check if the dimensions exist
+     */
+    dimensions?.forEach(async (dimension) => {
+      if (dimension) {
+        const dimensionExistsInDB = await this.db.dimensionExists(dimension);
+        if (!dimensionExistsInDB) {
+          throw new Error(
+            `Dimension '${dimension.name}' does not exist in the data table`
+          );
+        }
+      }
+    });
+  }
+
+  /**
    * Creates a 0D view that counts the number of entries
    *
    * @returns the view
@@ -32,6 +60,8 @@ export class Falcon {
     return this.createView0D(onChange);
   }
   private createView0D(onChange?: OnChange<View0DState>) {
+    this.assertDataExists();
+
     const view = new View0D(this);
     this.views.add(view);
 
@@ -51,6 +81,8 @@ export class Falcon {
     return this.createView1D(dimension, onChange);
   }
   private createView1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
+    this.assertDataExists(dimension);
+
     const view = new View1D(this, dimension);
     this.views.add(view);
 
