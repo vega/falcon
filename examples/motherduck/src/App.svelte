@@ -35,10 +35,11 @@
 		});
 
 		viewStates = new Array(view1Ds.length);
-		const views = view1Ds.map((dim, i) =>
-			falcon.linkView1D(dim, (state) => {
-				viewStates[i] = state;
-			})
+		const views = view1Ds.map(
+			(dim, i) =>
+				await falcon.linkView1D(dim, (state) => {
+					viewStates[i] = state;
+				})
 		);
 
 		return views;

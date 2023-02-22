@@ -68,6 +68,11 @@ export class View1D extends ViewAbstract<View1DState> {
     }
   }
 
+  /**
+   *  initializes the counts for the view over the entire data
+   *
+   * @returns the View1D class itself
+   */
   async initializeAllCounts() {
     await this.createBins();
 
@@ -76,6 +81,8 @@ export class View1D extends ViewAbstract<View1DState> {
     this.state.filter = counts.filter.data as CountsArrayType;
 
     this.signalOnChange(this.state);
+
+    return this;
   }
 
   /**

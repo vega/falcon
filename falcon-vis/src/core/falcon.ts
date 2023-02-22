@@ -56,12 +56,11 @@ export class Falcon {
    *
    * @returns the view
    */
-  linkCount(onChange?: OnChange<View0DState>) {
+  async linkCount(onChange?: OnChange<View0DState>) {
+    await this.assertDataExists();
     return this.createView0D(onChange);
   }
   private createView0D(onChange?: OnChange<View0DState>) {
-    this.assertDataExists();
-
     const view = new View0D(this);
     this.views.add(view);
 
@@ -77,12 +76,11 @@ export class Falcon {
    *
    * @returns the 1D view you can directly filter with .select()
    */
-  linkView1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
+  async linkView1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
+    await this.assertDataExists(dimension);
     return this.createView1D(dimension, onChange);
   }
   private createView1D(dimension: Dimension, onChange?: OnChange<View1DState>) {
-    this.assertDataExists(dimension);
-
     const view = new View1D(this, dimension);
     this.views.add(view);
 

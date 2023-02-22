@@ -22,7 +22,7 @@ export abstract class ViewAbstract<S extends object> {
   /**
    * fetches all the counts
    */
-  abstract initializeAllCounts(): Promise<void> | void;
+  abstract initializeAllCounts(): Promise<this> | this;
 
   /**
    * given the active view is continuous 1D, compute the counts for this view as passive
