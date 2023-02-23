@@ -86,9 +86,24 @@ export class FalconArray {
   }
 
   /**
+   * this + other = new memory
+   */
+  add(
+    other: FalconArray,
+    ReturnArray: TypedArrayConstructor = CountsArray
+  ): FalconArray {
+    const out = new FalconArray(new ReturnArray(this.length), this.shape);
+    ops.add(out.ndarray, this.ndarray, other.ndarray);
+    return out;
+  }
+
+  /**
    * this - other = new memory
    */
-  sub(other: FalconArray, ReturnArray = CountsArray): FalconArray {
+  sub(
+    other: FalconArray,
+    ReturnArray: TypedArrayConstructor = CountsArray
+  ): FalconArray {
     const out = new FalconArray(new ReturnArray(this.length), this.shape);
     ops.sub(out.ndarray, this.ndarray, other.ndarray);
     return out;
