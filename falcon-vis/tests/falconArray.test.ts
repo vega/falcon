@@ -121,7 +121,7 @@ describe("FalconArray Operations", () => {
        * | 0 1 |
        */
       const shape = [2, 2];
-      let identityMatrix = new FalconArray(
+      const identityMatrix = new FalconArray(
         new ATypedArray([1, 0, 0, 1]),
         shape
       );
@@ -130,6 +130,27 @@ describe("FalconArray Operations", () => {
         identityMatrix.increment([0, 0]);
       }
       expect(identityMatrix.get(0, 0)).toEqual(new ATypedArray([101])[0]);
+    });
+
+    test("Filling all 0s works", () => {
+      /**
+       * Identity Matrix
+       * | 1   ...  0 |
+       * | ... 1 ...  |
+       * | 0   ...  1 |
+       * 100 rows x 100 columns
+       */
+      const shape = [100, 100];
+      const identity = new ATypedArray(shape[0] * shape[1]).fill(0);
+      for (let i = 0; i < shape[0]; i++) {
+        identity[i * shape[0] + i] = 1;
+      }
+      const identityMatrix = new FalconArray(identity, shape);
+
+      identityMatrix.fill(0);
+      expect(identityMatrix.data).toEqual(
+        new ATypedArray(shape[0] * shape[1]).fill(0)
+      );
     });
   }
 });
