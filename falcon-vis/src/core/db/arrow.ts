@@ -12,13 +12,7 @@ import {
 } from "../util";
 import { View0D, View1D } from "../views";
 import type { Vector } from "apache-arrow";
-import type {
-  AsyncOrSync,
-  Filters,
-  FalconCounts,
-  FalconIndex,
-  FalconCube,
-} from "./db";
+import type { Filters, FalconCounts, FalconIndex, FalconCube } from "./db";
 import type {
   CategoricalDimension,
   CategoricalRange,
@@ -66,7 +60,7 @@ export class ArrowDB implements FalconDB {
     return new ArrowDB(table);
   }
 
-  length(): AsyncOrSync<number> {
+  length(): number {
     return this.data.numRows;
   }
 

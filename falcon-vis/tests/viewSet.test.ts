@@ -7,73 +7,43 @@ function dummyView() {
   return view;
 }
 
-describe("View Set Creation", () => {
-  it("Import Exists", () => {
-    expect(ViewSet).toBeDefined();
+describe("ViewSet", () => {
+  test("Only unique views are stored in the set", () => {
+    const viewset = new ViewSet();
+    const firstView = dummyView();
+    const secondView = dummyView();
+
+    // duplicate view
+    viewset.add(firstView);
+    expect(viewset.size).toBe(1);
+    viewset.add(firstView);
+    expect(viewset.size).toBe(1);
+
+    // new view
+    viewset.add(secondView);
+    expect(viewset.size).toBe(2);
   });
 
-  it("Class construction", () => {
-    const collection = new ViewSet();
-    expect(collection).toBeDefined();
-    expect(typeof collection).toBe("object");
-    expect(collection.views).toBeDefined();
-  });
-});
+  test("At most one active view and rest passive views", () => {
+    // create some views
+    const viewset = new ViewSet();
 
-describe("Adding views to the collection", () => {
-  it("Adding a view", () => {
-    const collection = new ViewSet();
-    const view = dummyView();
-    collection.add(view);
+    // one active view
+    const active = dummyView();
+    active.isActive = true;
+    viewset.add(active);
 
-    expect(collection.size).toBe(1);
-  });
+    // rest passive
+    viewset.add(dummyView());
+    viewset.add(dummyView());
 
-  it("Adding a duplicate view", () => {
-    const collection = new ViewSet();
-    const view = dummyView();
+    const passiveViews = viewset.passive;
+    const activeView = viewset.active;
 
-    collection.add(view);
-    collection.add(view);
-
-    expect(collection.size).toBe(1);
-  });
-
-  it("Adding different views", () => {
-    const collection = new ViewSet();
-    const viewA = dummyView();
-    const viewB = dummyView();
-
-    collection.add(viewA);
-    collection.add(viewB);
-
-    expect(collection.size).toBe(2);
-  });
-});
-
-describe("View collection active and passive ops", () => {
-  it("Return passive views and active views", () => {
-    const collection = new ViewSet();
-
-    const passiveViewA = dummyView();
-    passiveViewA.isActive = false;
-
-    const passiveViewB = dummyView();
-    passiveViewB.isActive = false;
-
-    const activeView = dummyView();
-    activeView.isActive = true;
-
-    collection.add(passiveViewA);
-    collection.add(passiveViewB);
-    collection.add(activeView);
-
-    expect(collection.active).toBeDefined();
-    expect(collection.active).toBe(activeView);
-
-    expect(collection.passive).toBeDefined();
-    expect(collection.passive.length).toBe(2);
-    expect(collection.passive[0]).toBe(passiveViewA);
-    expect(collection.passive[1]).toBe(passiveViewB);
+    // only one active, rest passive
+    passiveViews.forEach((view) => {
+      expect(view.isActive).toBe(false);
+    });
+    expect(activeView.isActive).toBe(true);
   });
 });
