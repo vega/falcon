@@ -20,20 +20,19 @@
 	let views: View1D[] = [];
 	let viewStates: View1DState[] = [];
 
-	function compose(falcon: Falcon, view1Ds: Dimension[]) {
+	async function compose(falcon: Falcon, view1Ds: Dimension[]) {
 		falcon.linkCount((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
-		const views = view1Ds.map(
-			(dim, i) =>
-				await falcon.linkView1D(dim, (state) => {
-					viewStates[i] = state;
-				})
+		const views = view1Ds.map((dim, i) =>
+			falcon.linkView1D(dim, (state) => {
+				viewStates[i] = state;
+			})
 		);
 
-		return views;
+		return Promise.all(views);
 	}
 
 	onMount(async () => {
@@ -44,7 +43,7 @@
 		const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
 		falcon = new Falcon(db);
 
-		views = compose(falcon, [
+		views = await compose(falcon, [
 			{
 				type: "categorical",
 				name: "MPAA_Rating",

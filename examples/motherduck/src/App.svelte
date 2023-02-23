@@ -29,20 +29,19 @@
 		return `${window.location.href}${filename}`;
 	}
 
-	function compose(falcon: Falcon, view1Ds: Dimension[]) {
+	async function compose(falcon: Falcon, view1Ds: Dimension[]) {
 		falcon.linkCount((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
-		const views = view1Ds.map(
-			(dim, i) =>
-				await falcon.linkView1D(dim, (state) => {
-					viewStates[i] = state;
-				})
+		const views = view1Ds.map((dim, i) =>
+			falcon.linkView1D(dim, (state) => {
+				viewStates[i] = state;
+			})
 		);
 
-		return views;
+		return Promise.all(views);
 	}
 
 	async function moviesDuckDB() {
@@ -54,7 +53,7 @@
 		);
 		falcon = new Falcon(db);
 
-		views = compose(falcon, [
+		views = await compose(falcon, [
 			{
 				type: "continuous",
 				name: "image_nsfw",
