@@ -89,5 +89,47 @@ describe("FalconArray Operations", () => {
       expect(columnSlice.shape).toEqual([2]);
       expect(columnSlice.data).toEqual(new ATypedArray([1, 0, 0, 1]));
     });
+
+    test("Cumulative sum works", () => {
+      /**
+       * Identity Matrix
+       * | 1 0 |
+       * | 0 1 |
+       */
+      const shape = [2, 2];
+      const identityMatrix = new FalconArray(
+        new ATypedArray([1, 0, 0, 1]),
+        shape
+      );
+
+      /**
+       * expected result
+       * | 1 1 |
+       * | 1 2 |
+       *
+       * by summing right, then sum down
+       * (basically sums across all dimensions)
+       */
+      identityMatrix.cumulativeSum();
+      expect(identityMatrix.data).toEqual(new ATypedArray([1, 1, 1, 2]));
+    });
+
+    test("Incrementing works", () => {
+      /**
+       * Identity Matrix
+       * | 1 0 |
+       * | 0 1 |
+       */
+      const shape = [2, 2];
+      let identityMatrix = new FalconArray(
+        new ATypedArray([1, 0, 0, 1]),
+        shape
+      );
+
+      for (let i = 0; i < 100; i++) {
+        identityMatrix.increment([0, 0]);
+      }
+      expect(identityMatrix.get(0, 0)).toEqual(new ATypedArray([101])[0]);
+    });
   }
 });
