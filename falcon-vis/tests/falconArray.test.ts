@@ -1,57 +1,93 @@
 import { FalconArray } from "../src/core/falconArray/falconArray";
 
-describe("FalconArray", () => {
-  test("Adding works c = a + b", () => {
-    const a = new FalconArray(new Uint8Array([0, 1, -3]));
-    const b = new FalconArray(new Uint8Array([0, -1, 3]));
+const TypedArraysToTest = [Uint32Array, Float32Array];
 
-    const c = a.add(b, Uint8Array);
+describe("FalconArray Operations", () => {
+  for (const ATypedArray of TypedArraysToTest) {
+    test("Adding works c = a + b", () => {
+      const a = new FalconArray(new ATypedArray([0, 1, -3]));
+      const b = new FalconArray(new ATypedArray([0, -1, 3]));
 
-    // result in c
-    expect(c.data).toEqual(new Uint8Array([0, 0, 0]));
+      const c = a.add(b, ATypedArray);
 
-    // a and b are unchanged
-    expect(a.data).toEqual(new Uint8Array([0, 1, -3]));
-    expect(b.data).toEqual(new Uint8Array([0, -1, 3]));
-  });
+      // result in c
+      expect(c.data).toEqual(new ATypedArray([0, 0, 0]));
 
-  test("Subtracting works c = a - b", () => {
-    const a = new FalconArray(new Uint8Array([0, 1, -3]));
-    const b = new FalconArray(new Uint8Array([0, 1, -3]));
+      // a and b are unchanged
+      expect(a.data).toEqual(new ATypedArray([0, 1, -3]));
+      expect(b.data).toEqual(new ATypedArray([0, -1, 3]));
+    });
 
-    const c = a.sub(b, Uint8Array);
+    test("Subtracting works c = a - b", () => {
+      const a = new FalconArray(new ATypedArray([0, 1, -3]));
+      const b = new FalconArray(new ATypedArray([0, 1, -3]));
 
-    // result in c
-    expect(c.data).toEqual(new Uint8Array([0, 0, 0]));
+      const c = a.sub(b, ATypedArray);
 
-    // a and b are unchanged
-    expect(a.data).toEqual(new Uint8Array([0, 1, -3]));
-    expect(b.data).toEqual(new Uint8Array([0, 1, -3]));
-  });
+      // result in c
+      expect(c.data).toEqual(new ATypedArray([0, 0, 0]));
 
-  test("In place subtracting works a -= b", () => {
-    const a = new FalconArray(new Uint8Array([0, 1, -3]));
-    const b = new FalconArray(new Uint8Array([0, 1, -3]));
+      // a and b are unchanged
+      expect(a.data).toEqual(new ATypedArray([0, 1, -3]));
+      expect(b.data).toEqual(new ATypedArray([0, 1, -3]));
+    });
 
-    a.subToItself(b);
+    test("In place subtracting works a -= b", () => {
+      const a = new FalconArray(new ATypedArray([0, 1, -3]));
+      const b = new FalconArray(new ATypedArray([0, 1, -3]));
 
-    // result overrides a
-    expect(a.data).toEqual(new Uint8Array([0, 0, 0]));
+      a.subToItself(b);
 
-    // b is unchanged
-    expect(b.data).toEqual(new Uint8Array([0, 1, -3]));
-  });
+      // result overrides a
+      expect(a.data).toEqual(new ATypedArray([0, 0, 0]));
 
-  test("In place adding works a += b", () => {
-    const a = new FalconArray(new Uint8Array([0, 1, -3]));
-    const b = new FalconArray(new Uint8Array([0, -1, 3]));
+      // b is unchanged
+      expect(b.data).toEqual(new ATypedArray([0, 1, -3]));
+    });
 
-    a.addToItself(b);
+    test("In place adding works a += b", () => {
+      const a = new FalconArray(new ATypedArray([0, 1, -3]));
+      const b = new FalconArray(new ATypedArray([0, -1, 3]));
 
-    // result overrides a
-    expect(a.data).toEqual(new Uint8Array([0, 0, 0]));
+      a.addToItself(b);
 
-    // b is unchanged
-    expect(b.data).toEqual(new Uint8Array([0, -1, 3]));
-  });
+      // result overrides a
+      expect(a.data).toEqual(new ATypedArray([0, 0, 0]));
+
+      // b is unchanged
+      expect(b.data).toEqual(new ATypedArray([0, -1, 3]));
+    });
+
+    test("Row and column slicing works", () => {
+      /**
+       * Identity Matrix
+       * | 1 0 |
+       * | 0 1 |
+       */
+      const shape = [2, 2];
+      const identityMatrix = new FalconArray(
+        new ATypedArray([1, 0, 0, 1]),
+        shape
+      );
+
+      /**
+       * slice the first row and keep all the column values
+       * | 1 0 |
+       */
+      const rowSlice = identityMatrix.slice(0, FalconArray.ALL);
+
+      /**
+       * slice the first column and keep all the row values
+       * | 1 |
+       * | 0 |
+       */
+      const columnSlice = identityMatrix.slice(FalconArray.ALL, 0);
+
+      // underlying data doesn't change, just the shape
+      expect(rowSlice.shape).toEqual([2]);
+      expect(rowSlice.data).toEqual(new ATypedArray([1, 0, 0, 1]));
+      expect(columnSlice.shape).toEqual([2]);
+      expect(columnSlice.data).toEqual(new ATypedArray([1, 0, 0, 1]));
+    });
+  }
 });

@@ -12,6 +12,7 @@ import type { NdArray } from "ndarray";
  * @resource [PyTorch example of shape, stride, offset](https://www.youtube.com/watch?v=85xBkapaZts)
  */
 export class FalconArray {
+  static ALL = null;
   ndarray: NdArray;
   data: TypedArray;
 
