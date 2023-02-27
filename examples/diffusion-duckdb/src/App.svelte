@@ -7,7 +7,7 @@
 		View1D,
 		DuckDB,
 		type Dimension,
-	} from "falcon2";
+	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
@@ -28,30 +28,30 @@
 	}
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		const count = falcon.view0D();
-		count.onChange((state) => {
+		falcon.linkCount((state) => {
 			countState = state;
 		});
 
-		const views = view1Ds.map((dim) => falcon.view1D(dim));
-		viewStates = new Array(views.length);
+		viewStates = new Array(view1Ds.length);
+		const views = view1Ds.map(
+			async (dim, i) =>
+				await falcon.linkView1D(dim, (state) => {
+					viewStates[i] = state;
+				})
+		);
 
-		// states will be updated when the view counts change
-		views.forEach((view, i) => {
-			view.onChange((state) => {
-				viewStates[i] = state;
-			});
-		});
-		return [count, views] as [View0D, View1D[]];
+		return views;
 	}
 
 	async function moviesDuckDB() {
 		const db = await DuckDB.fromParquetFile(
-			fullUrl("data/diffusiondb.parquet")
+			fullUrl("data/diffusiondb.parquet"),
+			"diffusiondb"
+			// new Map([["timestamp", "epoch(timestamp)*1000"]])
 		);
 		falcon = new Falcon(db);
 
-		[count, views] = compose(falcon, [
+		views = compose(falcon, [
 			{
 				type: "continuous",
 				name: "image_nsfw",
@@ -78,8 +78,8 @@
 			},
 		]);
 
-		await falcon.all();
-		entries = await falcon.instances({ length: numEntries });
+		await falcon.initializeAllCounts();
+		entries = await falcon.getEntries({ length: numEntries });
 	}
 
 	let page = 0;
@@ -126,7 +126,7 @@
 							if (resolved) {
 								resolved = false;
 								request = falcon
-									.instances({
+									.getEntries({
 										length: numEntries,
 									})
 									.then((d) => {
@@ -148,7 +148,7 @@
 				<button
 					on:click={async () => {
 						page = Math.max(page - numEntries, 0);
-						entries = await falcon.instances({
+						entries = await falcon.getEntries({
 							length: numEntries,
 							offset: page,
 						});
@@ -157,7 +157,7 @@
 				<button
 					on:click={async () => {
 						page += numEntries;
-						entries = await falcon.instances({
+						entries = await falcon.getEntries({
 							length: numEntries,
 							offset: page,
 						});

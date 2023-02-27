@@ -6,7 +6,7 @@
 		View0D,
 		View1D,
 		ObjectDB,
-	} from "falcon2";
+	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
@@ -31,19 +31,19 @@
 
 		falcon = new Falcon(db);
 
-		count = falcon.view0D();
-		count.onChange((state) => {
+		count = await falcon.linkCount();
+		count.addOnChangeListener((state) => {
 			countState = state;
 		});
 
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "categorical",
 				name: "MPAA_Rating",
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "US_Gross",
 				bins: 25,
@@ -51,7 +51,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "Worldwide_Gross",
 				bins: 25,
@@ -59,7 +59,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "Production_Budget",
 				bins: 25,
@@ -67,7 +67,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "categorical",
 				name: "Distributor",
 				range: [
@@ -90,7 +90,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "IMDB_Rating",
 				bins: 25,
@@ -98,7 +98,7 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
 				bins: 25,
@@ -106,13 +106,13 @@
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "categorical",
 				name: "Major_Genre",
 			})
 		);
 		views.push(
-			falcon.view1D({
+			await falcon.linkView1D({
 				type: "continuous",
 				name: "Running_Time_min",
 				bins: 25,
@@ -123,12 +123,12 @@
 		viewStates = new Array(views.length);
 		// states will be updated when the view counts change
 		views.forEach((view, i) => {
-			view.onChange((state) => {
+			view.addOnChangeListener((state) => {
 				viewStates[i] = state;
 			});
 		});
 
-		await falcon.all();
+		await falcon.initializeAllCounts();
 	}
 	let instances: Iterable<Record<string, any>>;
 	let page = 0;
@@ -165,11 +165,10 @@
 						} else {
 							await view.select();
 						}
-						instances = await falcon.instances({
+						instances = await falcon.getEntries({
 							offset: 0,
 							length: pageSize,
 						});
-						console.log([...instances]);
 						page = 0;
 					}}
 					on:mouseenter={async () => {
@@ -183,7 +182,7 @@
 	<button
 		on:click={async () => {
 			page = Math.max(page - pageSize, 0);
-			instances = await falcon.instances({
+			instances = await falcon.getEntries({
 				length: pageSize,
 				offset: page,
 			});
@@ -194,7 +193,7 @@
 	<button
 		on:click={async () => {
 			page += pageSize;
-			instances = await falcon.instances({
+			instances = await falcon.getEntries({
 				length: pageSize,
 				offset: page,
 			});
@@ -204,6 +203,7 @@
 	>
 	<table>
 		{#if instances}
+			{[...instances].length}
 			{#each [...instances] as instance}
 				<tr>
 					{#each Object.keys(instance) as key}

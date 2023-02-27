@@ -1,6 +1,6 @@
 <script lang="ts">
 	import VLCategorical from "./VLCategorical.svelte";
-	import type { CategoricalView1DState } from "falcon2/src/core/views/view1D";
+	import type { CategoricalView1DState } from "falcon-vis/src/core/views/view1D";
 
 	export let state: CategoricalView1DState;
 

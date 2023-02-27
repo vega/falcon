@@ -6,7 +6,8 @@
 		View0D,
 		View1D,
 		ArrowDB,
-	} from "falcon2";
+		type Dimension,
+	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
@@ -15,10 +16,24 @@
 
 	let falcon: Falcon;
 
-	let count: View0D;
 	let countState: View0DState;
 	let views: View1D[] = [];
 	let viewStates: View1DState[] = [];
+
+	async function compose(falcon: Falcon, view1Ds: Dimension[]) {
+		falcon.linkCount((state) => {
+			countState = state;
+		});
+
+		viewStates = new Array(view1Ds.length);
+		const views = view1Ds.map((dim, i) =>
+			falcon.linkView1D(dim, (state) => {
+				viewStates[i] = state;
+			})
+		);
+
+		return Promise.all(views);
+	}
 
 	onMount(async () => {
 		await moviesArrow();
@@ -28,104 +43,27 @@
 		const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
 		falcon = new Falcon(db);
 
-		count = falcon.view0D();
-		count.onChange((state) => {
-			countState = state;
-		});
-
-		views.push(
-			falcon.view1D({
+		views = await compose(falcon, [
+			{
 				type: "categorical",
 				name: "MPAA_Rating",
-			})
-		);
-		views.push(
-			falcon.view1D({
+			},
+			{
 				type: "continuous",
 				name: "US_Gross",
 				bins: 25,
 				resolution: 400,
-			})
-		);
-		views.push(
-			falcon.view1D({
+			},
+			{
 				type: "continuous",
 				name: "Worldwide_Gross",
 				bins: 25,
 				resolution: 400,
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "continuous",
-				name: "Production_Budget",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "categorical",
-				name: "Distributor",
-				range: [
-					"Warner Bros.",
-					"Sony Pictures",
-					"Paramount Pictures",
-					"Universal",
-					"Walt Disney Pictures",
-					"20th Century Fox",
-					"MGM",
-					"Miramax",
-					"New Line",
-					"Lionsgate",
-					"Sony Pictures Classics",
-					"Fox Searchlight",
-					"Dreamworks SKG",
-					"Focus Features",
-					"Weinstein Co.",
-				],
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "continuous",
-				name: "IMDB_Rating",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "continuous",
-				name: "Rotten_Tomatoes_Rating",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "categorical",
-				name: "Major_Genre",
-			})
-		);
-		views.push(
-			falcon.view1D({
-				type: "continuous",
-				name: "Running_Time_min",
-				bins: 25,
-				resolution: 400,
-			})
-		);
+			},
+		]);
 
-		viewStates = new Array(views.length);
-		// states will be updated when the view counts change
-		views.forEach((view, i) => {
-			view.onChange((state) => {
-				viewStates[i] = state;
-			});
-		});
-
-		await falcon.all();
+		await falcon.initializeAllCounts();
+		console.warn = () => {};
 	}
 </script>
 
@@ -161,7 +99,7 @@
 						}
 					}}
 					on:mouseenter={async () => {
-						await view.prefetch();
+						await view.activate();
 					}}
 				/>
 			</div>
