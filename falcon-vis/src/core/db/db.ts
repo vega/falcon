@@ -65,7 +65,7 @@ export interface FalconDB {
     offset?: number,
     length?: number,
     filters?: Filters
-  ): AsyncOrSync<Iterable<Row>>;
+  ): AsyncOrSync<Iterable<Row | null>>;
 
   /**
    * loads the ENTIRE (not filtered) counts of the 1-Dimensional binning

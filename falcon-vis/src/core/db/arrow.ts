@@ -98,7 +98,7 @@ export class ArrowDB implements FalconDB {
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined
-  ): Iterable<Row> {
+  ): Iterable<Row | null> {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
