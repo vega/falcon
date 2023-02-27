@@ -30,6 +30,8 @@ export class View0D extends ViewAbstract<View0DState> {
 
     // signals/broadcasts new counts to the user
     this.signalOnChange(this.state);
+
+    return this;
   }
 
   /**
