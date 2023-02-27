@@ -1,3 +1,3 @@
-import { kde } from "./kde";
+import { smoothBins1D } from "./smoothBins";
 
-export { kde };
+export { smoothBins1D };
