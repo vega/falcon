@@ -35,6 +35,20 @@ export abstract class SQLDB implements FalconDB {
     this.nameMap = nameMap;
   }
 
+  protected castBins(input: number) {
+    return `${input}`;
+  }
+
+  /**
+   * intermediary function incase we mapped the names to something else
+   * change this if you for example have issues with time dimensions
+   *
+   * @returns mapped string name defined from constructor
+   */
+  protected getName(dimension: Dimension) {
+    return this.nameMap?.get(dimension.name) ?? dimension.name;
+  }
+
   /**
    * After extending SQLDB, all you implement is the query!
    * This should take in a string SQL query and return the results
@@ -449,18 +463,6 @@ export abstract class SQLDB implements FalconDB {
    */
   private getASValues(result: Iterable<Row>) {
     return result[Symbol.iterator]().next().value;
-  }
-
-  /**
-   * intermediary function incase we mapped the names to something else
-   *
-   * @returns mapped string name defined from constructor
-   */
-  private getName(dimension: Dimension) {
-    // if (dimension.type === "continuous" && dimension?.time) {
-    //   return `epoch(${dimension.name})*1000`;
-    // }
-    return this.nameMap?.get(dimension.name) ?? dimension.name;
   }
 
   /**

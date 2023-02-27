@@ -65,9 +65,9 @@ export class FalconArray {
    * increments the location defined by index by
    * whatever you want!
    */
-  increment(index: number[]) {
+  increment(index: number[], incrementBy = 1) {
     const location = this.ndarray.index(...index);
-    this.data[location]++;
+    this.data[location] += incrementBy;
   }
 
   /**
