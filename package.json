@@ -23,8 +23,8 @@
     "test": "yarn workspace falcon-vis test",
     "build:deploy": "yarn workspace movies-duckdb build",
     "deploy": "gh-pages -d examples/movies-duckdb/dist",
-    "pub": "yarn workspace falcon-vis pub",
-    "clean": "sh scripts/clean.sh"
+    "clean": "sh scripts/clean.sh",
+    "publish:npm": "sh scripts/publish.sh"
   },
   "devDependencies": {
     "gh-pages": "^5.0.0"
