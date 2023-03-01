@@ -4,8 +4,6 @@ This file contains the endpoints that can be called via HTTP
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from fastapi.staticfiles import StaticFiles
 import duckdb
 import pyarrow as pa
 from io import BytesIO
@@ -33,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# SETUP GLOBAL CONNECTION TO THE DATABASE
 con = duckdb.connect(":memory:")
 con.query(
     """CREATE TABLE diffusiondb AS
@@ -41,42 +40,20 @@ con.query(
 )
 
 
-class Item(BaseModel):
-    name: str
-    price: float
-
-
-class ResponseMessage(BaseModel):
-    message: str
-
-
-@app.post("/items/", response_model=ResponseMessage)
-async def create_item(item: Item):
-    return {"message": "item received"}
-
-
-@app.get("/items/", response_model=list[Item])
-async def get_items():
-    return [
-        {"name": "Plumbus", "price": 3},
-        {"name": "Portal Gun", "price": 9001},
-    ]
-
-
 @app.get("/query/{sql_query:path}")
 async def query(sql_query: str):
     global con
     sql_query = sql_query.replace("count(*)", "count(*)::INT")
-    result = con.query(sql_query)
-    table = result.arrow()
+    result = con.query(sql_query).arrow()
+    return Response(table_to_bytes(result), media_type="application/octet-stream")
 
+
+def table_to_bytes(table: pa.Table):
     sink = pa.BufferOutputStream()
     with pa.RecordBatchStreamWriter(sink, table.schema) as writer:
         writer.write_table(table)
-
     file_in_memory = BytesIO(sink.getvalue()).getvalue()
-
-    return Response(file_in_memory, media_type="application/octet-stream")
+    return file_in_memory
 
 
 if __name__ == "__main__":
