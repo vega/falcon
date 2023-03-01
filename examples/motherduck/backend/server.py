@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import duckdb
 import pyarrow as pa
-from io import BytesIO
 from fastapi.responses import Response
 
 BACKEND_HOST = "localhost"
@@ -44,15 +43,15 @@ async def query(sql_query: str):
     global con
     sql_query = sql_query.replace("count(*)", "count(*)::INT")
     result = con.query(sql_query).arrow()
-    return Response(table_to_bytes(result), media_type="application/octet-stream")
+    return Response(arrow_to_bytes(result), media_type="application/octet-stream")
 
 
-def table_to_bytes(table: pa.Table):
+def arrow_to_bytes(table: pa.Table):
     sink = pa.BufferOutputStream()
     with pa.RecordBatchStreamWriter(sink, table.schema) as writer:
         writer.write_table(table)
-    file_in_memory = BytesIO(sink.getvalue()).getvalue()
-    return file_in_memory
+    bytes = sink.getvalue().to_pybytes()
+    return bytes
 
 
 if __name__ == "__main__":
