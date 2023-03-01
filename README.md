@@ -10,13 +10,124 @@
 
 A javascript library to cross-filter millions of records in your own applications without latencies!
 
-Uses [Falcon](https://github.com/vega/falcon) under the hood.
+Try out [the live demo](http://dig.cmu.edu/falcon/) using FalconVis.
 
-Try out the [live demo](http://dig.cmu.edu/falcon/)
+Implements the original [Falcon](https://github.com/vega/falcon) under the hood.
 
 ## Usage
 
-## Other
+Preview of [`data/movies.json`](data/movies.json): an array of objects
+
+```json
+[
+	{
+		"Title": "Forrest Gump",
+		"US_Gross": 329694499,
+		"MPAA_Rating": "PG-13",
+		...
+	},
+	...
+	{
+		"Title": "Star Wars Ep. VI: Return of the Jedi",
+		"US_Gross": 309205079,
+		"MPAA_Rating": "PG",
+		...
+	}
+]
+```
+
+### Getting Started
+
+Create a falcon object to get ready to cross-filter
+
+```typescript
+import * as falconVis from "falcon-vis";
+
+const data = await fetch("data/movies.json").then((d) => d.json());
+const jsonDB = new falconVis.JsonDB(data);
+
+// this object will be used for cross-filtering
+const falcon = new falconVis.Falcon(jsonDB);
+```
+
+For larger data, or data on a server, use a different DB also provided by FalconVis:
+
+-   ArrowDB
+-   DuckDB
+-   HttpDB
+-   MapDDB
+
+(todo link docs on these usages)
+
+### Initializing Views
+
+FalconVis operates by linking together views. You directly interact with views after linking them to the falcon object.
+
+```typescript
+const falcon = new falconVis.Falcon(jsonDB);
+
+// link the US_Gross earnings for the movies
+const usGrossView = await falcon.linkView1D(
+	{
+		type: "continuous",
+		name: "US_Gross",
+		bins: 25,
+		resolution: 400, // my actual visualization is 400px wide
+	},
+	// onChange gets called every time new filters are applied to any linked view
+	(updatedBinCounts) => {
+		// for example, I could update the DOM with these counts
+		console.log(updatedBinCounts);
+	}
+);
+
+// link the movie ratings
+const ratingView = await falcon.linkView1D(
+	{
+		type: "categorical",
+		name: "MPAA_Rating",
+	},
+	(updatedBinCounts) => {
+		console.log(updatedBinCounts);
+	}
+);
+
+// link the total number of rows selected (number that remain after filter)
+const totalCount = await falcon.linkCount((updatedCount) => {
+	console.log(updateCount);
+});
+
+// initially populate ALL the views' counts
+await falcon.initializeAllCounts();
+
+// OR you can manually call view.initializeAllCounts() for each one
+await usGrossView.initializeAllCounts();
+await ratingView.initializeAllCounts();
+await totalCount.initializeAllCounts();
+```
+
+### Cross-filtering views
+
+FalconVis uses [Falcon](https://github.com/vega/falcon) to cross-filter views latency free for even very large amounts of data (many millions or billions).
+
+All you need to do is call `.activate()` (for the [Falcon](https://github.com/vega/falcon) magic) and `.select()` to cross-filter (you `.select()` what to keep).
+
+Each time `.select()` is called, the onChange functions defined in the previous section for all linked views will be called (since the counts get updated).
+
+```typescript
+// after activation, subsequence .select() will be O(1) constant time calls
+await usGrossView.activate();
+
+// cross-filter between $500,000 and $1_000_000
+await usGrossView.select([500_000, 1_000_000]);
+
+// if you want to deselect
+await usGrossView.select();
+
+// or activate a different view and add another filter
+await ratingView.activate();
+await ratingView.select(["PG-13", "G"]);
+```
 
 ### Examples
 

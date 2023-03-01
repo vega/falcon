@@ -3,7 +3,7 @@ import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 import type { SQLNameMap, SQLQuery } from "./sql";
 
-export class HTTPDB extends SQLDB {
+export class HttpDB extends SQLDB {
   public readonly blocking: boolean = false;
 
   constructor(
