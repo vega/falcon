@@ -129,6 +129,24 @@ await ratingView.activate();
 await ratingView.select(["PG-13", "G"]);
 ```
 
+### Returning cross-filtered entries
+
+You call this on demand, and does not update every time the counts update in the views.
+
+```typescript
+// returns 20 entries that are selected from the applied cross-filters
+// as an iterator
+let entries = await falcon.getEntries({ offset: 0, length: 20 });
+for (const entry of entries) {
+	console.log(entry);
+}
+
+// returns next 20 entries (after the first 20)
+entries = await falcon.getEntries({ offset: 20, length: 20 });
+```
+
+Using offset and length, you can see how to easily implement pagination.
+
 ### Examples
 
 To see real working examples, check out the self-contained examples in the [`examples/`](examples/) directory.
