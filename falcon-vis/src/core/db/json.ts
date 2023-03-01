@@ -9,7 +9,7 @@ function isColumnar(obj: ObjectInput) {
   return !Array.isArray(obj);
 }
 
-export class ObjectDB extends ArrowDB {
+export class JsonDB extends ArrowDB {
   /**
    * Input a columnar object {item: [1, 2], item2: ["a", "b"], ...}
    * or a row object [{item: 1, item2: "a"}, {item: 2, item2: "b"}]

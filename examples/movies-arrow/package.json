@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "apache-arrow": "^11.0.0",
-    "falcon-vis": "0.0.17",
+    "falcon-vis": "0.17.1",
     "svelte-vega": "^1.2.0",
     "vega": "^5.22.1",
     "vega-lite": "^5.6.0"

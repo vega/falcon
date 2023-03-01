@@ -2,187 +2,139 @@
   <img src="logo/logo.png" width="200" style="transform: rotate(90deg);">
 </p>
 
-# Falcon
+# FalconVis
 
-![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
+[![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
 **🚧 Work in Progress**
 
-Crossfilter millions of records without latencies. This fork of [Falcon](https://github.com/vega/falcon) offers an API, so you can crossfilter on your own data and own charts.
+A javascript library to cross-filter millions of records in your own applications without latencies!
 
-Try out the [live demo](http://dig.cmu.edu/falcon/)
+Try out [the live demo](http://dig.cmu.edu/falcon/) using FalconVis.
 
-[![movies-duckdb-demo](https://user-images.githubusercontent.com/65095341/216470386-913e7bd3-a8f2-4fbb-b63f-88bec05520be.gif)](http://dig.cmu.edu/falcon/)
+Implements the original [Falcon](https://github.com/vega/falcon) under the hood.
 
 ## Usage
 
-### Import
+Preview of [`data/movies.json`](data/movies.json): an array of objects
 
-Import the main `Falcon` object and whichever data you plan to use
-
-```typescript
-import { Falcon, ObjectDB, ArrowDB, DuckDB } from "falcon2";
+```json
+[
+	{
+		"Title": "Forrest Gump",
+		"US_Gross": 329694499,
+		"MPAA_Rating": "PG-13",
+		...
+	},
+	...
+	{
+		"Title": "Star Wars Ep. VI: Return of the Jedi",
+		"US_Gross": 309205079,
+		"MPAA_Rating": "PG",
+		...
+	}
+]
 ```
 
-### Database
+### Getting Started
 
-Add your data to one of the FalconDB supported formats.
-
-**ObjectDB**
+Create a falcon object to get ready to cross-filter
 
 ```typescript
-const animals = {
-	animalName: ["Giraffe", "Lion", "Zebra"],
-	weightKg: [1900, 200, 220],
-};
+import * as falconVis from "falcon-vis";
 
-// ObjectDB can take a columnar object
-const db = new ObjectDB(animals);
+const data = await fetch("data/movies.json").then((d) => d.json());
+const jsonDB = new falconVis.JsonDB(data);
+
+// this object will be used for cross-filtering
+const falcon = new falconVis.Falcon(jsonDB);
 ```
 
-or row-wise like this
+For larger data, or data on a server, use a different DB also provided by FalconVis:
+
+-   ArrowDB
+-   DuckDB
+-   HttpDB
+-   MapDDB
+
+(todo link docs on these usages)
+
+### Initializing Views
+
+FalconVis operates by linking together views. You directly interact with views after linking them to the falcon object.
 
 ```typescript
-const animals = [
-	{ animalName: "Giraffe", weightKg: 1900 },
-	{ animalName: "Lion", weightKg: 200 },
-	{ animalName: "Zebra", weightKg: 220 },
-];
+const falcon = new falconVis.Falcon(jsonDB);
 
-// ObjectDB can take a row object
-const db = new ObjectDB(animals);
-```
+// link the US_Gross earnings for the movies
+const usGrossView = await falcon.linkView1D(
+	{
+		type: "continuous",
+		name: "US_Gross",
+		bins: 25,
+		resolution: 400, // my actual visualization is 400px wide
+	},
+	// onChange gets called every time new filters are applied to any linked view
+	(updatedBinCounts) => {
+		// for example, I could update the DOM with these counts
+		console.log(updatedBinCounts);
+	}
+);
 
-**ArrowDB**
+// link the movie ratings
+const ratingView = await falcon.linkView1D(
+	{
+		type: "categorical",
+		name: "MPAA_Rating",
+	},
+	(updatedBinCounts) => {
+		console.log(updatedBinCounts);
+	}
+);
 
-```typescript
-import { tableFromIPC } from "apache-arrow";
-
-// load in arrow table from filename
-const arrowFilename = "animals.arrow";
-const data = await fetch(url);
-const buffer = await data.arrayBuffer();
-const table = tableFromIPC(buffer);
-
-// ArrowDB takes in an arrow Table
-const db = new ArrowDB(animalsTable);
-```
-
-**DuckDB**
-
-```typescript
-import * as duckdb from "@duckdb/duckdb-wasm";
-
-// load in your own duckdb instance (not shown here)
-const duck: duckdb.AsyncDuckDB;
-const tableName = "animals";
-
-// DuckDB takes the duckdb-wasm db and table name to read from
-const db = new DuckDB(duck, tableName);
-```
-
-### Falcon
-
-Take your FalconDB and create a Falcon object.
-
-```typescript
-const falcon = new Falcon(db);
-```
-
-**Create Views**
-
-To keep track of total counts, use `view0D` or alias `count`. Directly call the object created from `falcon = new Falcon(db)`. The returned value is the view you can interact with.
-
-```typescript
-const counts = falcon.count();
-```
-
-To create create a 1-D histogram, you can create a 1-D view by specifying a dimension.
-
--   Categorical
-
-```typescript
-const namesView = falcon.view1D({
-	type: "categorical",
-	name: "animalName",
+// link the total number of rows selected (number that remain after filter)
+const totalCount = await falcon.linkCount((updatedCount) => {
+	console.log(updateCount);
 });
+
+// initially populate ALL the views' counts
+await falcon.initializeAllCounts();
+
+// OR you can manually call view.initializeAllCounts() for each one
+await usGrossView.initializeAllCounts();
+await ratingView.initializeAllCounts();
+await totalCount.initializeAllCounts();
 ```
 
--   Continuous
+### Cross-filtering views
+
+FalconVis uses [Falcon](https://github.com/vega/falcon) to cross-filter views latency free for even very large amounts of data (many millions or billions).
+
+All you need to do is call `.activate()` (for the [Falcon](https://github.com/vega/falcon) magic) and `.select()` to cross-filter (you `.select()` what to keep).
+
+Each time `.select()` is called, the onChange functions defined in the previous section for all linked views will be called (since the counts get updated).
 
 ```typescript
-const weightsKgView = falcon.view1D({
-	type: "continuous",
-	name: "weightKg",
-	resolution: 200, // the total number of pixels you plan to brush over
-	bins: 2,
-});
+// after activation, subsequence .select() will be O(1) constant time calls
+await usGrossView.activate();
+
+// cross-filter between $500,000 and $1_000_000
+await usGrossView.select([500_000, 1_000_000]);
+
+// if you want to deselect
+await usGrossView.select();
+
+// or activate a different view and add another filter
+await ratingView.activate();
+await ratingView.select(["PG-13", "G"]);
 ```
 
-**View Counts**
+### Examples
 
-After creating a view, you can directly add a `onChange` listener that gets called every time that view count changes.
+To see real working examples, check out the self-contained examples in the [`examples/`](examples/) directory.
 
-Here, you can directly define how the counts get visualized for example with `d3`.
+Check out the workspace [`package.json`](package.json) or the specific example's `package.json` for more information on how to run them.
 
-```typescript
-/**
- * the state argument will contain total and filtered counts
- * as well as bins
- */
-count.onChange((state) => {
-	console.log(state);
-});
-namesView.onChange((state) => {
-	console.log(state);
-});
-weightsKgView.onChange((state) => {
-	console.log(state);
-});
-```
+### Development
 
-To initially populate the counts for all the views call the `all` method on the global falcon object.
-
-```typescript
-await falcon.all();
-```
-
-**View Interaction**
-You can directly declare what you want to filter with `select`.
-
-```typescript
-weightsKgView.select([0, 400]);
-namesView.select(["zebra", "giraffe"]);
-```
-
-then all the views will run their `onChange` if the count changes based on the cross-filter selection.
-
-or deselect
-
-```typescript
-weightsKgView.select();
-namesView.select();
-```
-
-**Falcon Prefetching**
-Under the hood, `select` calls the `view.prefetch()` which is responsible for the massive speedups (as described in the [paper](https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf)).
-
-You can call this beforehand if you think a user will `select` a particular view.
-
-for example, if they are hovering a bar chart for the weights view, you can call prefetch beforehand. So when they do brush over the view they will have a smooth experience.
-
-```typescript
-await weightsKgView.prefetch();
-```
-
-## Examples
-
-To see examples of the usages, run examples in the `examples/` directory. Check out the `package.json` to see how to run each one.
-
-## Development
-
-```bash
-yarn       # install packages for entire workspace
-yarn dev   # runs demo in browser
-```
+Check out the [`CONTRIBUTING.md`](CONTRIBUTING.md) document to see how to run the development server.

@@ -5,7 +5,7 @@
 		type View1DState,
 		View0D,
 		View1D,
-		HTTPDB,
+		HttpDB,
 		type Dimension,
 	} from "falcon-vis";
 	import { onMount } from "svelte";
@@ -45,7 +45,7 @@
 	}
 
 	async function moviesDuckDB() {
-		const db = new HTTPDB(
+		const db = new HttpDB(
 			`${BACKEND_URL}/query/`,
 			"diffusiondb",
 			new Map(),
