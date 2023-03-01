@@ -32,10 +32,9 @@ app.add_middleware(
 )
 
 # SETUP GLOBAL CONNECTION TO THE DATABASE
-con = duckdb.connect(":memory:")
+con = duckdb.connect()
 con.query(
-    """CREATE TABLE diffusiondb AS
-    SELECT * FROM read_parquet('data/diffusiondb.parquet')
+    """CREATE TABLE diffusiondb AS FROM 'data/diffusiondb.parquet'
     """
 )
 
