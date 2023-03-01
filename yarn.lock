@@ -298,10 +298,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@duckdb/duckdb-wasm@^1.20.0":
-  version "1.20.0"
-  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.20.0.tgz#b036d33c407b67a6c15a645bbe5a7d4ac1fadf0e"
-  integrity sha512-ZJG/yfCwqzjPPs63+y4nI3ICMsQO8kC7GKt3WmtM+JNceDayE2ahMoR8QbrQz/PXD8ggyE2hf46inQw4ACXVEA==
+"@duckdb/duckdb-wasm@^1.21.0":
+  version "1.21.0"
+  resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.21.0.tgz#1a94a5ea5399d789f4a4587ac218bd0184386ecd"
+  integrity sha512-3HBqwAhkjGWUGY2zSk2YG9i6bjNeTO5tyhBTJC9asv4ChTjx4mY6j4PFpAgUNomLm+QEFx1XXZN/BjRfENLdZQ==
   dependencies:
     apache-arrow "^9.0.0"
 
