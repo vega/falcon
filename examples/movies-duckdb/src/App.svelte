@@ -40,7 +40,7 @@
 		views.push(
 			await falcon.linkView1D({
 				type: "categorical",
-				name: "MPA_Rating",
+				name: "MPAA_Rating",
 			})
 		);
 		views.push(
