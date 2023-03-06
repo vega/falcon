@@ -95,10 +95,17 @@ export abstract class SQLDB implements FalconDB {
     return filteredTable;
   }
 
-  async length() {
+  async length(filters?: Filters) {
+    let filterSQL = "";
+    if (filters) {
+      filterSQL = [...this.filtersToSQLWhereClauses(filters).values()].join(
+        " AND "
+      );
+    }
     const result = await this.query(
       `SELECT count(*) AS _count
-       FROM ${this.table}`
+       FROM ${this.table}
+       ${filterSQL ? `WHERE ${filterSQL}` : ""}`
     );
     const { _count } = this.getASValues(result);
     return _count;
@@ -170,7 +177,7 @@ export abstract class SQLDB implements FalconDB {
          AS binIndex, count(*) AS binCount
          FROM ${this.table}
          WHERE ${bSql.where} AND ${where} 
-         GROUP BY key`
+         GROUP BY binIndex`
       );
       for (const { binIndex, binCount } of result) {
         filter.set(binIndex, binCount);
@@ -197,7 +204,7 @@ export abstract class SQLDB implements FalconDB {
         activeView.dimension.binConfig!,
         activeView.dimension.resolution
       );
-      const numPixels = activeView.dimension.resolution + 1; // extending by one pixel so we can compute the right diff later
+      const numPixels = activeView.dimension.resolution + 1;
 
       // 2. iterate through passive views and compute cubes
       const promises: Promise<FalconCube>[] = [];
@@ -374,7 +381,8 @@ export abstract class SQLDB implements FalconDB {
     let query: SQLQuery;
     let binPassiveIndexMap = (x: any) => x;
 
-    const select = `CASE WHEN ${binActive.where} 
+    const select = `CASE
+     WHEN ${binActive.where} 
      THEN ${binActive.select}
      ELSE -1 END AS "keyActive",
      count(*) AS cnt`;

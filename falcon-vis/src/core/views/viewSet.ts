@@ -10,6 +10,13 @@ export class ViewSet {
     this.views = [];
   }
 
+  remove(viewToRemove: View) {
+    const index = this.views.findIndex((view) => view == viewToRemove);
+    if (index !== -1) {
+      this.views.splice(index, 1);
+    }
+  }
+
   /**
    * adds view to collections
    * if view already in collection does not add it

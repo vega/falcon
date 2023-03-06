@@ -24,7 +24,9 @@ export class View0D extends ViewAbstract<View0DState> {
    * @returns all count from the db and signals the user
    */
   async initializeAllCounts() {
-    const total = await this.falcon.db.length();
+    const total = await this.falcon.db.length(
+      this.falcon.filters.size > 0 ? this.falcon.filters : undefined
+    );
     this.state.total = total;
     this.state.filter = total;
 

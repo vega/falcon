@@ -124,4 +124,7 @@ export class Falcon {
       throw Error("2D view not implemented yet");
     }
   }
+  otherFilters(view: View1D): Filters {
+    return excludeMap(this.filters, view.dimension);
+  }
 }

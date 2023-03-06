@@ -33,7 +33,7 @@ export interface FalconDB {
    *
    * @returns the length as a number
    */
-  length(): AsyncOrSync<number>;
+  length(filters?: Filters): AsyncOrSync<number>;
 
   /**
    * determines the min and max of a continuous dimensions

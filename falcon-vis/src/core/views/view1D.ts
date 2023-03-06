@@ -35,11 +35,13 @@ export class View1D extends ViewAbstract<View1DState> {
   state: View1DState | CategoricalView1DState;
   toPixels: (brush: Interval<number>) => Interval<number>;
   lastFilter: DimensionFilter | undefined;
+  isAttached: boolean;
   constructor(falcon: Falcon, dimension: Dimension) {
     super(falcon);
     this.dimension = dimension;
     this.state = { total: null, filter: null, bin: null };
     this.toPixels = () => [0, 0];
+    this.isAttached = true;
   }
 
   /**
@@ -76,7 +78,10 @@ export class View1D extends ViewAbstract<View1DState> {
   async initializeAllCounts() {
     await this.createBins();
 
-    const counts = await this.falcon.db.histogramView1D(this);
+    const counts = await this.falcon.db.histogramView1D(
+      this,
+      this.falcon.filters.size > 0 ? this.falcon.otherFilters(this) : undefined
+    );
     this.state.total = counts.noFilter.data as CountsArrayType;
     this.state.filter = counts.filter.data as CountsArrayType;
 
@@ -130,8 +135,6 @@ export class View1D extends ViewAbstract<View1DState> {
    * compute counts from the falcon index
    */
   async select(filter?: DimensionFilter, convertToPixels = true) {
-    await this.prefetch();
-
     if (filter) {
       if (this.dimension.type === "continuous") {
         // just end now if the filter hasn't changed
@@ -168,55 +171,70 @@ export class View1D extends ViewAbstract<View1DState> {
           selectPixels[0] = 0;
         }
 
-        // use the index to count for the passive views
-        this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countFromActiveContinuous1D(
-            selectPixels as ContinuousRange
-          );
-        });
+        if (this.isActive) {
+          // use the index to count for the passive views
+          this.falcon.views.passive.forEach(async (passiveView) => {
+            await passiveView.countFromActiveContinuous1D(
+              selectPixels as ContinuousRange
+            );
+          });
+        }
 
         this.lastFilter = filter;
       } else {
         // add filter
         this.falcon.filters.set(this.dimension, filter);
 
-        // use the index to count for the passive views
-        this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countFromActiveCategorical1D(
-            filter as CategoricalRange,
-            this.dimension.range!
-          );
-        });
+        if (this.isActive) {
+          // use the index to count for the passive views
+          this.falcon.views.passive.forEach(async (passiveView) => {
+            await passiveView.countFromActiveCategorical1D(
+              filter as CategoricalRange,
+              this.dimension.range!
+            );
+          });
+        }
 
         this.lastFilter = filter;
       }
     } else {
-      if (this.dimension.type === "continuous") {
-        // just end now if the filter hasn't changed (still undefined)
-        const filterStayedTheSame = this.lastFilter === filter;
-        if (filterStayedTheSame) {
-          return;
+      if (this.isActive) {
+        if (this.dimension.type === "continuous") {
+          // just end now if the filter hasn't changed (still undefined)
+          const filterStayedTheSame = this.lastFilter === filter;
+          if (filterStayedTheSame) {
+            return;
+          }
+
+          // remove filter
+          this.falcon.filters.delete(this.dimension);
+          // and revert back counts
+          this.falcon.views.passive.forEach(async (passiveView) => {
+            await passiveView.countFromActiveContinuous1D();
+          });
+
+          this.lastFilter = filter;
+        } else {
+          // remove filter
+          this.falcon.filters.delete(this.dimension);
+          // and revert back counts
+          this.falcon.views.passive.forEach(async (passiveView) => {
+            await passiveView.countFromActiveCategorical1D();
+          });
+
+          this.lastFilter = filter;
         }
-
-        // remove filter
-        this.falcon.filters.delete(this.dimension);
-        // and revert back counts
-        this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countFromActiveContinuous1D();
-        });
-
-        this.lastFilter = filter;
-      } else {
-        // remove filter
-        this.falcon.filters.delete(this.dimension);
-        // and revert back counts
-        this.falcon.views.passive.forEach(async (passiveView) => {
-          await passiveView.countFromActiveCategorical1D();
-        });
-
-        this.lastFilter = filter;
       }
     }
+  }
+
+  detach() {
+    this.falcon.views.remove(this);
+    this.isAttached = false;
+  }
+  attach() {
+    this.falcon.views.add(this);
+    this.isAttached = true;
   }
 
   /**
