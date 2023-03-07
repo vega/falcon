@@ -1,3 +1,5 @@
+#!/bin/bash
+
 projSrc=..
 rm -fr $projSrc/node_modules
 rm -fr $projSrc/falcon/node_modules

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source scripts/shared.sh
 
 cd falcon-vis
