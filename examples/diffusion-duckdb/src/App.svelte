@@ -33,17 +33,17 @@
 		});
 
 		viewStates = new Array(view1Ds.length);
-		const views = view1Ds.map(
-			async (dim, i) =>
-				await falcon.linkView1D(dim, (state) => {
-					viewStates[i] = state;
-				})
+		const views = view1Ds.map(async (dim, i) =>
+			falcon.linkView1D(dim, (state) => {
+				viewStates[i] = state;
+			})
 		);
 
-		return views;
+		return Promise.all(views);
 	}
 
 	async function moviesDuckDB() {
+		console.log("working!");
 		const db = await DuckDB.fromParquetFile(
 			fullUrl("data/diffusiondb.parquet"),
 			"diffusiondb"
@@ -51,7 +51,7 @@
 		);
 		falcon = new Falcon(db);
 
-		views = compose(falcon, [
+		views = await compose(falcon, [
 			{
 				type: "continuous",
 				name: "image_nsfw",
