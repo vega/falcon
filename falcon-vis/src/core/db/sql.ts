@@ -131,7 +131,7 @@ export abstract class SQLDB implements FalconDB {
         range.push(_unique);
       }
 
-      return range;
+      return range.filter((x) => x !== null);
     }
   }
 
