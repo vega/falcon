@@ -170,6 +170,17 @@ export function binNumberFunctionContinuous({
 }
 
 /**
+ * Creates a string equivalent to binNumberFunctionContinuous operation in SQL
+ */
+export function binNumberFunctionContinuousSQL(
+  field: string,
+  start: string,
+  step: string
+) {
+  return `FLOOR((${field} - ${start}) / ${step})`;
+}
+
+/**
  * Returns a function that returns the bin for a pixel. Starts one pixel before so that the brush contains the data.
  */
 export function binNumberFunctionBinsContinuous(
@@ -177,15 +188,7 @@ export function binNumberFunctionBinsContinuous(
   pixel: number
 ) {
   const step = stepSize({ start, stop }, pixel);
-  return binNumberFunctionContinuous({ start: start, step });
-}
-
-export function binNumberFunctionContinuousSQL(
-  field: string,
-  start: string,
-  step: string
-) {
-  return `FLOOR((${field} - ${start}) / ${step})`;
+  return binNumberFunctionContinuous({ start, step });
 }
 
 export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
