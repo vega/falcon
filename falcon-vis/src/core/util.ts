@@ -141,15 +141,17 @@ export function brushToPixelSpace(
  */
 export function scaleFilterToResolution(
   extent: Interval<number>,
-  resolution: number
+  resolution: number,
+  nearestPixelInt = Math.floor
 ) {
-  const pixelSpace = [0, resolution] as Interval<number>;
+  const pixelSpace = [1, resolution] as Interval<number>;
   const valueSpace = extent;
   const toPixels = scaleLinear().domain(valueSpace).range(pixelSpace);
+  toPixels.clamp(true);
 
   return (x: number) => {
     const pixels = toPixels(x);
-    return Math.floor(pixels);
+    return nearestPixelInt(pixels);
   };
 }
 

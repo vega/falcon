@@ -52,13 +52,15 @@ export class View1D extends ViewAbstract<View1DState> {
       this.dimension.range = await this.falcon.db.range(this.dimension);
     }
     if (this.dimension.type === "continuous") {
-      this.toPixels = brushToPixelSpace(
-        this.dimension.range!,
-        this.dimension.resolution
-      );
       this.dimension.binConfig = createBinConfigContinuous(
         this.dimension,
         this.dimension.range!
+      );
+      const { start: firstBinStart, stop: veryLastBinEnd } =
+        this.dimension.binConfig!;
+      this.toPixels = brushToPixelSpace(
+        [firstBinStart, veryLastBinEnd],
+        this.dimension.resolution
       );
     }
 
@@ -153,23 +155,6 @@ export class View1D extends ViewAbstract<View1DState> {
         let selectPixels = convertToPixels
           ? this.toPixels(filter as ContinuousRange)
           : filter;
-
-        /**
-         * if they query something outside the possible resolution.
-         * just do nothing!
-         */
-        if (selectPixels[1] > this.dimension.resolution) {
-          selectPixels[1] = this.dimension.resolution;
-        }
-        if (selectPixels[0] > this.dimension.resolution) {
-          selectPixels[0] = this.dimension.resolution;
-        }
-        if (selectPixels[1] < 0) {
-          selectPixels[1] = 0;
-        }
-        if (selectPixels[0] < 0) {
-          selectPixels[0] = 0;
-        }
 
         if (this.isActive) {
           // use the index to count for the passive views
