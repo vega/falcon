@@ -5,7 +5,7 @@
 		type View1DState,
 		View0D,
 		View1D,
-		ObjectDB,
+		JsonDB,
 	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
@@ -27,7 +27,7 @@
 	let json: Record<string, unknown>[];
 	async function moviesJson() {
 		json = await fetch("data/movies.json").then((res) => res.json());
-		const db = new ObjectDB(json);
+		const db = new JsonDB(json);
 
 		falcon = new Falcon(db);
 
