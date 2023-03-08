@@ -159,7 +159,7 @@ export class ArrowDB implements FalconDB {
       const binLocation = bin(value);
 
       // increment the specific bin
-      if (0 <= binLocation && binLocation < binCount) {
+      if (0 <= binLocation && binLocation < binCount && isNotNull(value)) {
         noFilter.increment([binLocation]);
         if (filterMask && !filterMask.get(i)) {
           filter.increment([binLocation]);
@@ -275,17 +275,17 @@ export class ArrowDB implements FalconDB {
         noFilter.increment([0]);
       }
     } else if (view instanceof View1D) {
-      let bin: (x: any) => number;
+      let binPassive: (x: any) => number;
       let binCount: number;
 
       if (view.dimension.type === "continuous") {
         // continuous bins for passive view that we accumulate across
         const binConfig = view.dimension.binConfig!;
-        bin = binNumberFunctionContinuous(binConfig);
+        binPassive = binNumberFunctionContinuous(binConfig);
         binCount = numBinsContinuous(binConfig);
       } else {
         // categorical bins for passive view that we accumulate across
-        bin = binNumberFunctionCategorical(view.dimension.range!);
+        binPassive = binNumberFunctionCategorical(view.dimension.range!);
         binCount = numBinsCategorical(view.dimension.range!);
       }
 
@@ -295,7 +295,7 @@ export class ArrowDB implements FalconDB {
       ]);
       noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
-      const column = this.data.getChild(view.dimension.name)!;
+      const passiveCol = this.data.getChild(view.dimension.name)!;
 
       // add data to aggregation matrix
       for (let i = 0; i < this.data.numRows; i++) {
@@ -304,13 +304,17 @@ export class ArrowDB implements FalconDB {
           continue;
         }
 
-        const key = bin(column.get(i)!);
-        const keyActive = binActive(activeCol.get(i)!);
-        if (0 <= key && key < binCount) {
-          if (0 <= keyActive && keyActive < binCountActive) {
-            filter.increment([keyActive, key]);
+        const valueActive = activeCol.get(i)!;
+        const valuePassive = passiveCol.get(i)!;
+        if (isNotNull(valueActive) && isNotNull(valuePassive)) {
+          const keyPassive = binPassive(valuePassive);
+          const keyActive = binActive(valueActive);
+          if (0 <= keyPassive && keyPassive < binCount) {
+            if (0 <= keyActive && keyActive < binCountActive) {
+              filter.increment([keyActive, keyPassive]);
+            }
+            noFilter.increment([keyPassive]);
           }
-          noFilter.increment([key]);
         }
       }
     } else {
@@ -357,8 +361,8 @@ export class ArrowDB implements FalconDB {
         if (filterMask && filterMask.get(i)) {
           continue;
         }
-
-        const keyActive = binActive(activeCol.get(i)!) + 1;
+        const valueActive = activeCol.get(i)!;
+        const keyActive = binActive(valueActive) + 1;
         if (0 <= keyActive && keyActive < numPixels) {
           filter.increment([keyActive]);
         }
@@ -368,17 +372,17 @@ export class ArrowDB implements FalconDB {
       // falcon magic sauce
       filter.cumulativeSum();
     } else if (view instanceof View1D) {
-      let bin: (x: any) => number;
+      let binPassive: (x: any) => number;
       let binCount: number;
 
       if (view.dimension.type === "continuous") {
         // continuous bins for passive view that we accumulate across
         const binConfig = view.dimension.binConfig!;
-        bin = binNumberFunctionContinuous(binConfig);
+        binPassive = binNumberFunctionContinuous(binConfig);
         binCount = numBinsContinuous(binConfig);
       } else {
         // categorical bins for passive view that we accumulate across
-        bin = binNumberFunctionCategorical(view.dimension.range!);
+        binPassive = binNumberFunctionCategorical(view.dimension.range!);
         binCount = numBinsCategorical(view.dimension.range!);
       }
 
@@ -388,7 +392,7 @@ export class ArrowDB implements FalconDB {
       ]);
       noFilter = FalconArray.allocCounts(binCount, [binCount]);
 
-      const column = this.data.getChild(view.dimension.name)!;
+      const passiveCol = this.data.getChild(view.dimension.name)!;
 
       // add data to aggregation matrix
       for (let i = 0; i < this.data.numRows; i++) {
@@ -397,13 +401,17 @@ export class ArrowDB implements FalconDB {
           continue;
         }
 
-        const key = bin(column.get(i)!);
-        const keyActive = binActive(activeCol.get(i)!) + 1;
-        if (0 <= key && key < binCount) {
-          if (0 <= keyActive && keyActive < numPixels) {
-            filter.increment([keyActive, key]);
+        const valueActive = activeCol.get(i)!;
+        const valuePassive = passiveCol.get(i)!;
+        if (isNotNull(valuePassive) && isNotNull(valueActive)) {
+          const keyActive = binActive(valueActive) + 1;
+          const keyPassive = binPassive(valuePassive);
+          if (0 <= keyPassive && keyPassive < binCount) {
+            if (0 <= keyActive && keyActive < numPixels) {
+              filter.increment([keyActive, keyPassive]);
+            }
+            noFilter.increment([keyPassive]);
           }
-          noFilter.increment([key]);
         }
       }
 
@@ -581,4 +589,8 @@ function arrowColumnExtent(column: Vector): Interval<number> {
   }
 
   return [min, max];
+}
+
+function isNotNull(value: any) {
+  return value !== null;
 }
