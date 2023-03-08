@@ -156,9 +156,6 @@ export class ArrowDB implements FalconDB {
     const column = this.data.getChild(view.dimension.name)!;
     for (let i = 0; i < this.data.numRows; i++) {
       const value: any = column.get(i)!;
-      if (value === "PG") {
-        console.log(value);
-      }
       const binLocation = bin(value);
 
       // increment the specific bin
@@ -169,8 +166,6 @@ export class ArrowDB implements FalconDB {
         }
       }
     }
-
-    // console.log(filter.get(bin("PG")));
 
     // 5. return the results
     return {
@@ -530,7 +525,7 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => (value && value < filter[0]) || value >= filter[1]
+        (value: number) => value < filter[0] || value >= filter[1]
       );
 
       // set the cache
