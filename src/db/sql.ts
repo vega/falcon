@@ -37,10 +37,10 @@ export abstract class SQLDB<V extends string, D extends string>
   private binSQL(dimension: D, binConfig: BinConfig) {
     const field = this.getName(dimension);
     return {
-      select: `cast(
+      select: `floor(
         (${field} - ${this.castBins(binConfig.start)})
         / ${this.castBins(binConfig.step)}
-      as int)`,
+      )::int`,
       where: `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`
     };
   }
