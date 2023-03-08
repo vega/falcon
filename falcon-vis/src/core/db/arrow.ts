@@ -60,8 +60,24 @@ export class ArrowDB implements FalconDB {
     return new ArrowDB(table);
   }
 
-  length(): number {
-    return this.data.numRows;
+  length(filters?: Filters): number {
+    if (filters) {
+      const filterMask: BitSet | null = union(
+        ...this.getFilterMasks(filters).values()
+      );
+
+      let total = 0;
+      for (const bit of filterMask!) {
+        // if the bit is not set (aka false) then add 1 to the total
+        if (bit === false) {
+          total++;
+        }
+      }
+
+      return total;
+    } else {
+      return this.data.numRows;
+    }
   }
 
   private categoricalRange(arrowColumn: Vector): CategoricalRange {

@@ -34,6 +34,12 @@ export class BitSet {
       this._bits[i] = this._bits[i] | other._bits[i];
     }
   }
+
+  *[Symbol.iterator]() {
+    for (let i = 0; i < this.length; i++) {
+      yield this.get(i);
+    }
+  }
 }
 
 /**
