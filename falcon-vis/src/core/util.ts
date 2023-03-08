@@ -179,7 +179,7 @@ export function binNumberFunctionContinuousSQL(
   start: string,
   step: string
 ) {
-  return `FLOOR((${field} - ${start}) / ${step})`;
+  return `FLOOR((${field} - ${start}) / ${step})::INT`;
 }
 
 /**
