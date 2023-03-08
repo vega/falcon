@@ -306,15 +306,21 @@ export class ArrowDB implements FalconDB {
 
         const valueActive = activeCol.get(i)!;
         const valuePassive = passiveCol.get(i)!;
-        if (isNotNull(valueActive) && isNotNull(valuePassive)) {
-          const keyPassive = binPassive(valuePassive);
-          const keyActive = binActive(valueActive);
-          if (0 <= keyPassive && keyPassive < binCount) {
-            if (0 <= keyActive && keyActive < binCountActive) {
-              filter.increment([keyActive, keyPassive]);
-            }
-            noFilter.increment([keyPassive]);
+        const keyPassive = binPassive(valuePassive);
+        const keyActive = binActive(valueActive);
+        if (
+          0 <= keyPassive &&
+          keyPassive < binCount &&
+          isNotNull(valuePassive)
+        ) {
+          if (
+            0 <= keyActive &&
+            keyActive < binCountActive &&
+            isNotNull(valueActive)
+          ) {
+            filter.increment([keyActive, keyPassive]);
           }
+          noFilter.increment([keyPassive]);
         }
       }
     } else {
@@ -403,15 +409,21 @@ export class ArrowDB implements FalconDB {
 
         const valueActive = activeCol.get(i)!;
         const valuePassive = passiveCol.get(i)!;
-        if (isNotNull(valuePassive) && isNotNull(valueActive)) {
-          const keyActive = binActive(valueActive) + 1;
-          const keyPassive = binPassive(valuePassive);
-          if (0 <= keyPassive && keyPassive < binCount) {
-            if (0 <= keyActive && keyActive < numPixels) {
-              filter.increment([keyActive, keyPassive]);
-            }
-            noFilter.increment([keyPassive]);
+        const keyActive = binActive(valueActive) + 1;
+        const keyPassive = binPassive(valuePassive);
+        if (
+          0 <= keyPassive &&
+          keyPassive < binCount &&
+          isNotNull(valuePassive)
+        ) {
+          if (
+            0 <= keyActive &&
+            keyActive < numPixels &&
+            isNotNull(valueActive)
+          ) {
+            filter.increment([keyActive, keyPassive]);
           }
+          noFilter.increment([keyPassive]);
         }
       }
 
