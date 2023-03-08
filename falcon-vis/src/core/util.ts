@@ -180,6 +180,14 @@ export function binNumberFunctionBinsContinuous(
   return binNumberFunctionContinuous({ start: start, step });
 }
 
+export function binNumberFunctionContinuousSQL(
+  field: string,
+  start: string,
+  step: string
+) {
+  return `FLOOR((${field} - ${start}) / ${step})`;
+}
+
 export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {
   return (stop - start) / bins;
 }

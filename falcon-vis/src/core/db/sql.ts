@@ -6,6 +6,7 @@ import {
 } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
+  binNumberFunctionContinuousSQL,
   binNumberFunctionCategorical,
   numBinsCategorical,
   numBinsContinuous,
@@ -497,15 +498,17 @@ export abstract class SQLDB implements FalconDB {
    */
   private binSQL(dimension: ContinuousDimension, binConfig: BinConfig) {
     const field = this.getName(dimension);
-    const select: PartialSQLQuery = `cast((${field} - ${binConfig.start}) / ${binConfig.step} as int)`;
+    const select: PartialSQLQuery = binNumberFunctionContinuousSQL(
+      field,
+      this.castBins(binConfig.start),
+      this.castBins(binConfig.step)
+    );
     const where: PartialSQLQuery = `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`;
-
     return {
       select,
       where,
     };
   }
-
   /**
    * Converts the filters (intervals) into SQL WHERE clauses as strings
    *
