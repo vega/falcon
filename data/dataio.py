@@ -2,7 +2,7 @@ import pyarrow as pa
 from pyarrow.parquet import ParquetFile, ParquetWriter
 
 
-def n_rows_parquet(filename: str, n_rows: int = 1) -> pa.Table:
+def n_rows_parquet(filename: str, n_rows: int = 65536) -> pa.Table:
     """returns a pyarrow table of just the first n_rows from the parquet"""
 
     pf = ParquetFile(filename)
