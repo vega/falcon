@@ -11,7 +11,7 @@ from fastapi.responses import Response
 BACKEND_HOST = "localhost"
 BACKEND_PORT = 8000
 FRONTEND_HOST = "localhost"
-FRONTEND_PORT = 5173
+FRONTEND_PORT = 5174
 
 app = FastAPI()
 
@@ -30,12 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# SETUP GLOBAL CONNECTION TO THE DATABASE
+# setup global connection to the database with a table
 con = duckdb.connect()
-con.query(
-    """CREATE TABLE diffusiondb AS FROM 'data/diffusiondb.parquet'
-    """
-)
+con.query("""CREATE TABLE flights AS FROM 'data/flights_2006_2010.parquet'""")
 
 
 @app.get("/query/{sql_query:path}")

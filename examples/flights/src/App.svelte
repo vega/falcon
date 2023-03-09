@@ -47,8 +47,8 @@
 	async function moviesDuckDB() {
 		const db = new HttpDB(
 			`${BACKEND_URL}/query/`,
-			"diffusiondb",
-			new Map(),
+			"flights",
+			undefined,
 			(q) => q
 		);
 		falcon = new Falcon(db);
@@ -56,27 +56,26 @@
 		views = await compose(falcon, [
 			{
 				type: "continuous",
-				name: "image_nsfw",
-				bins: 100,
+				name: "Distance",
+				bins: 25,
 				resolution: 400,
-				range: [0, 1.0],
 			},
 			{
 				type: "continuous",
-				name: "prompt_nsfw",
-				bins: 100,
+				name: "AirTime",
+				bins: 25,
 				resolution: 400,
-				range: [0, 1.0],
 			},
 			{
 				type: "categorical",
-				name: "width",
-				range: [512, 640, 704, 896, 768, 1024, 1280, 832, 960, 576],
+				name: "OriginState",
 			},
 			{
-				type: "categorical",
-				name: "height",
-				range: [512, 640, 704, 896, 768, 1024, 1280, 832, 960, 576],
+				type: "continuous",
+				name: "Distance",
+				bins: 25,
+				range: [0, 4000],
+				resolution: 400,
 			},
 		]);
 
@@ -167,14 +166,25 @@
 				>
 			</div>
 			<div id="images">
-				{#each [...entries] as entry}
-					{@const filename = entry["image_name"]}
-					<img
-						src={`https://diffusiondb.m4ke.org/${filename}`}
-						title={entry["prompt"]}
-						alt="img"
-					/>
-				{/each}
+				<table>
+					{#if entries}
+						{@const arrayEntries = [...entries]}
+						<!-- {@const keys = Object.keys(arrayEntries[0])} -->
+						{@const keys = views.map((v) => v.dimension.name)}
+						<tr>
+							{#each keys as key}
+								<th>{key}</th>
+							{/each}
+						</tr>
+						{#each arrayEntries as instance}
+							<tr>
+								{#each keys as key}
+									<td>{instance[key]}</td>
+								{/each}
+							</tr>
+						{/each}
+					{/if}
+				</table>
 			</div>
 		{/if}
 	</div>
@@ -207,13 +217,13 @@
 	.hist-baby {
 	}
 
-	#images {
+	/* #images {
 		display: flex;
 		gap: 20px;
 		flex-direction: row;
 		flex-wrap: wrap;
 		overflow-y: scroll;
-	}
+	} */
 	img {
 		border: 1px solid transparent;
 		border-radius: 5px;

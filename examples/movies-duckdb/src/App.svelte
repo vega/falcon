@@ -29,10 +29,10 @@
 	}
 
 	async function moviesDuckDB() {
-		// const db = await DuckDB.fromParquetFile(
-		// 	fullUrl("data/limited.parquet")
-		// );
-		const db = await ArrowDB.fromArrowFile("data/limited.arrow");
+		const db = await DuckDB.fromParquetFile(
+			fullUrl("data/movies-3k.parquet")
+		);
+		// const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
 		falcon = new Falcon(db);
 
 		count = await falcon.linkCount((state) => {
@@ -43,15 +43,21 @@
 			await falcon.linkView1D({
 				type: "continuous",
 				name: "IMDB_Rating",
-				bins: 5,
+				bins: 25,
 				resolution: 400,
 			})
 		);
+		// views.push(
+		// 	await falcon.linkView1D({
+		// 		type: "categorical",
+		// 		name: "MPAA_Rating",
+		// 	})
+		// );
 		views.push(
 			await falcon.linkView1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
-				bins: 5,
+				bins: 25,
 				resolution: 400,
 			})
 		);
@@ -64,8 +70,9 @@
 			});
 		});
 
-		await views[0].select([7.2, 8.7]);
 		await falcon.initializeAllCounts();
+		await views[0].activate();
+		await views[0].select([6.41, 8.52]);
 		falcon.filters = falcon.filters;
 		instances = await falcon.getEntries({
 			offset: 0,
@@ -73,6 +80,7 @@
 		});
 	}
 
+	console.warn = () => {};
 	let instances: Iterable<Row>;
 	let resolved = true;
 	let request: Promise<void>;

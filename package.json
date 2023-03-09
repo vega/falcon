@@ -11,8 +11,8 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
-    "start:motherduck-frontend": "yarn workspace motherduck dev --open",
-    "start:motherduck-backend": "python3 examples/motherduck/backend/server.py",
+    "start:flights-frontend": "yarn workspace flights dev --open",
+    "start:flights-backend": "python3 examples/flights/backend/server.py",
     "start:diffusion": "yarn workspace diffusion-duckdb dev --open",
     "start:movies-arrow": "yarn workspace movies-arrow dev --open",
     "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",

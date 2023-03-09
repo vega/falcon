@@ -173,13 +173,13 @@ export abstract class SQLDB implements FalconDB {
       const where = [...this.filtersToSQLWhereClauses(filters).values()].join(
         " AND "
       );
-      const result = await this.query(
-        `SELECT ${bSql.select}
+      const queryText = `SELECT ${bSql.select}
          AS binIndex, count(*) AS binCount
          FROM ${this.table}
          WHERE ${bSql.where} AND ${where} 
-         GROUP BY binIndex`
-      );
+         GROUP BY binIndex`;
+      const result = await this.query(queryText);
+      console.log(view.dimension.name, queryText);
       for (const { binIndex, binCount } of result) {
         filter.set(binIndex, binCount);
       }
