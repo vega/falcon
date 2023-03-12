@@ -4,24 +4,15 @@ This file contains the endpoints that can be called via HTTP
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 import duckdb
 import pyarrow as pa
-from fastapi.responses import Response
-
-BACKEND_HOST = "localhost"
-BACKEND_PORT = 8000
-FRONTEND_HOST = "localhost"
-FRONTEND_PORT = 5174
+from fire import Fire
+from uvicorn import run
 
 app = FastAPI()
 
-# without this, the frontend errors out
-# when making requests to the backend
-port_url = lambda url, port: f"http://{url}:{port}"
-origins = [
-    port_url("localhost", FRONTEND_PORT),
-    port_url("127.0.0.1", FRONTEND_PORT),
-]
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -51,7 +42,9 @@ def arrow_to_bytes(table: pa.Table):
     return bytes
 
 
-if __name__ == "__main__":
-    import uvicorn
+def serve(port=8000, host="localhost"):
+    run(app, port=port, host=host)
 
-    uvicorn.run(app, port=BACKEND_PORT, host=BACKEND_HOST)
+
+if __name__ == "__main__":
+    Fire(serve)  # so I can run cli args with it
