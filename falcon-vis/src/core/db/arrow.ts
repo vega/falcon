@@ -491,10 +491,7 @@ export class ArrowDB implements FalconDB {
     if (notFound) {
       // compute filter mask
       const column = this.data.getChild(dimension.name)!;
-      const mask = arrowFilterMask(
-        column,
-        (value: any) => !filterSet.has(value)
-      );
+      const mask = arrowFilterMask(column, filterSet.has);
 
       // set the cache
       this.filterMaskIndex.set(key, mask);
@@ -522,7 +519,7 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => value < filter[0] || value > filter[1]
+        (value: number) => value > filter[0] && value <= filter[1]
       );
 
       // set the cache
@@ -542,7 +539,7 @@ export class ArrowDB implements FalconDB {
  */
 function arrowFilterMask<T>(
   column: Vector,
-  shouldFilterOut: (rowValue: T) => boolean
+  shouldKeep: (rowValue: T) => boolean
 ): BitSet {
   const bitmask = new BitSet(column.length);
 
@@ -555,7 +552,7 @@ function arrowFilterMask<T>(
    */
   for (let i = 0; i < column.length; i++) {
     const rowValue: T = column.get(i)!;
-    if (shouldFilterOut(rowValue)) {
+    if (!shouldKeep(rowValue)) {
       bitmask.set(i, true);
     }
   }
