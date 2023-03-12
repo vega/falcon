@@ -440,11 +440,7 @@ export abstract class SQLDB implements FalconDB {
         noFilter.increment([0], cnt);
       }
 
-      console.log(filter.toString());
-
       filter.cumulativeSum();
-
-      console.log(filter.toString());
     } else if (view instanceof View1D) {
       for (const { keyActive, key, cnt } of result) {
         const binPassiveIndex = binPassiveIndexMap(key);
@@ -454,7 +450,6 @@ export abstract class SQLDB implements FalconDB {
         noFilter.increment([binPassiveIndex], cnt);
       }
 
-      console.log(filter.toString());
       // compute cumulative sums
       for (
         let passiveBinIndex = 0;
@@ -464,7 +459,6 @@ export abstract class SQLDB implements FalconDB {
         // sum across column (passive bin aggregate)
         filter.slice(null, passiveBinIndex).cumulativeSum();
       }
-      console.log(filter.toString());
     } else {
       throw Error("only 0D and 1D views");
     }

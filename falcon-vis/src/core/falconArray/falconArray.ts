@@ -213,7 +213,7 @@ export class FalconArray {
     }
   }
 
-  deepCopy(ArrayType = Float32Array) {
+  deepCopy(ArrayType: TypedArrayConstructor) {
     const copy = FalconArray.typedArray(
       ArrayType,
       this.length,
