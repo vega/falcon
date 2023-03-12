@@ -20,8 +20,8 @@ export type TypedArrayConstructor =
   | Float32ArrayConstructor
   | Float64ArrayConstructor;
 
-export const CumulativeCountsArray = Float32Array;
+export const CumulativeCountsArray = Float64Array;
 export const CountsArray = Uint32Array;
 
-export type CumulativeCountsArrayType = Float32Array;
+export type CumulativeCountsArrayType = Float64Array;
 export type CountsArrayType = Uint32Array;
