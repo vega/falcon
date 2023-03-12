@@ -22,11 +22,11 @@ export interface BinConfig {
 /**
  * BinConfig that does not need to have a stop.
  */
-interface StartStepBinConfig {
-  start: number;
-  stop?: number;
-  step: number;
-}
+// interface StartStepBinConfig {
+//   start: number;
+//   stop?: number;
+//   step: number;
+// }
 
 /**
  * BinConfig that does not need to have a step.
