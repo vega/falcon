@@ -2,6 +2,12 @@ import pyarrow as pa
 from pyarrow.parquet import ParquetFile, ParquetWriter
 
 
+def all_rows_arrow(file_name):
+    with pa.memory_map(file_name, "r") as source:
+        loaded_arrays = pa.ipc.open_file(source).read_all()
+        return loaded_arrays
+
+
 def n_rows_parquet(filename: str, n_rows: int = 65536) -> pa.Table:
     """returns a pyarrow table of just the first n_rows from the parquet"""
 

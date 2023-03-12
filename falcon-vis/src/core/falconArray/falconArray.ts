@@ -182,4 +182,48 @@ export class FalconArray {
   ): FalconArray {
     return this.typedArray(CountsArray, length, shape, stride, offset);
   }
+
+  toString2D() {
+    let totalString = "";
+    for (let i = 0; i < this.shape[0]; i++) {
+      let row = "";
+      for (let j = 0; j < this.shape[1]; j++) {
+        row += this.get(i, j) + " ";
+      }
+      totalString += row + "\n";
+    }
+    return totalString;
+  }
+
+  toString1D() {
+    let totalString = "";
+    for (let i = 0; i < this.shape[0]; i++) {
+      totalString += this.get(i) + " ";
+    }
+    return totalString;
+  }
+
+  toString() {
+    if (this.shape.length === 1) {
+      return this.toString1D();
+    } else if (this.shape.length === 2) {
+      return this.toString2D();
+    } else {
+      return "not implemented yet";
+    }
+  }
+
+  deepCopy(ArrayType = Float32Array) {
+    const copy = FalconArray.typedArray(
+      ArrayType,
+      this.length,
+      this.shape,
+      this.strides,
+      this.offset
+    );
+    for (let i = 0; i < this.length; i++) {
+      copy.data[i] = this.data[i];
+    }
+    return copy;
+  }
 }
