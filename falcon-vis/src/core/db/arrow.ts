@@ -5,7 +5,7 @@ import { FalconArray } from "../falconArray";
 import { Row, RowIterator } from "../iterator";
 import {
   binNumberFunctionContinuous,
-  binNumberFunctionBinsContinuous,
+  binNumberFunctionPixels,
   numBinsContinuous,
   numBinsCategorical,
   binNumberFunctionCategorical,
@@ -186,10 +186,7 @@ export class ArrowDB implements FalconDB {
       // 1. bin mapping functions
       const pixels = activeView.dimension.resolution;
       const activeDim = activeView.dimension;
-      const binActive = binNumberFunctionBinsContinuous(
-        activeDim.binConfig!,
-        pixels
-      );
+      const binActive = binNumberFunctionPixels(activeDim.binConfig!, pixels);
       const activeCol = this.data.getChild(activeDim.name)!;
       const numPixels = pixels + 1; // extending by one pixel so we can compute the right diff later
 
@@ -369,7 +366,7 @@ export class ArrowDB implements FalconDB {
         }
         const valueActive = activeCol.get(i)!;
         const keyActive = binActive(valueActive) + 1;
-        if (0 <= keyActive && keyActive < numPixels) {
+        if (0 <= keyActive && keyActive < numPixels && isNotNull(valueActive)) {
           filter.increment([keyActive]);
         }
         noFilter.increment([0]);
@@ -525,7 +522,7 @@ export class ArrowDB implements FalconDB {
       const column = this.data.getChild(dimension.name)!;
       const mask = arrowFilterMask(
         column,
-        (value: number) => value < filter[0] || value >= filter[1]
+        (value: number) => value < filter[0] || value > filter[1]
       );
 
       // set the cache

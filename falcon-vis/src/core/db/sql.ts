@@ -200,12 +200,13 @@ export abstract class SQLDB implements FalconDB {
 
     if (activeView.dimension.type === "continuous") {
       // 1. active bin for each pixel
+      const numPixelBins = activeView.dimension.resolution;
       const binActive = this.binSQLPixel(
         activeView.dimension,
         activeView.dimension.binConfig!,
-        activeView.dimension.resolution
+        numPixelBins
       );
-      const numPixels = activeView.dimension.resolution + 1;
+      const numPixels = numPixelBins + 1; // for example 10 bins -> 11 total edges (pixels)
 
       // 2. iterate through passive views and compute cubes
       const promises: Promise<FalconCube>[] = [];
@@ -434,21 +435,26 @@ export abstract class SQLDB implements FalconDB {
     if (view instanceof View0D) {
       for (const { keyActive, cnt } of result) {
         if (keyActive >= 0) {
-          filter.set(keyActive, cnt);
+          filter.set(keyActive + 1, cnt);
         }
         noFilter.increment([0], cnt);
       }
 
+      console.log(filter.toString());
+
       filter.cumulativeSum();
+
+      console.log(filter.toString());
     } else if (view instanceof View1D) {
       for (const { keyActive, key, cnt } of result) {
         const binPassiveIndex = binPassiveIndexMap(key);
         if (keyActive >= 0) {
-          filter.set(keyActive, binPassiveIndex, cnt);
+          filter.set(keyActive + 1, binPassiveIndex, cnt);
         }
         noFilter.increment([binPassiveIndex], cnt);
       }
 
+      console.log(filter.toString());
       // compute cumulative sums
       for (
         let passiveBinIndex = 0;
@@ -458,6 +464,7 @@ export abstract class SQLDB implements FalconDB {
         // sum across column (passive bin aggregate)
         filter.slice(null, passiveBinIndex).cumulativeSum();
       }
+      console.log(filter.toString());
     } else {
       throw Error("only 0D and 1D views");
     }
@@ -500,8 +507,8 @@ export abstract class SQLDB implements FalconDB {
     const field = this.getName(dimension);
     const select: PartialSQLQuery = binNumberFunctionContinuousSQL(
       field,
-      this.castBins(binConfig.start),
-      this.castBins(binConfig.step)
+      binConfig,
+      this.castBins
     );
     const where: PartialSQLQuery = `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`;
     return {
