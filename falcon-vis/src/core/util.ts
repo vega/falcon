@@ -22,11 +22,11 @@ export interface BinConfig {
 /**
  * BinConfig that does not need to have a stop.
  */
-interface StartStepBinConfig {
-  start: number;
-  stop?: number;
-  step: number;
-}
+// interface StartStepBinConfig {
+//   start: number;
+//   stop?: number;
+//   step: number;
+// }
 
 /**
  * BinConfig that does not need to have a step.
@@ -141,15 +141,17 @@ export function brushToPixelSpace(
  */
 export function scaleFilterToResolution(
   extent: Interval<number>,
-  resolution: number
+  resolution: number,
+  nearestPixelInt = Math.floor
 ) {
-  const pixelSpace = [0, resolution] as Interval<number>;
+  const pixelSpace = [1, resolution] as Interval<number>;
   const valueSpace = extent;
   const toPixels = scaleLinear().domain(valueSpace).range(pixelSpace);
+  toPixels.clamp(true);
 
   return (x: number) => {
     const pixels = toPixels(x);
-    return Math.floor(pixels);
+    return nearestPixelInt(pixels);
   };
 }
 
@@ -162,22 +164,58 @@ export function excludeMap<K, V>(map: Map<K, V>, ...exclude: K[]) {
 /**
  * Returns a function that returns the bin for a value.
  */
-export function binNumberFunctionContinuous({
-  start,
-  step,
-}: StartStepBinConfig) {
-  return (v: number) => Math.floor((v - start) / step);
+export function binNumberFunctionContinuous({ start, step, stop }: BinConfig) {
+  /**
+   * this used to be (v: number) => Math.floor((v - start) / step
+   * using floor seems to map to a non-existent bin sometimes
+   *
+   * for example when the v=stop
+   * suppose we have start = 0, step = 20, stop = 100
+   * this should be 5 bins in total, each bin corresponding to 0, 1, 2, 3, or 4. (5 bins in total)
+   * however when v=100 (aka the stop)
+   * Math.floor(100-0 / 20) = 5. ???? 5 should not be an index that is a non-existent bin
+   *
+   * Math.ceil(100-0 / 20) - 1 = 4 is correct
+   * frick but when its 0, the whole things goes to -1
+   * so we need to clamp it to 0
+   */
+  const numBins = numBinsContinuous({ start, step, stop });
+  const lastBinIndex = numBins - 1;
+  return (v: number) => {
+    const binIndexMapping = Math.floor((v - start) / step);
+    if (binIndexMapping >= numBins) {
+      return lastBinIndex;
+    }
+    return binIndexMapping;
+  };
+}
+
+/**
+ * Creates a string equivalent to binNumberFunctionContinuous operation in SQL
+ */
+export function binNumberFunctionContinuousSQL(
+  field: string,
+  { start, step, stop }: BinConfig,
+  castString = (x: number) => `${x}`
+) {
+  const numBins = numBinsContinuous({ start, step, stop });
+  const binIndexMapping = `FLOOR((${field} - ${castString(
+    start
+  )}) / ${castString(step)})::INT`;
+  const lastBinIndex = castString(numBins - 1);
+  const clamp = `LEAST(${lastBinIndex}, ${binIndexMapping})::INT`;
+  return clamp;
 }
 
 /**
  * Returns a function that returns the bin for a pixel. Starts one pixel before so that the brush contains the data.
  */
-export function binNumberFunctionBinsContinuous(
+export function binNumberFunctionPixels(
   { start, stop }: StartStopBinConfig,
   pixel: number
 ) {
   const step = stepSize({ start, stop }, pixel);
-  return binNumberFunctionContinuous({ start: start, step });
+  return binNumberFunctionContinuous({ start, step, stop });
 }
 
 export function stepSize({ start, stop }: StartStopBinConfig, bins: number) {

@@ -105,9 +105,9 @@ export class Falcon {
    * This does not involve fetching the falcon index
    */
   async initializeAllCounts() {
-    this.views.forEach(async (view) => {
+    for (const view of this.views) {
       await view.initializeAllCounts();
-    });
+    }
   }
 
   /**

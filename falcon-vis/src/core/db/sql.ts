@@ -6,6 +6,7 @@ import {
 } from "../dimension";
 import { FalconArray } from "../falconArray";
 import {
+  binNumberFunctionContinuousSQL,
   binNumberFunctionCategorical,
   numBinsCategorical,
   numBinsContinuous,
@@ -130,7 +131,7 @@ export abstract class SQLDB implements FalconDB {
         range.push(_unique);
       }
 
-      return range;
+      return range.filter((x) => x !== null);
     }
   }
 
@@ -172,13 +173,13 @@ export abstract class SQLDB implements FalconDB {
       const where = [...this.filtersToSQLWhereClauses(filters).values()].join(
         " AND "
       );
-      const result = await this.query(
-        `SELECT ${bSql.select}
+      const queryText = `SELECT ${bSql.select}
          AS binIndex, count(*) AS binCount
          FROM ${this.table}
          WHERE ${bSql.where} AND ${where} 
-         GROUP BY binIndex`
-      );
+         GROUP BY binIndex`;
+      const result = await this.query(queryText);
+      console.log(view.dimension.name, queryText);
       for (const { binIndex, binCount } of result) {
         filter.set(binIndex, binCount);
       }
@@ -199,12 +200,13 @@ export abstract class SQLDB implements FalconDB {
 
     if (activeView.dimension.type === "continuous") {
       // 1. active bin for each pixel
+      const numPixelBins = activeView.dimension.resolution;
       const binActive = this.binSQLPixel(
         activeView.dimension,
         activeView.dimension.binConfig!,
-        activeView.dimension.resolution
+        numPixelBins
       );
-      const numPixels = activeView.dimension.resolution + 1;
+      const numPixels = numPixelBins + 1; // for example 10 bins -> 11 total edges (pixels)
 
       // 2. iterate through passive views and compute cubes
       const promises: Promise<FalconCube>[] = [];
@@ -433,7 +435,7 @@ export abstract class SQLDB implements FalconDB {
     if (view instanceof View0D) {
       for (const { keyActive, cnt } of result) {
         if (keyActive >= 0) {
-          filter.set(keyActive, cnt);
+          filter.set(keyActive + 1, cnt);
         }
         noFilter.increment([0], cnt);
       }
@@ -443,7 +445,7 @@ export abstract class SQLDB implements FalconDB {
       for (const { keyActive, key, cnt } of result) {
         const binPassiveIndex = binPassiveIndexMap(key);
         if (keyActive >= 0) {
-          filter.set(keyActive, binPassiveIndex, cnt);
+          filter.set(keyActive + 1, binPassiveIndex, cnt);
         }
         noFilter.increment([binPassiveIndex], cnt);
       }
@@ -497,15 +499,17 @@ export abstract class SQLDB implements FalconDB {
    */
   private binSQL(dimension: ContinuousDimension, binConfig: BinConfig) {
     const field = this.getName(dimension);
-    const select: PartialSQLQuery = `cast((${field} - ${binConfig.start}) / ${binConfig.step} as int)`;
+    const select: PartialSQLQuery = binNumberFunctionContinuousSQL(
+      field,
+      binConfig,
+      this.castBins
+    );
     const where: PartialSQLQuery = `${field} BETWEEN ${binConfig.start} AND ${binConfig.stop}`;
-
     return {
       select,
       where,
     };
   }
-
   /**
    * Converts the filters (intervals) into SQL WHERE clauses as strings
    *

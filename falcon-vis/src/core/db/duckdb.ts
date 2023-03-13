@@ -57,7 +57,7 @@ export class DuckDB extends SQLDB {
   ) {
     const db = await createNewTable(
       table,
-      `CREATE VIEW '${table}' AS SELECT * FROM parquet_scan('${url}')`
+      `CREATE TABLE '${table}' AS SELECT * FROM parquet_scan('${url}')`
     );
     return new DuckDB(db, table, nameMap);
   }

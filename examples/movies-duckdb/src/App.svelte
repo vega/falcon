@@ -6,7 +6,9 @@
 		View0D,
 		View1D,
 		DuckDB,
+		ArrowDB,
 	} from "falcon-vis";
+	import type { Row } from "falcon-vis/src/core/iterator";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
 	import ContinuousHistogram from "./components/ContinuousHistogram.svelte";
@@ -30,66 +32,13 @@
 		const db = await DuckDB.fromParquetFile(
 			fullUrl("data/movies-3k.parquet")
 		);
+		// const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
 		falcon = new Falcon(db);
 
-		count = await falcon.linkCount();
-		count.addOnChangeListener((state) => {
+		count = await falcon.linkCount((state) => {
 			countState = state;
 		});
 
-		views.push(
-			await falcon.linkView1D({
-				type: "categorical",
-				name: "MPAA_Rating",
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "continuous",
-				name: "US_Gross",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "continuous",
-				name: "Worldwide_Gross",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "continuous",
-				name: "Production_Budget",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "categorical",
-				name: "Distributor",
-				range: [
-					"Warner Bros.",
-					"Sony Pictures",
-					"Paramount Pictures",
-					"Universal",
-					"Walt Disney Pictures",
-					"20th Century Fox",
-					"MGM",
-					"Miramax",
-					"New Line",
-					"Lionsgate",
-					"Sony Pictures Classics",
-					"Fox Searchlight",
-					"Dreamworks SKG",
-					"Focus Features",
-					"Weinstein Co.",
-				],
-			})
-		);
 		views.push(
 			await falcon.linkView1D({
 				type: "continuous",
@@ -98,24 +47,16 @@
 				resolution: 400,
 			})
 		);
+		// views.push(
+		// 	await falcon.linkView1D({
+		// 		type: "categorical",
+		// 		name: "MPAA_Rating",
+		// 	})
+		// );
 		views.push(
 			await falcon.linkView1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
-				bins: 25,
-				resolution: 400,
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "categorical",
-				name: "Major_Genre",
-			})
-		);
-		views.push(
-			await falcon.linkView1D({
-				type: "continuous",
-				name: "Running_Time_min",
 				bins: 25,
 				resolution: 400,
 			})
@@ -130,7 +71,21 @@
 		});
 
 		await falcon.initializeAllCounts();
+		await views[0].activate();
+		await views[0].select([6.41, 8.52]);
+		falcon.filters = falcon.filters;
+		instances = await falcon.getEntries({
+			offset: 0,
+			length: pageSize,
+		});
 	}
+
+	console.warn = () => {};
+	let instances: Iterable<Row>;
+	let resolved = true;
+	let request: Promise<void>;
+	let page = 0;
+	let pageSize = 20;
 </script>
 
 <main>
@@ -156,12 +111,25 @@
 				<Histogram
 					{state}
 					dimLabel={view.dimension.name.replaceAll("_", " ")}
-					on:select={(e) => {
+					on:select={async (e) => {
 						const selection = e.detail;
+						falcon.filters = falcon.filters;
 						if (selection !== null) {
-							view.select(selection);
+							// console.log(selection);
+							await view.select(selection);
 						} else {
-							view.select();
+							await view.select();
+						}
+						if (resolved) {
+							resolved = false;
+							request = falcon
+								.getEntries({
+									length: pageSize,
+								})
+								.then((d) => {
+									resolved = true;
+									instances = d;
+								});
 						}
 					}}
 					on:mouseenter={async () => {
@@ -170,7 +138,56 @@
 				/>
 			</div>
 		{/each}
+		{#if falcon}
+			here
+			{#each [...falcon.filters.entries()] as [dim, filter]}
+				<div>
+					<h3>{dim.name}</h3>
+					<pre>{JSON.stringify(filter, null, 2)}</pre>
+				</div>
+			{/each}
+		{/if}
 	</div>
+
+	<button
+		on:click={async () => {
+			page = Math.max(page - pageSize, 0);
+			instances = await falcon.getEntries({
+				length: pageSize,
+				offset: page,
+			});
+
+			console.log(page, instances);
+		}}>back</button
+	>
+	<button
+		on:click={async () => {
+			page += pageSize;
+			instances = await falcon.getEntries({
+				length: pageSize,
+				offset: page,
+			});
+
+			console.log(page, instances);
+		}}>next</button
+	>
+	<table>
+		{#if instances}
+			{@const keys = views.map((v) => v.dimension.name)}
+			<tr>
+				{#each keys as key}
+					<th>{key}</th>
+				{/each}
+			</tr>
+			{#each [...instances] as instance}
+				<tr>
+					{#each keys as key}
+						<td>{instance[key]}</td>
+					{/each}
+				</tr>
+			{/each}
+		{/if}
+	</table>
 </main>
 
 <style>

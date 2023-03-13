@@ -85,12 +85,14 @@
 	function testSmoothing(state: View1DState) {
 		const { filter, total, bin } = state;
 		// return iterator with 500 bins each with an estimate count from smoothing
-		const output = smoothBins1D({
-			bins: bin,
-			counts: total,
-			numOutputBins: 500,
-		});
-		console.log(output);
+		try {
+			const output = smoothBins1D({
+				bins: bin,
+				counts: total,
+				numOutputBins: 500,
+			});
+			console.log(output);
+		} catch (e) {}
 
 		console.log(filter, total, bin);
 	}
