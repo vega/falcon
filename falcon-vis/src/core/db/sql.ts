@@ -40,6 +40,10 @@ export abstract class SQLDB implements FalconDB {
     return `${input}`;
   }
 
+  protected castTime(name: string) {
+    return name;
+  }
+
   /**
    * intermediary function incase we mapped the names to something else
    * change this if you for example have issues with time dimensions
@@ -47,7 +51,11 @@ export abstract class SQLDB implements FalconDB {
    * @returns mapped string name defined from constructor
    */
   protected getName(dimension: Dimension) {
-    return this.nameMap?.get(dimension.name) ?? dimension.name;
+    let name = this.nameMap?.get(dimension.name) ?? dimension.name;
+    if (dimension.type === "continuous" && dimension.time) {
+      name = this.castTime(name);
+    }
+    return name;
   }
 
   /**
@@ -63,9 +71,7 @@ export abstract class SQLDB implements FalconDB {
   async dimensionExists(dimension: Dimension): Promise<boolean> {
     const result = await this.query(
       `SELECT EXISTS 
-      (SELECT 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${
-        this.table
-      }' AND COLUMN_NAME = '${this.getName(dimension)}') as _exists`
+      (SELECT 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${this.table}' AND COLUMN_NAME = '${dimension.name}') as _exists`
     );
     const { _exists } = this.getASValues(result);
     return _exists;
