@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo/logo.png" width="200" style="transform: rotate(90deg);">
+  <img src="https://user-images.githubusercontent.com/65095341/224893618-99d4c529-53b0-4cf5-a05c-1135ef4c8984.svg" width="350">
 </p>
 
 # FalconVis
