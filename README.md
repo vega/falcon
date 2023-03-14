@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/65095341/224893618-99d4c529-53b0-4cf5-a05c-1135ef4c8984.svg" width="350">
+  <img src="https://user-images.githubusercontent.com/65095341/224896033-afc8bd8e-d0e0-4031-a7b2-3857bef51327.svg" width="65%">
 </p>
 
 # FalconVis
