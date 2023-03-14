@@ -45,6 +45,11 @@ export class DuckDB extends SQLDB {
     return results;
   }
 
+  protected castTime(name: string): string {
+    // converts to seconds UTC, then to milliseconds
+    return `epoch(${name})*1000`;
+  }
+
   /**
    * creates new FalconDB instance from this parquet file
    *
@@ -53,11 +58,14 @@ export class DuckDB extends SQLDB {
   static async fromParquetFile(
     url: string,
     table = "data",
-    nameMap?: SQLNameMap
+    nameMap?: SQLNameMap,
+    useFullUrlFromWindow = true
   ) {
     const db = await createNewTable(
       table,
-      `CREATE TABLE '${table}' AS SELECT * FROM parquet_scan('${url}')`
+      `CREATE TABLE '${table}' AS SELECT * FROM parquet_scan('${
+        useFullUrlFromWindow ? fullUrl(url) : url
+      }')`
     );
     return new DuckDB(db, table, nameMap);
   }
@@ -81,4 +89,8 @@ async function createNewTable(table: string, createTableQuery: SQLQuery) {
   c.close();
 
   return db;
+}
+
+function fullUrl(filename: string) {
+  return `${window.location.href}${filename}`;
 }
