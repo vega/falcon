@@ -40,10 +40,10 @@ export class ArrowDB implements FalconDB {
    * @note [arrow specification](https://arrow.apache.org/docs/format/Columnar.html)
    * @note [arrow wes mckinney video](https://www.youtube.com/watch?v=fyj4FyH3XdU)
    */
-  constructor(data: Table) {
+  constructor(data: Table, filterMaskCacheSize = 64) {
     this.blocking = true;
     // bitmask to determine what rows filter out or not
-    this.filterMaskIndex = new Map();
+    this.filterMaskIndex = new LRUMap(filterMaskCacheSize); // only save a few recent filter masks in memory
     this.data = data;
   }
 
@@ -491,7 +491,9 @@ export class ArrowDB implements FalconDB {
     if (notFound) {
       // compute filter mask
       const column = this.data.getChild(dimension.name)!;
-      const mask = arrowFilterMask(column, filterSet.has);
+      const mask = arrowFilterMask(column, (rowValue) =>
+        filterSet.has(rowValue)
+      );
 
       // set the cache
       this.filterMaskIndex.set(key, mask);
@@ -599,4 +601,24 @@ function arrowColumnExtent(column: Vector): Interval<number> {
 
 function isNotNull(value: any) {
   return value !== null;
+}
+
+class LRUMap<K, V> extends Map<K, V> {
+  private limit: number;
+
+  /**
+   * A Map that only keeps the most recent `limit` number of entries.
+   * @param limit - The maximum size of the map.
+   */
+  constructor(limit: number) {
+    super();
+    this.limit = limit;
+  }
+
+  set(key: K, value: V): this {
+    if (this.size >= this.limit) {
+      this.delete(this.keys().next().value);
+    }
+    return super.set(key, value);
+  }
 }
