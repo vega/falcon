@@ -24,7 +24,7 @@
     "ndarray-linear-interpolate": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-prefix-sum": "^1.0.0",
-    "vega-statistics": "^1.8.0"
+    "vega-statistics": "^1.8.1"
   },
   "devDependencies": {
     "@types/cwise": "^1.0.4",
