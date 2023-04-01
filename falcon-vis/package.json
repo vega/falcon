@@ -17,7 +17,7 @@
     "@heavyai/connector": "^7.0.0",
     "apache-arrow": "^11.0.0",
     "cwise": "^1.0.10",
-    "d3": "^7.8.2",
+    "d3": "^7.8.4",
     "fast-kde": "^0.2.1",
     "ndarray": "^1.0.19",
     "ndarray-imshow": "git+https://github.com/domoritz/ndarray-imshow.git",
