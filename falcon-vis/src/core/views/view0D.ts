@@ -1,7 +1,7 @@
 import { binNumberFunctionCategorical } from "../util";
 import { ViewAbstract } from "./viewAbstract";
 import type { Interval } from "../util";
-import type { Falcon } from "../falcon";
+import type { FalconVis } from "../falcon";
 import type { CategoricalRange } from "../dimension";
 
 /* defines how the parameter is typed for on change */
@@ -15,7 +15,7 @@ export type CountState = View0DState;
 export class View0D extends ViewAbstract<View0DState> {
   state: View0DState;
 
-  constructor(falcon: Falcon) {
+  constructor(falcon: FalconVis) {
     super(falcon);
     this.state = { total: null, filter: null };
   }
@@ -23,7 +23,7 @@ export class View0D extends ViewAbstract<View0DState> {
   /**
    * @returns all count from the db and signals the user
    */
-  async initializeAllCounts() {
+  async all() {
     const total = await this.falcon.db.length(
       this.falcon.filters.size > 0 ? this.falcon.filters : undefined
     );
@@ -81,12 +81,30 @@ export class View0D extends ViewAbstract<View0DState> {
       let total = 0;
       for (const s of selection) {
         const binKey = bin(s);
-        total += index.filter.get(binKey);
+        if (binKey) {
+          total += index.filter.get(binKey);
+        }
       }
       this.state.filter = total;
     }
 
     // signal user
     this.signalOnChange(this.state);
+  }
+
+  /**
+   * attaches to the global falcon index
+   */
+  async attach() {
+    this.falcon.views.add(this);
+    await this.falcon.link();
+  }
+
+  /**
+   * detaches from the global falcon index
+   */
+  async detach() {
+    this.falcon.views.remove(this);
+    this.falcon.index.delete(this);
   }
 }

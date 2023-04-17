@@ -1,3 +1,5 @@
+import { greatScott } from "../bins";
+import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
 import {
   Dimension,
   ContinuousRange,
@@ -5,6 +7,7 @@ import {
   ContinuousDimension,
 } from "../dimension";
 import { FalconArray } from "../falconArray";
+import { Row } from "../iterator";
 import {
   binNumberFunctionContinuousSQL,
   binNumberFunctionCategorical,
@@ -13,10 +16,8 @@ import {
   stepSize,
 } from "../util";
 import { View0D, View1D } from "../views";
-import { FalconDB, Filters, AsyncIndex, FalconCube } from "./db";
-import type { BinConfig } from "../util";
+import type { BinConfig, BinNumberFunction } from "../util";
 import type { View } from "../views";
-import { Row } from "../iterator";
 
 export type SQLNameMap = Map<string, string>;
 export type SQLQuery = string;
@@ -100,6 +101,39 @@ export abstract class SQLDB implements FalconDB {
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}
               OFFSET ${offset}`);
     return filteredTable;
+  }
+
+  /**
+   * compute the best number of bins for a histogram
+   * given the data
+   *
+   * @resource [plot](https://github.com/observablehq/plot/blob/97924e7682e49d35a34da794ca98bf0c7e8a3c28/src/transforms/bin.js#L320)
+   * @resource [lord and savior](https://twitter.com/mbostock/status/1429281697854464002)
+   * @resource [numpy](https://numpy.org/doc/stable/reference/generated/numpy.histogram_bin_edges.html)
+   */
+  async estimateNumBins(
+    dimension: ContinuousDimension,
+    maxThreshold = 200,
+    noKnowledgeEstimate = 15
+  ): Promise<number> {
+    const count = await this.length();
+    if (count <= 1) {
+      return 1;
+    }
+
+    if (dimension.range) {
+      const standardDeviationQuery = await this.query(
+        `SELECT STDDEV(${this.getName(dimension)}) AS standardDeviation FROM ${
+          this.table
+        }`
+      );
+      const { standardDeviation } = this.getASValues(standardDeviationQuery);
+      const [min, max] = dimension.range;
+      const optimalBins = greatScott(min, max, standardDeviation);
+      return Math.min(optimalBins, maxThreshold);
+    }
+    // if we don't have a min max range, just return the no knowledge estimate
+    return noKnowledgeEstimate;
   }
 
   async length(filters?: Filters) {
@@ -269,7 +303,7 @@ export abstract class SQLDB implements FalconDB {
     view: View,
     sqlFilters: SQLFilters,
     binActive: SQLBin,
-    binActiveIndexMap: (x: any) => number,
+    binActiveIndexMap: BinNumberFunction,
     binCountActive: number
   ) {
     let noFilter: FalconArray;
@@ -340,7 +374,7 @@ export abstract class SQLDB implements FalconDB {
 
     if (view instanceof View0D) {
       for (const { keyActive, cnt } of result) {
-        const binIndex = binActiveIndexMap(keyActive);
+        const binIndex = binActiveIndexMap(keyActive)!;
         if (binIndex >= 0) {
           filter.set(binIndex, cnt);
         }
@@ -348,8 +382,8 @@ export abstract class SQLDB implements FalconDB {
       }
     } else if (view instanceof View1D) {
       for (const { keyActive, key, cnt } of result) {
-        const binActiveIndex = binActiveIndexMap(keyActive);
-        const binPassiveIndex = binPassiveIndexMap!(key);
+        const binActiveIndex = binActiveIndexMap(keyActive)!;
+        const binPassiveIndex = binPassiveIndexMap(key)!;
         if (binActiveIndex >= 0) {
           filter.set(binActiveIndex, binPassiveIndex, cnt);
         }

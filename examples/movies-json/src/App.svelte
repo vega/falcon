@@ -29,21 +29,21 @@
 		json = await fetch("data/movies.json").then((res) => res.json());
 		const db = new JsonDB(json);
 
-		falcon = new Falcon(db);
+		falcon = new FalconVis(db);
 
-		count = await falcon.linkCount();
+		count = await falcon.view0D();
 		count.addOnChangeListener((state) => {
 			countState = state;
 		});
 
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "categorical",
 				name: "MPAA_Rating",
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "US_Gross",
 				bins: 25,
@@ -51,7 +51,7 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "Worldwide_Gross",
 				bins: 25,
@@ -59,7 +59,7 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "Production_Budget",
 				bins: 25,
@@ -67,7 +67,7 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "categorical",
 				name: "Distributor",
 				range: [
@@ -90,7 +90,7 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "IMDB_Rating",
 				bins: 25,
@@ -98,7 +98,7 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
 				bins: 25,
@@ -106,13 +106,13 @@
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "categorical",
 				name: "Major_Genre",
 			})
 		);
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "Running_Time_min",
 				bins: 25,
@@ -128,7 +128,7 @@
 			});
 		});
 
-		await falcon.initializeAllCounts();
+		await falcon.all();
 	}
 	let instances: Iterable<Record<string, any>>;
 	let page = 0;
@@ -165,7 +165,7 @@
 						} else {
 							await view.select();
 						}
-						instances = await falcon.getEntries({
+						instances = await falcon.entries({
 							offset: 0,
 							length: pageSize,
 						});
@@ -182,7 +182,7 @@
 	<button
 		on:click={async () => {
 			page = Math.max(page - pageSize, 0);
-			instances = await falcon.getEntries({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});
@@ -193,7 +193,7 @@
 	<button
 		on:click={async () => {
 			page += pageSize;
-			instances = await falcon.getEntries({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});

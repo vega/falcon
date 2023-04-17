@@ -28,13 +28,13 @@
 	}
 
 	function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		falcon.linkCount((state) => {
+		falcon.view0D((state) => {
 			countState = state;
 		});
 
 		viewStates = new Array(view1Ds.length);
 		const views = view1Ds.map(async (dim, i) =>
-			falcon.linkView1D(dim, (state) => {
+			falcon.view1D(dim, (state) => {
 				viewStates[i] = state;
 			})
 		);
@@ -49,7 +49,7 @@
 			"diffusiondb"
 			// new Map([["timestamp", "epoch(timestamp)*1000"]])
 		);
-		falcon = new Falcon(db);
+		falcon = new FalconVis(db);
 
 		views = await compose(falcon, [
 			{
@@ -78,8 +78,8 @@
 			},
 		]);
 
-		await falcon.initializeAllCounts();
-		entries = await falcon.getEntries({ length: numEntries });
+		await falcon.all();
+		entries = await falcon.entries({ length: numEntries });
 	}
 
 	let page = 0;
@@ -126,7 +126,7 @@
 							if (resolved) {
 								resolved = false;
 								request = falcon
-									.getEntries({
+									.entries({
 										length: numEntries,
 									})
 									.then((d) => {
@@ -148,7 +148,7 @@
 				<button
 					on:click={async () => {
 						page = Math.max(page - numEntries, 0);
-						entries = await falcon.getEntries({
+						entries = await falcon.entries({
 							length: numEntries,
 							offset: page,
 						});
@@ -157,7 +157,7 @@
 				<button
 					on:click={async () => {
 						page += numEntries;
-						entries = await falcon.getEntries({
+						entries = await falcon.entries({
 							length: numEntries,
 							offset: page,
 						});

@@ -1,5 +1,6 @@
 import { tableFromIPC, Table } from "apache-arrow";
 import { BitSet, union } from "../bitset";
+import { greatScott } from "../bins";
 import { FalconDB, SyncIndex } from "./db";
 import { FalconArray } from "../falconArray";
 import { Row, RowIterator } from "../iterator";
@@ -20,7 +21,7 @@ import type {
   ContinuousRange,
   Dimension,
 } from "../dimension";
-import type { Interval } from "../util";
+import type { Interval, BinNumberFunction } from "../util";
 import type { View } from "../views";
 
 type DimensionFilterHash = string;
@@ -58,6 +59,35 @@ export class ArrowDB implements FalconDB {
     const buffer = await data.arrayBuffer();
     const table = tableFromIPC(buffer);
     return new ArrowDB(table);
+  }
+
+  /**
+   * compute the best number of bins for a histogram
+   * given the data
+   *
+   * @resource [plot](https://github.com/observablehq/plot/blob/97924e7682e49d35a34da794ca98bf0c7e8a3c28/src/transforms/bin.js#L320)
+   * @resource [lord and savior](https://twitter.com/mbostock/status/1429281697854464002)
+   * @resource [numpy](https://numpy.org/doc/stable/reference/generated/numpy.histogram_bin_edges.html)
+   */
+  estimateNumBins(
+    dimension: ContinuousDimension,
+    maxThreshold = 200,
+    noKnowledgeEstimate = 15
+  ): number {
+    const arrowColumn = this.data.getChild(dimension.name)!;
+    if (arrowColumn.length <= 1) {
+      // can't do much with one data point
+      return 1;
+    }
+
+    if (dimension.range) {
+      const standardDeviation = Math.sqrt(sampleVariance(arrowColumn)); // \sqrt{\sigma^2}
+      const [min, max] = dimension.range;
+      const optimalBins = greatScott(min, max, standardDeviation);
+      return Math.min(optimalBins, maxThreshold);
+    }
+    // if we don't have a min max range, just return the no knowledge estimate
+    return noKnowledgeEstimate;
   }
 
   length(filters?: Filters): number {
@@ -110,11 +140,11 @@ export class ArrowDB implements FalconDB {
     return this.data && this.data.numCols > 0;
   }
 
-  entries(
+  async entries(
     offset: number = 0,
     length: number = Infinity,
     filters?: Filters | undefined
-  ): Iterable<Row | null> {
+  ): Promise<Iterable<Row | null>> {
     const filterMask: BitSet | null = union(
       ...this.getFilterMasks(filters ?? new Map()).values()
     );
@@ -130,7 +160,7 @@ export class ArrowDB implements FalconDB {
   histogramView1D(view: View1D, filters?: Filters): FalconCounts {
     let filter: FalconArray;
     let noFilter: FalconArray;
-    let bin: (item: any) => number;
+    let bin: BinNumberFunction;
     let binCount: number;
 
     // 1. decide which rows are filtered or not
@@ -156,7 +186,7 @@ export class ArrowDB implements FalconDB {
     const column = this.data.getChild(view.dimension.name)!;
     for (let i = 0; i < this.data.numRows; i++) {
       const value: any = column.get(i)!;
-      const binLocation = bin(value);
+      const binLocation = bin(value)!;
 
       // increment the specific bin
       if (0 <= binLocation && binLocation < binCount && isNotNull(value)) {
@@ -238,7 +268,7 @@ export class ArrowDB implements FalconDB {
     view: View,
     activeCol: Vector,
     filterMasks: FilterMasks<Dimension>,
-    binActive: (x: number) => number,
+    binActive: BinNumberFunction,
     binCountActive: number
   ): FalconCube {
     let noFilter: FalconArray;
@@ -265,14 +295,14 @@ export class ArrowDB implements FalconDB {
           continue;
         }
 
-        const keyActive = binActive(activeCol.get(i)!);
+        const keyActive = binActive(activeCol.get(i)!)!;
         if (0 <= keyActive && keyActive < binCountActive) {
           filter.increment([keyActive]);
         }
         noFilter.increment([0]);
       }
     } else if (view instanceof View1D) {
-      let binPassive: (x: any) => number;
+      let binPassive: BinNumberFunction;
       let binCount: number;
 
       if (view.dimension.type === "continuous") {
@@ -303,8 +333,8 @@ export class ArrowDB implements FalconDB {
 
         const valueActive = activeCol.get(i)!;
         const valuePassive = passiveCol.get(i)!;
-        const keyPassive = binPassive(valuePassive);
-        const keyActive = binActive(valueActive);
+        const keyPassive = binPassive(valuePassive)!;
+        const keyActive = binActive(valueActive)!;
         if (
           0 <= keyPassive &&
           keyPassive < binCount &&
@@ -338,7 +368,7 @@ export class ArrowDB implements FalconDB {
     activeCol: Vector,
     filterMasks: FilterMasks<Dimension>,
     numPixels: number,
-    binActive: (x: number) => number
+    binActive: BinNumberFunction
   ): FalconCube {
     let noFilter: FalconArray;
     let filter: FalconArray;
@@ -365,7 +395,7 @@ export class ArrowDB implements FalconDB {
           continue;
         }
         const valueActive = activeCol.get(i)!;
-        const keyActive = binActive(valueActive) + 1;
+        const keyActive = binActive(valueActive)! + 1;
         if (0 <= keyActive && keyActive < numPixels && isNotNull(valueActive)) {
           filter.increment([keyActive]);
         }
@@ -375,7 +405,7 @@ export class ArrowDB implements FalconDB {
       // falcon magic sauce
       filter.cumulativeSum();
     } else if (view instanceof View1D) {
-      let binPassive: (x: any) => number;
+      let binPassive: BinNumberFunction;
       let binCount: number;
 
       if (view.dimension.type === "continuous") {
@@ -406,8 +436,8 @@ export class ArrowDB implements FalconDB {
 
         const valueActive = activeCol.get(i)!;
         const valuePassive = passiveCol.get(i)!;
-        const keyActive = binActive(valueActive) + 1;
-        const keyPassive = binPassive(valuePassive);
+        const keyActive = binActive(valueActive)! + 1;
+        const keyPassive = binPassive(valuePassive)!;
         if (
           0 <= keyPassive &&
           keyPassive < binCount &&
@@ -621,4 +651,28 @@ class LRUMap<K, V> extends Map<K, V> {
     }
     return super.set(key, value);
   }
+}
+
+/**
+ * sample defined by
+ * $$\sigma^2 = \frac{1}{n} \sum_{i=1}^n (x_i - \mu)^2$$
+ *
+ * this can probably be optimized faster to be like [the boss](https://github.com/d3/d3-array/blob/main/src/variance.js#L1)
+ */
+function sampleVariance(vector: Vector) {
+  let variance = 0,
+    n = vector.length;
+  let mu = mean(vector);
+  for (const x_i of vector) {
+    variance += (x_i - mu) ** 2;
+  }
+  return n > 1 ? variance / (n - 1) : variance;
+}
+function mean(vector: Vector) {
+  let mean = 0,
+    n = vector.length;
+  for (const x_i of vector) {
+    mean += x_i;
+  }
+  return mean / n;
 }

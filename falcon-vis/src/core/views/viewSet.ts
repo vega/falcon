@@ -1,4 +1,4 @@
-import { View } from "./index";
+import { View, View1D } from "./index";
 
 /**
  * Collections of views
@@ -37,14 +37,17 @@ export class ViewSet {
   }
 
   /**
-   * @returns the only active view
+   * @returns the only active view, undefined if didn't find it
    */
-  get active(): View {
+  get active(): View1D | undefined {
     const activeView = this.views.find((view) => view.isActive);
-    if (activeView === undefined) {
-      throw Error("No active view found, this should not happen");
+
+    // if found, must be a View1D TODO extend to View2D
+    if (activeView) {
+      return activeView as View1D;
+    } else {
+      return undefined;
     }
-    return activeView;
   }
 
   get size(): number {

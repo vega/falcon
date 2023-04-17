@@ -6,7 +6,7 @@ import {
   binNumberFunctionCategorical,
   numBinsContinuous,
 } from "../util";
-import type { Falcon } from "../falcon";
+import type { FalconVis } from "../falcon";
 import type {
   CategoricalRange,
   ContinuousRange,
@@ -35,13 +35,22 @@ export class View1D extends ViewAbstract<View1DState> {
   state: View1DState | CategoricalView1DState;
   toPixels: (brush: Interval<number>) => Interval<number>;
   lastFilter: DimensionFilter | undefined;
-  isAttached: boolean;
-  constructor(falcon: Falcon, dimension: Dimension) {
+  constructor(falcon: FalconVis, dimension: Dimension) {
     super(falcon);
     this.dimension = dimension;
     this.state = { total: null, filter: null, bin: null };
     this.toPixels = () => [0, 0];
-    this.isAttached = true;
+  }
+
+  /**
+   * slowest way to update data
+   *
+   * @todo this breaks when an active view is on
+   * @todo replace this with targeted updates instead of just recomputing everything
+   */
+  async update(dimension: Dimension) {
+    this.dimension = dimension;
+    await this.falcon.link();
   }
 
   /**
@@ -52,6 +61,11 @@ export class View1D extends ViewAbstract<View1DState> {
       this.dimension.range = await this.falcon.db.range(this.dimension);
     }
     if (this.dimension.type === "continuous") {
+      // if the bins are specified, autocompute the best num of bins!
+      this.dimension.bins =
+        this.dimension.bins ??
+        (await this.falcon.db.estimateNumBins(this.dimension, 200, 15));
+
       this.dimension.binConfig = createBinConfigContinuous(
         this.dimension,
         this.dimension.range!
@@ -77,7 +91,7 @@ export class View1D extends ViewAbstract<View1DState> {
    *
    * @returns the View1D class itself
    */
-  async initializeAllCounts() {
+  async all() {
     await this.createBins();
 
     const counts = await this.falcon.db.histogramView1D(
@@ -95,8 +109,8 @@ export class View1D extends ViewAbstract<View1DState> {
   /**
    * prefetch the 1D falcon index
    */
-  async prefetch() {
-    if (!this.isActive) {
+  async computeIndex(force = false) {
+    if (!this.isActive || force) {
       // make sure we have binConfigs computed for all views if this one is activated
       await this.falcon.views.forEach(async (view) => {
         const rangeNotComputed =
@@ -107,7 +121,7 @@ export class View1D extends ViewAbstract<View1DState> {
 
         // we just count the whole shebang too
         if (rangeNotComputed) {
-          await view.initializeAllCounts();
+          await view.all();
         }
       });
 
@@ -130,13 +144,13 @@ export class View1D extends ViewAbstract<View1DState> {
    * this prefetches the falcon index under the hood that does all the speedups
    */
   async activate() {
-    await this.prefetch();
+    await this.computeIndex();
   }
 
   /**
    * compute counts from the falcon index
    */
-  async select(filter?: DimensionFilter, convertToPixels = true) {
+  async select(filter?: DimensionFilter, force = false) {
     if (filter) {
       if (this.dimension.type === "continuous") {
         // just end now if the filter hasn't changed
@@ -144,7 +158,7 @@ export class View1D extends ViewAbstract<View1DState> {
           this.lastFilter &&
           this.lastFilter[0] === filter[0] &&
           this.lastFilter[1] === filter[1];
-        if (filterStayedTheSame) {
+        if (filterStayedTheSame && force === false) {
           return;
         }
 
@@ -152,9 +166,7 @@ export class View1D extends ViewAbstract<View1DState> {
         this.falcon.filters.set(this.dimension, filter);
 
         // convert active selection into pixels if needed
-        let selectPixels = convertToPixels
-          ? this.toPixels(filter as ContinuousRange)
-          : filter;
+        let selectPixels = this.toPixels(filter as ContinuousRange);
 
         if (this.isActive) {
           // use the index to count for the passive views
@@ -213,15 +225,6 @@ export class View1D extends ViewAbstract<View1DState> {
     }
   }
 
-  detach() {
-    this.falcon.views.remove(this);
-    this.isAttached = false;
-  }
-  attach() {
-    this.falcon.views.add(this);
-    this.isAttached = true;
-  }
-
   /**
    * Given an active 1D view, count for this passive view
    */
@@ -278,13 +281,38 @@ export class View1D extends ViewAbstract<View1DState> {
       const bin = binNumberFunctionCategorical(totalRange!);
       for (const s of selection) {
         const binKey = bin(s);
-        const counts = index.filter.slice(binKey, null);
-        binCounts.addToItself(counts);
+        if (binKey) {
+          const counts = index.filter.slice(binKey, null);
+          binCounts.addToItself(counts);
+        }
       }
       this.state.filter = binCounts.data as CountsArrayType;
     }
 
     // signal user
     this.signalOnChange(this.state);
+  }
+
+  /**
+   * attaches to the global falcon index
+   */
+  async attach() {
+    this.falcon.views.add(this);
+    await this.falcon.link();
+  }
+
+  /**
+   * detaches from the global falcon index
+   *
+   * if I detach an active view, I need to relink
+   */
+  async detach() {
+    this.falcon.views.remove(this);
+    this.falcon.index.delete(this);
+
+    // if we remove the active view, revert back
+    if (this.isActive) {
+      await this.falcon.link();
+    }
   }
 }

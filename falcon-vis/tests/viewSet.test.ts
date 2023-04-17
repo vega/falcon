@@ -44,6 +44,6 @@ describe("ViewSet", () => {
     passiveViews.forEach((view) => {
       expect(view.isActive).toBe(false);
     });
-    expect(activeView.isActive).toBe(true);
+    expect(activeView?.isActive).toBe(true);
   });
 });

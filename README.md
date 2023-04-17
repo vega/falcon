@@ -8,151 +8,114 @@
 
 **🚧 Work in Progress**
 
-A javascript library to cross-filter millions of records in your own applications without latencies!
-
-Try out [the live demo](http://dig.cmu.edu/falcon/) using FalconVis.
-
-Implements the original [Falcon](https://github.com/vega/falcon) under the hood.
-
-## Usage
-
-Preview of [`data/movies.json`](data/movies.json): an array of objects
-
-```json
-[
-	{
-		"Title": "Forrest Gump",
-		"US_Gross": 329694499,
-		"MPAA_Rating": "PG-13",
-		...
-	},
-	...
-	{
-		"Title": "Star Wars Ep. VI: Return of the Jedi",
-		"US_Gross": 309205079,
-		"MPAA_Rating": "PG",
-		...
-	}
-]
+```bash
+npm install falcon-vis
 ```
 
-### Getting Started
+A simple javascript API to link visualizations at scale. FalconVis is a successor to [`vega/falcon`](https://github.com/vega/falcon).
 
-Create a falcon object to get ready to cross-filter
+Finally, you can cross-filter all the data you've been hoarding without the large delays or slowdowns. Interactions are smooth, fast, and responsive.
 
-```typescript
-import * as falconVis from "falcon-vis";
+**Live Browser Examples**
 
-const data = await fetch("data/movies.json").then((d) => d.json());
-const jsonDB = new falconVis.JsonDB(data);
+-   TODO: add json 10k
+-   TODO: add arrow 1million
+-   TODO: add duckdb-wasm 5 million
+-   [[30 Million Flights | DuckDB Python]](https://huggingface.co/spaces/donnyb/FalconVis)
 
-// this object will be used for cross-filtering
-const falcon = new falconVis.Falcon(jsonDB);
-```
+## Example
 
-For larger data, or data on a server, use a different DB also provided by FalconVis:
+Check out real examples in the [`examples/`](examples/) directory. If you want a quick sneak-peak, keep reading.
 
--   ArrowDB
--   DuckDB
--   HttpDB
--   MapDDB
+TODO make this section more clear.
 
-(todo link docs on these usages)
+### Initialization
 
-### Initializing Views
+Create a the `falcon` instance and link it up to some data and some views.
 
-FalconVis operates by linking together views. You directly interact with views after linking them to the falcon object.
+```ts
+import { FalconVis, JsonDB } from "falcon-vis";
 
-```typescript
-const falcon = new falconVis.Falcon(jsonDB);
-
-// link the US_Gross earnings for the movies
-const usGrossView = await falcon.linkView1D(
-	{
-		type: "continuous",
-		name: "US_Gross",
-		bins: 25,
-		resolution: 400, // my actual visualization is 400px wide
-	},
-	// onChange gets called every time new filters are applied to any linked view
-	(updatedBinCounts) => {
-		// for example, I could update the DOM with these counts
-		console.log(updatedBinCounts);
-	}
+/**
+ * 1. create the falcon instance with a database
+ */
+const plainOldJavascriptObject = await fetch("flights-10k.json").then((d) =>
+	d.json()
 );
+const db = new JsonDB(plainOldJavascriptObject);
+falcon = new FalconVis(db);
 
-// link the movie ratings
-const ratingView = await falcon.linkView1D(
-	{
-		type: "categorical",
-		name: "MPAA_Rating",
-	},
-	(updatedBinCounts) => {
-		console.log(updatedBinCounts);
-	}
-);
-
-// link the total number of rows selected (number that remain after filter)
-const totalCount = await falcon.linkCount((updatedCount) => {
-	console.log(updateCount);
+/**
+ * 2. create the views (you interact with these directly to cross-filter)
+ */
+// 0D is total count (num rows)
+const countView = await falcon.view0D();
+countView.onChange((updatedTotalCount) => {
+	// called every time the count changes
+	console.log(updatedTotalCount); // you can do whatever in here
 });
 
-// initially populate ALL the views' counts
-await falcon.initializeAllCounts();
+// 1D is a histogram
+const distanceView = await falcon.view1D({
+	type: "continuous",
+	name: "Distance",
+	resolution: 400,
+	bins: 5,
+});
+distanceView.onChange((updatedHistogram) => {
+	console.log(updatedHistogram);
+});
 
-// OR you can manually call view.initializeAllCounts() for each one
-await usGrossView.initializeAllCounts();
-await ratingView.initializeAllCounts();
-await totalCount.initializeAllCounts();
+/**
+ * 3. initialize falcon by linking everything together
+ */
+await falcon.link();
 ```
 
-### Cross-filtering views
+### Cross-filtering
 
-FalconVis uses [Falcon](https://github.com/vega/falcon) to cross-filter views latency free for even very large amounts of data (many millions or billions).
+The view you that you want to filter is the active view. Once you do filter an active view, the `onChange` callbacks will be called with the updated counts for all the other linked views.
 
-All you need to do is call `.activate()` (for the [Falcon](https://github.com/vega/falcon) magic) and `.select()` to cross-filter (you `.select()` what to keep).
+```ts
+/**
+ * 1. make the view you are interacting with active
+ *    this computes the fast falcon index in the background
+ */
+await distanceView.activate();
 
-Each time `.select()` is called, the onChange functions defined in the previous section for all linked views will be called (since the counts get updated).
-
-```typescript
-// after activation, subsequence .select() will be O(1) constant time calls
-await usGrossView.activate();
-
-// cross-filter between $500,000 and $1_000_000
-await usGrossView.select([500_000, 1_000_000]);
-
-// if you want to deselect
-await usGrossView.select();
-
-// or activate a different view and add another filter
-await ratingView.activate();
-await ratingView.select(["PG-13", "G"]);
+/**
+ * 2. select/filter a range between 0 and 100
+ */
+await distanceView.select([0, 100]);
 ```
 
-### Returning cross-filtered entries
+## API Reference
 
-You call this on demand, and does not update every time the counts update in the views.
+TODO fill in and add examples
 
-```typescript
-// returns 20 entries that are selected from the applied cross-filters
-// as an iterator
-let entries = await falcon.getEntries({ offset: 0, length: 20 });
-for (const entry of entries) {
-	console.log(entry);
-}
+### Core
 
-// returns next 20 entries (after the first 20)
-entries = await falcon.getEntries({ offset: 20, length: 20 });
-```
+<br><a href="#">#</a> index.<b>view0D</b>()
 
-Using offset and length, you can see how to easily implement pagination.
+<br><a href="#">#</a> index.<b>view1D</b>()
 
-### Examples
+<br><a href="#">#</a> index.<b>link</b>()
 
-To see real working examples, check out the self-contained examples in the [`examples/`](examples/) directory.
+<br><a href="#">#</a> index.<b>entries</b>()
 
-Check out the workspace [`package.json`](package.json) or the specific example's `package.json` for more information on how to run them.
+<br><a href="#">#</a> view.<b>activate</b>()
 
-### Development
+<br><a href="#">#</a> view.<b>select</b>()
+
+<br><a href="#">#</a> view.<b>onChange</b>()
+
+## Databases
+
+<br><a href="#">#</a> <b>JsonDB</b>
+<br><a href="#">#</a> <b>ArrowDB</b>
+<br><a href="#">#</a> <b>DuckDB</b>
+<br><a href="#">#</a> <b>HttpDB</b>
+
+## Development
 
 Check out the [`CONTRIBUTING.md`](CONTRIBUTING.md) document to see how to run the development server.

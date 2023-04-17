@@ -1,13 +1,11 @@
 <script lang="ts">
 	import {
-		Falcon,
+		FalconVis,
 		type View0DState,
 		type View1DState,
-		View0D,
 		View1D,
 		ArrowDB,
-		type Dimension,
-		smoothBins1D,
+		DuckDB,
 	} from "falcon-vis";
 	import { onMount } from "svelte";
 	import CategoricalHistogram from "./components/CategoricalHistogram.svelte";
@@ -15,26 +13,11 @@
 
 	import logo from "../../../logo/logo.png";
 
-	let falcon: Falcon;
+	let index: FalconVis;
 
 	let countState: View0DState;
 	let views: View1D[] = [];
 	let viewStates: View1DState[] = [];
-
-	async function compose(falcon: Falcon, view1Ds: Dimension[]) {
-		falcon.linkCount((state) => {
-			countState = state;
-		});
-
-		viewStates = new Array(view1Ds.length);
-		const views = view1Ds.map((dim, i) =>
-			falcon.linkView1D(dim, (state) => {
-				viewStates[i] = state;
-			})
-		);
-
-		return Promise.all(views);
-	}
 
 	let mounted = false;
 	onMount(async () => {
@@ -43,58 +26,42 @@
 	});
 
 	async function moviesArrow() {
+		// const db = await DuckDB.fromParquetFile("data/movies-3k.parquet");
 		const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
-		falcon = new Falcon(db);
+		index = new FalconVis(db);
 
-		views = await compose(falcon, [
-			{
-				type: "categorical",
-				name: "MPAA_Rating",
-			},
-			{
-				type: "continuous",
-				name: "US_Gross",
-				bins: 25,
-				resolution: 400,
-			},
-			{
-				type: "continuous",
-				name: "Worldwide_Gross",
-				bins: 25,
-				resolution: 400,
-			},
-		]);
+		const count = await index.view0D();
+		const rating = await index.view1D({
+			type: "categorical",
+			name: "MPAA_Rating",
+		});
+		const usGross = await index.view1D({
+			type: "continuous",
+			name: "US_Gross",
+			resolution: 400,
+		});
+		const worldGross = await index.view1D({
+			type: "continuous",
+			name: "Worldwide_Gross",
+			resolution: 400,
+		});
 
-		await falcon.initializeAllCounts();
-		console.warn = () => {};
-	}
+		views = [rating, usGross, worldGross];
 
-	// test the smoothing
-	$: {
-		if (mounted && falcon) {
-			const aContinuousViewState =
-				viewStates[
-					views.findIndex(
-						(view) => view.dimension.type === "continuous"
-					)
-				];
-			testSmoothing(aContinuousViewState);
-		}
-	}
-
-	function testSmoothing(state: View1DState) {
-		const { filter, total, bin } = state;
-		// return iterator with 500 bins each with an estimate count from smoothing
-		try {
-			const output = smoothBins1D({
-				bins: bin,
-				counts: total,
-				numOutputBins: 500,
+		// then define how the states get updated when those linked views change
+		viewStates = new Array(views.length);
+		views.forEach((view, i) => {
+			view.onChange((state) => {
+				viewStates[i] = state;
 			});
-			console.log(output);
-		} catch (e) {}
+		});
+		count.onChange((state) => {
+			countState = state;
+		});
 
-		console.log(filter, total, bin);
+		await index.link();
+
+		console.warn = () => {};
 	}
 </script>
 
@@ -136,6 +103,15 @@
 			</div>
 		{/each}
 	</div>
+
+	<button
+		on:click={async () => {
+			views[1].update({
+				...views[1].dimension,
+				bins: 100,
+			});
+		}}>update</button
+	>
 </main>
 
 <style>

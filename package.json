@@ -11,6 +11,8 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
+    "start:flights-1m": "yarn workspace flights-1m dev --open",
+    "start:flights-10k": "yarn workspace flights-10k dev --open",
     "start:flights-frontend": "yarn workspace flights dev --open",
     "start:flights-backend": "python3 examples/flights/backend/server.py",
     "start:diffusion": "yarn workspace diffusion-duckdb dev --open",

@@ -33,14 +33,14 @@
 			fullUrl("data/movies-3k.parquet")
 		);
 		// const db = await ArrowDB.fromArrowFile("data/movies-3k.arrow");
-		falcon = new Falcon(db);
+		falcon = new FalconVis(db);
 
-		count = await falcon.linkCount((state) => {
+		count = await falcon.view0D((state) => {
 			countState = state;
 		});
 
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "IMDB_Rating",
 				bins: 25,
@@ -48,13 +48,13 @@
 			})
 		);
 		// views.push(
-		// 	await falcon.linkView1D({
+		// 	await falcon.view1D({
 		// 		type: "categorical",
 		// 		name: "MPAA_Rating",
 		// 	})
 		// );
 		views.push(
-			await falcon.linkView1D({
+			await falcon.view1D({
 				type: "continuous",
 				name: "Rotten_Tomatoes_Rating",
 				bins: 25,
@@ -70,11 +70,11 @@
 			});
 		});
 
-		await falcon.initializeAllCounts();
+		await falcon.all();
 		await views[0].activate();
 		await views[0].select([6.41, 8.52]);
 		falcon.filters = falcon.filters;
-		instances = await falcon.getEntries({
+		instances = await falcon.entries({
 			offset: 0,
 			length: pageSize,
 		});
@@ -123,7 +123,7 @@
 						if (resolved) {
 							resolved = false;
 							request = falcon
-								.getEntries({
+								.entries({
 									length: pageSize,
 								})
 								.then((d) => {
@@ -152,7 +152,7 @@
 	<button
 		on:click={async () => {
 			page = Math.max(page - pageSize, 0);
-			instances = await falcon.getEntries({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});
@@ -163,7 +163,7 @@
 	<button
 		on:click={async () => {
 			page += pageSize;
-			instances = await falcon.getEntries({
+			instances = await falcon.entries({
 				length: pageSize,
 				offset: page,
 			});

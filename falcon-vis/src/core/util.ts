@@ -10,6 +10,9 @@ import type { CategoricalRange, ContinuousDimension } from "./dimension";
 
 export type Interval<T> = [T, T];
 
+// takes an item and maps to a integer index
+export type BinNumberFunction = (key: any) => number | undefined;
+
 /**
  * Binning configuration.
  */
@@ -55,7 +58,7 @@ export function numBinsCategorical(range: CategoricalRange) {
  */
 export function binNumberFunctionCategorical(range: CategoricalRange) {
   const binMapper = new Map(range.map((item, index) => [item, index]));
-  return (item: any) => binMapper.get(item)!;
+  return (item: any) => binMapper.get(item);
 }
 
 /**
@@ -87,12 +90,15 @@ export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
   };
 }
 
+/**
+ * This function requires dimension.bins to exist
+ */
 export function createBinConfigContinuous(
   dimension: ContinuousDimension,
   extent: Interval<number>
 ) {
   const binningFunc = dimension.time ? binTime : binContinuous;
-  return binningFunc(dimension.bins, extent);
+  return binningFunc(dimension.bins!, extent);
 }
 
 export function readableBinsContinuous(binConfig: BinConfig) {
