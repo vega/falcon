@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/cwise": "^1.0.4",
     "@types/d3": "^7.4.0",
-    "@types/jest": "^29.5.0",
+    "@types/jest": "^29.5.1",
     "@types/ndarray": "1.0.11",
     "@types/ndarray-ops": "^1.2.4",
     "jest": "^29.5.0",
