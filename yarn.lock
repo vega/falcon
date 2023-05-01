@@ -3916,10 +3916,10 @@ svelte-vega@^1.2.0:
     fast-deep-equal "^3.1.3"
     vega-embed "^6.21.0"
 
-svelte@^3.55.0, svelte@^3.55.1:
-  version "3.55.1"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.55.1.tgz#6f93b153e5248039906ce5fe196efdb9e05dfce8"
-  integrity sha512-S+87/P0Ve67HxKkEV23iCdAh/SX1xiSfjF1HOglno/YTbSTW7RniICMCofWGdJJbdjw3S+0PfFb1JtGfTXE0oQ==
+svelte@^3.58.0:
+  version "3.58.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.58.0.tgz#d3e6f103efd6129e51c7d709225ad3b4c052b64e"
+  integrity sha512-brIBNNB76mXFmU/Kerm4wFnkskBbluBDCjx/8TcpYRb298Yh2dztS2kQ6bhtjMcvUhd5ynClfwpz5h2gnzdQ1A==
 
 table-layout@^1.0.2:
   version "1.0.2"
@@ -4368,6 +4368,13 @@ vega-selections@^5.4.1:
     vega-util "^1.17.1"
 
 vega-statistics@^1.8.0, vega-statistics@^1.8.1, vega-statistics@^1.9.0, vega-statistics@~1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/vega-statistics/-/vega-statistics-1.9.0.tgz#7d6139cea496b22d60decfa6abd73346f70206f9"
+  integrity sha512-GAqS7mkatpXcMCQKWtFu1eMUKLUymjInU0O8kXshWaQrVWjPIO2lllZ1VNhdgE0qGj4oOIRRS11kzuijLshGXQ==
+  dependencies:
+    d3-array "^3.2.2"
+
+vega-statistics@^1.8.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/vega-statistics/-/vega-statistics-1.9.0.tgz#7d6139cea496b22d60decfa6abd73346f70206f9"
   integrity sha512-GAqS7mkatpXcMCQKWtFu1eMUKLUymjInU0O8kXshWaQrVWjPIO2lllZ1VNhdgE0qGj4oOIRRS11kzuijLshGXQ==
