@@ -24,6 +24,6 @@
     "falcon-vis": "0.17.1",
     "svelte-vega": "^1.2.0",
     "vega": "^5.25.0",
-    "vega-lite": "^5.6.1"
+    "vega-lite": "^5.7.1"
   }
 }
