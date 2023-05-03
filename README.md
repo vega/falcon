@@ -19,7 +19,7 @@ Finally, you can cross-filter all the data you've been hoarding without the larg
 **Live Browser Examples**
 
 -   [[10 Million Flights | DuckDB WASM on ObservableHQ]](https://observablehq.com/d/75371ab6ea37d20c)
--   [[30 Million Flights | DuckDB Python on Huggingface Spaces]](https://huggingface.co/spaces/donnyb/FalconVis)
+-   [[10 Million Flights | DuckDB Python on Huggingface Spaces]](https://huggingface.co/spaces/donnyb/FalconVis)
 
 ## Example
 
