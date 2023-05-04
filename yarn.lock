@@ -3566,7 +3566,7 @@ save-pixels@^2.3.4:
     pngjs-nozlib "^1.0.0"
     through "^2.3.4"
 
-semver@7.x, semver@^7.3.5, semver@^7.3.7:
+semver@7.x, semver@^7.3.5:
   version "7.3.8"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
   integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
@@ -3577,6 +3577,13 @@ semver@^6.0.0, semver@^6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
+
+semver@~7.4.0:
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.4.0.tgz#8481c92feffc531ab1e012a8ffc15bdd3a0f4318"
+  integrity sha512-RgOxM8Mw+7Zus0+zcLEUn8+JfoLpj/huFTItQy2hsM4khuC1HYRDp0cU482Ewn/Fcy6bCjufD8vAj7voC66KQw==
+  dependencies:
+    lru-cache "^6.0.0"
 
 shallow-copy@~0.0.1:
   version "0.0.1"
@@ -3817,13 +3824,13 @@ svelte-preprocess@^5.0.3:
     sorcery "^0.11.0"
     strip-indent "^3.0.0"
 
-svelte-vega@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/svelte-vega/-/svelte-vega-1.2.0.tgz#ec8c835837a15198b1ac26c90abd07ef41bc4647"
-  integrity sha512-MsDdO+l7o/d9d4mVkh8MBDhqZvJ45lpuprBaTj0V/ZilIG902QERHFQlam3ZFcR9C9OIKSpmPqINssWNPkDdcA==
+svelte-vega@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/svelte-vega/-/svelte-vega-2.0.0.tgz#f1343c4b3b129f1f135b30cf4d23759094c3f498"
+  integrity sha512-WnJM+hQNw15VAUtwT6oteog3+0KRw8i8K02gAB4VLM0RYs2NXxBZ1q/BdOvkl1XVnZytRVlLr1HQgxeZs7QwUA==
   dependencies:
     fast-deep-equal "^3.1.3"
-    vega-embed "^6.21.0"
+    vega-embed "^6.21.3"
 
 svelte@^3.58.0:
   version "3.58.0"
@@ -4053,19 +4060,20 @@ vega-dataflow@^5.7.3, vega-dataflow@^5.7.5, vega-dataflow@~5.7.5:
     vega-loader "^4.5.1"
     vega-util "^1.17.1"
 
-vega-embed@^6.21.0:
-  version "6.21.0"
-  resolved "https://registry.yarnpkg.com/vega-embed/-/vega-embed-6.21.0.tgz#a6f7d4965c653e40620bfd0a51fb419321cff02c"
-  integrity sha512-Tzo9VAfgNRb6XpxSFd7uphSeK2w5OxDY2wDtmpsQ+rQlPSEEI9TE6Jsb2nHRLD5J4FrmXKLrTcORqidsNQSXEg==
+vega-embed@^6.21.3:
+  version "6.22.1"
+  resolved "https://registry.yarnpkg.com/vega-embed/-/vega-embed-6.22.1.tgz#102a1c80b00c2dffd85d3492b4216686f94b0484"
+  integrity sha512-5a3SVhPwG5/Mz3JbcJV4WE38s/7AFrkANtPxoln7E8fbNLIbrurIennaAxB9+l0QOAg63lPSuJBNMUkM6yXvLA==
   dependencies:
     fast-json-patch "^3.1.1"
     json-stringify-pretty-compact "^3.0.0"
-    semver "^7.3.7"
-    tslib "^2.4.0"
-    vega-interpreter "^1.0.4"
+    semver "~7.4.0"
+    tslib "^2.5.0"
+    vega-interpreter "^1.0.5"
     vega-schema-url-parser "^2.2.0"
-    vega-themes "^2.10.0"
-    vega-tooltip "^0.28.0"
+    vega-themes "^2.13.0"
+    vega-tooltip "^0.32.0"
+    yallist "*"
 
 vega-encode@~4.9.2:
   version "4.9.2"
@@ -4159,10 +4167,10 @@ vega-hierarchy@~4.1.1:
     vega-dataflow "^5.7.5"
     vega-util "^1.17.1"
 
-vega-interpreter@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/vega-interpreter/-/vega-interpreter-1.0.4.tgz#291ebf85bc2d1c3550a3da22ff75b3ba0d326a39"
-  integrity sha512-6tpYIa/pJz0cZo5fSxDSkZkAA51pID2LjOtQkOQvbzn+sJiCaWKPFhur8MBqbcmYZ9bnap1OYNwlrvpd2qBLvg==
+vega-interpreter@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/vega-interpreter/-/vega-interpreter-1.0.5.tgz#19e1d1b5f84a4ea9cb25c4e90a05ce16cd058484"
+  integrity sha512-po6oTOmeQqr1tzTCdD15tYxAQLeUnOVirAysgVEemzl+vfmvcEP7jQmlc51jz0jMA+WsbmE6oJywisQPu/H0Bg==
 
 vega-label@~1.2.1:
   version "1.2.1"
@@ -4283,10 +4291,10 @@ vega-statistics@^1.8.0, vega-statistics@^1.8.1, vega-statistics@^1.9.0, vega-sta
   dependencies:
     d3-array "^3.2.2"
 
-vega-themes@^2.10.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/vega-themes/-/vega-themes-2.12.0.tgz#1005f67d64795ce239becc1005a605ee07a52e71"
-  integrity sha512-gHNYCzDgexSQDmGzQsxH57OYgFVbAOmvhIYN3MPOvVucyI+zhbUawBVIVNzG9ftucRp0MaaMVXi6ctC5HLnBsg==
+vega-themes@^2.13.0:
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/vega-themes/-/vega-themes-2.13.0.tgz#be1a4e2eeec948d9ac4459e530473c1abe371c26"
+  integrity sha512-SVr/YDqGhkVDO2bRS62TeGyr1dVuXaNLJNCu42b1tbcnnmX2m9cyaq8G6gcputPeibArvHT1MsTF7MUzboOIWg==
 
 vega-time@^2.1.1, vega-time@~2.1.1:
   version "2.1.1"
@@ -4297,12 +4305,12 @@ vega-time@^2.1.1, vega-time@~2.1.1:
     d3-time "^3.1.0"
     vega-util "^1.17.1"
 
-vega-tooltip@^0.28.0:
-  version "0.28.0"
-  resolved "https://registry.yarnpkg.com/vega-tooltip/-/vega-tooltip-0.28.0.tgz#8bae2601ffae5e67622de37108f53f284e9a978b"
-  integrity sha512-DbK0V5zzk+p9cphZZXV91ZGeKq0zr6JIS0VndUoGTisldzw4tRgmpGQcTfMjew53o7/voeTM2ELTnJAJRzX4tg==
+vega-tooltip@^0.32.0:
+  version "0.32.0"
+  resolved "https://registry.yarnpkg.com/vega-tooltip/-/vega-tooltip-0.32.0.tgz#730f3408a1bded4237a881047f81c4971987c0f5"
+  integrity sha512-Sc4/vZsXDM9nOiHrxc8hfpc9lYc7Nr0FIYYkIi90v2d6IoE6thm6T4Exo2m7cMK4rwevwf6c4/FABwjOMIs4MQ==
   dependencies:
-    vega-util "^1.17.0"
+    vega-util "^1.17.1"
 
 vega-transforms@~4.10.2:
   version "4.10.2"
@@ -4325,7 +4333,7 @@ vega-typings@~0.24.0:
     vega-expression "^5.0.1"
     vega-util "^1.17.1"
 
-vega-util@^1.15.2, vega-util@^1.17.0, vega-util@^1.17.1, vega-util@~1.17.0, vega-util@~1.17.2:
+vega-util@^1.15.2, vega-util@^1.17.1, vega-util@~1.17.0, vega-util@~1.17.2:
   version "1.17.2"
   resolved "https://registry.yarnpkg.com/vega-util/-/vega-util-1.17.2.tgz#f69aa09fd5d6110c19c4a0f0af9e35945b99987d"
   integrity sha512-omNmGiZBdjm/jnHjZlywyYqafscDdHaELHx1q96n5UOz/FlO9JO99P4B3jZg391EFG8dqhWjQilSf2JH6F1mIw==
@@ -4508,15 +4516,15 @@ y18n@^5.0.5:
   resolved "https://registry.yarnpkg.com/y18n/-/y18n-5.0.8.tgz#7f4934d0f7ca8c56f95314939ddcd2dd91ce1d55"
   integrity sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==
 
+yallist@*, yallist@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
+  integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
+
 yallist@^3.0.2:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-3.1.1.tgz#dbb7daf9bfd8bac9ab45ebf602b8cbad0d5d08fd"
   integrity sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==
-
-yallist@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
-  integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
 yargs-parser@^21.0.1, yargs-parser@^21.1.1:
   version "21.1.1"
