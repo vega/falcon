@@ -17,9 +17,10 @@ A simple javascript API to link visualizations at scale. FalconVis is a successo
 Finally, you can cross-filter all the data you've been hoarding without the large delays or slowdowns. Interactions are smooth, fast, and responsive.
 
 **Live Browser Examples**
--   [[3 Million Flights | DuckDB WASM on ObservableHQ]](https://observablehq.com/d/75371ab6ea37d20c)
--   [[10 Million Flights | DuckDB WASM on ObservableHQ]](https://observablehq.com/d/ee8baae0a36606d7)
--   [[10 Million Flights | DuckDB Python on Huggingface Spaces]](https://huggingface.co/spaces/donnyb/FalconVis)
+-   [[1 Million | Apache Arrow on ObservableHQ]](https://observablehq.com/d/68fae2b29f7f389a)
+-   [[3 Million | DuckDB WASM on ObservableHQ]](https://observablehq.com/d/75371ab6ea37d20c)
+-   [[10 Million | DuckDB WASM on ObservableHQ]](https://observablehq.com/d/ee8baae0a36606d7)
+-   [[10 Million | DuckDB Python on Huggingface Spaces]](https://huggingface.co/spaces/donnyb/FalconVis)
 
 ## Example
 
