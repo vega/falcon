@@ -6,15 +6,18 @@
 
 [![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
-**🚧 Work in Progress**
-
 ```bash
 npm install falcon-vis
 ```
 
-A simple javascript API to link visualizations at scale. FalconVis is a successor to [`vega/falcon`](https://github.com/vega/falcon).
+**🚧 Work in Progress**
 
-Finally, you can cross-filter all the data you've been hoarding without the large delays or slowdowns. Interactions are smooth, fast, and responsive.
+A Javascript library that links visualizations through performant cross-filtering. FalconVis uses the [Falcon](https://www.domoritz.de/papers/2019-Falcon-CHI.pdf) data index to cross-filter many millions or even billions of data entries with no interaction delay. It's buttery smooth!
+
+Check out FalconVis cross-filtering 30 million entries below or try out the live browser examples
+
+![demo](https://user-images.githubusercontent.com/65095341/236651116-dc011a2e-0b9b-4b27-98f5-f84c453cf032.gif)
+
 
 **Live Browser Examples**
 -   [[1 Million | Apache Arrow on ObservableHQ]](https://observablehq.com/d/68fae2b29f7f389a)
