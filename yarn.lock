@@ -298,7 +298,7 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@duckdb/duckdb-wasm@^1.20.0", "@duckdb/duckdb-wasm@^1.25.0":
+"@duckdb/duckdb-wasm@^1.25.0":
   version "1.25.0"
   resolved "https://registry.yarnpkg.com/@duckdb/duckdb-wasm/-/duckdb-wasm-1.25.0.tgz#8bad1eb36604d17f207fc4e2359d9efdf92727bb"
   integrity sha512-CFONdFFJfB9TznFzpzKfljsCsSK67A8FvvqaP/kd6p+7K1jEngxTG+VTF3PmrW3s844CmTojNxEYtI1UznXiXA==
@@ -1055,9 +1055,10 @@
   resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.11.tgz#a78730ac1fd10ea01cda6954dba7b3bf4fa126f4"
   integrity sha512-hOZVTN24zDHwCHaW7mF9n1vHJt83fZhNZ0YYRBwQGhA96yBWWDPTDDlqJatagHIOJB0a4xoNkNc+t/Cxd+6qUA==
 
-"@types/node@*":
-  version "10.5.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.5.2.tgz#f19f05314d5421fe37e74153254201a7bf00a707"
+"@types/node@*", "@types/node@18.14.5":
+  version "18.14.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.14.5.tgz#4a13a6445862159303fc38586598a9396fc408b3"
+  integrity sha512-CRT4tMK/DHYhw1fcCEBwME9CSaZNclxfzVMe7GsO6ULSwsttbj70wSiX6rZdIjGblu93sTJxLdhNIT85KKI7Qw==
 
 "@types/node@18.7.23":
   version "18.7.23"
@@ -1167,6 +1168,22 @@ apache-arrow@^11.0.0:
     json-bignum "^0.0.3"
     pad-left "^2.1.0"
     tslib "^2.4.0"
+
+apache-arrow@^12.0.0:
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-12.0.0.tgz#3fe1e0b110dd30618ff00774372f54591a54d9ab"
+  integrity sha512-uI+hnZZsGfNJiR/wG8j5yPQuDjmOHx4hZpkA743G4x3TlFrCpA3MMX7KUkIOIw0e/CwZ8NYuaMzaQsblA47qVA==
+  dependencies:
+    "@types/command-line-args" "5.2.0"
+    "@types/command-line-usage" "5.0.2"
+    "@types/node" "18.14.5"
+    "@types/pad-left" "2.1.1"
+    command-line-args "5.2.1"
+    command-line-usage "6.1.3"
+    flatbuffers "23.3.3"
+    json-bignum "^0.0.3"
+    pad-left "^2.1.0"
+    tslib "^2.5.0"
 
 apply-colormap@^1.0.1:
   version "1.0.1"
@@ -1822,7 +1839,7 @@ d3-zoom@3:
     d3-selection "2 - 3"
     d3-transition "2 - 3"
 
-d3@^7.8.2, d3@^7.8.4:
+d3@^7.8.4:
   version "7.8.4"
   resolved "https://registry.yarnpkg.com/d3/-/d3-7.8.4.tgz#e35d45800e4068cab07e59e5d883a4bb42ab217f"
   integrity sha512-q2WHStdhiBtD8DMmhDPyJmXUxr6VWRngKyiJ5EfXMxPw+tqT6BhNjhJZ4w3BHsNm3QoVfZLY8Orq/qPFczwKRA==
@@ -2093,24 +2110,6 @@ falafel@^2.1.0:
     acorn "^7.1.1"
     isarray "^2.0.1"
 
-falcon-vis@0.17.1:
-  version "0.17.1"
-  resolved "https://registry.yarnpkg.com/falcon-vis/-/falcon-vis-0.17.1.tgz#cde7ece7c77392ec375738dc9752a7bc285991cc"
-  integrity sha512-hFbsBqQ6VuRpAepgDE1bQHMm2S7w/FhGcIYaJPY3geYH47W53DLYGMwu6QJEWhArRP/E1ZdV8HmTcj26k9gOFQ==
-  dependencies:
-    "@duckdb/duckdb-wasm" "^1.20.0"
-    "@heavyai/connector" "^7.0.0"
-    apache-arrow "^11.0.0"
-    cwise "^1.0.10"
-    d3 "^7.8.2"
-    fast-kde "^0.2.1"
-    ndarray "^1.0.19"
-    ndarray-imshow "git+https://github.com/domoritz/ndarray-imshow.git"
-    ndarray-linear-interpolate "^1.0.0"
-    ndarray-ops "^1.2.2"
-    ndarray-prefix-sum "^1.0.0"
-    vega-statistics "^1.8.0"
-
 fast-deep-equal@^3.1.3, fast-deep-equal@~3.1.3:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
@@ -2207,6 +2206,11 @@ flatbuffers@2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-2.0.4.tgz#034456e29ec480de48bad34f7fc18c03f20c9768"
   integrity sha512-4rUFVDPjSoP0tOII34oQf+72NKU7E088U5oX7kwICahft0UB2kOQ9wUzzCp+OHxByERIfxRDCgX5mP8Pjkfl0g==
+
+flatbuffers@23.3.3:
+  version "23.3.3"
+  resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-23.3.3.tgz#23654ba7a98d4b866a977ae668fe4f8969f34a66"
+  integrity sha512-jmreOaAT1t55keaf+Z259Tvh8tR/Srry9K8dgCgvizhKSEr6gLGgaOJI2WFL5fkOpGOGRZwxUrlFn0GCmXUy6g==
 
 fs-extra@^8.1.0:
   version "8.1.0"
@@ -3824,13 +3828,13 @@ svelte-preprocess@^5.0.3:
     sorcery "^0.11.0"
     strip-indent "^3.0.0"
 
-svelte-vega@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/svelte-vega/-/svelte-vega-2.0.0.tgz#f1343c4b3b129f1f135b30cf4d23759094c3f498"
-  integrity sha512-WnJM+hQNw15VAUtwT6oteog3+0KRw8i8K02gAB4VLM0RYs2NXxBZ1q/BdOvkl1XVnZytRVlLr1HQgxeZs7QwUA==
+svelte-vega@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/svelte-vega/-/svelte-vega-1.2.0.tgz#ec8c835837a15198b1ac26c90abd07ef41bc4647"
+  integrity sha512-MsDdO+l7o/d9d4mVkh8MBDhqZvJ45lpuprBaTj0V/ZilIG902QERHFQlam3ZFcR9C9OIKSpmPqINssWNPkDdcA==
   dependencies:
     fast-deep-equal "^3.1.3"
-    vega-embed "^6.21.3"
+    vega-embed "^6.21.0"
 
 svelte@^3.58.0:
   version "3.58.0"
@@ -4060,7 +4064,7 @@ vega-dataflow@^5.7.3, vega-dataflow@^5.7.5, vega-dataflow@~5.7.5:
     vega-loader "^4.5.1"
     vega-util "^1.17.1"
 
-vega-embed@^6.21.3:
+vega-embed@^6.21.0:
   version "6.22.1"
   resolved "https://registry.yarnpkg.com/vega-embed/-/vega-embed-6.22.1.tgz#102a1c80b00c2dffd85d3492b4216686f94b0484"
   integrity sha512-5a3SVhPwG5/Mz3JbcJV4WE38s/7AFrkANtPxoln7E8fbNLIbrurIennaAxB9+l0QOAg63lPSuJBNMUkM6yXvLA==
@@ -4174,10 +4178,10 @@ vega-label@~1.2.1:
     vega-scenegraph "^4.9.2"
     vega-util "^1.15.2"
 
-vega-lite@^5.8.0:
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/vega-lite/-/vega-lite-5.8.0.tgz#8ff8d119a229a023f07d64f6911943b813c1e110"
-  integrity sha512-b2X/YEa9Tdhxgk+kwepUk0Nriu9l8WnJl0kTHTCDqc/BvBIEJ3d12PI20Pb0m39xTw02mQL9uW3IGgFyBqhuSw==
+vega-lite@^5.6.1:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/vega-lite/-/vega-lite-5.9.0.tgz#2b268ae6c7dea645564596da323c8e1152dcd394"
+  integrity sha512-VA3XDlF6nd/t46KDMfq8eNKOJKy9gpJuM+6CIl3jbWqS97jWXRWXp8DpUyDmbV+iq8n4hqNTaoPqDP/e03kifw==
   dependencies:
     "@types/clone" "~2.1.1"
     clone "~2.1.2"
@@ -4276,7 +4280,7 @@ vega-selections@^5.4.1:
     vega-expression "^5.0.1"
     vega-util "^1.17.1"
 
-vega-statistics@^1.8.0, vega-statistics@^1.8.1, vega-statistics@^1.9.0, vega-statistics@~1.9.0:
+vega-statistics@^1.8.1, vega-statistics@^1.9.0, vega-statistics@~1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/vega-statistics/-/vega-statistics-1.9.0.tgz#7d6139cea496b22d60decfa6abd73346f70206f9"
   integrity sha512-GAqS7mkatpXcMCQKWtFu1eMUKLUymjInU0O8kXshWaQrVWjPIO2lllZ1VNhdgE0qGj4oOIRRS11kzuijLshGXQ==
@@ -4373,7 +4377,7 @@ vega-wordcloud@~4.1.4:
     vega-statistics "^1.8.1"
     vega-util "^1.17.1"
 
-vega@^5.25.0:
+vega@^5.24.0:
   version "5.25.0"
   resolved "https://registry.yarnpkg.com/vega/-/vega-5.25.0.tgz#086a799dfcd6958b6ca8eb41c92673ea591db323"
   integrity sha512-lr+uj0mhYlSN3JOKbMNp1RzZBenWp9DxJ7kR3lha58AFNCzzds7pmFa7yXPbtbaGhB7Buh/t6n+Bzk3Y0VnF5g==

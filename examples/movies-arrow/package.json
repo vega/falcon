@@ -20,7 +20,7 @@
     "vite": "^4.3.4"
   },
   "dependencies": {
-    "apache-arrow": "^11.0.0",
+    "apache-arrow": "^12.0.0",
     "falcon-vis": "0.17.2",
     "svelte-vega": "^1.2.0",
     "vega": "^5.24.0",

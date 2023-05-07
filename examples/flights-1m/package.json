@@ -10,7 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "apache-arrow": "^11.0.0",
+    "apache-arrow": "^12.0.0",
     "d3": "^7.8.4",
     "falcon-vis": "0.17.2",
     "svelte-vega": "^1.2.0",
