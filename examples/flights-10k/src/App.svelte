@@ -35,7 +35,7 @@
 			type: "continuous",
 			name: "Distance",
 			resolution: 400,
-			bins: 5,
+			bins: 20,
 		});
 		distanceView.onChange((updated) => {
 			distanceState = updated;
@@ -46,7 +46,7 @@
 			name: "ArrDelay",
 			resolution: 400,
 			range: [-20, 60],
-			bins: 5,
+			bins: 20,
 		});
 		arrDelayView.onChange((updated) => {
 			arrDelayState = updated;
@@ -57,7 +57,7 @@
 			name: "DepDelay",
 			resolution: 400,
 			range: [-20, 60],
-			bins: 5,
+			bins: 20,
 		});
 		depDelayView.onChange((updated) => {
 			depDelayState = updated;
@@ -67,7 +67,7 @@
 			type: "continuous",
 			name: "FlightDate",
 			resolution: 400,
-			bins: 25,
+			bins: 20,
 		});
 		flightDateView.onChange((updated) => {
 			flightDateState = updated;

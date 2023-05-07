@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { FalconVis, HttpDB } from "falcon-vis";
 	import type { View0D, View1D, View0DState, View1DState } from "falcon-vis";
+
 	import GithubButton from "./components/GithubButton.svelte";
 	import { tableFromIPC } from "apache-arrow";
 
@@ -31,6 +32,9 @@
 			new Map([["FlightDate", "epoch(FlightDate)*1000"]]),
 			dontEncodeURL
 		);
+		const resolution = 300;
+		const bins = 20;
+
 		falcon = new FalconVis(db);
 
 		countView = await falcon.view0D((updated) => {
@@ -40,8 +44,8 @@
 		distanceView = await falcon.view1D({
 			type: "continuous",
 			name: "Distance",
-			resolution: 400,
-			bins: 5,
+			resolution,
+			bins,
 		});
 		distanceView.onChange((updated) => {
 			distanceState = updated;
@@ -50,9 +54,9 @@
 		arrDelayView = await falcon.view1D({
 			type: "continuous",
 			name: "ArrDelay",
-			resolution: 400,
 			range: [-20, 60],
-			bins: 5,
+			resolution,
+			bins,
 		});
 		arrDelayView.onChange((updated) => {
 			arrDelayState = updated;
@@ -61,9 +65,9 @@
 		depDelayView = await falcon.view1D({
 			type: "continuous",
 			name: "DepDelay",
-			resolution: 400,
 			range: [-20, 60],
-			bins: 5,
+			resolution,
+			bins,
 		});
 		depDelayView.onChange((updated) => {
 			depDelayState = updated;
@@ -72,8 +76,8 @@
 		flightDateView = await falcon.view1D({
 			type: "continuous",
 			name: "FlightDate",
-			resolution: 400,
-			bins: 25,
+			resolution,
+			bins,
 			time: true,
 		});
 		flightDateView.onChange((updated) => {
@@ -115,13 +119,16 @@
 			resolved = true;
 		}
 	}
-	$: updateEntriesWhenStateChanges([
-		distanceState,
-		originState,
-		arrDelayState,
-		depDelayState,
-		flightDateState,
-	]);
+	$: updateEntriesWhenStateChanges(
+		[
+			distanceState,
+			originState,
+			arrDelayState,
+			depDelayState,
+			flightDateState,
+		],
+		200
+	);
 	let tableKeys = [
 		"FlightDate",
 		"OriginState",
@@ -161,7 +168,7 @@
 						bins={distanceState.bin}
 						filteredCounts={distanceState.filter}
 						totalCounts={distanceState.total}
-						on:mouseenter={async () => {
+						on:mousedown={async () => {
 							await distanceView.activate();
 						}}
 						on:select={async (e) => {
