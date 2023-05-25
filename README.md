@@ -8,7 +8,13 @@
 
 `FalconVis` was created by [Donny Bertucci](https://donnybertucci.com) and [Dominik Moritz](https://www.domoritz.de/) because the previous implementation ([`vega/falcon`](https://github.com/vega/falcon)) could not be used as a library or with custom visualizations.
 
-**Live interactive examples using `FalconVis`**
+**Table of Contents**
+
+-   [Examples](#examples)
+-   [Usage](#usage)
+-   [API Reference](#api-reference)
+
+## Examples
 
 **`ObservableHQ`**
 
@@ -150,7 +156,7 @@ In the [live example](https://observablehq.com/d/68fae2b29f7f389a), you can take
 
 https://github.com/cmudig/falcon/assets/65095341/ab7fa9fc-d51f-4830-89f6-93ac6913a5d3
 
-## API Documentation
+## API Reference
 
 <a href="#JsonDB" id="JsonDB">#</a> `class` <b>JsonDB</b>(_object_)
 
