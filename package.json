@@ -1,8 +1,8 @@
 {
-  "name": "falcon-monorepo",
+  "name": "falcon-vis-repository",
   "version": "0.0.0",
   "private": true,
-  "description": "Falcon package and examples of cross-filtering",
+  "description": "falcon-vis package and examples of it's use",
   "repository": "git+https://github.com/cmudig/falcon.git",
   "author": "xnought <bertuccd@oregonstate.edu>",
   "license": "ISC",
@@ -11,10 +11,6 @@
   },
   "homepage": "https://github.com/cmudig/falcon#readme",
   "scripts": {
-    "start:flights-1m": "yarn workspace flights-1m dev --open",
-    "start:flights-10k": "yarn workspace flights-10k dev --open",
-    "start:flights-frontend": "yarn workspace flights dev --open",
-    "start:flights-backend": "python3 examples/flights/backend/server.py",
     "start:diffusion": "yarn workspace diffusion-duckdb dev --open",
     "start:movies-arrow": "yarn workspace movies-arrow dev --open",
     "start:movies-duckdb": "yarn workspace movies-duckdb dev --open",
@@ -23,11 +19,7 @@
     "build": "yarn workspace falcon-vis build",
     "format": "yarn workspace falcon-vis format",
     "test": "yarn workspace falcon-vis test",
-    "build:deploy": "yarn workspace movies-duckdb build",
-    "deploy": "gh-pages -d examples/movies-duckdb/dist",
-    "clean:sh": "sh scripts/clean.sh",
-    "publish:sh": "sh scripts/publish.sh",
-    "deploy:sh": "sh scripts/deploy.sh"
+    "gh-pages": "gh-pages -d examples/live"
   },
   "devDependencies": {
     "gh-pages": "^5.0.0"

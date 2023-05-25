@@ -25,12 +25,10 @@
 	let originState: View1DState;
 
 	onMount(async () => {
-		const dontEncodeURL = (q) => q;
 		const db = new HttpDB(
 			`http://localhost:8000/query/`,
 			"flights",
-			new Map([["FlightDate", "epoch(FlightDate)*1000"]]),
-			dontEncodeURL
+			(q) => q
 		);
 		const resolution = 300;
 		const bins = 20;

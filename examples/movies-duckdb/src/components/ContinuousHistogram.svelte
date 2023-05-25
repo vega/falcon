@@ -9,6 +9,7 @@
 	export let countLabel = "Count";
 	export let dimLabel = "";
 	export let onlyFiltered = false;
+	export let type = "quantitative";
 
 	$: data = convertFormat(state);
 
@@ -38,4 +39,5 @@
 	{countLabel}
 	{dimLabel}
 	{onlyFiltered}
+	{type}
 />

@@ -1,5 +1,5 @@
-import { ViewSet } from "../src/core/views/viewSet";
-import { View1D } from "../src/core/views/view1D";
+import { ViewSet } from "../src/views/viewSet";
+import { View1D } from "../src/views/view1D";
 
 function dummyView() {
   // @ts-ignore

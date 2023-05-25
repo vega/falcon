@@ -1,4 +1,4 @@
-import { BitSet, union } from "../src/core/bitset";
+import { BitSet, union } from "../src/bitset";
 
 describe("Bitset creation", () => {
   it("import defined", () => {

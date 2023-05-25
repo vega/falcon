@@ -24,6 +24,7 @@
 	export let foregroundBarColor = "hsla(172, 97%, 45%, 0.95)";
 	export let backgroundColor = "hsl(240,23%,9%)";
 	export let onlyFiltered = false;
+	export let type: "quantitative" | "temporal" = "quantitative";
 
 	$: data = {
 		table: bins,
@@ -52,6 +53,7 @@
 					x: {
 						field: "bin[0]",
 						bin: { binned: true },
+						type,
 						axis: {
 							title: dimLabel,
 							titleColor: labelColor,
@@ -82,6 +84,7 @@
 					},
 					x: {
 						field: "bin[0]",
+						type,
 						bin: { binned: true },
 						title: "",
 					},

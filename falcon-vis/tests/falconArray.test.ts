@@ -1,4 +1,4 @@
-import { FalconArray } from "../src/core/falconArray/falconArray";
+import { FalconArray } from "../src/falconArray/falconArray";
 
 const TypedArraysToTest = [Uint32Array, Float32Array];
 

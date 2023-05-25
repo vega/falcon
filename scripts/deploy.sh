@@ -3,45 +3,41 @@
 source scripts/shared.sh
 
 examplesDir=examples
-examples=("movies-json")
+liveDir=live
+examples=("movies-arrow" "movies-json" "movies-duckdb" "flights-duckdb")
 
 function buildExamples() {
 	# go to each example and build them 
-	cd $examplesDir
 	for example in ${examples[@]}; do
 	  	cd $example
 	 	echo "Building $example"
 		yarn build
+		replaceAll "dist/index.html" "=\"\/" "=\"" # change all "/assets" to "assets"
+		mv dist/ ../live/$example
 		cd ..
 	done
-	cd ..
 }
 
-function fixViteForGHPages() {
-	cd $examplesDir
-	for example in ${examples[@]}; do
-		cd $example
-		cd dist
-		# for some reason gh pages doesnt like "/assets/..." and instead "assets/..."
-		# so remove the first slash on those examples
-		replaceAll "index.html" "=\"\/" "=\""
-		cd ..
-	done
-	cd ..
-}
 
 function deleteBuilds() {
-	# go to each example and build them 
-	cd $examplesDir
 	for example in ${examples[@]}; do
-	  	cd $example
 	 	echo "Deleting $example build"
-		rm -fr dist
-		cd ..
+		rm -fr $example
 	done
-	cd ..
 }
 
+cd $examplesDir
 buildExamples
-fixViteForGHPages
+# back to project root
+cd ..
+
+# deploy the live folder
+yarn gh-pages
+
+cd $examplesDir
+cd $liveDir
 deleteBuilds
+# back to project root
+cd ..
+cd ..
+
