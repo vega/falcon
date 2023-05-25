@@ -1,7 +1,7 @@
 {
   "name": "falcon-vis",
   "version": "0.17.3",
-  "main": "build",
+  "main": "src",
   "repository": "git@github.com:cmudig/falcon.git",
   "author": "cmudig",
   "license": "MIT",
