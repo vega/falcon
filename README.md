@@ -51,7 +51,15 @@ npm install falcon-vis
 
 Before you filter your data, you need to tell `FalconVis` about your data.
 
-`FalconVis` currently supports javascript objects, Apache Arrow tables, DuckDB Wasm, and HTTP GET Requests.
+`FalconVis` currently supports javascript objects, Apache Arrow tables, DuckDB Wasm, and HTTP GET Requests. For different data sizes, or if you want the computation to take place in the browser, different data types are recommended.
+
+| DB                        | Recommended Data Size            | Memory/Computation | Description                                                                                    |
+| ------------------------- | -------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- |
+| [`JsonDB`](#JsonDB)       | up to 500k                       | Browser            | Takes javascript object                                                                        |
+| [`ArrowDB`](#ArrowDB)     | up to 1m                         | Browser            | Takes [Apache Arrow](https://github.com/apache/arrow) table                                    |
+| [`DuckDB`](#DuckDB)       | up to 10m                        | Browser            | Queries [DuckDB WASM](https://duckdb.org/docs/api/wasm/overview.html) database                 |
+| [`HeavyaiDB`](#HeavyaiDB) | whatever your backend can handle | Backend            | Queries [HeavyAI](https://www.heavy.ai/) database connection                                   |
+| [`HttpDB`](#HttpDB)       | whatever your backend can handle | Backend            | Sends GET request to a backend server (sends SQL queries and expects arrow tables in response) |
 
 They are all typed as `FalconDB`.
 
