@@ -1,11 +1,11 @@
-import MapdCon from "@heavyai/connector";
+import HeavyaiCon from "@heavyai/connector";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 import type { SQLNameMap, SQLQuery } from "./sql";
 
-const connector = new MapdCon();
+const connector = new HeavyaiCon();
 
-export class MapDDB extends SQLDB {
+export class HeavyaiDB extends SQLDB {
   private session: any;
 
   constructor(session: any, table: string, nameMap?: SQLNameMap) {
@@ -35,7 +35,7 @@ export class MapDDB extends SQLDB {
 
     const session = await connection.connectAsync();
 
-    return new MapDDB(session, table, nameMap);
+    return new HeavyaiDB(session, table, nameMap);
   }
 
   protected castBins(input: number) {
