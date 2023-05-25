@@ -8,12 +8,12 @@ Cross-filter billions of data entries without interaction latency for your own l
 
 **`Github Pages`**
 
-| Data                  | Type        | Count | Live Demo                                                                   |
-| --------------------- | ----------- | ----- | --------------------------------------------------------------------------- |
-| Movies                | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-arrow/)   |
-| Movies                | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-json/)    |
-| Movies                | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-duckdb/)  |
-| Flights (with US Map) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/flights-duckdb/) |
+| Data                  | Type        | Count | Live Demo                                                                       |
+| --------------------- | ----------- | ----- | ------------------------------------------------------------------------------- |
+| Movies                | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-arrow/)   |
+| Movies                | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-json/)    |
+| Movies                | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-duckdb/)  |
+| Flights (with US Map) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/flights-duckdb/) |
 
 **More**
 

@@ -16,6 +16,15 @@
 
 ## Examples
 
+**`Github Pages`**
+
+| Data                  | Type        | Count | Live Demo                                                                       |
+| --------------------- | ----------- | ----- | ------------------------------------------------------------------------------- |
+| Movies                | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-arrow/)   |
+| Movies                | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-json/)    |
+| Movies                | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-duckdb/)  |
+| Flights (with US Map) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/flights-duckdb/) |
+
 **`ObservableHQ`**
 
 | Data    | Type        | Count | Live Demo                                                                    |
@@ -23,15 +32,6 @@
 | Flights | Arrow       | 1m    | [Click to open on ObservableHQ](https://observablehq.com/d/68fae2b29f7f389a) |
 | Flights | DuckDB WASM | 3m    | [Click to open on ObservableHQ](https://observablehq.com/d/75371ab6ea37d20c) |
 | Flights | DuckDB WASM | 10m   | [Click to open on ObservableHQ](https://observablehq.com/d/ee8baae0a36606d7) |
-
-**`Github Pages`**
-
-| Data                  | Type        | Count | Live Demo                                                                   |
-| --------------------- | ----------- | ----- | --------------------------------------------------------------------------- |
-| Movies                | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-arrow/)   |
-| Movies                | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-json/)    |
-| Movies                | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/movies-duckdb/)  |
-| Flights (with US Map) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon/flights-duckdb/) |
 
 **`Other`**
 
@@ -174,7 +174,7 @@ const columnarJson = {
 	ages: [21, 42, 40],
 };
 
-const db = new JsonDB(columnarJson); // ⬅️
+const db = new JsonDB(columnarJson); // ✅
 ```
 
 **Rows JSON Example**
@@ -188,7 +188,7 @@ const rowJson = [
 	{ name: "joe", age: 40 },
 ];
 
-const db = new JsonDB(rowJson); // ⬅️, but does a copy over rowJson
+const db = new JsonDB(rowJson); // ✅, but does a copy over rowJson
 ```
 
 <br> <a href="#ArrowDB" id="ArrowDB">#</a> `class` <b>ArrowDB</b>(_table_)
@@ -204,7 +204,7 @@ import { tableFromIPC } from "apache-arrow";
 const buffer = await (await fetch("data/flights-1m.arrow")).arrayBuffer();
 const table = await tableFromIPC(buffer);
 
-const db = new ArrowDB(table); // ⬅️
+const db = new ArrowDB(table); // ✅
 ```
 
 **Arrow Shorthand Example**
@@ -212,7 +212,7 @@ const db = new ArrowDB(table); // ⬅️
 ```ts
 import { ArrowDB } from "falcon-vis";
 
-const db = await ArrowDB.fromArrowFile("data/flights-1m.arrow"); // ⬅️
+const db = await ArrowDB.fromArrowFile("data/flights-1m.arrow"); // ✅
 ```
 
 <br> <a href="#DuckDB" id="DuckDB">#</a> `class` <b>DuckDB</b>(_duckdb_, _table_)
@@ -240,7 +240,7 @@ await c.query(
 );
 c.close();
 
-const db = new DuckDB(flightsDb, "flights"); // ⬅️
+const db = new DuckDB(flightsDb, "flights"); // ✅
 ```
 
 **Parquet Shorthand Example**
@@ -250,7 +250,7 @@ If you just want to load one parquet file, you can use the shorthand method `Duc
 ```ts
 import { DuckDB } from "falcon-vis";
 
-const db = await DuckDB.fromParquetFile("data/flights-1m.parquet"); // ⬅️
+const db = await DuckDB.fromParquetFile("data/flights-1m.parquet"); // ✅
 ```
 
 <br> <a href="#HttpDB" id="HttpDB">#</a> `class` <b>HttpDB</b>(_url_, _table_, _encodeQuery_?)
@@ -265,7 +265,7 @@ _encodeQuery_ is an optional parameter that encodes the SQL query before sending
 import { HttpDB } from "falcon-vis";
 
 const tableName = "flights";
-const db = new HttpDB("http://localhost:8000", tableName); // ⬅️
+const db = new HttpDB("http://localhost:8000", tableName); // ✅
 ```
 
 <br> <a href="#FalconVis" id="FalconVis">#</a> `class` <b>FalconVis</b>(_db_)
@@ -280,7 +280,7 @@ Takes in the data (`JsonDB`, `ArrowDB`, `DuckDB`, or `HttpDB`).
 import { FalconVis } from "falcon-vis";
 
 // given a db: FalconDB
-const falcon = new FalconVis(db); // ⬅️
+const falcon = new FalconVis(db); // ✅
 ```
 
 <br> <a href="#view0D" id="view0D">#</a> `function` <a href="#FalconVis">falcon</a>.<b>view0D</b>(onChangeCallback?)
@@ -309,7 +309,7 @@ const falcon = new FalconVis(db);
 
 const countView = falcon.view0D((count) => {
 	console.log(count.total, count.filter); // gets called every cross-filter
-}); // ⬅️
+}); // ✅
 ```
 
 **Example multiple and disposable `onChangeCallback`s**
@@ -324,10 +324,10 @@ const countView = falcon.view0D();
 // add onChange callbacks
 const disposeA = countView.onChange((count) => {
 	console.log("A", count.total, count.filter);
-}); // ⬅️
+}); // ✅
 const disposeB = countView.onChange((count) => {
 	console.log("B", count.total, count.filter);
-}); // ⬅️
+}); // ✅
 
 // then can be disposed later to stop listening for onChange
 disposeA();
@@ -437,7 +437,7 @@ const distanceView = await falcon.view1D(
 	(counts) => {
 		console.log(counts.total, counts.filter, counts.bin); // gets called every cross-filter
 	}
-); // ⬅️
+); // ✅
 
 // categorical
 const originStateView = await falcon.view1D(
@@ -448,7 +448,7 @@ const originStateView = await falcon.view1D(
 	(counts) => {
 		console.log(counts.total, counts.filter, counts.bin);
 	}
-); // ⬅️
+); // ✅
 ```
 
 **Interaction**
@@ -521,7 +521,7 @@ const countView = falcon.view0D((count) => {
 	console.log(count.total, count.filter);
 });
 
-await falcon.link(); // 🔗⬅️
+await falcon.link(); // 🔗✅
 ```
 
 Which then proceeds to call the `onChangeCallback` for each view with the initial counts. So you will see two console.logs from this particular example to start.
@@ -558,7 +558,7 @@ const falcon = new FalconVis(db);
 const entries = await falcon.entries({
 	offset: 0,
 	length: 25,
-}); // first 25 entries ⬅️
+}); // first 25 entries ✅
 
 // print out first 25 distances
 for (const entry of entries) {
@@ -572,7 +572,7 @@ You can easily use offset to shift over 25, to then get the second 25 entries. (
 const entries = await falcon.entries({
 	offset: 25, // start after 25 entries
 	length: 25,
-}); // second 25 entries ⬅️
+}); // second 25 entries ✅
 
 // print out second 25 distances
 for (const entry of entries) {
