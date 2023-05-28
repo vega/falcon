@@ -295,7 +295,12 @@
 		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
 			>FalconVis</a
 		>
-		instead with more than 10x the data (from ~260,000 to 3,000,000).
+		instead with more than 25x the data (from ~260,000 to ~7,000,000). We
+		use the
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis#HeavyaiDB"
+			>HeavyAI</a
+		>
+		backend to serve the data in this example.
 	</p>
 	<p>Try out the live demo below!</p>
 
@@ -307,11 +312,8 @@
 		<a href="javascript:filter([null, null, [1700, 2000], null])">longer</a>
 		or
 		<a href="javascript:filter([null, null, [0, 300], null])">shorter</a>
-		flights more likely to arrive early? What happened on
-		<a
-			href="javascript:filter([null, [80, 150], null, [new Date(2006, 0, 12), new Date(2006, 0, 13)]])"
-			>January 12</a
-		>? How do flight patterns differ between
+		flights more likely to arrive early? How do flight patterns differ
+		between
 		<a href="javascript:filter([[4, 7], null, null, null])">mornings</a> and
 		<a href="javascript:filter([[21, 24], null, null, null])">nights</a>?
 	</p>
@@ -397,19 +399,6 @@
 			formatTime = d3.time.format("%I:%M %p");
 		var formatMonthDay = d3.time.format("%m/%d");
 
-		const computeEntries = true;
-		// Initialize FalconVis + Flights Data
-
-		// const db = await DuckDB.fromParquetFile("crossfilter-3m.parquet");
-		// const columnNames = {
-		// 	date: "FlightDate",
-		// 	delay: "ArrDelay",
-		// 	distance: "Distance",
-		// 	hour: "DepTime",
-		// 	origin: "Origin",
-		// 	dest: "Dest",
-		// };
-
 		const db = await HeavyaiDB.connectSession(
 			{
 				protocol: "https",
@@ -433,6 +422,7 @@
 
 		const falcon = new FalconVis(db);
 
+		const computeEntries = true;
 		let entries;
 		let entriesRequest = false;
 
@@ -499,10 +489,6 @@
 				bins: 90,
 				exact: true,
 				time: true,
-				// range: [
-				// 	new Date(2006, 0, 0).getTime(),
-				// 	new Date(2006, 5, 0).getTime(),
-				// ],
 			},
 			(counts) => {
 				const node = d3.select("#date-chart.chart");
@@ -563,7 +549,7 @@
 
 		// start out with filtered by date
 		renderAll();
-		// await dateChart.filter([new Date(2006, 1, 1), new Date(2006, 2, 1)]);
+		await dateChart.filter([new Date(2008, 4, 0), new Date(2008, 7, 0)]);
 		if (computeEntries) {
 			entries = Array.from(await falcon.entries({ length: 40 }));
 		}
@@ -925,7 +911,7 @@
 							return (
 								formatMonthDay(new Date(d[columnNames.date])) +
 								" - " +
-								decimalToTime(d[columnNames.hour])
+								decimalToTime(d[columnNames.hour] / 100)
 							);
 						});
 

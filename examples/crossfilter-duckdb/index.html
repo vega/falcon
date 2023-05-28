@@ -295,7 +295,12 @@
 		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
 			>FalconVis</a
 		>
-		instead with more than 10x the data (from ~260,000 to 3,000,000).
+		instead with more than 10x the data (from ~260,000 to 3,000,000). We use
+		a parquet file loaded into the
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis#DuckDB"
+			>DuckDB</a
+		>
+		WASM in-browser database in this example.
 	</p>
 	<p>Try out the live demo below!</p>
 
@@ -307,11 +312,8 @@
 		<a href="javascript:filter([null, null, [1700, 2000], null])">longer</a>
 		or
 		<a href="javascript:filter([null, null, [0, 300], null])">shorter</a>
-		flights more likely to arrive early? What happened on
-		<a
-			href="javascript:filter([null, [80, 150], null, [new Date(2006, 0, 12), new Date(2006, 0, 13)]])"
-			>January 12</a
-		>? How do flight patterns differ between
+		flights more likely to arrive early? How do flight patterns differ
+		between
 		<a href="javascript:filter([[4, 7], null, null, null])">mornings</a> and
 		<a href="javascript:filter([[21, 24], null, null, null])">nights</a>?
 	</p>
