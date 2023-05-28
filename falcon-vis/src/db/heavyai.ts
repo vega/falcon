@@ -16,11 +16,11 @@ export class HeavyaiDB extends SQLDB {
   static async connectSession(
     conn: {
       host: string;
-      db: string;
+      dbName: string;
       user: string;
       password: string;
       protocol: "http" | "https";
-      port: number;
+      port: number | string;
     },
     table: string,
     nameMap?: SQLNameMap
@@ -29,7 +29,7 @@ export class HeavyaiDB extends SQLDB {
       .protocol(conn.protocol)
       .host(conn.host)
       .port(conn.port)
-      .dbName(conn.db)
+      .dbName(conn.dbName)
       .user(conn.user)
       .password(conn.password);
 
@@ -40,6 +40,18 @@ export class HeavyaiDB extends SQLDB {
 
   protected castBins(input: number) {
     return `cast(${input} as float)`;
+  }
+
+  castTime(name: string) {
+    return `extract(epoch from ${name}) * 1000`;
+  }
+
+  async dimensionExists(dimension) {
+    return true;
+  }
+
+  async tableExists() {
+    return true;
   }
 
   protected async query(q: SQLQuery) {

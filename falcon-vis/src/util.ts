@@ -238,15 +238,23 @@ export function binNumberFunctionContinuous({ start, step, stop }: BinConfig) {
 export function binNumberFunctionContinuousSQL(
   field: string,
   { start, step, stop }: BinConfig,
-  castString = (x: number) => `${x}`
+  castString = (x: number) => `${x}`,
+  caseVersion = true
 ) {
   const numBins = numBinsContinuous({ start, step, stop });
   const binIndexMapping = `FLOOR((${field} - ${castString(
     start
-  )}) / ${castString(step)})::INT`;
+  )}) / ${castString(step)})`;
   const lastBinIndex = castString(numBins - 1);
-  const clamp = `LEAST(${lastBinIndex}, ${binIndexMapping})::INT`;
-  return clamp;
+
+  // some sql versions don't like least, but do like case
+  if (caseVersion) {
+    const caseClamp = `CASE WHEN ${binIndexMapping} >= ${lastBinIndex} THEN ${lastBinIndex} ELSE ${binIndexMapping} END`;
+    return `cast(${caseClamp} as int)`;
+  }
+
+  const leastClamp = `LEAST(${lastBinIndex}, ${binIndexMapping})`;
+  return `cast(${leastClamp} as int)`;
 }
 
 /**
