@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "d3": "^7.8.4",
-    "falcon-vis": "0.17.3",
+    "falcon-vis": "0.17.4",
     "svelte-vega": "^1.2.0",
     "vega": "^5.24.0",
     "vega-lite": "^5.6.1"
