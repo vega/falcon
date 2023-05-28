@@ -294,7 +294,7 @@ const connection = connector
 const session = await connection.connectAsync();
 
 const tableName = "flights";
-const db = new HeavyaiDB(session, tableName); // ⬅
+const db = new HeavyaiDB(session, tableName); // ⬅️
 ```
 
 **Session Connection Shorthand**
@@ -310,7 +310,7 @@ const db = await HeavyaiDB.connectSession(️{
     password: "password",
     protocol: "https",
     port: 443
-  }, tableName); // ⬅
+  }, tableName); // ⬅️
 ```
 
 <br> <a href="#HttpDB" id="HttpDB">#</a> `class` <b>HttpDB</b>(_url_, _table_, _encodeQuery_?)
