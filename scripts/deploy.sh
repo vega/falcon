@@ -4,7 +4,7 @@ source scripts/shared.sh
 
 examplesDir=examples
 liveDir=live
-examples=("movies-arrow" "movies-json" "movies-duckdb" "flights-duckdb" crossfilter)
+examples=("movies-arrow" "movies-json" "movies-duckdb" "flights-duckdb" crossfilter-duckdb crossfilter-heavyai)
 
 function buildExamples() {
 	# go to each example and build them 

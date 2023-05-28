@@ -2,6 +2,7 @@ import HeavyaiCon from "@heavyai/connector";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 import type { SQLNameMap, SQLQuery } from "./sql";
+import type { Dimension } from "../dimension";
 
 const connector = new HeavyaiCon();
 
@@ -46,11 +47,17 @@ export class HeavyaiDB extends SQLDB {
     return `extract(epoch from ${name}) * 1000`;
   }
 
-  async dimensionExists(dimension) {
+  async dimensionExists(_: Dimension) {
+    /**
+     * @todo figure out in heavyai sql how to do this
+     */
     return true;
   }
 
   async tableExists() {
+    /**
+     * @todo figure out in heavyai sql how to do this
+     */
     return true;
   }
 
