@@ -4,7 +4,7 @@ source scripts/shared.sh
 
 examplesDir=examples
 liveDir=live
-examples=("movies-arrow" "movies-json" "movies-duckdb" "flights-duckdb")
+examples=("movies-arrow" "movies-json" "movies-duckdb" "flights-duckdb" crossfilter)
 
 function buildExamples() {
 	# go to each example and build them 

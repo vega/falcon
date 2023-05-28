@@ -4,7 +4,9 @@
 
 [![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/cmudig/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
-`FalconVis` is a JavaScript library that links your own custom visualizations at scale! You can cross-filter billions of data entries in the browser with no interaction delay by using the [Falcon](https://www.domoritz.de/papers/2019-Falcon-CHI.pdf) data index.
+`FalconVis` is a JavaScript library that links your own custom visualizations at scale! We also support a variety of [data formats](#data) for different scales of data (e.g., Apache Arrow, DuckDB WASM, backend servers, and more).
+
+You can cross-filter billions of data entries in the browser with no interaction delay by using the [Falcon](https://www.domoritz.de/papers/2019-Falcon-CHI.pdf) data index.
 
 `FalconVis` was created by [Donny Bertucci](https://donnybertucci.com) and [Dominik Moritz](https://www.domoritz.de/) because the previous implementation ([`vega/falcon`](https://github.com/vega/falcon)) could not be used as a library or with custom visualizations.
 
@@ -18,12 +20,13 @@
 
 **`Github Pages`**
 
-| Data                  | Type        | Count | Live Demo                                                                       |
-| --------------------- | ----------- | ----- | ------------------------------------------------------------------------------- |
-| Movies                | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-arrow/)   |
-| Movies                | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-json/)    |
-| Movies                | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-duckdb/)  |
-| Flights (with US Map) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/flights-duckdb/) |
+| Data                                                                                     | Type        | Count | Live Demo                                                                       |
+| ---------------------------------------------------------------------------------------- | ----------- | ----- | ------------------------------------------------------------------------------- |
+| Movies                                                                                   | Arrow       | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-arrow/)   |
+| Movies                                                                                   | JSON        | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-json/)    |
+| Movies                                                                                   | DuckDB WASM | 3k    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/movies-duckdb/)  |
+| Flights (with US Map)                                                                    | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/flights-duckdb/) |
+| Flights (comparison with [crossfilter](https://github.com/crossfilter/crossfilter) fork) | DuckDB WASM | 3m    | [Click to open on Github Pages](https://dig.cmu.edu/falcon-vis/crossfilter/)    |
 
 **`ObservableHQ`**
 
@@ -244,7 +247,7 @@ const c = await flightsDb.connect();
 // load parquet file into table called flights
 await c.query(
 	`CREATE TABLE flights
-	 AS SELECT * FROM parquet_scan('${window.location.href}/data/flights-1m.parquet')`
+     AS SELECT * FROM parquet_scan('${window.location.href}/data/flights-1m.parquet')`
 );
 c.close();
 
@@ -259,6 +262,55 @@ If you just want to load one parquet file, you can use the shorthand method `Duc
 import { DuckDB } from "falcon-vis";
 
 const db = await DuckDB.fromParquetFile("data/flights-1m.parquet"); // ⬅️
+```
+
+<br> <a href="#HeavyaiDB" id="HeavyaiDB">#</a> `class` <b>HeavyaiDB</b>(_session_, _table_)
+
+Takes in a _session_ from [`@heavyai/connector`](https://docs.heavy.ai/apis-and-interfaces/heavyai-connector) with a given _table_ name.
+
+**Example**
+
+```ts
+import { HeavyaiDB } from "falcon-vis";
+import HeavyaiCon from "@heavyai/connector";
+
+const connector = new HeavyaiCon();
+const conn = {
+	host: "your host url address",
+	db: "db name",
+	user: "user name",
+	password: "password",
+	protocol: "https",
+	port: 443,
+};
+const connection = connector
+	.protocol(conn.protocol)
+	.host(conn.host)
+	.port(conn.port)
+	.dbName(conn.db)
+	.user(conn.user)
+	.password(conn.password);
+
+const session = await connection.connectAsync();
+
+const tableName = "flights";
+const db = new HeavyaiDB(session, tableName); // ⬅
+```
+
+**Session Connection Shorthand**
+
+```ts
+import { HeavyaiDB } from "falcon-vis";
+
+const tableName = "flights";
+const db = await HeavyaiDB.connectSession(️{
+    host: "your host url address",
+    db: "db name",
+    user: "user name",
+    password: "password",
+    protocol: "https",
+    port: 443
+  }, tableName); // ⬅
 ```
 
 <br> <a href="#HttpDB" id="HttpDB">#</a> `class` <b>HttpDB</b>(_url_, _table_, _encodeQuery_?)
@@ -280,7 +332,7 @@ const db = new HttpDB("http://localhost:8000", tableName); // ⬅️
 
 The main logic that orchestrates the cross-filtering between views.
 
-Takes in the data (`JsonDB`, `ArrowDB`, `DuckDB`, or `HttpDB`).
+Takes in the data ([`JsonDB`](#JsonDB), [`ArrowDB`](#ArrowDB), [`DuckDB`](#DuckDB), [`HeavyaiDB`](#HeavyaiDB), or [`HttpDB`](#HttpDB)).
 
 **Example**
 
@@ -354,7 +406,7 @@ Returns a `View1D` instance (you can add more onChange callbacks to it later).
 
 The <i>dimension</i> can be `type: "categorical"` for discrete values or `type: "continuous"` for ranged values.
 
-A continuous `Dimension` can be defined as follows:
+A continuous `Dimension` can be defined as follows (with ? being optional parameters):
 
 ```ts
 interface ContinuousDimension {
@@ -372,11 +424,23 @@ interface ContinuousDimension {
 
 	/**
 	 * max number of bins to create, the result could be less bins
-	 * if not specified, will automatically determine the number of bins
+	 *
+	 * @default computed from the data using scotts rule
 	 */
 	bins?: number;
 
-	/* [min, max] interval to count between */
+	/**
+	 * forces the specified number bins to use exactly
+	 * otherwise, will use the specified number of bins as a suggestion
+	 *
+	 * @default false
+	 */
+	exact?: boolean;
+
+	/**
+	 * [min, max] extent to limit the range of data values
+	 * @default computed from the data
+	 */
 	range?: [number, number];
 
 	/* should format for dates */
@@ -394,7 +458,11 @@ interface CategoricalDimension {
 	/* column name in the data table */
 	name: string;
 
-	/* values to include, by default includes all */
+	/**
+	 * categorical values to include
+	 *
+	 * @default computed from the data
+	 */
 	range?: string[];
 }
 ```

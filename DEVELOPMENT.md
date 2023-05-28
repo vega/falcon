@@ -1,8 +1,4 @@
-# Contributing
-
-**🚧Work In Progress**
-
-Thank you for your interest in contributing! This file should help you started.
+# Development
 
 ## Getting Started
 
@@ -33,7 +29,7 @@ Check the respective projects `package.json` to get individual instructions how 
 ## Publish to NPM
 
 ```bash
-sh scripts/publish.sh
+yarn publish-falcon-vis
 ```
 
 will publish to npm.
@@ -41,7 +37,7 @@ will publish to npm.
 ## Deploy Examples
 
 ```bash
-sh scripts/deploy.sh
+yarn deploy-examples
 ```
 
 will deploy all the live examples listed in the `deploy.sh`.

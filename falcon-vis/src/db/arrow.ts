@@ -647,7 +647,7 @@ function arrowColumnExtent(column: Vector): Interval<number> {
     }
   }
 
-  return [min, max];
+  return [Number(min), Number(max)];
 }
 
 /**

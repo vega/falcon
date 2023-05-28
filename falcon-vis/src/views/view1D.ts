@@ -1,7 +1,7 @@
 import { ViewAbstract } from "./viewAbstract";
 import {
   createBinConfigContinuous,
-  readableBinsContinuous,
+  binStartBinEndArray,
   brushToPixelSpace,
   binNumberFunctionCategorical,
   numBinsContinuous,
@@ -55,21 +55,39 @@ export class View1D extends ViewAbstract<View1DState> {
 
   /**
    * populates the extent in the dimension if not already defined
+   *
+   * @note that when the user does provide a binConfig, that will replace the range
    */
   async createBins() {
+    // no matter if the dimension is continuous or categorical, compute the range (possible values)
     if (this.dimension?.range === undefined) {
       this.dimension.range = await this.falcon.db.range(this.dimension);
     }
-    if (this.dimension.type === "continuous") {
-      // if the bins are specified, autocompute the best num of bins!
-      this.dimension.bins =
-        this.dimension.bins ??
-        (await this.falcon.db.estimateNumBins(this.dimension, 200, 15));
 
-      this.dimension.binConfig = createBinConfigContinuous(
-        this.dimension,
-        this.dimension.range!
-      );
+    // for continuous, we need to compute the bin config
+    if (this.dimension.type === "continuous") {
+      const userProvidedCustomBinConfig =
+        this.dimension.binConfig !== undefined;
+      if (userProvidedCustomBinConfig) {
+        this.dimension.range = [
+          this.dimension.binConfig!.start,
+          this.dimension.binConfig!.stop,
+        ];
+      } else if (!userProvidedCustomBinConfig) {
+        // if the bins are specified, autocompute the best num of bins!
+        // then create the bin config
+        this.dimension.bins =
+          this.dimension.bins ??
+          (await this.falcon.db.estimateNumBins(this.dimension, 200, 15));
+
+        this.dimension.binConfig = createBinConfigContinuous(
+          this.dimension,
+          this.dimension.range!,
+          this.dimension.exact ?? false
+        );
+      } else {
+        throw Error("Invalid bin config or bins not specified");
+      }
       const { start: firstBinStart, stop: veryLastBinEnd } =
         this.dimension.binConfig!;
       this.toPixels = brushToPixelSpace(
@@ -78,10 +96,15 @@ export class View1D extends ViewAbstract<View1DState> {
       );
     }
 
+    // when I give the user values, give them a prettier version of the range
     if (this.dimension.type === "continuous") {
       // save the bin definitions
-      this.state.bin = readableBinsContinuous(this.dimension.binConfig!);
+      /**
+       * @todo consider changing the format and only given them bin starts with binEnd implicit
+       */
+      this.state.bin = binStartBinEndArray(this.dimension.binConfig!);
     } else {
+      // the regular string array format with names is already readable
       this.state.bin = this.dimension.range!;
     }
   }

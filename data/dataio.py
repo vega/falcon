@@ -10,14 +10,20 @@ def all_rows_arrow(file_name):
 
 
 def n_rows_parquet(
-    filename: str, n_rows: int = 65536, columns: len[str] | None = None
+    filename: str,
+    n_rows: int = 65536,
+    columns: len[str] | None = None,
+    all: bool = False,
 ) -> pa.Table:
     """returns a pyarrow table of just the first n_rows from the parquet"""
 
     pf = ParquetFile(filename)
-    batch = next(pf.iter_batches(batch_size=n_rows, columns=columns))
-    table = pa.Table.from_batches([batch])
-    return table
+    batches = pf.iter_batches(batch_size=n_rows, columns=columns)
+    if all:
+        return pa.Table.from_batches(batches)  # extract all
+    else:
+        batch = next(batches)  # just the single with n_rows
+        return pa.Table.from_batches([batch])
 
 
 def table_to_arrow_file(table: pa.Table, filename: str):

@@ -70,12 +70,44 @@ export function numBinsContinuous({ start, step, stop }: BinConfig) {
 
 export function binContinuous(
   maxbins: number,
-  extent: Interval<number>
+  extent: Interval<number>,
+  exact = false
 ): BinConfig {
+  // will do exactly max bins
+  if (exact) {
+    return binRegularIntervals(maxbins, extent);
+  }
+
+  // might do bins less than maxbins, but will do it more nicely intervals
   return vegaBin({ maxbins, extent });
 }
 
-export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
+function binRegularIntervals(
+  maxbins: number,
+  extent: Interval<number>
+): BinConfig {
+  const step = (extent[1] - extent[0]) / maxbins;
+  const start = extent[0];
+  const stop = extent[extent.length - 1];
+
+  console.log(step, start, stop);
+  return {
+    start,
+    stop,
+    step: step,
+  };
+}
+
+export function binTime(
+  maxbins: number,
+  extent: Interval<number>,
+  exact = false
+): BinConfig {
+  console.log("hit");
+  if (exact) {
+    return binRegularIntervals(maxbins, extent);
+  }
+
   const ts = scaleTime().domain(extent);
   const ticks = ts.ticks(maxbins);
   const start = ticks[0].getTime();
@@ -92,16 +124,20 @@ export function binTime(maxbins: number, extent: Interval<number>): BinConfig {
 
 /**
  * This function requires dimension.bins to exist
+ *
+ * if the exactNumberOfBins is true, will force a regular interval
+ * if not, will try to make the bins as nice as possible, but maybe different number of bins than requested
  */
 export function createBinConfigContinuous(
   dimension: ContinuousDimension,
-  extent: Interval<number>
+  extent: Interval<number>,
+  exactNumberOfBins = false
 ) {
   const binningFunc = dimension.time ? binTime : binContinuous;
-  return binningFunc(dimension.bins!, extent);
+  return binningFunc(dimension.bins!, extent, exactNumberOfBins);
 }
 
-export function readableBinsContinuous(binConfig: BinConfig) {
+export function binStartBinEndArray(binConfig: BinConfig) {
   let bins: { binStart: number; binEnd: number }[] = [];
   let curStart = binConfig.start;
   let curEnd = curStart + binConfig.step;

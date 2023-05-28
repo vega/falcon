@@ -12,8 +12,13 @@ export interface ContinuousDimension extends AbstractDimension {
   /* expected bin resolution we need to brush over*/
   resolution: number;
 
-  /* max number of bins to create, the result could be less bins */
+  /* number of bins to create, the bins computed might be more or less than this number */
   bins?: number;
+
+  /* forces bins to be exactly, and not fudged around for nicer intervals 
+  default is false 
+  */
+  exact?: boolean;
 
   /* [min, max] interval to count between */
   range?: ContinuousRange;
