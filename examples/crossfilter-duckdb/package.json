@@ -1,5 +1,5 @@
 {
-  "name": "crossfilter",
+  "name": "crossfilter-duckdb",
   "description": "Fork of the crossfilter js libraries demo, but with FalconVis instead",
   "private": true,
   "version": "0.0.0",

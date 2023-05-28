@@ -26,8 +26,6 @@
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),
 			0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
 		color: #333;
-		display: inline-block;
-		font-size: 0.85em;
 		font-weight: 700;
 		line-height: 1;
 		padding: 2px 4px;
@@ -90,7 +88,6 @@
 
 	.foreground.bar {
 		fill: var(--primary);
-		/* fill: steelblue; */
 	}
 
 	.axis path,
@@ -154,7 +151,6 @@
 	.flight div {
 		display: inline-block;
 		width: 100px;
-		/* outline: 1px solid red; */
 	}
 
 	div.distance,
@@ -163,24 +159,6 @@
 		padding-right: 10px;
 		text-align: right;
 	}
-
-	/* div.delay {
-		width: 160px;
-		padding-right: 10px;
-		text-align: right;
-	} */
-	/* .flight div {
-		display: inline-block;
-		width: 100px;
-		outline: 1px red solid;
-	}
-
-	.distance,
-	.delay {
-		width: 160px;
-		padding-right: 10px;
-		text-align: right;
-	} */
 
 	.early {
 		color: green;
@@ -203,7 +181,6 @@
 
 	a {
 		font-weight: 400;
-		/* color: #646cff; */
 		color: var(--primary-lighter);
 		text-decoration: inherit;
 		transition: color 800ms linear;
@@ -397,12 +374,6 @@
 	</div>
 
 	<footer>
-		<!-- <span style="float: right">
-			Released under the
-			<a href="http://www.apache.org/licenses/LICENSE-2.0.html"
-				>Apache License 2.0</a
-			>.
-		</span> -->
 		Forked from
 		<a
 			target="_blank"
@@ -413,32 +384,32 @@
 	</footer>
 </div>
 
-<!-- <script src="crossfilter.v1.min.js"></script> -->
 <script src="d3.v3.min.js"></script>
-<!-- <script type="module" src="/main.js"></script> -->
 <script type="module">
-	import { FalconVis, DuckDB, ArrowDB } from "falcon-vis";
+	import { FalconVis, DuckDB } from "falcon-vis";
 
-	async function main() {
-		// Various formatters.
+	main("crossfilter-3m.parquet");
+
+	async function main(parquetFile) {
 		var formatNumber = d3.format(",d"),
 			formatChange = d3.format("+,d"),
 			formatDate = d3.time.format("%B %d, %Y"),
 			formatTime = d3.time.format("%I:%M %p");
 		var formatMonthDay = d3.time.format("%m/%d");
 
-		// A nest operator, for grouping the flight list.
-		var nestByDate = d3.nest().key(function (d) {
-			return d3.time.day(d.date);
-		});
-		var nestByDate2 = d3.nest().key(function (d) {
-			return d3.time.day(d["FlightDate"]);
-		});
+		const db = await DuckDB.fromParquetFile(parquetFile);
+		const columnNames = {
+			date: "FlightDate",
+			delay: "ArrDelay",
+			distance: "Distance",
+			hour: "DepTime",
+			origin: "Origin",
+			dest: "Dest",
+		};
 
-		// Initialize FalconVis + Flights Data
-		const db = await DuckDB.fromParquetFile("crossfilter-3m.parquet");
 		const falcon = new FalconVis(db);
 
+		const computeEntries = true;
 		let entries;
 		let entriesRequest = false;
 
@@ -451,7 +422,7 @@
 		const hourView = await falcon.view1D(
 			{
 				type: "continuous",
-				name: "DepTime",
+				name: columnNames.hour,
 				resolution: 240,
 				bins: 24,
 			},
@@ -467,7 +438,7 @@
 		const distanceView = await falcon.view1D(
 			{
 				type: "continuous",
-				name: "Distance",
+				name: columnNames.distance,
 				range: [0, 2000],
 				resolution: 400,
 				bins: 40,
@@ -483,7 +454,7 @@
 		const delayView = await falcon.view1D(
 			{
 				type: "continuous",
-				name: "ArrDelay",
+				name: columnNames.delay,
 				range: [-60, 150],
 				resolution: 250,
 				bins: 25,
@@ -500,14 +471,14 @@
 		const dateView = await falcon.view1D(
 			{
 				type: "continuous",
-				name: "FlightDate",
+				name: columnNames.date,
 				resolution: 450,
 				bins: 90,
 				exact: true,
 				time: true,
 				range: [
-					new Date(2006, 0, 0).getTime(),
-					new Date(2006, 5, 0).getTime(),
+					new Date(2006, 0, 0).getTime(), // from jan 2006
+					new Date(2006, 5, 0).getTime(), // to start of june
 				],
 			},
 			(counts) => {
@@ -570,7 +541,9 @@
 		// start out with filtered by date
 		renderAll();
 		await dateChart.filter([new Date(2006, 1, 1), new Date(2006, 2, 1)]);
-		entries = Array.from(await falcon.entries({ length: 40 }));
+		if (computeEntries) {
+			entries = Array.from(await falcon.entries({ length: 40 }));
+		}
 		renderAll();
 
 		// Renders the specified chart or list.
@@ -798,7 +771,7 @@
 				} else {
 					await view.select(extent);
 				}
-				if (!entriesRequest) {
+				if (!entriesRequest && computeEntries) {
 					entriesRequest = true;
 					falcon.entries({ length: 40 }).then((d) => {
 						entries = Array.from(d);
@@ -818,7 +791,7 @@
 						.attr("width", "100%");
 					// dimension.filterAll();
 					await view.select();
-					if (!entriesRequest) {
+					if (!entriesRequest && computeEntries) {
 						entriesRequest = true;
 						falcon.entries({ length: 40 }).then((d) => {
 							entries = Array.from(d);
@@ -927,9 +900,9 @@
 						.attr("class", "time")
 						.text(function (d) {
 							return (
-								formatMonthDay(d["FlightDate"]) +
+								formatMonthDay(new Date(d[columnNames.date])) +
 								" - " +
-								decimalToTime(d["DepTime"])
+								decimalToTime(d[columnNames.hour])
 							);
 						});
 
@@ -937,31 +910,33 @@
 						.append("div")
 						.attr("class", "origin")
 						.text(function (d) {
-							return d["Origin"];
+							return d[columnNames.origin];
 						});
 
 					flightEnter
 						.append("div")
 						.attr("class", "destination")
 						.text(function (d) {
-							return d["Dest"];
+							return d[columnNames.dest];
 						});
 
 					flightEnter
 						.append("div")
 						.attr("class", "distance")
 						.text(function (d) {
-							return formatNumber(d["Distance"]) + " mi.";
+							return (
+								formatNumber(d[columnNames.distance]) + " mi."
+							);
 						});
 
 					flightEnter
 						.append("div")
 						.attr("class", "delay")
 						.classed("late", function (d) {
-							return d["ArrDelay"] > 0;
+							return d[columnNames.delay] > 0;
 						})
 						.text(function (d) {
-							return formatChange(d["ArrDelay"]) + " min.";
+							return formatChange(d[columnNames.delay]) + " min.";
 						});
 					flight.exit().remove();
 				});
@@ -994,6 +969,4 @@
 			);
 		}
 	}
-
-	main();
 </script>

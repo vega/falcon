@@ -99,7 +99,10 @@ export abstract class SQLDB implements FalconDB {
     const where = filters
       ? [...this.filtersToSQLWhereClauses(filters).values()].join(" AND ")
       : undefined;
-    const filteredTable = await this.query(`SELECT *
+    const additionalNames = this.nameMap?.values() ?? [];
+    const filteredTable = await this.query(`SELECT *, ${Array.from(
+      additionalNames
+    )}
               FROM ${this.table}
               ${where ? `WHERE ${where}` : ""}
               ${length >= 0 && length < Infinity ? `LIMIT ${length}` : ""}

@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<link rel="icon" href="logo.png" type="image/png" />
+<title>FalconVis</title>
+<style>
+	body {
+		font-family: "Helvetica Neue";
+		margin: 40px auto;
+		width: 960px;
+		min-height: 2000px;
+		--primary-lighter: #00c9ab;
+		--primary: #02b299;
+		--primary-darker: #008672;
+		color: #222222;
+	}
+
+	#body {
+		position: relative;
+	}
+
+	/* credit to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd */
+	kbd {
+		background-color: #eee;
+		border-radius: 3px;
+		border: 1px solid #b4b4b4;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),
+			0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+		color: #333;
+		font-weight: 700;
+		line-height: 1;
+		padding: 2px 4px;
+		white-space: nowrap;
+	}
+	summary:hover {
+		cursor: pointer;
+	}
+
+	footer {
+		padding: 2em 0 1em 0;
+		font-size: 12px;
+	}
+
+	h1 {
+		font-size: 96px;
+		margin-top: 0.3em;
+		margin-bottom: 0;
+	}
+
+	h1 + h2 {
+		margin-top: 0;
+	}
+
+	h2 {
+		font-weight: 450;
+		font-size: 25px;
+	}
+
+	h1,
+	h2 {
+		text-rendering: optimizeLegibility;
+	}
+
+	#body > p {
+		line-height: 1.5em;
+		width: 640px;
+		text-rendering: optimizeLegibility;
+	}
+
+	#charts {
+		padding: 10px 0;
+	}
+
+	.chart {
+		display: inline-block;
+		height: 151px;
+		margin-bottom: 20px;
+	}
+
+	.reset {
+		padding-left: 1em;
+		font-size: smaller;
+		color: #a9a9a9a9;
+	}
+
+	.background.bar {
+		fill: #ccc;
+	}
+
+	.foreground.bar {
+		fill: var(--primary);
+	}
+
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+
+	.axis text {
+		font: 10px sans-serif;
+	}
+
+	.brush rect.extent {
+		fill: var(--primary);
+		fill-opacity: 0.125;
+	}
+
+	.brush .resize path {
+		fill: #eee;
+		stroke: #666;
+	}
+
+	#hour-chart {
+		width: 260px;
+	}
+
+	#delay-chart {
+		width: 230px;
+	}
+
+	#distance-chart {
+		width: 420px;
+	}
+
+	#date-chart {
+		width: 920px;
+	}
+
+	#flight-list {
+		min-height: 1024px;
+	}
+
+	.date,
+	.day {
+		margin-bottom: 0.4em;
+	}
+
+	.flight {
+		line-height: 1.5em;
+		background: #eee;
+		width: 640px;
+		margin-bottom: 1px;
+	}
+
+	.time {
+		color: #999;
+		width: 120px !important;
+	}
+
+	.flight div {
+		display: inline-block;
+		width: 100px;
+	}
+
+	div.distance,
+	div.delay {
+		width: 140px;
+		padding-right: 10px;
+		text-align: right;
+	}
+
+	.early {
+		color: green;
+	}
+	.late {
+		color: rgb(192, 51, 51);
+	}
+
+	aside {
+		position: absolute;
+		left: 740px;
+		font-size: smaller;
+		width: 220px;
+	}
+
+	.middle {
+		text-align: left;
+		background: transparent;
+	}
+
+	a {
+		font-weight: 400;
+		color: var(--primary-lighter);
+		text-decoration: inherit;
+		transition: color 800ms linear;
+	}
+	a:hover {
+		color: var(--primary-darker);
+	}
+
+	#active {
+		color: var(--primary);
+	}
+
+	.description {
+		line-height: 1.7;
+	}
+</style>
+
+<div id="body">
+	<h1>
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis">
+			<img
+				src="https://user-images.githubusercontent.com/65095341/224896033-afc8bd8e-d0e0-4031-a7b2-3857bef51327.svg"
+				alt="FalconVis Logo"
+				width="65%"
+			/>
+		</a>
+	</h1>
+
+	<h2>Cross-Filtering at Scale</h2>
+
+	<p>
+		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
+			>FalconVis</a
+		>
+		enables you explore millions (or even billions) of data entries with
+		<strong>no</strong> interaction delay.
+	</p>
+
+	<p>
+		With a large amount of data, cross-filtering is painfully slow. When you
+		filter one visualization, the other visualizations take a while to
+		update. The filtering lag disrupts the whole cross-filtering experience!
+	</p>
+
+	<p>
+		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
+			>FalconVis</a
+		>
+		removes the latency from where it matters (the cross-filtering user
+		interaction) and put it where latency doesn't matter (before
+		interaction).
+	</p>
+	<p>
+		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
+			>FalconVis</a
+		>
+		computes the
+		<a
+			target="_blank"
+			href="https://idl.cs.washington.edu/files/2019-Falcon-CHI.pdf"
+			>Falcon</a
+		>
+		data index right before you interact with a view. As you filter the
+		view, we use the index to instantly compute the counts for all other
+		views. The result is smooth interaction at any scale.
+	</p>
+
+	<p>
+		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
+			>FalconVis</a
+		>
+		also supports data formats that scale: in-browser formats (<a
+			target="_blank"
+			href="https://github.com/cmudig/falcon-vis#JsonDB"
+			>JSON</a
+		>,
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis#ArrowDB"
+			>Apache Arrow</a
+		>, and
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis#DuckDB"
+			>DuckDB WASM</a
+		>) and backend formats (<a
+			target="_blank"
+			href="https://github.com/cmudig/falcon-vis#HeavyaiDB"
+			>HeavyAI</a
+		>
+		or
+		<a target="_blank" href="https://github.com/cmudig/falcon-vis#HttpDB"
+			>HTTP</a
+		>
+		requests to any backend SQL server you want).
+	</p>
+
+	<h2>Live Example: Airline on-time performance</h2>
+
+	<p>
+		This live demo was forked from the
+		<a target="_blank" href="https://github.com/crossfilter/crossfilter"
+			>CrossFilter Javascript Library</a
+		>'s
+		<a target="_blank" href="https://crossfilter.github.io/crossfilter/"
+			>live demo</a
+		>
+		to compare performance with an existing library.
+	</p>
+	<p>
+		We take the same
+		<a target="_blank" href="https://d3js.org/">D3</a> visualizations from
+		<a target="_blank" href="https://crossfilter.github.io/crossfilter/"
+			>their live demo</a
+		>, but using
+		<a href="https://github.com/cmudig/falcon-vis" target="_blank"
+			>FalconVis</a
+		>
+		instead with more than 10x the data (from ~260,000 to 3,000,000).
+	</p>
+	<p>Try out the live demo below!</p>
+
+	<p>
+		Some questions to consider: How does time-of-day correlate with
+		<a href="javascript:filter([null, [100, 150], null, null])"
+			>arrival delay</a
+		>? Are
+		<a href="javascript:filter([null, null, [1700, 2000], null])">longer</a>
+		or
+		<a href="javascript:filter([null, null, [0, 300], null])">shorter</a>
+		flights more likely to arrive early? What happened on
+		<a
+			href="javascript:filter([null, [80, 150], null, [new Date(2006, 0, 12), new Date(2006, 0, 13)]])"
+			>January 12</a
+		>? How do flight patterns differ between
+		<a href="javascript:filter([[4, 7], null, null, null])">mornings</a> and
+		<a href="javascript:filter([[21, 24], null, null, null])">nights</a>?
+	</p>
+
+	<p>
+		<details>
+			<summary>Click for help</summary>
+
+			<div class="description">
+				<img src="demo-filter.gif" alt="demo" width="400px" />
+			</div>
+
+			<div class="description">
+				Filter a chart by
+				<kbd>click</kbd>ing and <kbd>drag</kbd>ing your cursor across a
+				range to create a window.
+			</div>
+			<div>
+				Then, you can <kbd>drag</kbd> the window around if you'd like.
+			</div>
+			<div class="description">
+				Reset a chart by <kbd>click</kbd>ing
+				<span style="color: #a9a9a9">reset</span> or by
+				<kbd>click</kbd>ing outside the window selection.
+			</div>
+			<div class="description">
+				Reset a filter by <kbd>click</kbd>ing outside the selection.
+			</div>
+		</details>
+	</p>
+
+	<div id="charts">
+		<div id="hour-chart" class="chart">
+			<div class="title">Time of Day</div>
+		</div>
+		<div id="delay-chart" class="chart">
+			<div class="title">Arrival Delay (min.)</div>
+		</div>
+		<div id="distance-chart" class="chart">
+			<div class="title">Distance (mi.)</div>
+		</div>
+		<div id="date-chart" class="chart">
+			<div class="title">Date</div>
+		</div>
+	</div>
+
+	<aside id="totals">
+		<span id="active">-</span> of <span id="total">-</span> selected
+	</aside>
+
+	<div id="lists">
+		<div class="flight" style="background: none">
+			<div class="time">Date</div>
+			<div class="origin">Origin</div>
+			<div class="destination">Destination</div>
+			<div class="distance">Distance</div>
+			<div class="delay">Delay</div>
+		</div>
+		<div id="flight-list" class="list"></div>
+	</div>
+
+	<footer>
+		Forked from
+		<a
+			target="_blank"
+			href="https://github.com/crossfilter/crossfilter/tree/gh-pages"
+			>crossfilter</a
+		>
+		on github
+	</footer>
+</div>
+
+<script src="d3.v3.min.js"></script>
+<script type="module">
+	import { FalconVis, DuckDB, HeavyaiDB } from "falcon-vis";
+
+	main();
+
+	async function main() {
+		var formatNumber = d3.format(",d"),
+			formatChange = d3.format("+,d"),
+			formatDate = d3.time.format("%B %d, %Y"),
+			formatTime = d3.time.format("%I:%M %p");
+		var formatMonthDay = d3.time.format("%m/%d");
+
+		const computeEntries = true;
+		// Initialize FalconVis + Flights Data
+
+		// const db = await DuckDB.fromParquetFile("crossfilter-3m.parquet");
+		// const columnNames = {
+		// 	date: "FlightDate",
+		// 	delay: "ArrDelay",
+		// 	distance: "Distance",
+		// 	hour: "DepTime",
+		// 	origin: "Origin",
+		// 	dest: "Dest",
+		// };
+
+		const db = await HeavyaiDB.connectSession(
+			{
+				protocol: "https",
+				host: "metis.mapd.com",
+				port: 443,
+				dbName: "heavyai",
+				user: "admin",
+				password: "HyperInteractive",
+			},
+			"flights_donotmodify",
+			new Map([["deptime", "(deptime/100)"]])
+		);
+		const columnNames = {
+			date: "dep_timestamp",
+			delay: "arrdelay",
+			distance: "distance",
+			hour: "deptime",
+			origin: "origin",
+			dest: "dest",
+		};
+
+		const falcon = new FalconVis(db);
+
+		let entries;
+		let entriesRequest = false;
+
+		const totalCount = await falcon.view0D((count) => {
+			d3.select("#active").text(formatNumber(count.filter));
+			d3.selectAll("#total").text(formatNumber(count.total));
+		});
+
+		let hourChart;
+		const hourView = await falcon.view1D(
+			{
+				type: "continuous",
+				name: columnNames.hour,
+				resolution: 240,
+				bins: 24,
+			},
+			(counts) => {
+				const node = d3.select("#hour-chart.chart");
+				if (node && hourChart) {
+					hourChart(node);
+				}
+			}
+		);
+
+		let distanceChart;
+		const distanceView = await falcon.view1D(
+			{
+				type: "continuous",
+				name: columnNames.distance,
+				range: [0, 2000],
+				resolution: 400,
+				bins: 40,
+			},
+			(counts) => {
+				const node = d3.select("#distance-chart.chart");
+				if (node && distanceChart) {
+					distanceChart(node);
+				}
+			}
+		);
+		let delayChart;
+		const delayView = await falcon.view1D(
+			{
+				type: "continuous",
+				name: columnNames.delay,
+				range: [-60, 150],
+				resolution: 250,
+				bins: 25,
+			},
+			(counts) => {
+				const node = d3.select("#delay-chart.chart");
+				if (node && delayChart) {
+					delayChart(node);
+				}
+			}
+		);
+
+		let dateChart;
+		const dateView = await falcon.view1D(
+			{
+				type: "continuous",
+				name: columnNames.date,
+				resolution: 450,
+				bins: 90,
+				exact: true,
+				time: true,
+				// range: [
+				// 	new Date(2006, 0, 0).getTime(),
+				// 	new Date(2006, 5, 0).getTime(),
+				// ],
+			},
+			(counts) => {
+				const node = d3.select("#date-chart.chart");
+				if (node && dateChart) {
+					dateChart(node);
+				}
+			}
+		);
+
+		// link em!
+		await falcon.link();
+
+		// define the DOM charts
+		hourChart = barChart()
+			.view(hourView)
+			.x(
+				d3.scale
+					.linear()
+					.domain([0, 24])
+					.rangeRound([0, 10 * 24])
+			);
+		delayChart = barChart()
+			.view(delayView)
+			.x(
+				d3.scale
+					.linear()
+					.domain([-60, 150])
+					.rangeRound([0, 10 * 21])
+			);
+		distanceChart = barChart()
+			.view(distanceView)
+			.x(
+				d3.scale
+					.linear()
+					.domain([0, 2000])
+					.rangeRound([0, 10 * 40])
+			);
+		dateChart = barChart()
+			.view(dateView)
+			.x(
+				d3.time
+					.scale()
+					.domain([
+						new Date(dateView.state.bin.at(0)["binStart"]),
+						new Date(dateView.state.bin.at(-1)["binEnd"]),
+					])
+					.rangeRound([0, 10 * dateView.state.bin.length])
+			);
+
+		var charts = [hourChart, delayChart, distanceChart, dateChart];
+
+		// Given our array of charts, which we assume are in the same order as the
+		// .chart elements in the DOM, bind the charts to the DOM and render them.
+		// We also listen to the chart's brush events to update the display.
+
+		var chart = d3.selectAll(".chart").data(charts);
+		var list = d3.selectAll(".list").data([flightEntries]);
+
+		// start out with filtered by date
+		renderAll();
+		// await dateChart.filter([new Date(2006, 1, 1), new Date(2006, 2, 1)]);
+		if (computeEntries) {
+			entries = Array.from(await falcon.entries({ length: 40 }));
+		}
+		renderAll();
+
+		// Renders the specified chart or list.
+		function render(method) {
+			d3.select(this).call(method);
+		}
+
+		// Whenever the brush moves, re-rendering everything.
+		function renderAll() {
+			chart.each(render);
+			list.each(render);
+		}
+
+		window.filter = async function (filters) {
+			for (let i = 0; i < filters.length; i++) {
+				await charts[i].filter(filters[i]);
+			}
+			renderAll();
+		};
+
+		window.reset = async function (i) {
+			await charts[i].filter(null);
+			renderAll();
+		};
+
+		function barChart() {
+			if (!barChart.id) barChart.id = 0;
+
+			var margin = { top: 10, right: 10, bottom: 20, left: 10 },
+				x,
+				y = d3.scale.linear().range([100, 0]),
+				id = barChart.id++,
+				axis = d3.svg.axis().orient("bottom"),
+				brush = d3.svg.brush(),
+				brushDirty,
+				dimension,
+				group,
+				round,
+				view;
+
+			function chart(div) {
+				// y.domain([0, group.top(1)[0].value]);
+				const initialMaxValue = d3.max(view.state.filter);
+				y.domain([0, initialMaxValue]);
+
+				var width = x.range()[1],
+					height = y.range()[0];
+
+				div.each(function () {
+					var div = d3.select(this),
+						g = div.select("g");
+					// Create the skeletal chart.
+					if (g.empty()) {
+						div.on("mouseenter", async function (d, i) {
+							await view.activate();
+						});
+						div.select(".title")
+							.append("a")
+							.attr("href", "javascript:reset(" + id + ")")
+							.attr("class", "reset")
+							.text("reset")
+							.style("display", "none");
+
+						g = div
+							.append("svg")
+							.attr("width", width + margin.left + margin.right)
+							.attr("height", height + margin.top + margin.bottom)
+							.append("g")
+							.attr(
+								"transform",
+								"translate(" +
+									margin.left +
+									"," +
+									margin.top +
+									")"
+							);
+
+						g.append("clipPath")
+							.attr("id", "clip-" + id)
+							.append("rect")
+							.attr("width", width)
+							.attr("height", height);
+
+						g.selectAll(".bar")
+							.data(["background", "foreground"])
+							.enter()
+							.append("path")
+							.attr("class", function (d) {
+								return d + " bar";
+							})
+							.datum(
+								transform(view.state, "time" in view.dimension)
+							);
+
+						g.selectAll(".foreground.bar").attr(
+							"clip-path",
+							"url(#clip-" + id + ")"
+						);
+
+						g.append("g")
+							.attr("class", "axis")
+							.attr("transform", "translate(0," + height + ")")
+							.call(axis);
+
+						// Initialize the brush component with pretty resize handles.
+						var gBrush = g
+							.append("g")
+							.attr("class", "brush")
+							.call(brush);
+						gBrush.selectAll("rect").attr("height", height);
+						gBrush
+							.selectAll(".resize")
+							.append("path")
+							.attr("d", resizePath);
+					}
+
+					// Only redraw the brush if set externally.
+					if (brushDirty) {
+						brushDirty = false;
+						g.selectAll(".brush").call(brush);
+						div.select(".title a").style(
+							"display",
+							brush.empty() ? "none" : null
+						);
+						if (brush.empty()) {
+							g.selectAll("#clip-" + id + " rect")
+								.attr("x", 0)
+								.attr("width", width);
+						} else {
+							var extent = brush.extent();
+							g.selectAll("#clip-" + id + " rect")
+								.attr("x", x(extent[0]))
+								.attr("width", x(extent[1]) - x(extent[0]));
+						}
+					}
+
+					g.selectAll(".bar")
+						.datum(transform(view.state, "time" in view.dimension))
+						.attr("d", barPath);
+				});
+
+				function barPath(groups) {
+					var path = [],
+						i = -1,
+						n = groups.length,
+						d;
+					while (++i < n) {
+						d = groups[i];
+						path.push(
+							"M",
+							x(d.key),
+							",",
+							height,
+							"V",
+							y(d.value),
+							"h9V",
+							height
+						);
+					}
+					return path.join("");
+				}
+
+				function resizePath(d) {
+					var e = +(d == "e"),
+						x = e ? 1 : -1,
+						y = height / 3;
+					return (
+						"M" +
+						0.5 * x +
+						"," +
+						y +
+						"A6,6 0 0 " +
+						e +
+						" " +
+						6.5 * x +
+						"," +
+						(y + 6) +
+						"V" +
+						(2 * y - 6) +
+						"A6,6 0 0 " +
+						e +
+						" " +
+						0.5 * x +
+						"," +
+						2 * y +
+						"Z" +
+						"M" +
+						2.5 * x +
+						"," +
+						(y + 8) +
+						"V" +
+						(2 * y - 8) +
+						"M" +
+						4.5 * x +
+						"," +
+						(y + 8) +
+						"V" +
+						(2 * y - 8)
+					);
+				}
+			}
+
+			brush.on("brushstart.chart", async function () {
+				var div = d3.select(this.parentNode.parentNode.parentNode);
+				div.select(".title a").style("display", null);
+			});
+
+			brush.on("brush.chart", async function () {
+				var g = d3.select(this.parentNode),
+					extent = brush.extent();
+				if (round)
+					g.select(".brush")
+						.call(brush.extent((extent = extent.map(round))))
+						.selectAll(".resize")
+						.style("display", null);
+				g.select("#clip-" + id + " rect")
+					.attr("x", x(extent[0]))
+					.attr("width", x(extent[1]) - x(extent[0]));
+				// dimension.filterRange(extent);
+				if ("time" in view.dimension) {
+					await view.select([
+						extent[0].getTime(),
+						extent[1].getTime(),
+					]);
+				} else {
+					await view.select(extent);
+				}
+				if (!entriesRequest && computeEntries) {
+					entriesRequest = true;
+					falcon.entries({ length: 40 }).then((d) => {
+						entries = Array.from(d);
+						entriesRequest = false;
+					});
+				}
+
+				list.each(render);
+			});
+
+			brush.on("brushend.chart", async function () {
+				if (brush.empty()) {
+					var div = d3.select(this.parentNode.parentNode.parentNode);
+					div.select(".title a").style("display", "none");
+					div.select("#clip-" + id + " rect")
+						.attr("x", null)
+						.attr("width", "100%");
+					// dimension.filterAll();
+					await view.select();
+					if (!entriesRequest && computeEntries) {
+						entriesRequest = true;
+						falcon.entries({ length: 40 }).then((d) => {
+							entries = Array.from(d);
+							entriesRequest = false;
+						});
+					}
+					list.each(render);
+				}
+			});
+
+			chart.view = function (_) {
+				if (!arguments.length) return view;
+				view = _;
+
+				const binDomain = [
+					view.state.bin[0]["binStart"],
+					view.state.bin.at(-1)["binEnd"],
+				];
+				x = d3.scale
+					.linear()
+					.domain(binDomain)
+					.rangeRound([0, 10 * view.state.bin.length]);
+				return chart;
+			};
+
+			chart.margin = function (_) {
+				if (!arguments.length) return margin;
+				margin = _;
+				return chart;
+			};
+
+			chart.x = function (_) {
+				if (!arguments.length) return x;
+				x = _;
+				axis.scale(x);
+				brush.x(x);
+				return chart;
+			};
+
+			chart.y = function (_) {
+				if (!arguments.length) return y;
+				y = _;
+				return chart;
+			};
+
+			chart.dimension = function (_) {
+				if (!arguments.length) return dimension;
+				dimension = _;
+				return chart;
+			};
+
+			chart.filter = async function (_) {
+				if (_) {
+					brush.extent(_);
+					await view.activate();
+					// dimension.filterRange(_);
+					if ("time" in view.dimension) {
+						await view.select([_[0].getTime(), _[1].getTime()]);
+					} else {
+						await view.select(_);
+					}
+				} else {
+					brush.clear();
+					// dimension.filterAll();
+					await view.activate();
+					await view.select(_);
+				}
+				brushDirty = true;
+				return chart;
+			};
+
+			chart.group = function (_) {
+				if (!arguments.length) return group;
+				group = _;
+				return chart;
+			};
+
+			chart.round = function (_) {
+				if (!arguments.length) return round;
+				round = _;
+				return chart;
+			};
+
+			return d3.rebind(chart, brush, "on");
+		}
+
+		function flightEntries(div) {
+			if (entries) {
+				div.each(function () {
+					// todo figure out why I need to remove everything for stuff to update
+					// after some testing it has to do with how .data(entries) changes since entries
+					d3.select(this).selectAll(".flight").remove();
+
+					var flight = d3
+						.select(this)
+						.selectAll(".flight")
+						.data(entries);
+
+					var flightEnter = flight
+						.enter()
+						.append("div")
+						.attr("class", "flight");
+
+					flightEnter
+						.append("div")
+						.attr("class", "time")
+						.text(function (d) {
+							return (
+								formatMonthDay(new Date(d[columnNames.date])) +
+								" - " +
+								decimalToTime(d[columnNames.hour])
+							);
+						});
+
+					flightEnter
+						.append("div")
+						.attr("class", "origin")
+						.text(function (d) {
+							return d[columnNames.origin];
+						});
+
+					flightEnter
+						.append("div")
+						.attr("class", "destination")
+						.text(function (d) {
+							return d[columnNames.dest];
+						});
+
+					flightEnter
+						.append("div")
+						.attr("class", "distance")
+						.text(function (d) {
+							return (
+								formatNumber(d[columnNames.distance]) + " mi."
+							);
+						});
+
+					flightEnter
+						.append("div")
+						.attr("class", "delay")
+						.classed("late", function (d) {
+							return d[columnNames.delay] > 0;
+						})
+						.text(function (d) {
+							return formatChange(d[columnNames.delay]) + " min.";
+						});
+					flight.exit().remove();
+				});
+			}
+		}
+		function transform(state, time = false) {
+			const _t = new Array(state.bin.length);
+			for (let i = 0; i < _t.length; i++) {
+				const { binStart } = state.bin[i];
+				_t[i] = {
+					key: time ? binStart : binStart,
+					value: state.filter[i],
+				};
+			}
+			return _t;
+		}
+		//https://stackoverflow.com/questions/17599054/is-there-a-simple-way-to-convert-a-decimal-time-e-g-1-074-minutes-into-mmss
+		// what can I say, its late
+		function decimalToTime(minutes) {
+			var sign = minutes < 0 ? "-" : "";
+			var min = Math.floor(Math.abs(minutes));
+			var sec = Math.floor((Math.abs(minutes) * 60) % 60);
+			return (
+				sign +
+				(min < 10 ? "0" : "") +
+				min +
+				":" +
+				(sec < 10 ? "0" : "") +
+				sec
+			);
+		}
+	}
+</script>
