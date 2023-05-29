@@ -55,11 +55,11 @@ npm install falcon-vis
 
 Before you filter your data, you need to tell `FalconVis` about your data.
 
-`FalconVis` currently supports javascript objects, Apache Arrow tables, DuckDB Wasm, and HTTP GET Requests. For different data sizes, or if you want the computation to take place in the browser, different data types are recommended.
+`FalconVis` currently supports JavaScript objects, Apache Arrow tables, DuckDB WASM, and HTTP GET Requests. For different data sizes, or if you want the computation to take place in the browser, different data types are recommended.
 
 | DB                        | Recommended Data Size            | Memory/Computation | Description                                                                                    |
 | ------------------------- | -------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- |
-| [`JsonDB`](#JsonDB)       | up to 500k                       | Browser            | Takes javascript object                                                                        |
+| [`JsonDB`](#JsonDB)       | up to 500k                       | Browser            | Takes JavaScript object                                                                        |
 | [`ArrowDB`](#ArrowDB)     | up to 1m                         | Browser            | Takes [Apache Arrow](https://github.com/apache/arrow) table                                    |
 | [`DuckDB`](#DuckDB)       | up to 10m                        | Browser            | Queries [DuckDB WASM](https://duckdb.org/docs/api/wasm/overview.html) database                 |
 | [`HeavyaiDB`](#HeavyaiDB) | whatever your backend can handle | Backend            | Queries [HeavyAI](https://www.heavy.ai/) database connection                                   |
@@ -172,7 +172,7 @@ https://github.com/cmudig/falcon/assets/65095341/ab7fa9fc-d51f-4830-89f6-93ac691
 
 <a href="#JsonDB" id="JsonDB">#</a> `class` <b>JsonDB</b>(_object_)
 
-Takes a javascript object and attaches `FalconVis` data index methods to it. Under the hood, it converts into a <b>ArrowDB</b> class.
+Takes a JavaScript object and attaches `FalconVis` data index methods to it. Under the hood, it converts into a <b>ArrowDB</b> class.
 
 The JsonDB supports row-wise or column-wise object formats, but it is recommended to use column-wise format because the row-wise format converts to column-wise with a copy.
 
