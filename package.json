@@ -2,7 +2,7 @@
   "name": "falcon-vis-repository",
   "version": "0.0.0",
   "private": true,
-  "description": "falcon-vis package and examples of it's use",
+  "description": "falcon-vis package and examples of its use",
   "repository": "git+https://github.com/cmudig/falcon.git",
   "author": "xnought <bertuccd@oregonstate.edu>",
   "license": "ISC",
