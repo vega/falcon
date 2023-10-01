@@ -1737,10 +1737,10 @@
   dependencies:
     "@types/ndarray" "*"
 
-"@types/ndarray@*", "@types/ndarray@1.0.11":
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.11.tgz#a78730ac1fd10ea01cda6954dba7b3bf4fa126f4"
-  integrity sha512-hOZVTN24zDHwCHaW7mF9n1vHJt83fZhNZ0YYRBwQGhA96yBWWDPTDDlqJatagHIOJB0a4xoNkNc+t/Cxd+6qUA==
+"@types/ndarray@*", "@types/ndarray@1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@types/ndarray/-/ndarray-1.0.12.tgz#82987c35302002f04082bbaabf3aaeebda2b2ee7"
+  integrity sha512-qe0W0zvfpLUK1xn+HyHvle3D+o8tJQvFzXt1heYOL8kC74rtAosY+I3ZR7SylVoD9690+x0peDhek6STWyn9nQ==
 
 "@types/node@*", "@types/node@20.3.0":
   version "20.3.0"
