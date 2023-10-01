@@ -1775,9 +1775,9 @@
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
 "@types/ndarray-ops@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@types/ndarray-ops/-/ndarray-ops-1.2.4.tgz#64ef0c02870adf585b82240437771d14888b5264"
-  integrity sha512-vobA1pL04LynGY0hkjYUSvqbig26gHKQ/Woi5EuHFP6mh/xUTkUo+O+lpLjPNWOjrA+Vs3kQ6r2Lsvcv4vvonA==
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@types/ndarray-ops/-/ndarray-ops-1.2.5.tgz#7d2457acc2d9d720a75a80bf46cd7be16378196f"
+  integrity sha512-crPWev4PrAj+ORv2GMRvk9WTSluvGddgt6jBn2p0nO4NrYDYlw4+FbvhA4gqOQmfXc68gs2mL7TRKEJDMus+Xg==
   dependencies:
     "@types/ndarray" "*"
 
