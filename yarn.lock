@@ -1908,9 +1908,9 @@ apache-arrow@^13.0.0:
     tslib "^2.5.3"
 
 apache-arrow@^14.0.1:
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-14.0.1.tgz#34fb09139b61e5cbb4cc8a3630c74774d660ec1b"
-  integrity sha512-UTpL70GJLu4L8lXPF8NH2XaGgm1/xTZGIljqmz0Yr4D4G4soO6Xa+WWWw0oqCmyr99UBmHC0sqSboPKBrpsVjA==
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-14.0.2.tgz#737f7b8211ef99a2c137dcc9d2001b469efb0344"
+  integrity sha512-EBO2xJN36/XoY81nhLcwCJgFwkboDZeyNQ+OPsG7bCoQjc2BT0aTyH/MR6SrL+LirSNz+cYqjGRlupMMlP1aEg==
   dependencies:
     "@types/command-line-args" "5.2.0"
     "@types/command-line-usage" "5.0.2"
