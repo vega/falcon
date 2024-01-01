@@ -1459,9 +1459,9 @@
   integrity sha512-+0C9uznudexJL/I38gQLEz6mdnObPBx313xDJmRRlZ40MOMfOKJIW1ws62rj+Nt2jltETRRTxAJLeZJO4sytJw==
 
 "@types/cwise@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@types/cwise/-/cwise-1.0.4.tgz#2ee0052a75a623d9c719cd1bcc71e0324e2337dc"
-  integrity sha512-ODlc0Cv5BI7//4ekyc3AD/nBezLMyrg6+SXFarHEAG8iGXNS6IBXHU6p/zH/pxmddYqXW3OfrzEqohM7wgJlGw==
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@types/cwise/-/cwise-1.0.6.tgz#3f2315ede4030d3d0fafd8dadda6440850e30990"
+  integrity sha512-brDk/D0AwpmfEJN2U9w3I8QrLLEAIn8OFVzYzb0Ko/P7apoHxusB7JkUXUBbno0GcB2Hv0NpFBKB0wB8lLUQcw==
   dependencies:
     "@types/cwise-compiler" "*"
     "@types/ndarray" "*"
