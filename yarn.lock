@@ -2047,10 +2047,10 @@ apache-arrow@^13.0.0:
     pad-left "^2.1.0"
     tslib "^2.5.3"
 
-apache-arrow@^15.0.0:
-  version "15.0.2"
-  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-15.0.2.tgz#d87c6447d64d6fab34aa70119362680b6617ce63"
-  integrity sha512-RvwlFxLRpO405PLGffx4N2PYLiF7FD86Q1hHl6J2XCWiq+tTCzpb9ngFw0apFDcXZBMpCzMuwAvA7hjyL1/73A==
+apache-arrow@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-16.0.0.tgz#7f13cdf6dc22e290a43c53666035bf82d28da804"
+  integrity sha512-bVyJeV4ahJW4XYjXefSBco0/mSSSElOzzh3Qx7tsKH+94sZaHrRotKKj1xVjON1hMUm7TODi6DnbFE73Q2h2MA==
   dependencies:
     "@swc/helpers" "^0.5.2"
     "@types/command-line-args" "^5.2.1"
