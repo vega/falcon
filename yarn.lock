@@ -2005,6 +2005,21 @@ apache-arrow@^17.0.0:
     json-bignum "^0.0.3"
     tslib "^2.6.2"
 
+apache-arrow@^18.0.0:
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-18.0.0.tgz#a187bd55318a7a68b6ff09835d05e89e019eba2e"
+  integrity sha512-gFlPaqN9osetbB83zC29AbbZqGiCuFH1vyyPseJ+B7SIbfBtESV62mMT/CkiIt77W6ykC/nTWFzTXFs0Uldg4g==
+  dependencies:
+    "@swc/helpers" "^0.5.11"
+    "@types/command-line-args" "^5.2.3"
+    "@types/command-line-usage" "^5.0.4"
+    "@types/node" "^20.13.0"
+    command-line-args "^5.2.1"
+    command-line-usage "^7.0.1"
+    flatbuffers "^24.3.25"
+    json-bignum "^0.0.3"
+    tslib "^2.6.2"
+
 apply-colormap@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/apply-colormap/-/apply-colormap-1.0.1.tgz#8fb95c567582f70c0002b2826bbb9cc9b6cf4d03"
