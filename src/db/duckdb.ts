@@ -1,11 +1,15 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
+import { Table } from "apache-arrow";
 import { compactQuery } from "../util";
 import { SQLDB } from "./sql";
 
 export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
   private db: duckdb.AsyncDuckDB;
 
-  constructor(private dataUrl: string, nameMap?: Map<D, string>) {
+  constructor(
+    private dataUrl: string,
+    nameMap?: Map<D, string>
+  ) {
     super("data", nameMap);
   }
 
@@ -31,7 +35,7 @@ export class DuckDB<V extends string, D extends string> extends SQLDB<V, D> {
     c.close();
   }
 
-  protected async query(q: string) {
+  protected async query(q: string): Promise<Table<any>> {
     const t0 = performance.now();
 
     q = q.replaceAll("count(*)", "count(*)::INT");
