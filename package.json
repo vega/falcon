@@ -34,7 +34,7 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.29.0",
     "@heavyai/connector": "^7.0.0",
-    "apache-arrow": "^17.0.0",
+    "apache-arrow": "^18.1.0",
     "cwise": "^1.0.10",
     "d3": "^7.9.0",
     "ndarray": "^1.0.19",
@@ -48,10 +48,10 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
     "@babel/runtime": "^7.26.0",
-    "@parcel/config-default": "^2.13.2",
-    "@parcel/core": "^2.13.2",
-    "@parcel/transformer-raw": "^2.13.2",
-    "@parcel/transformer-sass": "^2.13.2",
+    "@parcel/config-default": "^2.13.3",
+    "@parcel/core": "^2.13.3",
+    "@parcel/transformer-raw": "^2.13.3",
+    "@parcel/transformer-sass": "^2.13.3",
     "@types/cwise": "^1.0.6",
     "@types/d3": "^7.4.3",
     "@types/jest": "^29.5.14",
@@ -59,14 +59,14 @@
     "@types/ndarray-ops": "^1.2.7",
     "babel-preset-env": "^1.7.0",
     "buffer": "^6.0.3",
-    "gh-pages": "^6.2.0",
+    "gh-pages": "^6.3.0",
     "jest": "^29.7.0",
     "node-sass": "^9.0.0",
-    "parcel": "2.13.2",
-    "prettier": "^3.4.1",
+    "parcel": "2.13.3",
+    "prettier": "^3.4.2",
     "process": "^0.11.10",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "browserslist": "last 2 Chrome versions, last 2 Firefox versions"
 }
