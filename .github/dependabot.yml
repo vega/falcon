@@ -3,10 +3,7 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: monthly
-    day: sunday
-    time: "04:00"
-    timezone: America/Los_Angeles
+    interval: yearly
   open-pull-requests-limit: 10
 - package-ecosystem: github-actions
   directory: '/'
