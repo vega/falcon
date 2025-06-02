@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/falcon-vis.svg)](https://www.npmjs.com/package/falcon-vis) ![Tests](https://github.com/vega/falcon/workflows/Node.js%20CI/badge.svg) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=rounded)](https://github.com/prettier/prettier)
 
-Crossfilter millions of records without latencies. This project is work in progress and not documented yet. Please get in touch if you have questions.
+Crossfilter millions of records without latencies.
 
 The largest experiments we have done so far is 10M flights in the browser, 33M flights in the browser with [DuckDB](https://github.com/duckdb/duckdb-wasm), and ~180M flights or [~1.7B stars](#falcon-with-17-billion-stars-from-the-gaia-dataset) when connected to [OmniSciDB](https://www.omnisci.com/platform/core/) (formerly known as MapD).
 
@@ -22,6 +22,8 @@ We have written [a paper](https://osf.io/szpqm/) about the research behind Falco
   booktitle = {Proceedings of the 2019 {CHI} Conference on Human Factors in Computing Systems  - {CHI} {\textquotesingle}19}
 }
 ```
+
+This project was developed for the paper above. A lot of the functionality is now in the [falcon-vis](https://github.com/cmudig/falcon-vis) library, [VegaFusion](https://vegafusion.io), and [Mosaic](https://github.com/uwdata/mosaic). 
 
 ## Demos
 
